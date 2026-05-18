@@ -1,17 +1,1236 @@
 ---
-import Container from "@/components/container.astro";
-import Cta from "@/components/cta.astro";
-import Features from "@/components/features.astro";
-import Hero from "@/components/hero.astro";
-import Logos from "@/components/logos.astro";
+import { Icon } from "astro-icon/components";
 import Layout from "@/layouts/Layout.astro";
+
+const bookingUrl = "https://washmax.dk/book-nu/";
+const giftCardUrl = "https://washmax.dk/shop/";
+const phoneHref = "tel:+4591671452";
+const heroVideo = "/videos/hero.mp4";
+
+const defaultBrand = "Audi";
+const popularBrandOrder = [
+  "Audi",
+  "BMW",
+  "Ford",
+  "Mercedes-Benz",
+  "Peugeot",
+  "Skoda",
+  "Tesla",
+  "Toyota",
+  "Volkswagen",
+];
+const brandLabels = {
+  Volkswagen: "VW",
+};
+const brandLogoFiles = {
+  Tesla: "/bilbrands/tesla.png",
+  Volkswagen: "/bilbrands/vw.png",
+};
+const carCatalog = {
+  Audi: [
+    "80",
+    "90",
+    "100",
+    "200",
+    "A1",
+    "A2",
+    "A3",
+    "A4",
+    "A5",
+    "A6",
+    "A7",
+    "A8",
+    "e-tron",
+    "e-tron GT",
+    "Q2",
+    "Q3",
+    "Q4 e-tron",
+    "Q5",
+    "Q6 e-tron",
+    "Q7",
+    "Q8",
+    "R8",
+    "RS3",
+    "RS4",
+    "RS5",
+    "RS6",
+    "RS7",
+    "RS Q3",
+    "RS Q8",
+    "S1",
+    "S3",
+    "S4",
+    "S5",
+    "S6",
+    "S7",
+    "S8",
+    "SQ2",
+    "SQ5",
+    "SQ7",
+    "SQ8",
+    "TT",
+    "TTS",
+    "TT RS",
+  ],
+  BMW: [
+    "1 Series",
+    "2 Series",
+    "3 Series",
+    "4 Series",
+    "5 Series",
+    "6 Series",
+    "7 Series",
+    "8 Series",
+    "i3",
+    "i4",
+    "i5",
+    "i7",
+    "iX",
+    "iX1",
+    "iX2",
+    "M2",
+    "M3",
+    "M4",
+    "M5",
+    "X1",
+    "X2",
+    "X3",
+    "X4",
+    "X5",
+    "X6",
+    "X7",
+    "Z4",
+  ],
+  "Mercedes-Benz": [
+    "A-Class",
+    "B-Class",
+    "C-Class",
+    "CLA",
+    "CLS",
+    "E-Class",
+    "EQA",
+    "EQB",
+    "EQC",
+    "EQE",
+    "EQS",
+    "G-Class",
+    "GLA",
+    "GLB",
+    "GLC",
+    "GLE",
+    "GLS",
+    "S-Class",
+    "V-Class",
+    "Sprinter",
+  ],
+  Volkswagen: [
+    "Arteon",
+    "Caddy",
+    "Crafter",
+    "Golf",
+    "ID.3",
+    "ID.4",
+    "ID.5",
+    "ID.7",
+    "Passat",
+    "Polo",
+    "Sharan",
+    "T-Cross",
+    "T-Roc",
+    "Taigo",
+    "Tiguan",
+    "Touareg",
+    "Touran",
+    "Transporter",
+    "Up",
+  ],
+  Tesla: ["Model 3", "Model S", "Model X", "Model Y", "Cybertruck"],
+  Toyota: [
+    "Auris",
+    "Aygo",
+    "bZ4X",
+    "C-HR",
+    "Camry",
+    "Corolla",
+    "GR86",
+    "Hilux",
+    "Land Cruiser",
+    "Prius",
+    "RAV4",
+    "Yaris",
+    "Yaris Cross",
+  ],
+  Skoda: [
+    "Citigo",
+    "Enyaq",
+    "Fabia",
+    "Kamiq",
+    "Karoq",
+    "Kodiaq",
+    "Octavia",
+    "Scala",
+    "Superb",
+  ],
+  Peugeot: [
+    "108",
+    "208",
+    "2008",
+    "3008",
+    "308",
+    "408",
+    "5008",
+    "508",
+    "Partner",
+    "Rifter",
+  ],
+  Ford: [
+    "Fiesta",
+    "Focus",
+    "Galaxy",
+    "Kuga",
+    "Mondeo",
+    "Mustang",
+    "Puma",
+    "S-Max",
+    "Transit",
+    "Explorer",
+  ],
+  Renault: [
+    "Captur",
+    "Clio",
+    "Espace",
+    "Kadjar",
+    "Kangoo",
+    "Megane",
+    "Scenic",
+    "Talisman",
+    "Trafic",
+    "Zoe",
+  ],
+  Volvo: [
+    "C40",
+    "EX30",
+    "EX40",
+    "S60",
+    "S90",
+    "V40",
+    "V60",
+    "V90",
+    "XC40",
+    "XC60",
+    "XC90",
+  ],
+  Kia: [
+    "Ceed",
+    "EV3",
+    "EV6",
+    "EV9",
+    "Niro",
+    "Picanto",
+    "Proceed",
+    "Rio",
+    "Sorento",
+    "Sportage",
+    "Stonic",
+  ],
+  Hyundai: [
+    "Bayon",
+    "i10",
+    "i20",
+    "i30",
+    "Ioniq",
+    "Ioniq 5",
+    "Ioniq 6",
+    "Kona",
+    "Santa Fe",
+    "Tucson",
+  ],
+  Nissan: [
+    "Ariya",
+    "Juke",
+    "Leaf",
+    "Micra",
+    "Navara",
+    "Note",
+    "Qashqai",
+    "X-Trail",
+  ],
+  Opel: [
+    "Astra",
+    "Corsa",
+    "Crossland",
+    "Grandland",
+    "Insignia",
+    "Mokka",
+    "Vivaro",
+    "Zafira",
+  ],
+  Cupra: ["Ateca", "Born", "Formentor", "Leon", "Tavascan", "Terramar"],
+  BYD: ["Atto 3", "Dolphin", "Han", "Seal", "Seal U", "Tang"],
+  Polestar: ["Polestar 1", "Polestar 2", "Polestar 3", "Polestar 4"],
+};
+
+const brands = Object.keys(carCatalog);
+const popularBrands = popularBrandOrder.filter((brand) => brands.includes(brand));
+const otherBrands = brands.filter((brand) => !popularBrands.includes(brand));
+const defaultModels = carCatalog[defaultBrand];
+const getBrandLabel = (brand) => brandLabels[brand] ?? brand;
+const getBrandLogo = (brand) => brandLogoFiles[brand] ?? "";
+const getBrandInitials = (brand) => {
+  const words = brand.replace(/-/g, " ").split(" ");
+
+  if (words.length > 1) {
+    return words
+      .map((word) => word[0] ?? "")
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  }
+
+  return brand.length <= 3 ? brand.toUpperCase() : brand.charAt(0).toUpperCase();
+};
+
+const packagePreview = [
+  {
+    id: "small",
+    label: "Lille bil",
+    price: "799 kr.",
+    duration: "90-120 min",
+    note: "Hele bilen med indvendig og udvendig behandling.",
+    ctaLabel: "Bestil lille bil",
+    includes: [
+      "Grundig stovsugning og damp af kabinen",
+      "Vinduer, spejle og overflader klares",
+      "Sand, snavs og finish pa ydersiden",
+    ],
+  },
+  {
+    id: "medium",
+    label: "Mellem bil",
+    price: "899 kr.",
+    duration: "120-180 min",
+    note: "Til dig der vil have lidt mere plads gjort faerdig pa en gang.",
+    ctaLabel: "Bestil mellem bil",
+    includes: [
+      "Komplet rengoring inde og ude",
+      "Dorfalser, paneler og matter behandles",
+      "God balance mellem pris og dybde",
+    ],
+  },
+  {
+    id: "large",
+    label: "Stor bil",
+    price: "999 kr.",
+    duration: "120-180 min",
+    note: "SUV og stor familiebil med samme enkle bookingflow.",
+    ctaLabel: "Bestil stor bil",
+    includes: [
+      "Miljoevenlig rengoring af hele bilen",
+      "Desinficering og finish pa kontaktflader",
+      "God til familier og meget brugte biler",
+    ],
+  },
+  {
+    id: "van",
+    label: "Varevogn",
+    price: "1.500 kr.",
+    duration: "100-180 min",
+    note: "Varebil eller arbejdsbil med plads til det hele.",
+    ctaLabel: "Bestil varevogn",
+    includes: [
+      "Hele bilen rengores og friskes op",
+      "Kabinen dampes, renses og afsluttes",
+      "Udvendig vask med fokus pa det praktiske",
+    ],
+  },
+];
+
+const steps = [
+  {
+    title: "1. Bestil online",
+    text: "Vaelg biltype, tidspunkt og lokation pa fa minutter.",
+    icon: "bx:bxs-calendar",
+  },
+  {
+    title: "2. Vi kommer til dig",
+    text: "Pa arbejdspladsen, derhjemme eller der hvor bilen holder.",
+    icon: "bx:bxs-map",
+  },
+  {
+    title: "3. Din bil er klar igen",
+    text: "Du sparer tid og far en ren bil uden turen til vaskehallen.",
+    icon: "bx:bxs-car",
+  },
+];
+
+const serviceCards = [
+  {
+    title: "Komplet rengoring",
+    copy:
+      "Indvendig og udvendig behandling i samme flow. Den mest direkte vej til en ren bil.",
+    icon: "bx:bxs-spray-can",
+    link: `${bookingUrl}?service=komplet`,
+  },
+  {
+    title: "Leasing og returklargoring",
+    copy:
+      "God nar bilen skal afleveres eller gores skarp til salg og brugerskifte.",
+    icon: "bx:bxs-file-doc",
+    link: `${bookingUrl}?service=leasing`,
+  },
+  {
+    title: "Gavekort",
+    copy:
+      "Send et digitalt gavekort direkte og lad modtageren vaelge bil og tidspunkt selv.",
+    icon: "bx:bxs-gift",
+    link: giftCardUrl,
+  },
+];
+
+const benefits = [
+  "Mobil service pa privatadresse, job eller parkeringsanlaeg",
+  "Skansom og miljoevenlig behandling med damp",
+  "Klare priser uden at gemme booking bag formularer",
+  "Alle ugens dage kl. 08-17 og mulighed for saerlig aftale",
+];
+
+const coverage = [
+  {
+    title: "Det meste af Sjaelland",
+    text: "Vi arbejder i store dele af Sjaelland og udvider loebende omradet.",
+    icon: "bx:bxs-map-alt",
+  },
+  {
+    title: "Alle typer lokationer",
+    text: "Arbejdsplads, privatadresse, parkeringsanlaeg og andre praktiske steder.",
+    icon: "bx:bxs-navigation",
+  },
+  {
+    title: "Klart tillaeg udenfor omradet",
+    text: "Ved koersel udenfor daekningsomradet kan der komme et tillaeg pa 250 kr.",
+    icon: "bx:bxs-compass",
+  },
+];
+
+const testimonials = [
+  {
+    quote:
+      "Det vigtigste for os var at booking skulle vaere let, og at bilen blev ren uden ekstra besvaer. Det leverede de pa.",
+    name: "Kunde fra Solrod",
+  },
+  {
+    quote:
+      "Vi bestilte til arbejdspladsen og sparede en hel eftermiddag. God kommunikation og et flot resultat.",
+    name: "Erhvervskunde i Koge",
+  },
+  {
+    quote:
+      "Prisen var tydelig fra start, og hele bilen stod skarp bagefter. Den type enkelhed skal forsiden vise.",
+    name: "Kunde fra Roskilde",
+  },
+];
 ---
 
-<Layout title="">
-  <Container>
-    <Hero />
-    <Features />
-    <Logos />
-    <Cta />
-  </Container>
+<Layout
+  title="Mobil bilrengoring hos dig"
+  description="Ny WashMax forside i Astro med video hero, SteamRex-inspireret brand og modelvaelger, tydelige pakker, daekningsomrade og hurtig vej til booking.">
+  <main class="px-4 pb-10 sm:px-6">
+    <section class="-mx-4 sm:-mx-6">
+      <div class="relative min-h-[calc(100vh-7rem)] overflow-x-hidden overflow-y-visible bg-[#071611]">
+        <video
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          class="absolute inset-0 h-full w-full object-cover"
+        >
+          <source src={heroVideo} type="video/mp4" />
+        </video>
+        <div class="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,9,8,0.82)_0%,rgba(5,17,13,0.58)_48%,rgba(7,21,17,0.34)_100%)]"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_78%_26%,rgba(101,214,250,0.26),transparent_20rem)]"></div>
+        <div class="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(3,9,8,0.38),rgba(3,9,8,0.72))]"></div>
+
+        <div class="relative z-10 mx-auto flex min-h-[calc(100vh-7rem)] max-w-7xl items-center px-4 py-16 sm:px-6 lg:px-10">
+          <div class="grid w-full gap-10 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+            <div class="max-w-3xl">
+              <p class="text-sm font-semibold uppercase tracking-[0.18em] text-[#61c8f4]">
+                Bilrengoring hos dig
+              </p>
+              <h1 class="mt-4 max-w-2xl font-display text-[clamp(3.2rem,8vw,6.3rem)] font-semibold leading-[0.92] tracking-[-0.05em] text-white">
+                Fa helt ren bil med et klik
+              </h1>
+              <p class="mt-5 max-w-2xl text-lg leading-8 text-white/78">
+                Nu med video hero og direkte modelvalg i toppen. Vaelg maerke,
+                vaelg model og send kunden hurtigere videre til booking.
+              </p>
+
+              <div class="relative z-30 mt-10 max-w-4xl overflow-visible rounded-[1.75rem] border border-white/12 bg-[rgba(255,255,255,0.1)] p-4 shadow-[0_24px_60px_rgba(0,0,0,0.22)] backdrop-blur-md">
+                <div class="grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+                  <div class="relative z-40 block" data-brand-combobox>
+                    <span class="sr-only">Vaelg maerke</span>
+                    <input
+                      type="hidden"
+                      data-brand-select
+                      value={defaultBrand}
+                    />
+                    <button
+                      type="button"
+                      data-brand-trigger
+                      aria-haspopup="listbox"
+                      aria-expanded="false"
+                      class="flex h-16 w-full items-center justify-between rounded-[1.1rem] border border-white/10 bg-white px-5 text-left text-lg font-medium text-[#10211a] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] outline-none transition hover:border-[#63bfe8] focus:border-[#63bfe8]"
+                    >
+                      <span class="flex min-w-0 items-center gap-3">
+                        <span
+                          data-brand-trigger-logo
+                          class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/8 bg-[#f6f7f8] text-sm font-semibold text-[#10211a]"
+                        >
+                          {getBrandInitials(defaultBrand)}
+                        </span>
+                        <span data-brand-trigger-label class="truncate">
+                          {getBrandLabel(defaultBrand)}
+                        </span>
+                      </span>
+                      <span class="pointer-events-none flex items-center text-[#52b8e4]">
+                        <Icon name="bx:chevron-down" class="h-7 w-7" />
+                      </span>
+                    </button>
+                    <div
+                      data-brand-menu
+                      class="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-[140] hidden overflow-hidden rounded-[1.3rem] border border-black/8 bg-white shadow-[0_24px_60px_rgba(0,0,0,0.22)]"
+                    >
+                      <div class="max-h-[22rem] overflow-y-auto py-3">
+                        <p class="px-4 pb-2 text-sm text-[#7b8790]">
+                          Populaere biler
+                        </p>
+                        {
+                          popularBrands.map((brand) => (
+                            <button
+                              type="button"
+                              data-brand-option={brand}
+                              aria-selected={brand === defaultBrand ? "true" : "false"}
+                              class:list={[
+                                "flex w-full items-center gap-4 px-4 py-3 text-left transition hover:bg-[#f5f8fa]",
+                                brand === defaultBrand && "bg-[#f5f8fa]",
+                              ]}>
+                              <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/8 bg-[#f6f7f8] text-sm font-semibold text-[#10211a]">
+                                {
+                                  getBrandLogo(brand) ? (
+                                    <img
+                                      src={getBrandLogo(brand)}
+                                      alt={`${getBrandLabel(brand)} logo`}
+                                      class="h-6 w-6 object-contain"
+                                      loading="lazy"
+                                      decoding="async"
+                                    />
+                                  ) : (
+                                    getBrandInitials(brand)
+                                  )
+                                }
+                              </span>
+                              <span class="text-lg font-semibold text-[#10211a]">
+                                {getBrandLabel(brand)}
+                              </span>
+                            </button>
+                          ))
+                        }
+                        {
+                          otherBrands.length > 0 && (
+                            <>
+                              <div class="mx-4 my-2 border-t border-black/6"></div>
+                              <p class="px-4 pb-2 pt-1 text-sm text-[#7b8790]">
+                                Alle biler
+                              </p>
+                              {
+                                otherBrands.map((brand) => (
+                                  <button
+                                    type="button"
+                                    data-brand-option={brand}
+                                    aria-selected="false"
+                                    class="flex w-full items-center gap-4 px-4 py-3 text-left transition hover:bg-[#f5f8fa]">
+                                    <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full border border-black/8 bg-[#f6f7f8] text-sm font-semibold text-[#10211a]">
+                                      {
+                                        getBrandLogo(brand) ? (
+                                          <img
+                                            src={getBrandLogo(brand)}
+                                            alt={`${getBrandLabel(brand)} logo`}
+                                            class="h-6 w-6 object-contain"
+                                            loading="lazy"
+                                            decoding="async"
+                                          />
+                                        ) : (
+                                          getBrandInitials(brand)
+                                        )
+                                      }
+                                    </span>
+                                    <span class="text-lg font-semibold text-[#10211a]">
+                                      {getBrandLabel(brand)}
+                                    </span>
+                                  </button>
+                                ))
+                              }
+                            </>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <label class="relative block">
+                    <span class="sr-only">Vaelg model</span>
+                    <select
+                      data-model-select
+                      class="h-16 w-full appearance-none rounded-[1.1rem] border border-white/10 bg-white px-5 pr-14 text-lg font-medium text-[#10211a] shadow-[inset_0_1px_0_rgba(255,255,255,0.35)] outline-none transition focus:border-[#63bfe8]"
+                    >
+                      <option value="" selected>Vaelg model</option>
+                      {
+                        defaultModels.map((model) => (
+                          <option value={model}>{model}</option>
+                        ))
+                      }
+                    </select>
+                    <span class="pointer-events-none absolute inset-y-0 right-5 flex items-center text-[#52b8e4]">
+                      <Icon name="bx:chevron-down" class="h-7 w-7" />
+                    </span>
+                  </label>
+
+                  <a
+                    href={bookingUrl}
+                    data-hero-book
+                    class="inline-flex h-16 items-center justify-center rounded-[1.1rem] bg-[#5ec1eb] px-8 text-lg font-semibold text-white transition hover:bg-[#4bb8e6] lg:min-w-[11rem]"
+                  >
+                    Se din pris
+                  </a>
+                </div>
+
+                <div class="mt-3 flex flex-col gap-2 text-sm text-white/86 sm:flex-row sm:items-center sm:justify-between">
+                  <p>
+                    Vaelg rengoring af hele bilen og spar minimum 398 kr. inkl.
+                    gratis voksbehandling.
+                  </p>
+                  <p data-hero-selection class="text-white/72">
+                    Audi valgt. Vaelg model for at fortsaette.
+                  </p>
+                </div>
+              </div>
+
+              <div class="mt-8 flex flex-wrap gap-3">
+                <div class="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm text-white/80 backdrop-blur-sm">
+                  Alle ugens dage kl. 08-17
+                </div>
+                <div class="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm text-white/80 backdrop-blur-sm">
+                  Dækker det meste af Sjaelland
+                </div>
+                <div class="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm text-white/80 backdrop-blur-sm">
+                  Miljoevenlig dampbehandling
+                </div>
+              </div>
+            </div>
+
+            <div class="hidden items-center justify-end lg:flex">
+              <div class="relative flex h-[20rem] w-[20rem] items-center justify-center rounded-full border-[10px] border-white/90 bg-[radial-gradient(circle_at_40%_30%,#a5ea5e,#7acb34_55%,#5ca61f_100%)] p-8 text-center text-white shadow-[0_28px_70px_rgba(0,0,0,0.3)]">
+                <div class="absolute inset-[0.8rem] rounded-full border border-white/70"></div>
+                <div class="absolute inset-[1.6rem] rounded-full border border-white/25"></div>
+                <div class="relative z-10">
+                  <p class="text-[0.7rem] font-semibold uppercase tracking-[0.22em] text-white/80">
+                    Bestil komplet bilrengoring
+                  </p>
+                  <p class="mt-4 font-display text-[3.2rem] font-semibold leading-none">
+                    Fa gratis
+                  </p>
+                  <p class="mt-2 font-display text-[2.4rem] font-semibold leading-[1.02]">
+                    voksbehandling
+                  </p>
+                  <p class="mt-2 text-2xl font-semibold leading-tight">
+                    &amp; hel bils rabat
+                  </p>
+                  <p class="mt-5 text-sm font-semibold uppercase tracking-[0.18em] text-white/84">
+                    Spar minimum
+                  </p>
+                  <p class="mt-2 font-display text-[3.8rem] font-semibold leading-none">
+                    398,-
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 max-w-7xl" id="pakker">
+      <div class="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+        <div class="section-shell px-6 py-8 sm:px-8">
+          <span class="eyebrow">Se din pris</span>
+          <h2 class="mt-5 section-title">
+            Frontpage-preview som leder direkte til booking.
+          </h2>
+          <p class="mt-5 support-copy">
+            SteamRex bruger et tydeligt pris- og valgflow helt oppe i heroen.
+            Her starter vi med en enklere Astro-version for WashMax: brugeren
+            ser biltype, pris og varighed med det samme, og klikker derefter
+            videre til den eksisterende booking.
+          </p>
+          <div class="mt-8 grid gap-3">
+            {
+              benefits.map((item) => (
+                <div class="flex items-start gap-3 rounded-[1.25rem] border border-[var(--line)] bg-white/78 px-4 py-3">
+                  <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[rgba(25,175,132,0.16)] text-[var(--brand-deep)]">
+                    <Icon name="bx:bxs-check-circle" class="h-4 w-4" />
+                  </span>
+                  <p class="text-sm leading-6 text-[var(--ink)]">{item}</p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="section-shell overflow-hidden px-6 py-8 sm:px-8">
+          <div class="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                Bilstorrelse
+              </p>
+              <h2 class="mt-2 font-display text-3xl font-semibold tracking-tight">
+                Vaelg din biltype
+              </h2>
+            </div>
+            <p class="max-w-sm text-sm text-[var(--muted)]">
+              De her priser kommer fra din nuvaerende WashMax struktur og er sat
+              op som et skarpt preview, sa forsiden konverterer bedre.
+            </p>
+          </div>
+
+          <div class="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {
+              packagePreview.map((item, index) => (
+                <button
+                  type="button"
+                  data-package-button={item.id}
+                  class:list={[
+                    "rounded-[1.4rem] border px-4 py-4 text-left transition duration-200",
+                    index === 0
+                      ? "border-transparent bg-[linear-gradient(135deg,#132f27,#0f7d60)] text-white shadow-[0_18px_35px_rgba(16,99,78,0.18)]"
+                      : "border-[var(--line)] bg-white/85 text-[var(--ink)] hover:bg-white",
+                  ]}>
+                  <span class="block text-xs uppercase tracking-[0.18em] opacity-70">
+                    Biltype
+                  </span>
+                  <span class="mt-3 block font-display text-2xl font-semibold tracking-tight">
+                    {item.label}
+                  </span>
+                  <span class="mt-2 block text-sm opacity-80">
+                    {item.price}
+                  </span>
+                </button>
+              ))
+            }
+          </div>
+
+          <div class="mt-6">
+            {
+              packagePreview.map((item, index) => (
+                <article
+                  data-package-panel={item.id}
+                  class:list={[
+                    "grid gap-6 rounded-[1.75rem] border border-[var(--line)] bg-white/88 p-6 lg:grid-cols-[0.9fr_1.1fr]",
+                    index !== 0 && "hidden",
+                  ]}>
+                  <div class="rounded-[1.5rem] bg-[#0d1f19] p-6 text-white">
+                    <p class="text-xs uppercase tracking-[0.18em] text-white/55">
+                      Pris og varighed
+                    </p>
+                    <div class="mt-4 flex items-end gap-3">
+                      <span class="font-display text-5xl font-semibold leading-none tracking-tight">
+                        {item.price}
+                      </span>
+                    </div>
+                    <p class="mt-4 text-sm text-white/75">
+                      {item.duration}
+                    </p>
+                    <p class="mt-6 text-sm leading-7 text-white/80">
+                      {item.note}
+                    </p>
+                    <a
+                      href={`${bookingUrl}?package=${item.id}`}
+                      class="mt-8 inline-flex rounded-full bg-[linear-gradient(135deg,#2cd2a6,#15946f)] px-5 py-3 text-sm font-semibold text-[#04150f] transition hover:brightness-105">
+                      {item.ctaLabel}
+                    </a>
+                  </div>
+
+                  <div class="flex flex-col justify-between gap-5">
+                    <div>
+                      <p class="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+                        Det far kunden
+                      </p>
+                      <h3 class="mt-3 font-display text-3xl font-semibold tracking-tight text-[var(--ink)]">
+                        Tydelig pakke uden gaettevaerk
+                      </h3>
+                    </div>
+                    <div class="grid gap-3">
+                      {
+                        item.includes.map((include) => (
+                          <div class="flex items-start gap-3 rounded-[1.25rem] border border-[var(--line)] bg-[var(--surface)] px-4 py-3">
+                            <span class="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[rgba(19,62,51,0.08)] text-[var(--accent)]">
+                              <Icon name="bx:bxs-check-circle" class="h-4 w-4" />
+                            </span>
+                            <p class="text-sm leading-6 text-[var(--ink)]">
+                              {include}
+                            </p>
+                          </div>
+                        ))
+                      }
+                    </div>
+                  </div>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 max-w-7xl" id="hvordan">
+      <div class="section-shell px-6 py-8 sm:px-8 sm:py-10">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <span class="eyebrow">Sa nemt er det</span>
+            <h2 class="mt-5 section-title">
+              Kort vej fra interesse til ren bil.
+            </h2>
+          </div>
+          <p class="max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">
+            SteamRex er stak pa struktur og fremdrift. Det samme princip bruger
+            vi her: processen forklares pa sekunder og hver sektion skubber
+            brugeren videre mod booking.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-5 lg:grid-cols-3">
+          {
+            steps.map((step, index) => (
+              <article class="rounded-[1.75rem] border border-[var(--line)] bg-white/82 p-6 shadow-[0_18px_40px_rgba(8,27,21,0.08)]">
+                <div class="flex items-center justify-between gap-4">
+                  <span class="flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#dff2ea,#f6fbf9)] text-[var(--accent)]">
+                    <Icon name={step.icon} class="h-7 w-7" />
+                  </span>
+                  <span class="font-display text-5xl font-semibold tracking-tight text-[rgba(16,33,26,0.12)]">
+                    0{index + 1}
+                  </span>
+                </div>
+                <h3 class="mt-8 font-display text-2xl font-semibold tracking-tight text-[var(--ink)]">
+                  {step.title}
+                </h3>
+                <p class="mt-4 text-sm leading-7 text-[var(--muted)] sm:text-base">
+                  {step.text}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 max-w-7xl">
+      <div class="grid gap-8 lg:grid-cols-[1fr_1fr]">
+        <div class="section-shell px-6 py-8 sm:px-8">
+          <span class="eyebrow">Tilpasset behovet</span>
+          <h2 class="mt-5 section-title">
+            Tre tydelige veje ind i forretningen.
+          </h2>
+          <p class="mt-5 support-copy">
+            I stedet for mange spredte moduler samler vi de vigtigste valg i
+            overskuelige kort. Det matcher maaden SteamRex far brugeren hurtigt
+            ind i flowet pa.
+          </p>
+          <div class="mt-8 grid gap-4">
+            {
+              serviceCards.map((card) => (
+                <a
+                  href={card.link}
+                  class="group rounded-[1.6rem] border border-[var(--line)] bg-white/84 p-5 transition hover:-translate-y-1 hover:bg-white hover:shadow-[0_24px_50px_rgba(8,27,21,0.12)]">
+                  <div class="flex items-start justify-between gap-4">
+                    <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(25,175,132,0.14)] text-[var(--brand-deep)]">
+                      <Icon name={card.icon} class="h-6 w-6" />
+                    </span>
+                    <span class="text-sm text-[var(--muted)] transition group-hover:translate-x-1">
+                      Se mere ->
+                    </span>
+                  </div>
+                  <h3 class="mt-6 font-display text-2xl font-semibold tracking-tight text-[var(--ink)]">
+                    {card.title}
+                  </h3>
+                  <p class="mt-3 text-sm leading-7 text-[var(--muted)] sm:text-base">
+                    {card.copy}
+                  </p>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+
+        <div class="section-shell overflow-hidden">
+          <div class="grid h-full gap-0 lg:grid-rows-[1fr_auto]">
+            <div class="relative min-h-[20rem] overflow-hidden px-6 py-8 sm:px-8">
+              <div class="absolute inset-0 bg-[linear-gradient(145deg,#09231b,#12362c_55%,#1a5f4c)]"></div>
+              <div class="absolute left-[-6rem] top-[-5rem] h-52 w-52 rounded-full bg-[rgba(44,210,166,0.18)] blur-3xl"></div>
+              <div class="absolute bottom-[-5rem] right-[-4rem] h-56 w-56 rounded-full bg-[rgba(93,163,255,0.18)] blur-3xl"></div>
+              <div class="relative z-10 max-w-lg text-white">
+                <span class="inline-flex rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/70">
+                  Hvorfor det virker
+                </span>
+                <h2 class="mt-5 font-display text-4xl font-semibold leading-tight tracking-tight text-white sm:text-5xl">
+                  Mindre friktion. Mere booking.
+                </h2>
+                <p class="mt-5 text-sm leading-7 text-white/72 sm:text-base">
+                  Den gamle side har alt indholdet. Den nye side skal bare gore
+                  det lettere at forsta forskellen pa pakkerne og klikke videre.
+                  Derfor bygger vi forsiden om som et salgsspor, ikke bare som en
+                  informationsside.
+                </p>
+              </div>
+            </div>
+            <div class="grid gap-4 bg-white/88 px-6 py-6 sm:grid-cols-2 sm:px-8">
+              <div class="rounded-[1.4rem] border border-[var(--line)] bg-[var(--surface)] p-5">
+                <p class="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
+                  Bookingretning
+                </p>
+                <p class="mt-3 font-display text-2xl font-semibold tracking-tight text-[var(--ink)]">
+                  Klare CTA'er
+                </p>
+                <p class="mt-3 text-sm leading-7 text-[var(--muted)]">
+                  Flere sektioner slutter i samme retning: pris, booking eller
+                  opkald.
+                </p>
+              </div>
+              <div class="rounded-[1.4rem] border border-[var(--line)] bg-[var(--surface)] p-5">
+                <p class="text-xs uppercase tracking-[0.18em] text-[var(--muted)]">
+                  Oplevelse
+                </p>
+                <p class="mt-3 font-display text-2xl font-semibold tracking-tight text-[var(--ink)]">
+                  Mere premium
+                </p>
+                <p class="mt-3 text-sm leading-7 text-[var(--muted)]">
+                  Mork kontrast, tydelig typografi, mere dybde og mindre
+                  WordPress-template.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 max-w-7xl" id="omrader">
+      <div class="section-shell px-6 py-8 sm:px-8">
+        <div class="grid gap-8 lg:grid-cols-[0.8fr_1.2fr] lg:items-start">
+          <div>
+            <span class="eyebrow">Hvor du vil</span>
+            <h2 class="mt-5 section-title">
+              Hjemme, pa job eller et tredje sted.
+            </h2>
+            <p class="mt-5 support-copy">
+              Daekningsomradet skal ikke gemmes vaek. Det er et salgsargument og
+              et forventningsafstemningspunkt, sa vi giver det sin egen tydelige
+              sektion med fast CTA.
+            </p>
+            <a
+              href={bookingUrl}
+              class="mt-8 inline-flex rounded-full bg-[linear-gradient(135deg,#1fd2a3,#10634e)] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_16px_36px_rgba(16,99,78,0.2)] transition hover:-translate-y-0.5 hover:brightness-105">
+              Tjek pakker og bestil
+            </a>
+          </div>
+          <div class="grid gap-4 sm:grid-cols-3">
+            {
+              coverage.map((item) => (
+                <article class="rounded-[1.6rem] border border-[var(--line)] bg-white/86 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]">
+                  <span class="flex h-12 w-12 items-center justify-center rounded-2xl bg-[rgba(19,62,51,0.08)] text-[var(--accent)]">
+                    <Icon name={item.icon} class="h-6 w-6" />
+                  </span>
+                  <h3 class="mt-6 font-display text-2xl font-semibold tracking-tight text-[var(--ink)]">
+                    {item.title}
+                  </h3>
+                  <p class="mt-3 text-sm leading-7 text-[var(--muted)]">
+                    {item.text}
+                  </p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 max-w-7xl" id="anmeldelser">
+      <div class="section-shell px-6 py-8 sm:px-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <span class="eyebrow">Tillid og bevis</span>
+            <h2 class="mt-5 section-title">
+              Mere end bare en flot hero.
+            </h2>
+          </div>
+          <p class="max-w-xl text-sm leading-7 text-[var(--muted)] sm:text-base">
+            En side som denne skal ikke kun se bedre ud. Den skal ogsa foleles
+            tryggere. Derfor er anmeldelser, telefon, aabningstid og pakker
+            synlige flere steder pa siden.
+          </p>
+        </div>
+
+        <div class="mt-10 grid gap-5 lg:grid-cols-3">
+          {
+            testimonials.map((item) => (
+              <article class="rounded-[1.8rem] border border-[var(--line)] bg-white/86 p-6 shadow-[0_18px_40px_rgba(8,27,21,0.08)]">
+                <div class="flex items-center gap-1 text-[var(--brand-deep)]">
+                  <Icon name="bx:bxs-star" class="h-5 w-5" />
+                  <Icon name="bx:bxs-star" class="h-5 w-5" />
+                  <Icon name="bx:bxs-star" class="h-5 w-5" />
+                  <Icon name="bx:bxs-star" class="h-5 w-5" />
+                  <Icon name="bx:bxs-star" class="h-5 w-5" />
+                </div>
+                <p class="mt-6 text-base leading-8 text-[var(--ink)]">
+                  "{item.quote}"
+                </p>
+                <p class="mt-6 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
+                  {item.name}
+                </p>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <section class="mx-auto mt-10 max-w-7xl">
+      <div class="overflow-hidden rounded-[2.25rem] bg-[linear-gradient(135deg,#081b15,#10392e_52%,#1c7b62)] px-6 py-10 text-white shadow-[0_28px_70px_rgba(6,18,15,0.26)] sm:px-8 lg:px-10 lg:py-12">
+        <div class="grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
+          <div>
+            <span class="inline-flex rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/68">
+              Naeste skridt
+            </span>
+            <h2 class="mt-5 font-display text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+              Brug den nye forside til at sende flere videre til booking.
+            </h2>
+            <p class="mt-5 max-w-2xl text-sm leading-7 text-white/72 sm:text-base">
+              Forsiden er nu bygget om i retning af SteamRex: tydeligere hierarki,
+              mere premium udtryk og kortere afstand mellem interesse og handling.
+              Naeste tekniske skridt er at beslutte om booking fortsat bare skal
+              linkes ud, eller om LatePoint skal integreres mere direkte.
+            </p>
+          </div>
+          <div class="grid gap-4 rounded-[1.8rem] border border-white/12 bg-white/10 p-5 backdrop-blur-sm sm:grid-cols-2">
+            <a
+              href={bookingUrl}
+              class="inline-flex items-center justify-center rounded-[1.25rem] bg-white px-5 py-4 text-sm font-semibold text-[#08231b] transition hover:bg-[#eef8f4]">
+              Bestil tid nu
+            </a>
+            <a
+              href={giftCardUrl}
+              class="inline-flex items-center justify-center rounded-[1.25rem] border border-white/15 px-5 py-4 text-sm font-semibold text-white transition hover:bg-white/8">
+              Se gavekort
+            </a>
+            <a
+              href={phoneHref}
+              class="inline-flex items-center justify-center rounded-[1.25rem] border border-white/15 px-5 py-4 text-sm text-white/85 transition hover:bg-white/8 sm:col-span-2">
+              Har du brug for en aftale? Ring pa +45 91 67 14 52
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script
+    is:inline
+    define:vars={{
+      bookingUrl,
+      carCatalog,
+      defaultBrand,
+      brandLabels,
+      brandLogoFiles,
+    }}>
+    const buttons = Array.from(document.querySelectorAll("[data-package-button]"));
+    const panels = Array.from(document.querySelectorAll("[data-package-panel]"));
+    const brandCombobox = document.querySelector("[data-brand-combobox]");
+    const brandTrigger = document.querySelector("[data-brand-trigger]");
+    const brandMenu = document.querySelector("[data-brand-menu]");
+    const brandSelect = document.querySelector("[data-brand-select]");
+    const brandTriggerLabel = document.querySelector("[data-brand-trigger-label]");
+    const brandTriggerLogo = document.querySelector("[data-brand-trigger-logo]");
+    const brandOptions = Array.from(document.querySelectorAll("[data-brand-option]"));
+    const modelSelect = document.querySelector("[data-model-select]");
+    const heroBook = document.querySelector("[data-hero-book]");
+    const heroSelection = document.querySelector("[data-hero-selection]");
+
+    const setActivePackage = (id) => {
+      buttons.forEach((button) => {
+        const isActive = button.dataset.packageButton === id;
+        button.classList.toggle("border-transparent", isActive);
+        button.classList.toggle("bg-[linear-gradient(135deg,#132f27,#0f7d60)]", isActive);
+        button.classList.toggle("text-white", isActive);
+        button.classList.toggle(
+          "shadow-[0_18px_35px_rgba(16,99,78,0.18)]",
+          isActive
+        );
+        button.classList.toggle("border-[var(--line)]", !isActive);
+        button.classList.toggle("bg-white/85", !isActive);
+        button.classList.toggle("text-[var(--ink)]", !isActive);
+        button.classList.toggle("hover:bg-white", !isActive);
+      });
+
+      panels.forEach((panel) => {
+        panel.classList.toggle("hidden", panel.dataset.packagePanel !== id);
+      });
+    };
+
+    const getBrandDisplay = (brand) => brandLabels[brand] || brand;
+
+    const getBrandInitials = (brand) => {
+      const words = brand.replace(/-/g, " ").split(" ");
+
+      if (words.length > 1) {
+        return words
+          .map((word) => word[0] || "")
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+      }
+
+      return brand.length <= 3 ? brand.toUpperCase() : brand.charAt(0).toUpperCase();
+    };
+
+    const updateBrandTrigger = (brand) => {
+      if (!brandTriggerLabel || !brandTriggerLogo) return;
+
+      const logo = brandLogoFiles[brand];
+      brandTriggerLabel.textContent = getBrandDisplay(brand);
+      brandTriggerLogo.innerHTML = "";
+
+      if (logo) {
+        const img = document.createElement("img");
+        img.src = logo;
+        img.alt = `${getBrandDisplay(brand)} logo`;
+        img.className = "h-6 w-6 object-contain";
+        brandTriggerLogo.appendChild(img);
+      } else {
+        brandTriggerLogo.textContent = getBrandInitials(brand);
+      }
+
+      brandOptions.forEach((option) => {
+        const isSelected = option.dataset.brandOption === brand;
+        option.classList.toggle("bg-[#f5f8fa]", isSelected);
+        option.setAttribute("aria-selected", isSelected ? "true" : "false");
+      });
+    };
+
+    const closeBrandMenu = () => {
+      if (!brandTrigger || !brandMenu) return;
+      brandMenu.classList.add("hidden");
+      brandTrigger.setAttribute("aria-expanded", "false");
+    };
+
+    const toggleBrandMenu = () => {
+      if (!brandTrigger || !brandMenu) return;
+      const shouldOpen = brandMenu.classList.contains("hidden");
+      brandMenu.classList.toggle("hidden", !shouldOpen);
+      brandTrigger.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+    };
+
+    const updateModelOptions = (brand) => {
+      if (!modelSelect) return;
+
+      const models = carCatalog[brand] || [];
+      modelSelect.innerHTML = "";
+
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "Vaelg model";
+      placeholder.selected = true;
+      modelSelect.appendChild(placeholder);
+
+      models.forEach((model) => {
+        const option = document.createElement("option");
+        option.value = model;
+        option.textContent = model;
+        modelSelect.appendChild(option);
+      });
+    };
+
+    const updateHeroBookingState = () => {
+      if (!brandSelect || !modelSelect || !heroBook || !heroSelection) return;
+
+      const brand = brandSelect.value;
+      const model = modelSelect.value;
+      const brandLabel = getBrandDisplay(brand);
+
+      if (model) {
+        const params = new URLSearchParams({
+          brand,
+          model,
+        });
+        heroBook.href = `${bookingUrl}?${params.toString()}`;
+        heroBook.classList.remove("opacity-60");
+        heroSelection.textContent = `${brandLabel} ${model} valgt. Fortsaet til booking.`;
+      } else {
+        heroBook.href = bookingUrl;
+        heroBook.classList.add("opacity-60");
+        heroSelection.textContent = `${brandLabel} valgt. Vaelg model for at fortsaette.`;
+      }
+    };
+
+    if (brandSelect && modelSelect && heroBook) {
+      brandSelect.value = defaultBrand;
+      updateBrandTrigger(defaultBrand);
+      updateModelOptions(defaultBrand);
+      updateHeroBookingState();
+
+      modelSelect.addEventListener("change", () => {
+        updateHeroBookingState();
+      });
+
+      if (brandTrigger && brandMenu) {
+        brandTrigger.addEventListener("click", () => {
+          toggleBrandMenu();
+        });
+      }
+
+      brandOptions.forEach((option) => {
+        option.addEventListener("click", () => {
+          if (!brandSelect) return;
+          brandSelect.value = option.dataset.brandOption;
+          updateBrandTrigger(brandSelect.value);
+          updateModelOptions(brandSelect.value);
+          updateHeroBookingState();
+          closeBrandMenu();
+        });
+      });
+
+      heroBook.addEventListener("click", (event) => {
+        if (!modelSelect.value) {
+          event.preventDefault();
+          modelSelect.focus();
+        }
+      });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (!brandCombobox || !brandMenu || brandMenu.classList.contains("hidden")) return;
+      if (!brandCombobox.contains(event.target)) {
+        closeBrandMenu();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        closeBrandMenu();
+      }
+    });
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => {
+        setActivePackage(button.dataset.packageButton);
+      });
+    });
+  </script>
 </Layout>

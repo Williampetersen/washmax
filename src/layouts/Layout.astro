@@ -7,61 +7,56 @@ import "@fontsource-variable/bricolage-grotesque";
 import "../styles/global.css";
 
 export interface Props {
-  title: string;
+  title?: string;
+  description?: string;
+  image?: string;
 }
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site).toString();
+const site = Astro.site ?? new URL("https://washmax.dk");
+const canonicalURL = new URL(Astro.url.pathname, site).toString();
+const {
+  title = "Mobil bilrengoring hos dig",
+  description = "WashMax tilbyder mobil bilrengoring pa Sjaelland med hurtig booking, miljoevenlig behandling og klare pakker til privat og erhverv.",
+  image = "https://washmax.dk/wp-content/uploads/2023/06/bilvask-4-scaled.jpg",
+} = Astro.props;
 
-const resolvedImageWithDomain = new URL(
-  "/opengraph.jpg",
-  Astro.site
-).toString();
-
-const { title } = Astro.props;
-
-const makeTitle = title
-  ? title + " | " + "Astroship"
-  : "Astroship - Starter Template for Astro with Tailwind CSS";
+const makeTitle = `${title} | WashMax`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="da">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-
-    <!-- <link rel="preload" as="image" href={src} alt="Hero" /> -->
     <SEO
       title={makeTitle}
-      description="Astroship is a starter website template for Astro built with TailwindCSS."
+      description={description}
       canonical={canonicalURL}
       twitter={{
-        creator: "@surjithctly",
-        site: "@web3templates",
+        creator: "@washmaxdk",
+        site: "@washmaxdk",
         card: "summary_large_image",
       }}
       openGraph={{
         basic: {
           url: canonicalURL,
           type: "website",
-          title: `Astroship - Starter Template for Astro`,
-          image: resolvedImageWithDomain,
+          title: makeTitle,
+          image,
         },
         image: {
-          alt: "Astroship Homepage Screenshot",
+          alt: "WashMax mobil bilrengoring",
         },
       }}
     />
   </head>
-  <body>
+  <body class="bg-[var(--page-bg)] text-[var(--ink)] antialiased">
     <Navbar />
     <slot />
     <Footer />
     <style is:global>
-      /* Improve Page speed */
-      /* https://css-tricks.com/almanac/properties/c/content-visibility/ */
       img {
         content-visibility: auto;
       }
