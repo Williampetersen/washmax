@@ -1,0 +1,123 @@
+import type { Metadata } from "next";
+import { LockKeyhole, LogIn, ShieldCheck } from "lucide-react";
+import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
+import { ADMIN_COOKIE_NAME, getAdminSession, isAdminConfigured } from "@/lib/server/admin-session";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+
+export const metadata: Metadata = {
+  title: "Admin login",
+  description: "Log ind til WashMax admin.",
+  alternates: {
+    canonical: "/admin/login",
+  },
+};
+
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const cookieStore = await cookies();
+  if (getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value)) {
+    redirect("/admin");
+  }
+
+  const params = await searchParams;
+  const error = Array.isArray(params.error) ? params.error[0] : params.error;
+  const errorMessage =
+    error === "config"
+      ? "Admin-login er ikke konfigureret endnu. Tilfoej ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET."
+      : error === "invalid"
+        ? "Forkert email eller password."
+        : "";
+
+  return (
+    <main className="px-4 pb-12 pt-10 sm:px-6">
+      <section className="mx-auto max-w-5xl">
+        <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="rounded-[2rem] bg-[linear-gradient(155deg,#0d3556,#184e75_45%,#1d6f9a)] p-8 text-white shadow-[0_30px_80px_rgba(8,27,21,0.22)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a7e7ff]">
+              WashMax Admin
+            </p>
+            <h1 className="mt-4 font-display text-4xl font-semibold leading-tight">
+              Booking, kalender og kundeoverblik samlet et sted.
+            </h1>
+            <p className="mt-5 text-base leading-7 text-white/78">
+              Brug adminpanelet til at godkende bookinger, opdatere tider, tilfoeje
+              bookinger manuelt og holde styr pa dagens plan.
+            </p>
+
+            <div className="mt-8 grid gap-3">
+              {[
+                "Kundeportal med bookinghistorik og profil",
+                "Adminhandlinger til godkend, afslut, annuller og slet",
+                "Emailbekraeftelser og tidsplan styret fra samme system",
+              ].map((item) => (
+                <div
+                  key={item}
+                  className="rounded-2xl border border-white/12 bg-white/8 px-4 py-3 text-sm text-white/82"
+                >
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <Card className="p-8">
+            <div className="flex items-center gap-3">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#2388d1]">
+                <LockKeyhole className="h-6 w-6" />
+              </span>
+              <div>
+                <h2 className="font-display text-3xl font-semibold text-[var(--ink)]">
+                  Log ind
+                </h2>
+                <p className="mt-1 text-sm text-[var(--muted)]">
+                  Kun administratorer kan se dette panel.
+                </p>
+              </div>
+            </div>
+
+            {errorMessage ? (
+              <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {errorMessage}
+              </div>
+            ) : null}
+
+            {!isAdminConfigured() ? (
+              <div className="mt-6 rounded-2xl border border-[#cde6f6] bg-[#f6fbff] px-4 py-4 text-sm text-[#1a506d]">
+                Mangler opsaetning. Du skal have disse variabler i Vercel:
+                ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET.
+              </div>
+            ) : null}
+
+            <form action="/api/admin/login" method="POST" className="mt-6 grid gap-4">
+              <label className="grid gap-2 text-sm text-[var(--ink)]">
+                <span className="font-medium">Admin email</span>
+                <Input type="email" name="email" autoComplete="username" />
+              </label>
+
+              <label className="grid gap-2 text-sm text-[var(--ink)]">
+                <span className="font-medium">Password</span>
+                <Input type="password" name="password" autoComplete="current-password" />
+              </label>
+
+              <Button type="submit" className="mt-2">
+                <LogIn className="h-5 w-5" />
+                Gaa til admin
+              </Button>
+            </form>
+
+            <div className="mt-6 flex items-center gap-2 rounded-2xl bg-[#f6fbff] px-4 py-3 text-sm text-[#1a506d]">
+              <ShieldCheck className="h-4 w-4" />
+              Sessionen gemmes i en sikker cookie i 12 timer.
+            </div>
+          </Card>
+        </div>
+      </section>
+    </main>
+  );
+}

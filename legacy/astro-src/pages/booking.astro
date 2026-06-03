@@ -1,0 +1,1273 @@
+---
+import { Icon } from "astro-icon/components";
+import Layout from "@/layouts/Layout.astro";
+import {
+  cleaningPackages,
+  exteriorAddOns,
+  getTimeSlots,
+  interiorAddOns,
+  quantityAddOns,
+} from "@/lib/shared/booking";
+import { getBookingSettings } from "@/lib/server/bookings";
+
+export const prerender = false;
+
+const initialPlate = Astro.url.searchParams.get("plate") ?? "";
+const bookingSettings = await getBookingSettings();
+const timeSlots = getTimeSlots(bookingSettings);
+const minBookingDate = new Date().toISOString().slice(0, 10);
+---
+
+<Layout
+  title="Booking"
+  description="Vaelg rengoring, tilvalg og se samlet pris for din bil hos WashMax.">
+  <main class="px-4 pb-10 sm:px-6" data-booking-root>
+    <section class="mx-auto mt-8 max-w-6xl">
+      <div
+        data-lookup-panel
+        class="rounded-lg border border-[var(--line)] bg-white p-5 shadow-[0_24px_70px_rgba(8,27,21,0.12)] sm:p-7"
+      >
+        <p class="text-sm font-semibold uppercase text-[#6b7780]">
+          Booking
+        </p>
+        <h1 class="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
+          Sl&aring; nummerplade op
+        </h1>
+        <p data-lookup-copy class="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
+          Indtast nummerpladen og se prisen.
+        </p>
+
+        <form data-plate-form class="mt-6 grid max-w-xl gap-3">
+          <label class="block">
+            <span class="sr-only">Dansk nummerplade</span>
+            <span class="flex h-[4.35rem] overflow-hidden rounded-md border border-[#9cb0bd] bg-white focus-within:border-[#2388d1] focus-within:ring-4 focus-within:ring-[#2388d1]/16">
+              <img
+                src="/DKEU.svg"
+                alt="DK"
+                width="48"
+                height="54"
+                class="h-full w-14 shrink-0 object-cover"
+                loading="eager"
+              />
+              <input
+                data-plate-input
+                name="plate"
+                type="text"
+                inputmode="text"
+                autocomplete="off"
+                autocapitalize="characters"
+                placeholder="AB12345"
+                maxlength="10"
+                class="min-w-0 flex-1 border-0 bg-white px-4 text-[clamp(2rem,7vw,3.25rem)] font-semibold uppercase tracking-[0.08em] text-[#222] outline-none placeholder:text-[#d7d7d7]"
+              />
+            </span>
+          </label>
+
+          <button
+            data-plate-submit
+            type="submit"
+            class="inline-flex h-14 items-center justify-center gap-2 rounded-md bg-[#2388d1] px-6 text-base font-semibold text-white transition hover:bg-[#1b75b7] disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            <Icon name="bx:search" class="h-5 w-5" />
+            <span data-plate-submit-label>Se din pris</span>
+          </button>
+        </form>
+
+        <div
+          data-plate-status
+          aria-live="polite"
+          class="mt-4 hidden rounded-md border px-4 py-3 text-sm"
+        ></div>
+      </div>
+    </section>
+
+    <section data-booking-content class="mx-auto mt-8 hidden max-w-5xl">
+      <div class="rounded-lg border border-[var(--line)] bg-white p-4 shadow-[0_20px_55px_rgba(8,27,21,0.1)] sm:p-5">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase text-[#2388d1]">Din bil</p>
+            <h1
+              data-vehicle-title
+              class="mt-1 font-display text-2xl font-semibold leading-tight text-[var(--ink)] sm:text-3xl"
+            >
+              -
+            </h1>
+            <div class="mt-3 flex flex-wrap gap-2 text-xs text-[var(--muted)] sm:text-sm">
+              <span class="rounded-md bg-[#f4f8f7] px-3 py-2">Regnr: <strong data-vehicle-registration class="text-[var(--ink)]">-</strong></span>
+              <span class="rounded-md bg-[#f4f8f7] px-3 py-2">&Aring;r: <strong data-vehicle-year class="text-[var(--ink)]">-</strong></span>
+              <span class="rounded-md bg-[#f4f8f7] px-3 py-2">Biltype: <strong data-vehicle-type class="text-[var(--ink)]">-</strong></span>
+            </div>
+          </div>
+
+          <div class="rounded-lg bg-[#e9f8ff] px-4 py-3 sm:min-w-44 sm:text-right">
+            <p data-vehicle-category class="text-sm font-semibold text-[var(--ink)]">-</p>
+            <p data-vehicle-top-price class="mt-1 text-3xl font-semibold text-[#2388d1]">-</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 rounded-lg border border-[var(--line)] bg-white p-4 shadow-[0_20px_55px_rgba(8,27,21,0.08)] sm:p-5">
+        <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+          V&aelig;lg pakke
+        </h2>
+
+        <div class="mt-4 grid gap-3 md:grid-cols-3">
+          {
+            cleaningPackages.map((item) => (
+              <button
+                type="button"
+                data-package-card={item.id}
+                class:list={[
+                  "flex min-h-44 flex-col rounded-lg border bg-white p-4 text-left transition hover:border-[#55b9df] hover:shadow-[0_14px_32px_rgba(8,27,21,0.09)]",
+                  item.id === "whole"
+                    ? "border-[#55b9df] shadow-[0_14px_32px_rgba(43,147,220,0.16)]"
+                    : "border-[var(--line)]",
+                ]}
+              >
+                <span class="flex items-start justify-between gap-3">
+                  <span class="text-xl font-semibold text-[var(--ink)]">{item.title}</span>
+                  <span data-package-price class="text-2xl font-semibold text-[#55b9df]">-</span>
+                </span>
+                <span
+                  data-package-badge
+                  class:list={[
+                    "mt-3 inline-flex w-fit rounded-md px-3 py-1 text-xs font-semibold",
+                    item.id === "whole"
+                      ? "bg-[#78c742] text-white"
+                      : "bg-[#eef2f0] text-[var(--muted)]",
+                  ]}
+                >
+                  {item.badge}
+                </span>
+                <span class="mt-4 flex items-center gap-2 text-sm text-[var(--muted)]">
+                  <Icon name="bx:time-five" class="h-5 w-5" />
+                  {item.duration}
+                </span>
+                <span
+                  data-package-action
+                  class:list={[
+                    "mt-auto inline-flex h-10 items-center justify-center gap-2 rounded-md text-sm font-semibold text-white",
+                    item.id === "whole" ? "bg-[#55b9df]" : "bg-[#607d8b]",
+                  ]}
+                >
+                  <span data-package-action-label>
+                    {item.id === "whole" ? "Valgt" : "V\u00e6lg"}
+                  </span>
+                  <span data-package-action-check class:list={[item.id !== "whole" && "hidden"]}>
+                    <Icon name="bx:check" class="h-5 w-5" />
+                  </span>
+                  <span data-package-action-chevron class:list={[item.id === "whole" && "hidden"]}>
+                    <Icon name="bx:chevron-right" class="h-5 w-5" />
+                  </span>
+                </span>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="mt-5 rounded-lg border border-[var(--line)] bg-white p-4 shadow-[0_20px_55px_rgba(8,27,21,0.08)] sm:p-5">
+        <div class="flex items-center justify-between gap-4">
+          <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+            Tilvalg
+          </h2>
+          <span class="text-sm text-[var(--muted)]">Valgfrit</span>
+        </div>
+
+        <div class="mt-4 grid gap-5">
+          <div>
+            <h3 class="text-sm font-semibold uppercase text-[#2388d1]">
+              Indvendigt
+            </h3>
+            <div class="mt-2 divide-y divide-[var(--line)] border-y border-[var(--line)]">
+              {
+                interiorAddOns.map((item) => (
+                  <label
+                    data-addon-row
+                    class="flex min-h-14 cursor-pointer items-center justify-between gap-3 px-1 py-3 text-sm text-[var(--ink)] transition"
+                  >
+                    <span class="flex min-w-0 items-center gap-3">
+                      <input
+                        type="checkbox"
+                        data-addon
+                        data-addon-id={item.id}
+                        data-addon-label={item.label}
+                        data-addon-price={item.price}
+                        class="h-5 w-5 rounded border-[#777] text-[#55b9df]"
+                      />
+                      <span>{item.label}</span>
+                    </span>
+                    <span class="shrink-0 font-semibold">{item.price},-</span>
+                  </label>
+                ))
+              }
+
+              {
+                quantityAddOns.map((item) => (
+                  <button
+                    type="button"
+                    data-quantity-addon={item.id}
+                    class="flex min-h-14 w-full items-center justify-between gap-3 px-1 py-3 text-left text-sm text-[var(--ink)]"
+                  >
+                    <span>{item.label}</span>
+                    <span class="shrink-0 font-semibold text-[var(--muted)]">V&aelig;lg antal</span>
+                  </button>
+                ))
+              }
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-sm font-semibold uppercase text-[#2388d1]">
+              Udvendigt
+            </h3>
+            <div class="mt-2 divide-y divide-[var(--line)] border-y border-[var(--line)]">
+              <label class="flex min-h-14 items-center justify-between gap-3 px-1 py-3 text-sm text-[var(--ink)]">
+                <span class="flex min-w-0 items-center gap-3">
+                  <input
+                    type="checkbox"
+                    data-wax-checkbox
+                    checked
+                    disabled
+                    class="h-5 w-5 rounded border-[#777] text-[#55b9df]"
+                  />
+                  <span>Voksbehandling</span>
+                </span>
+                <span data-wax-label class="shrink-0 font-semibold">Inkl.</span>
+              </label>
+
+              {
+                exteriorAddOns.map((item) => (
+                  <label
+                    data-addon-row
+                    class="flex min-h-14 cursor-pointer items-center justify-between gap-3 px-1 py-3 text-sm text-[var(--ink)] transition"
+                  >
+                    <span class="flex min-w-0 items-center gap-3">
+                      <input
+                        type="checkbox"
+                        data-addon
+                        data-addon-id={item.id}
+                        data-addon-label={item.label}
+                        data-addon-price={item.price}
+                        class="h-5 w-5 rounded border-[#777] text-[#55b9df]"
+                      />
+                      <span>{item.label}</span>
+                    </span>
+                    <span class="shrink-0 font-semibold">{item.price},-</span>
+                  </label>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-5 rounded-lg border-2 border-[#55b9df] bg-white p-4 shadow-[0_20px_55px_rgba(43,147,220,0.12)] sm:p-5">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p class="text-sm font-semibold uppercase text-[#2388d1]">
+              Samlet pris
+            </p>
+            <p data-summary-total class="mt-1 text-4xl font-semibold text-[var(--ink)]">-</p>
+            <p data-summary-vat class="mt-1 text-sm text-[var(--muted)]">Heraf moms 25%: -</p>
+          </div>
+          <a
+            data-next-link
+            href="#dine-oplysninger"
+            class="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[#55b9df] px-8 text-sm font-semibold text-white transition hover:bg-[#42a6cb]"
+          >
+            Dine oplysninger
+            <Icon name="bx:right-arrow-circle" class="h-5 w-5" />
+          </a>
+        </div>
+
+        <div class="mt-5 grid gap-3 border-t border-[var(--line)] pt-4 text-sm text-[var(--ink)] sm:grid-cols-3">
+          <div>
+            <span class="block text-xs uppercase text-[var(--muted)]">Bil</span>
+            <strong data-summary-vehicle class="block font-semibold">-</strong>
+            <span data-summary-category class="text-xs text-[var(--muted)]">-</span>
+          </div>
+          <div>
+            <span class="block text-xs uppercase text-[var(--muted)]">Pakke</span>
+            <strong data-summary-package class="block font-semibold">Hele bilen</strong>
+            <span data-summary-base class="text-xs text-[var(--muted)]">-</span>
+          </div>
+          <div>
+            <span class="block text-xs uppercase text-[var(--muted)]">Tilvalg</span>
+            <strong data-summary-addons class="block font-semibold">0 kr</strong>
+            <span data-summary-addon-list class="hidden text-xs leading-5 text-[var(--muted)]"></span>
+          </div>
+        </div>
+
+        <div class="mt-5 rounded-[1.5rem] border border-[var(--line)] p-5">
+          <div class="flex items-start gap-3">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#2388d1]">
+              <Icon name="bx:calendar-event" class="h-6 w-6" />
+            </span>
+            <div>
+              <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                Hvornar passer det dig?
+              </h2>
+              <p class="mt-1 text-sm text-[var(--muted)]">
+                Vaelg dato og tidspunkt for din booking. Vi bekraefter den endelige tid pa email.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-5 lg:grid-cols-[0.78fr_1.22fr]">
+            <label class="grid gap-2 text-sm text-[var(--ink)]">
+              <span class="font-medium">Vaelg dato</span>
+              <input
+                data-appointment-date
+                type="date"
+                min={minBookingDate}
+                value={minBookingDate}
+                class="h-14 rounded-xl border border-[#cbd9e4] bg-white px-4 text-base outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+              />
+            </label>
+
+            <div>
+              <span class="text-sm font-medium text-[var(--ink)]">Vaelg tidspunkt</span>
+              <div class="mt-2 grid gap-3 sm:grid-cols-2">
+                {
+                  timeSlots.map((slot, index) => (
+                    <button
+                      type="button"
+                      data-time-slot={slot}
+                      class:list={[
+                        "inline-flex h-14 items-center justify-center rounded-xl border px-5 text-base font-semibold transition",
+                        index === 0
+                          ? "border-[#55b9df] bg-[#6ec7eb] text-[#083047]"
+                          : "border-[var(--line)] bg-[#f6f8fa] text-[var(--ink)] hover:border-[#55b9df]",
+                      ]}>
+                      {slot}
+                    </button>
+                  ))
+                }
+              </div>
+              <p
+                data-appointment-summary
+                class="mt-3 text-sm text-[var(--muted)]"
+              >
+                Ledige tider. Vi bekraefter din tid pa email.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          id="dine-oplysninger"
+          class="mt-5 rounded-[1.5rem] border border-[var(--line)] bg-white p-4 shadow-[0_20px_55px_rgba(8,27,21,0.08)] sm:p-6"
+        >
+          <div class="flex items-start gap-3">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#2388d1]">
+              <Icon name="bx:detail" class="h-6 w-6" />
+            </span>
+            <div>
+              <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                Dine oplysninger
+              </h2>
+              <p class="mt-1 text-sm text-[var(--muted)]">
+                Tilfoj kontaktoplysninger og adresse, sa vi kan sende dig videre til booking.
+              </p>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-[1.25rem] border border-[#d4e9f6] bg-[#f6fbff] p-4">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <p
+                  data-order-preview-title
+                  class="text-lg font-semibold text-[var(--ink)]"
+                >
+                  Hele bilen - -
+                </p>
+                <p
+                  data-order-preview-meta
+                  class="mt-1 text-sm text-[var(--muted)]"
+                >
+                  Regnr. -
+                </p>
+              </div>
+              <div class="sm:text-right">
+                <p
+                  data-order-preview-total
+                  class="text-3xl font-semibold text-[#2388d1]"
+                >
+                  -
+                </p>
+                <p class="text-sm text-[var(--muted)]">
+                  Prisen opdateres automatisk med dine tilvalg.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-3 md:grid-cols-2">
+            <button
+              type="button"
+              data-customer-type-button="private"
+              class="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-[#55b9df] bg-[#eef8ff] px-5 text-sm font-semibold text-[#2388d1] transition"
+            >
+              <Icon name="bx:user" class="h-5 w-5" />
+              Privat
+            </button>
+            <button
+              type="button"
+              data-customer-type-button="business"
+              class="inline-flex h-14 items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-white px-5 text-sm font-semibold text-[var(--ink)] transition hover:border-[#9dcce8]"
+            >
+              <Icon name="bx:briefcase-alt-2" class="h-5 w-5" />
+              Erhverv
+            </button>
+          </div>
+
+          <div class="mt-5 rounded-[1.25rem] border border-[var(--line)] p-5">
+            <h3 class="flex items-center gap-2 text-base font-semibold text-[var(--ink)]">
+              <Icon name="bx:user-circle" class="h-5 w-5 text-[#55b9df]" />
+              Kontaktoplysninger
+            </h3>
+
+            <div class="mt-4 grid gap-4 md:grid-cols-2">
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Fornavn</span>
+                <input
+                  data-customer-first-name
+                  type="text"
+                  autocomplete="given-name"
+                  placeholder="Fornavn"
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Efternavn</span>
+                <input
+                  data-customer-last-name
+                  type="text"
+                  autocomplete="family-name"
+                  placeholder="Efternavn"
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Email</span>
+                <input
+                  data-customer-email
+                  type="email"
+                  autocomplete="email"
+                  placeholder="Email"
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Telefon</span>
+                <input
+                  data-customer-phone
+                  type="tel"
+                  autocomplete="tel"
+                  placeholder="Telefon"
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+            </div>
+
+            <div data-business-fields class="mt-4 hidden grid gap-4 md:grid-cols-2">
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Firmanavn</span>
+                <input
+                  data-customer-company
+                  type="text"
+                  autocomplete="organization"
+                  placeholder="Firmanavn"
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">CVR / EAN</span>
+                <input
+                  data-customer-company-id
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="CVR eller EAN"
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div class="mt-5 rounded-[1.25rem] border border-[var(--line)] p-5">
+            <h3 class="flex items-center gap-2 text-base font-semibold text-[var(--ink)]">
+              <Icon name="bx:map-pin" class="h-5 w-5 text-[#55b9df]" />
+              Adresse
+            </h3>
+
+            <div class="mt-4 grid gap-4">
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Adresse</span>
+                <input
+                  data-customer-address
+                  type="text"
+                  autocomplete="street-address"
+                  placeholder="Sog adresse..."
+                  class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                />
+              </label>
+
+              <div class="grid gap-4 md:grid-cols-[0.34fr_0.66fr]">
+                <label class="grid gap-2 text-sm text-[var(--ink)]">
+                  <span class="font-medium">Postnr.</span>
+                  <input
+                    data-customer-postal-code
+                    type="text"
+                    inputmode="numeric"
+                    autocomplete="postal-code"
+                    placeholder="1850"
+                    class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                  />
+                </label>
+                <label class="grid gap-2 text-sm text-[var(--ink)]">
+                  <span class="font-medium">By</span>
+                  <input
+                    data-customer-city
+                    type="text"
+                    autocomplete="address-level2"
+                    placeholder="Frederiksberg C"
+                    class="h-12 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                  />
+                </label>
+              </div>
+
+              <label class="grid gap-2 text-sm text-[var(--ink)]">
+                <span class="font-medium">Bemaerkninger (valgfrit)</span>
+                <textarea
+                  data-customer-notes
+                  rows="4"
+                  placeholder="Fx. parkering, adgang, saerlige onsker..."
+                  class="min-h-28 rounded-xl border border-[#cbd9e4] bg-white px-4 py-3 outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12"
+                ></textarea>
+              </label>
+            </div>
+          </div>
+
+          <div class="mt-5 grid gap-3 text-sm text-[var(--ink)]">
+            <label class="flex items-start gap-3">
+              <input
+                data-customer-terms
+                type="checkbox"
+                class="mt-0.5 h-5 w-5 rounded border-[#8da2b1] text-[#55b9df]"
+              />
+              <span>Jeg accepterer handelsbetingelserne og persondatapolitikken.</span>
+            </label>
+            <label class="flex items-start gap-3">
+              <input
+                data-customer-marketing
+                type="checkbox"
+                class="mt-0.5 h-5 w-5 rounded border-[#8da2b1] text-[#55b9df]"
+              />
+              <span>Ja tak, jeg vil gerne modtage tilbud og nyheder.</span>
+            </label>
+          </div>
+
+          <div
+            data-booking-form-status
+            aria-live="polite"
+            class="mt-5 hidden rounded-xl border px-4 py-3 text-sm"
+          ></div>
+
+          <button
+            type="button"
+            data-book-link
+            class="mt-5 inline-flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-[#55b9df] px-6 text-base font-semibold text-white shadow-[0_16px_38px_rgba(43,147,220,0.2)] transition hover:bg-[#42a6cb]"
+          >
+            <Icon name="bx:check" class="h-5 w-5" />
+            <span data-book-link-label>Book nu &middot; -</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script
+    is:inline
+    define:vars={{
+      initialPlate,
+      cleaningPackages,
+      timeSlots,
+      minBookingDate,
+    }}>
+    const lookupPanel = document.querySelector("[data-lookup-panel]");
+    const lookupCopy = document.querySelector("[data-lookup-copy]");
+    const plateForm = document.querySelector("[data-plate-form]");
+    const plateInput = document.querySelector("[data-plate-input]");
+    const plateSubmit = document.querySelector("[data-plate-submit]");
+    const plateSubmitLabel = document.querySelector("[data-plate-submit-label]");
+    const plateStatus = document.querySelector("[data-plate-status]");
+    const bookingContent = document.querySelector("[data-booking-content]");
+    const vehicleTitle = document.querySelector("[data-vehicle-title]");
+    const vehicleRegistration = document.querySelector("[data-vehicle-registration]");
+    const vehicleYear = document.querySelector("[data-vehicle-year]");
+    const vehicleType = document.querySelector("[data-vehicle-type]");
+    const vehicleCategory = document.querySelector("[data-vehicle-category]");
+    const vehicleTopPrice = document.querySelector("[data-vehicle-top-price]");
+    const packageCards = Array.from(document.querySelectorAll("[data-package-card]"));
+    const packagePrices = Array.from(document.querySelectorAll("[data-package-price]"));
+    const packageActions = Array.from(document.querySelectorAll("[data-package-action]"));
+    const packageBadges = Array.from(document.querySelectorAll("[data-package-badge]"));
+    const addonInputs = Array.from(document.querySelectorAll("[data-addon]"));
+    const addonRows = Array.from(document.querySelectorAll("[data-addon-row]"));
+    const waxCheckbox = document.querySelector("[data-wax-checkbox]");
+    const waxLabel = document.querySelector("[data-wax-label]");
+    const summaryVehicle = document.querySelector("[data-summary-vehicle]");
+    const summaryCategory = document.querySelector("[data-summary-category]");
+    const summaryPackage = document.querySelector("[data-summary-package]");
+    const summaryBase = document.querySelector("[data-summary-base]");
+    const summaryAddons = document.querySelector("[data-summary-addons]");
+    const summaryAddonList = document.querySelector("[data-summary-addon-list]");
+    const summaryTotal = document.querySelector("[data-summary-total]");
+    const summaryVat = document.querySelector("[data-summary-vat]");
+    const nextLink = document.querySelector("[data-next-link]");
+    const appointmentDateInput = document.querySelector("[data-appointment-date]");
+    const appointmentSummary = document.querySelector("[data-appointment-summary]");
+    const timeSlotButtons = Array.from(document.querySelectorAll("[data-time-slot]"));
+    const orderPreviewTitle = document.querySelector("[data-order-preview-title]");
+    const orderPreviewMeta = document.querySelector("[data-order-preview-meta]");
+    const orderPreviewTotal = document.querySelector("[data-order-preview-total]");
+    const customerTypeButtons = Array.from(
+      document.querySelectorAll("[data-customer-type-button]")
+    );
+    const businessFields = document.querySelector("[data-business-fields]");
+    const customerFirstName = document.querySelector("[data-customer-first-name]");
+    const customerLastName = document.querySelector("[data-customer-last-name]");
+    const customerEmail = document.querySelector("[data-customer-email]");
+    const customerPhone = document.querySelector("[data-customer-phone]");
+    const customerCompany = document.querySelector("[data-customer-company]");
+    const customerCompanyId = document.querySelector("[data-customer-company-id]");
+    const customerAddress = document.querySelector("[data-customer-address]");
+    const customerPostalCode = document.querySelector("[data-customer-postal-code]");
+    const customerCity = document.querySelector("[data-customer-city]");
+    const customerNotes = document.querySelector("[data-customer-notes]");
+    const customerTerms = document.querySelector("[data-customer-terms]");
+    const customerMarketing = document.querySelector("[data-customer-marketing]");
+    const bookingFormStatus = document.querySelector("[data-booking-form-status]");
+    const bookLink = document.querySelector("[data-book-link]");
+    const bookLinkLabel = document.querySelector("[data-book-link-label]");
+    const mobileSummary = document.querySelector("[data-mobile-summary]");
+    const mobileTotal = document.querySelector("[data-mobile-total]");
+    const mobileNextLink = document.querySelector("[data-mobile-next-link]");
+    const customerInputs = [
+      customerFirstName,
+      customerLastName,
+      customerEmail,
+      customerPhone,
+      customerCompany,
+      customerCompanyId,
+      customerAddress,
+      customerPostalCode,
+      customerCity,
+      customerNotes,
+      customerTerms,
+      customerMarketing,
+    ].filter(Boolean);
+
+    const state = {
+      plate: "",
+      vehicle: null,
+      category: null,
+      activePackage: "whole",
+      customerType: "private",
+      appointmentDate: appointmentDateInput?.value || minBookingDate,
+      appointmentTime: timeSlots[0] || "",
+    };
+
+    const categories = [
+      { id: "van", label: "Varevogn", price: 1500 },
+      { id: "large", label: "Stor bil", price: 999 },
+      { id: "medium", label: "Mellem bil", price: 899 },
+      { id: "small", label: "Lille bil", price: 799 },
+    ];
+
+    const sanitizePlate = (value) =>
+      value
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 10);
+
+    const formatPrice = (price) =>
+      `${Math.round(price).toLocaleString("da-DK")} kr`;
+
+    const formatShortPrice = (price) =>
+      `${Math.round(price).toLocaleString("da-DK")},-`;
+
+    const formatAppointmentLabel = (dateValue, timeValue) => {
+      if (!dateValue || !timeValue) return "Vaelg dato og tidspunkt";
+
+      try {
+        const date = new Date(`${dateValue}T${timeValue}:00`);
+        return `${date.toLocaleDateString("da-DK", {
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })} kl. ${timeValue}`;
+      } catch {
+        return `${dateValue} kl. ${timeValue}`;
+      }
+    };
+
+    const getVehicleName = (vehicle) =>
+      [vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Din bil";
+
+    const getCustomerValues = () => ({
+      firstName: customerFirstName?.value.trim() || "",
+      lastName: customerLastName?.value.trim() || "",
+      email: customerEmail?.value.trim() || "",
+      phone: customerPhone?.value.trim() || "",
+      company: customerCompany?.value.trim() || "",
+      companyId: customerCompanyId?.value.trim() || "",
+      address: customerAddress?.value.trim() || "",
+      postalCode: customerPostalCode?.value.trim() || "",
+      city: customerCity?.value.trim() || "",
+      notes: customerNotes?.value.trim() || "",
+      acceptsTerms: Boolean(customerTerms?.checked),
+      wantsMarketing: Boolean(customerMarketing?.checked),
+    });
+
+    const getVehicleCategory = (vehicle) => {
+      const type = String(vehicle?.type || "").toLowerCase();
+      const totalWeight = Number(vehicle?.total_weight || 0);
+
+      if (type === "varebil" || totalWeight > 2500) return categories[0];
+      if (totalWeight > 2000) return categories[1];
+      if (totalWeight > 1300) return categories[2];
+      return categories[3];
+    };
+
+    const getActivePackage = () =>
+      cleaningPackages.find((item) => item.id === state.activePackage) ||
+      cleaningPackages[0];
+
+    const getSelectedAddons = () =>
+      addonInputs
+        .filter((input) => input.checked)
+        .map((input) => ({
+          id: input.dataset.addonId || "",
+          label: input.dataset.addonLabel || "",
+          price: Number(input.dataset.addonPrice || 0),
+        }));
+
+    const setStatus = (message, type = "info") => {
+      if (!plateStatus) return;
+
+      plateStatus.textContent = message;
+      plateStatus.className = "mt-4 rounded-md border px-4 py-3 text-sm";
+
+      if (type === "error") {
+        plateStatus.classList.add("border-red-200", "bg-red-50", "text-red-700");
+        return;
+      }
+
+      plateStatus.classList.add("border-[#2388d1]/30", "bg-[#eef8ff]", "text-[#0d526d]");
+    };
+
+    const setLoading = (isLoading) => {
+      if (!plateSubmit || !plateSubmitLabel) return;
+      plateSubmit.disabled = isLoading;
+      plateSubmitLabel.textContent = isLoading ? "Tjekker..." : "Se din pris";
+    };
+
+    const updateWaxState = () => {
+      const isWholeCar = state.activePackage === "whole";
+      if (waxCheckbox) waxCheckbox.checked = isWholeCar;
+      if (waxLabel) {
+        waxLabel.textContent = isWholeCar ? "Inkl." : "Kun inkl. i Hele bilen";
+      }
+    };
+
+    const updateAddonRows = () => {
+      addonRows.forEach((row) => {
+        const input = row.querySelector("[data-addon]");
+        const isSelected = Boolean(input?.checked);
+        row.classList.toggle("bg-[#eef8ff]", isSelected);
+      });
+    };
+
+    const setBookingFormStatus = (message, type = "error") => {
+      if (!bookingFormStatus) return;
+
+      bookingFormStatus.textContent = message;
+      bookingFormStatus.className = "mt-5 rounded-xl border px-4 py-3 text-sm";
+
+      if (type === "success") {
+        bookingFormStatus.classList.add(
+          "border-[#b7e6cb]",
+          "bg-[#effaf4]",
+          "text-[#16643f]"
+        );
+        return;
+      }
+
+      bookingFormStatus.classList.add("border-red-200", "bg-red-50", "text-red-700");
+    };
+
+    const clearBookingFormStatus = () => {
+      if (!bookingFormStatus) return;
+      bookingFormStatus.className = "mt-5 hidden rounded-xl border px-4 py-3 text-sm";
+      bookingFormStatus.textContent = "";
+    };
+
+    const setBookLoading = (isLoading, totalLabel = "") => {
+      if (!bookLink || !bookLinkLabel) return;
+      bookLink.disabled = isLoading;
+      bookLink.classList.toggle("cursor-not-allowed", isLoading);
+      bookLink.classList.toggle("opacity-75", isLoading);
+      bookLinkLabel.textContent = isLoading
+        ? "Sender booking..."
+        : `Book nu · ${totalLabel || "-"}`;
+    };
+
+    const updateCustomerType = () => {
+      customerTypeButtons.forEach((button) => {
+        const isActive = button.dataset.customerTypeButton === state.customerType;
+        button.classList.toggle("border-[#55b9df]", isActive);
+        button.classList.toggle("bg-[#eef8ff]", isActive);
+        button.classList.toggle("text-[#2388d1]", isActive);
+        button.classList.toggle("border-[var(--line)]", !isActive);
+        button.classList.toggle("bg-white", !isActive);
+        button.classList.toggle("text-[var(--ink)]", !isActive);
+      });
+
+      if (businessFields) {
+        businessFields.classList.toggle("hidden", state.customerType !== "business");
+      }
+    };
+
+    const validateBookingForm = () => {
+      const values = getCustomerValues();
+      const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneDigits = values.phone.replace(/\D/g, "");
+
+      if (!state.appointmentDate) {
+        appointmentDateInput?.focus();
+        return { ok: false, message: "Vaelg dato for bookingen." };
+      }
+
+      if (!state.appointmentTime) {
+        return { ok: false, message: "Vaelg tidspunkt for bookingen." };
+      }
+
+      const checks = [
+        [values.firstName, customerFirstName, "Indtast kundens fornavn."],
+        [values.lastName, customerLastName, "Indtast kundens efternavn."],
+        [values.email, customerEmail, "Indtast kundens email."],
+        [values.address, customerAddress, "Indtast adressen for booking."],
+        [values.postalCode, customerPostalCode, "Indtast postnummeret."],
+        [values.city, customerCity, "Indtast byen."],
+      ];
+
+      for (const [value, field, message] of checks) {
+        if (!value) {
+          field?.focus();
+          return { ok: false, message };
+        }
+      }
+
+      if (!emailPattern.test(values.email)) {
+        customerEmail?.focus();
+        return { ok: false, message: "Indtast en gyldig emailadresse." };
+      }
+
+      if (phoneDigits.length < 8) {
+        customerPhone?.focus();
+        return { ok: false, message: "Indtast et gyldigt telefonnummer." };
+      }
+
+      if (state.customerType === "business" && !values.company) {
+        customerCompany?.focus();
+        return { ok: false, message: "Indtast firmanavn for erhvervsbookingen." };
+      }
+
+      if (!values.acceptsTerms) {
+        customerTerms?.focus();
+        return {
+          ok: false,
+          message: "Du skal acceptere handelsbetingelserne og persondatapolitikken.",
+        };
+      }
+
+      return { ok: true, values };
+    };
+
+    const updateTimeSlotButtons = () => {
+      timeSlotButtons.forEach((button) => {
+        const isActive = button.dataset.timeSlot === state.appointmentTime;
+        button.classList.toggle("border-[#55b9df]", isActive);
+        button.classList.toggle("bg-[#6ec7eb]", isActive);
+        button.classList.toggle("text-[#083047]", isActive);
+        button.classList.toggle("border-[var(--line)]", !isActive);
+        button.classList.toggle("bg-[#f6f8fa]", !isActive);
+        button.classList.toggle("text-[var(--ink)]", !isActive);
+      });
+    };
+
+    const getCurrentBookingPayload = () => {
+      if (!state.vehicle || !state.category) return null;
+
+      const activePackage = getActivePackage();
+      const selectedAddons = getSelectedAddons();
+      const customerValues = getCustomerValues();
+      const addonsTotal = selectedAddons.reduce((sum, item) => sum + item.price, 0);
+      const basePrice = state.category.price;
+      const total = basePrice + addonsTotal;
+      const vehicleName = getVehicleName(state.vehicle);
+
+      return {
+        activePackage,
+        selectedAddons,
+        customerValues,
+        addonsTotal,
+        basePrice,
+        total,
+        vehicleName,
+        appointmentLabel: formatAppointmentLabel(
+          state.appointmentDate,
+          state.appointmentTime
+        ),
+      };
+    };
+
+    const updatePackageCards = () => {
+      packageCards.forEach((card) => {
+        const isActive = card.dataset.packageCard === state.activePackage;
+        card.classList.toggle("border-[#55b9df]", isActive);
+        card.classList.toggle("shadow-[0_14px_32px_rgba(43,147,220,0.16)]", isActive);
+        card.classList.toggle("border-[var(--line)]", !isActive);
+      });
+
+      packageActions.forEach((action) => {
+        const card = action.closest("[data-package-card]");
+        const isActive = card?.dataset.packageCard === state.activePackage;
+        const label = action.querySelector("[data-package-action-label]");
+        const checkIcon = action.querySelector("[data-package-action-check]");
+        const chevronIcon = action.querySelector("[data-package-action-chevron]");
+        if (label) label.textContent = isActive ? "Valgt" : "V\u00e6lg";
+        checkIcon?.classList.toggle("hidden", !isActive);
+        chevronIcon?.classList.toggle("hidden", isActive);
+        action.classList.toggle("bg-[#55b9df]", isActive);
+        action.classList.toggle("bg-[#607d8b]", !isActive);
+      });
+
+      packageBadges.forEach((badge) => {
+        const card = badge.closest("[data-package-card]");
+        const isActive = card?.dataset.packageCard === "whole" && state.activePackage === "whole";
+        badge.classList.toggle("bg-[#78c742]", isActive);
+        badge.classList.toggle("text-white", isActive);
+        badge.classList.toggle("bg-[#eef2f0]", !isActive);
+        badge.classList.toggle("text-[var(--muted)]", !isActive);
+      });
+
+      updateWaxState();
+    };
+
+    const updateSummary = () => {
+      const bookingPayload = getCurrentBookingPayload();
+      if (!bookingPayload || !state.category) return;
+
+      const {
+        activePackage,
+        selectedAddons,
+        addonsTotal,
+        basePrice,
+        total,
+        vehicleName,
+        appointmentLabel,
+      } = bookingPayload;
+
+      packagePrices.forEach((price) => {
+        price.textContent = formatShortPrice(basePrice);
+      });
+
+      if (summaryVehicle) summaryVehicle.textContent = vehicleName;
+      if (summaryCategory) {
+        summaryCategory.textContent = state.category.label;
+      }
+      if (summaryPackage) {
+        summaryPackage.textContent = `${activePackage.title} (${state.category.label})`;
+      }
+      if (summaryBase) summaryBase.textContent = formatPrice(basePrice);
+      if (summaryAddons) summaryAddons.textContent = formatPrice(addonsTotal);
+      if (summaryAddonList) {
+        if (selectedAddons.length > 0) {
+          summaryAddonList.classList.remove("hidden");
+          summaryAddonList.textContent = selectedAddons
+            .map((item) => `${item.label} +${formatPrice(item.price)}`)
+            .join(" | ");
+        } else {
+          summaryAddonList.classList.add("hidden");
+          summaryAddonList.textContent = "";
+        }
+      }
+      if (summaryTotal) summaryTotal.textContent = formatShortPrice(total);
+      if (summaryVat) {
+        summaryVat.textContent = `Heraf moms 25%: ${formatPrice(total * 0.2)}`;
+      }
+
+      if (appointmentSummary) {
+        appointmentSummary.textContent = `${appointmentLabel}. Vi bekraefter den endelige tid pa email.`;
+      }
+
+      if (orderPreviewTitle) {
+        orderPreviewTitle.textContent = `${activePackage.title} - ${state.category.label}`;
+      }
+      if (orderPreviewMeta) {
+        const addonText =
+          selectedAddons.length > 0
+            ? `${selectedAddons.length} tilvalg valgt`
+            : "Ingen tilvalg valgt";
+        orderPreviewMeta.textContent = `Regnr. ${
+          state.vehicle?.registration_number || state.plate
+        } · ${addonText}`;
+      }
+      if (orderPreviewTotal) {
+        orderPreviewTotal.textContent = formatShortPrice(total);
+      }
+
+      if (orderPreviewMeta) {
+        const addonText =
+          selectedAddons.length > 0
+            ? `${selectedAddons.length} tilvalg valgt`
+            : "Ingen tilvalg valgt";
+        orderPreviewMeta.textContent = `Regnr. ${
+          state.vehicle?.registration_number || state.plate
+        } | ${appointmentLabel} | ${addonText}`;
+      }
+
+      if (bookLinkLabel) {
+        bookLinkLabel.textContent = `Book nu · ${formatShortPrice(total)}`;
+      }
+
+      if (mobileTotal) mobileTotal.textContent = formatShortPrice(total);
+
+      if (bookLinkLabel) {
+        bookLinkLabel.textContent = `Book nu · ${formatShortPrice(total)}`;
+      }
+
+      updateTimeSlotButtons();
+      updateAddonRows();
+    };
+
+    const renderVehicle = (vehicle, plate) => {
+      state.vehicle = vehicle;
+      state.plate = plate;
+      state.category = getVehicleCategory(vehicle);
+      state.activePackage = "whole";
+      state.appointmentDate = appointmentDateInput?.value || minBookingDate;
+      state.appointmentTime = state.appointmentTime || timeSlots[0] || "";
+
+      if (lookupPanel) lookupPanel.classList.add("hidden");
+      if (bookingContent) bookingContent.classList.remove("hidden");
+      if (vehicleTitle) vehicleTitle.textContent = getVehicleName(vehicle);
+      if (vehicleRegistration) {
+        vehicleRegistration.textContent = vehicle.registration_number || plate || "-";
+      }
+      if (vehicleYear) vehicleYear.textContent = vehicle.model_year || "-";
+      if (vehicleType) vehicleType.textContent = vehicle.type || "-";
+      if (vehicleCategory) vehicleCategory.textContent = state.category.label;
+      if (vehicleTopPrice) vehicleTopPrice.textContent = formatShortPrice(state.category.price);
+      if (mobileSummary) mobileSummary.classList.remove("hidden");
+
+      addonInputs.forEach((input) => {
+        input.checked = false;
+      });
+
+      updatePackageCards();
+      updateSummary();
+    };
+
+    const lookupPlate = async (rawPlate, updateUrl = true) => {
+      const plate = sanitizePlate(rawPlate || "");
+      if (plateInput) plateInput.value = plate;
+
+      if (!/^[A-Z0-9]{2,10}$/.test(plate)) {
+        setStatus("Indtast en gyldig dansk nummerplade, fx AB12345.", "error");
+        plateInput?.focus();
+        return;
+      }
+
+      setLoading(true);
+      setStatus("Vi henter biloplysninger hos MotorAPI.dk...");
+
+      try {
+        const response = await fetch(`/api/vehicle/${encodeURIComponent(plate)}`, {
+          headers: {
+            Accept: "application/json",
+          },
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(
+            payload?.error ||
+              "Nummerpladen kunne ikke findes. Tjek nummeret og prov igen."
+          );
+        }
+
+        const vehicle = payload?.vehicle || payload;
+        if (updateUrl) {
+          window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(plate)}`);
+        }
+        renderVehicle(vehicle, plate);
+      } catch (error) {
+        if (bookingContent) bookingContent.classList.add("hidden");
+        if (mobileSummary) mobileSummary.classList.add("hidden");
+        if (lookupPanel) lookupPanel.classList.remove("hidden");
+        if (lookupCopy) {
+          lookupCopy.textContent =
+            "Vi kunne ikke hente bilen. Tjek nummerpladen og prov igen.";
+        }
+        setStatus(
+          error instanceof Error
+            ? error.message
+            : "Nummerpladen kunne ikke findes. Tjek nummeret og prov igen.",
+          "error"
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    plateInput?.addEventListener("input", () => {
+      const sanitized = sanitizePlate(plateInput.value);
+      if (plateInput.value !== sanitized) plateInput.value = sanitized;
+    });
+
+    plateForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      lookupPlate(plateInput?.value || "");
+    });
+
+    packageCards.forEach((card) => {
+      card.addEventListener("click", () => {
+        state.activePackage = card.dataset.packageCard || "whole";
+        updatePackageCards();
+        updateSummary();
+      });
+    });
+
+    addonInputs.forEach((input) => {
+      input.addEventListener("change", () => {
+        updateAddonRows();
+        updateSummary();
+      });
+    });
+
+    appointmentDateInput?.addEventListener("change", () => {
+      state.appointmentDate = appointmentDateInput.value || minBookingDate;
+      clearBookingFormStatus();
+      updateSummary();
+    });
+
+    timeSlotButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.appointmentTime = button.dataset.timeSlot || "";
+        clearBookingFormStatus();
+        updateSummary();
+      });
+    });
+
+    customerTypeButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        state.customerType = button.dataset.customerTypeButton || "private";
+        updateCustomerType();
+        updateSummary();
+      });
+    });
+
+    customerInputs.forEach((input) => {
+      const eventName = input.type === "checkbox" ? "change" : "input";
+      input.addEventListener(eventName, () => {
+        clearBookingFormStatus();
+        updateSummary();
+      });
+    });
+
+    bookLink?.addEventListener("click", async () => {
+      const validation = validateBookingForm();
+      if (!validation.ok) {
+        setBookingFormStatus(validation.message);
+        return;
+      }
+
+      const bookingPayload = getCurrentBookingPayload();
+      if (!bookingPayload || !state.vehicle || !state.category) {
+        setBookingFormStatus("Vi mangler stadig biloplysninger for at oprette bookingen.");
+        return;
+      }
+
+      clearBookingFormStatus();
+      setBookLoading(true, formatShortPrice(bookingPayload.total));
+
+      try {
+        const response = await fetch("/api/bookings/create", {
+          method: "POST",
+          headers: {
+            "content-type": "application/json",
+            accept: "application/json",
+          },
+          body: JSON.stringify({
+            plate: state.plate,
+            registrationNumber: state.vehicle.registration_number || state.plate,
+            vehicleName: bookingPayload.vehicleName,
+            vehicleYear: Number(state.vehicle.model_year || 0) || null,
+            vehicleType: state.vehicle.type || "",
+            category: state.category.label,
+            packageId: state.activePackage,
+            packageLabel: bookingPayload.activePackage.title,
+            addons: bookingPayload.selectedAddons,
+            subtotal: bookingPayload.basePrice,
+            total: bookingPayload.total,
+            appointmentDate: state.appointmentDate,
+            appointmentTime: state.appointmentTime,
+            customerType: state.customerType,
+            customer: {
+              ...validation.values,
+            },
+          }),
+        });
+
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok) {
+          throw new Error(payload?.error || "Kunne ikke oprette bookingen. Prov igen.");
+        }
+
+        setBookingFormStatus(
+          "Bookingen er oprettet. Vi sender dig videre til din kundeportal.",
+          "success"
+        );
+
+        if (payload?.portalUrl) {
+          window.location.href = payload.portalUrl;
+          return;
+        }
+      } catch (error) {
+        setBookingFormStatus(
+          error instanceof Error
+            ? error.message
+            : "Kunne ikke oprette bookingen. Prov igen.",
+          "error"
+        );
+      } finally {
+        setBookLoading(false, formatShortPrice(bookingPayload.total));
+      }
+    });
+
+    const normalizedInitialPlate = sanitizePlate(initialPlate);
+    if (plateInput) plateInput.value = normalizedInitialPlate;
+    if (appointmentDateInput) appointmentDateInput.value = minBookingDate;
+    updateCustomerType();
+    updateTimeSlotButtons();
+
+    if (normalizedInitialPlate) {
+      lookupPlate(normalizedInitialPlate, false);
+    }
+  </script>
+</Layout>

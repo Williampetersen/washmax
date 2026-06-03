@@ -1,166 +1,157 @@
-# Astroship - Astro SAAS Starter Website Template
+# WashMax
 
-Astroship is a free starter astro website template for saas, startups, marketing websites, landing pages & blogs. Built with Astro & TailwindCSS.
+WashMax is now a Next.js 16 App Router project for the WashMax booking site, customer portal, and admin dashboard.
 
-This Free Template is sponsored by [Web3Templates](https://web3templates.com)
+## Stack
 
-## Live Demo
+- Next.js 16
+- React 19
+- TypeScript
+- App Router
+- Tailwind CSS 4
+- React Hook Form + Zod
+- React Day Picker
+- Framer Motion
+- PostgreSQL via `postgres`
+- Nodemailer SMTP
 
-**[https://astroship.web3templates.com/](https://astroship.web3templates.com/)**
+## Main Routes
 
-**[Download Astroship Template](https://web3templates.com/templates/astroship-starter-website-template-for-astro)**
+- `/`
+  Marketing homepage with hero video and number-plate lookup
+- `/booking`
+  Multi-step booking flow with vehicle lookup, package selection, add-ons, appointment selection, and customer form
+- `/kunde/[token]`
+  Customer portal with booking history, profile update form, and payments placeholder
+- `/admin/login`
+  Admin login page
+- `/admin`
+  Admin dashboard with bookings, calendar, customers, and settings views
 
-## Upgrade to Astroship Pro Version
+## API Routes
 
-**[https://astroship-pro.web3templates.com/](https://astroship-pro.web3templates.com/)**
+- `/api/vehicle/[plate]`
+  MotorAPI vehicle lookup
+- `/api/bookings/create`
+  Public booking creation
+- `/api/customer/[token]`
+  Customer profile updates from the portal
+- `/api/admin/login`
+  Admin authentication
+- `/api/admin/logout`
+  Admin logout
+- `/api/admin/settings`
+  Booking and mail settings update
+- `/api/admin/bookings/create`
+  Manual admin booking creation
+- `/api/admin/bookings/[id]`
+  Admin booking status actions and delete
 
-**[Purchase Astroship Pro — $49](https://web3templates.com/templates/astroship-pro-astro-saas-website-template)**
+## Environment Variables
 
-
-<!-- prettier-ignore -->
-| Feature | Free Version | Pro Version |
-| --- | ------ | --- |
-| Astro v3 | ✅  | ✅ |
-| Content Collections | ✅  | ✅ |
-| Tailwind CSS   | ✅  | ✅ |
-| Mobile Responsive | ✅  | ✅ |
-| Working Contact Page | ✅  | ✅ |
-| Pro Layouts & Features | ❌  | ✅ |
-| Blog with Pagination | ❌ | ✅ |
-| View Transitions | ❌ | ✅ |
-| Advanced Homepage Design | ❌  | ✅ |
-| Features Page | ❌  | ✅ |
-| Integrations Page | ❌  | ✅ |
-| Elegant 404 Page | ❌  | ✅ |
-| 6 Months Support| ❌  | ✅  |
-| Free Updates    | ✅  | ✅  |
-| License         | GPL-2.0 | Commercial |
-| &nbsp; | &nbsp;| &nbsp;|
-| Pricing| Free|**$49**|
-| &nbsp; | [Deploy for free](https://vercel.com/new/surjithctly/clone?demo-description=Starter%20template%20for%20startups%2C%20marketing%20websites%20%26%20blogs%20built%20with%20Astro%20and%20TailwindCSS.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F5dB0dDqBr1BfvIoNOmffVB%2F784984a8d3fe5e3db123e7c655166046%2Fastroship_-_Tony_Sullivan.jpg&demo-title=Astroship&demo-url=https%3A%2F%2Fastroship.web3templates.com%2F&from=templates&project-name=Astroship&repository-name=astroship&repository-url=https%3A%2F%2Fgithub.com%2Fsurjithctly%2Fastroship&skippable-integrations=1) | [Purchase Pro](https://web3templates.com/templates/astroship-pro-astro-saas-website-template) |
-
-<a href="https://web3templates.com/templates/astroship-pro-astro-saas-website-template">
-<img width="160" alt="Upgrade to Pro" src="https://user-images.githubusercontent.com/1884712/199181300-37c2128e-d033-4145-a906-16fa5263a53b.png">
-</a>
-
-## Deploy this template
-
-You can instantly clone this to your GitHub and deploy the site by clicking the below buttons to deploy to your chosen providers!
-
-Click here to deploy on Vercel:
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsurjithctly%2Fastroship&project-name=astroship&repository-name=astroship&demo-title=Astroship%20-%20Astro%20Starter%20Template&demo-description=Astroship%20is%20a%20starter%20template%20for%20startups%2C%20marketing%20websites%20%26%20landing%20pages.%20Built%20with%20Astro%2C%20TailwindCSS&demo-url=https%3A%2F%2Fastroship.web3templates.com%2F&demo-image=https%3A%2F%2Fuser-images.githubusercontent.com%2F1884712%2F200831799-10ef2456-a02e-4068-b580-4b5326f0b33b.png)
-
-Click here to deploy on Netlify:
-
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/surjithctly/astroship)
-
-## Preview
-
-![image](https://user-images.githubusercontent.com/1884712/200831799-10ef2456-a02e-4068-b580-4b5326f0b33b.png)
-
-
-## Pro Version Preview
-
-![preview](https://github.com/surjithctly/astroship/assets/1884712/25665c02-d2a7-43dc-89b2-34a8ae37ade9)
-
-
-### Pagespeed Score
-
-[![pagespeed](https://user-images.githubusercontent.com/1884712/210250214-7aa98167-7993-4b90-8138-326b8fa0c223.png)](https://pagespeed.web.dev/report?url=https%3A%2F%2Fastroship.web3templates.com%2F)
-
-
-## Installation
-
-If you are reading this on github, you can click on the "Use this template" button above to create a new repository from astroship to your account. Then you can do a `git clone` to clone it to your local system.
-
-Alternatively, you can clone the project directly from this repo to your local system.
-
-### 1. Clone the repo
+Add these in `.env` locally and in Vercel for production:
 
 ```bash
-git clone https://github.com/surjithctly/astroship.git myProjectName
-# or
-git clone https://github.com/surjithctly/astroship.git .
+MOTORAPI_API_KEY=
+DATABASE_URL=
+APP_URL=
+
+ADMIN_EMAIL=
+ADMIN_PASSWORD=
+ADMIN_SESSION_SECRET=
+
+BOOKING_ADMIN_EMAIL=
+
+SMTP_HOST=
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=
+SMTP_PASSWORD=
+MAIL_FROM=
+MAIL_FROM_NAME=WashMax
 ```
 
-The `.` will clone it to the current directory so make sure you are inside your project folder first.
+### Simply.com SMTP Example
 
-### 2. Install Dependencies
+```bash
+SMTP_HOST=websmtp.simply.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=info@cleanwash.dk
+SMTP_PASSWORD=your-mailbox-password
+MAIL_FROM=WashMax <info@cleanwash.dk>
+MAIL_FROM_NAME=WashMax
+BOOKING_ADMIN_EMAIL=info@cleanwash.dk
+```
+
+## Development
+
+Install dependencies:
 
 ```bash
 npm install
-# or
-yarn install
-# or (recommended)
-pnpm install
 ```
 
-### 3. Start development Server
+Run the dev server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or (recommended)
-pnpm dev
 ```
 
-### Preview & Build
+Build for production:
 
 ```bash
-npm run preview
 npm run build
-# or
-yarn preview
-yarn build
-# or (recommended)
-pnpm preview
-pnpm build
 ```
 
-We recommend using [pnpm](https://pnpm.io/) to save disk space on your computer.
-
-### Other Commands
+Run lint:
 
 ```bash
-pnpm astro ...
-pnpm astro add
-pnpm astro --help
+npm run lint
 ```
 
-## Project Structure
+Start the production server locally:
 
-Inside of your Astro project, you'll see the following folders and files:
-
-```
-/
-├── public/
-│   └── ...
-├── src/
-│   ├── components/
-│   │   └── ...
-│   ├── layouts/
-│   │   └── ...
-│   └── pages/
-│       └── ...
-└── package.json
+```bash
+npm run start
 ```
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+## Database Notes
 
-Any static assets, like images, can be placed in the `public/` directory.
+The schema is created automatically on first use when `DATABASE_URL` is configured.
 
-## TailwindCSS
+Tables created by the server layer:
 
-TailwindCSS is already configured in this repo, so you can start using it without any installation.
+- `customers`
+- `bookings`
+- `booking_settings`
 
-## Credits
+## Assets
 
-[Hero Illustration](https://www.figma.com/community/file/1108400791662599811) by [Streamline](https://www.streamlinehq.com/)
+Public assets remain in `public/`, including:
 
-## 👀 Want to learn more?
+- `public/logo.png`
+- `public/opengraph.jpg`
+- `public/DKEU.svg`
+- `public/videos/hero.mp4`
+- `public/bilbrands/*`
+- `public/robots.txt`
 
-Feel free to check out [Astro Docs](https://docs.astro.build) or jump into our [Discord Chat](https://web3templates.com/discord).
+## Legacy Astro Source
 
-[![Built with Astro](https://astro.badg.es/v1/built-with-astro.svg)](https://astro.build)
+The previous Astro implementation was preserved under:
+
+```text
+legacy/astro-src
+```
+
+This keeps the original pages, layouts, components, content files, and Astro APIs available for reference during the migration.
+
+## Verification Done
+
+The migration was verified with:
+
+- `npm install`
+- `npm run build`
+- Local HTTP checks against `/`, `/booking`, and `/admin/login`
+

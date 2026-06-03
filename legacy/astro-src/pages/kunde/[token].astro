@@ -1,0 +1,319 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { Icon } from "astro-icon/components";
+import { getPortalData } from "@/lib/server/bookings";
+import {
+  formatPrice,
+  formatShortPrice,
+  getStatusLabel,
+  getStatusTone,
+} from "@/lib/shared/booking";
+
+export const prerender = false;
+
+const token = Astro.params.token || "";
+const view = Astro.url.searchParams.get("view") || "history";
+const saved = Astro.url.searchParams.get("saved") === "1";
+const portalData = token ? await getPortalData(token) : null;
+const customer = portalData?.customer ?? {
+  id: "",
+  email: "",
+  firstName: "",
+  lastName: "",
+  phone: "",
+  address: "",
+  postalCode: "",
+  city: "",
+  notes: "",
+  customerType: "private",
+  company: "",
+  companyId: "",
+  marketingOptIn: false,
+  portalToken: "",
+  portalTokenExpiresAt: "",
+  createdAt: "",
+  updatedAt: "",
+};
+const bookings = portalData?.bookings ?? [];
+const initials = customer
+  ? `${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "K"
+  : "K";
+const completedBookings = bookings.filter((item) => item.status === "completed");
+const upcomingBookings = bookings.filter(
+  (item) => item.status === "pending" || item.status === "approved"
+);
+const totalValue = bookings
+  .filter((item) => item.status !== "cancelled")
+  .reduce((sum, item) => sum + item.total, 0);
+---
+
+<Layout title="Kundeportal" description="Se dine WashMax bookinger.">
+  {
+    portalData && customer ? (
+      <main class="px-4 pb-12 pt-8 sm:px-6">
+        <section class="mx-auto max-w-7xl">
+          <div class="grid gap-6 xl:grid-cols-[18rem_1fr]">
+        <aside class="rounded-[2rem] bg-[linear-gradient(180deg,#0e3557,#14486b)] p-5 text-white shadow-[0_28px_80px_rgba(8,27,21,0.2)]">
+          <div class="rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
+            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#6ec7eb] text-3xl font-semibold text-[#083047]">
+              {initials}
+            </div>
+            <p class="mt-4 text-2xl font-semibold">
+              {[customer.firstName, customer.lastName].filter(Boolean).join(" ")}
+            </p>
+            <p class="mt-1 text-sm text-white/72">{customer.email}</p>
+          </div>
+
+          <nav class="mt-5 grid gap-2 text-sm">
+            <a
+              href={`/kunde/${token}?view=history`}
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "history"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:calendar" class="h-5 w-5" />
+              Booking historik
+            </a>
+            <a
+              href={`/kunde/${token}?view=profile`}
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "profile"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:user" class="h-5 w-5" />
+              Personlige oplysninger
+            </a>
+            <a
+              href={`/kunde/${token}?view=payments`}
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "payments"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:credit-card" class="h-5 w-5" />
+              Betalingsmetoder
+            </a>
+          </nav>
+
+          <div class="mt-5 rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#a7e7ff]">
+              Hurtige stats
+            </p>
+            <div class="mt-4 grid gap-3 text-sm text-white/82">
+              <div class="flex items-center justify-between">
+                <span>Bookinger</span>
+                <strong>{bookings.length}</strong>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Total vaerdi</span>
+                <strong>{formatPrice(totalValue)}</strong>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Kommende</span>
+                <strong>{upcomingBookings.length}</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="space-y-6">
+          <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.1)]">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">
+                  Kundeportal
+                </p>
+                <h1 class="mt-3 font-display text-4xl font-semibold text-[var(--ink)]">
+                  {view === "profile"
+                    ? "Personlige oplysninger"
+                    : view === "payments"
+                      ? "Betalingsmetoder"
+                      : "Booking historik"}
+                </h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+                  Se dine kommende tider, opdater kontaktoplysninger og behold overblikket over dine bookinger.
+                </p>
+              </div>
+              <a
+                href="/booking"
+                class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-4 text-sm font-semibold text-white transition hover:bg-[#1b75b7]">
+                <Icon name="bx:calendar-plus" class="h-5 w-5" />
+                Ny booking
+              </a>
+            </div>
+          </div>
+
+          {
+            saved && (
+              <div class="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm text-[#1a506d]">
+                Dine oplysninger er gemt.
+              </div>
+            )
+          }
+
+          {
+            view === "history" && (
+              <>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Bookinger</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">{bookings.length}</p>
+                  </div>
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Kommende</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">{upcomingBookings.length}</p>
+                  </div>
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Afsluttede</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">{completedBookings.length}</p>
+                  </div>
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Total vaerdi</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">{formatShortPrice(totalValue)}</p>
+                  </div>
+                </div>
+
+                <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                  <div class="grid gap-4">
+                    {
+                      bookings.map((booking) => (
+                        <article class="rounded-[1.5rem] border border-[var(--line)] p-5">
+                          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                              <div class="flex flex-wrap items-center gap-3">
+                                <h3 class="text-2xl font-semibold text-[var(--ink)]">
+                                  {booking.packageLabel} - {booking.category}
+                                </h3>
+                                <span
+                                  class:list={[
+                                    "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                    getStatusTone(booking.status),
+                                  ]}>
+                                  {getStatusLabel(booking.status)}
+                                </span>
+                              </div>
+                              <p class="mt-2 text-sm text-[var(--muted)]">
+                                {booking.vehicleName} · {booking.registrationNumber}
+                              </p>
+                              <div class="mt-4 grid gap-2 text-sm text-[var(--ink)] sm:grid-cols-2">
+                                <p class="flex items-center gap-2">
+                                  <Icon name="bx:calendar" class="h-4 w-4 text-[#55b9df]" />
+                                  {booking.appointmentLabel}
+                                </p>
+                                <p class="flex items-center gap-2">
+                                  <Icon name="bx:credit-card" class="h-4 w-4 text-[#55b9df]" />
+                                  {formatPrice(booking.total)}
+                                </p>
+                              </div>
+                              {
+                                booking.addons.length > 0 && (
+                                  <p class="mt-3 text-sm text-[var(--muted)]">
+                                    Tilvalg: {booking.addons.map((item) => item.label).join(", ")}
+                                  </p>
+                                )
+                              }
+                            </div>
+                          </div>
+                        </article>
+                      ))
+                    }
+                  </div>
+                </div>
+              </>
+            )
+          }
+
+          {
+            view === "profile" && (
+              <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                <form action={`/api/customer/${token}`} method="POST" class="grid gap-4">
+                  <div class="grid gap-4 md:grid-cols-2">
+                    <label class="grid gap-2 text-sm text-[var(--ink)]">
+                      <span class="font-medium">Fornavn</span>
+                      <input name="first_name" value={customer.firstName} class="h-12 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)]">
+                      <span class="font-medium">Efternavn</span>
+                      <input name="last_name" value={customer.lastName} class="h-12 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)] md:col-span-2">
+                      <span class="font-medium">Email</span>
+                      <input value={customer.email} disabled class="h-12 rounded-xl border border-[#e1e7ec] bg-[#f8fafc] px-4 text-[#7b8790]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)]">
+                      <span class="font-medium">Telefon</span>
+                      <input name="phone" value={customer.phone} class="h-12 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)] md:col-span-2">
+                      <span class="font-medium">Adresse</span>
+                      <input name="address" value={customer.address} class="h-12 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)]">
+                      <span class="font-medium">Postnr.</span>
+                      <input name="postal_code" value={customer.postalCode} class="h-12 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)]">
+                      <span class="font-medium">By</span>
+                      <input name="city" value={customer.city} class="h-12 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                    </label>
+                    <label class="grid gap-2 text-sm text-[var(--ink)] md:col-span-2">
+                      <span class="font-medium">Noter</span>
+                      <textarea name="notes" rows="5" class="min-h-32 rounded-xl border border-[#cbd9e4] px-4 py-3 outline-none focus:border-[#55b9df]">{customer.notes}</textarea>
+                    </label>
+                  </div>
+                  <button
+                    type="submit"
+                    class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-5 text-sm font-semibold text-white transition hover:bg-[#1b75b7]">
+                    <Icon name="bx:save" class="h-5 w-5" />
+                    Gem aendringer
+                  </button>
+                </form>
+              </div>
+            )
+          }
+
+          {
+            view === "payments" && (
+              <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                <div class="rounded-[1.6rem] bg-[#f8fbfd] px-6 py-10 text-center">
+                  <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#2388d1]">
+                    <Icon name="bx:credit-card-front" class="h-8 w-8" />
+                  </div>
+                  <h2 class="mt-5 font-display text-3xl font-semibold text-[var(--ink)]">
+                    Betalingsmetoder
+                  </h2>
+                  <p class="mt-3 text-sm leading-7 text-[var(--muted)]">
+                    Denne version gemmer ikke kortdata. Hvis du senere vil have gemte kort eller online betaling, skal vi koble Stripe eller en anden betalingsgateway pa.
+                  </p>
+                </div>
+              </div>
+            )
+          }
+        </div>
+          </div>
+        </section>
+      </main>
+    ) : (
+      <main class="px-4 pb-12 pt-10 sm:px-6">
+        <section class="mx-auto max-w-3xl rounded-[2rem] border border-[var(--line)] bg-white p-8 text-center shadow-[0_24px_70px_rgba(8,27,21,0.1)]">
+          <h1 class="font-display text-4xl font-semibold text-[var(--ink)]">
+            Linket er ikke gyldigt laengere
+          </h1>
+          <p class="mt-4 text-sm leading-7 text-[var(--muted)]">
+            Bed kunden bruge det seneste link fra bookingmailen eller oprette en ny booking.
+          </p>
+          <a
+            href="/booking"
+            class="mt-6 inline-flex h-12 items-center justify-center rounded-xl bg-[#2388d1] px-5 text-sm font-semibold text-white transition hover:bg-[#1b75b7]">
+            Gaa til booking
+          </a>
+        </section>
+      </main>
+    )
+  }
+</Layout>

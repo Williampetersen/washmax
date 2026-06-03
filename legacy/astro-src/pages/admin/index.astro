@@ -1,0 +1,579 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import { Icon } from "astro-icon/components";
+import { getAdminSession } from "@/lib/server/admin-session";
+import { getAdminDashboardData } from "@/lib/server/bookings";
+import { isDatabaseConfigured } from "@/lib/server/db";
+import {
+  cleaningPackages,
+  formatPrice,
+  formatShortPrice,
+  getStatusLabel,
+  getStatusTone,
+  getTimeSlots,
+} from "@/lib/shared/booking";
+
+export const prerender = false;
+
+const session = getAdminSession(Astro.cookies);
+if (!session) {
+  return Astro.redirect("/admin/login");
+}
+
+const view = Astro.url.searchParams.get("view") || "dashboard";
+const saved = Astro.url.searchParams.get("saved") || "";
+const error = Astro.url.searchParams.get("error") || "";
+const dashboard = await getAdminDashboardData();
+const timeSlots = getTimeSlots(dashboard.settings);
+const hasDatabase = isDatabaseConfigured();
+const statusMessage =
+  saved === "created"
+    ? "Booking oprettet."
+    : saved === "updated"
+      ? "Booking opdateret."
+      : saved === "deleted"
+        ? "Booking slettet."
+        : saved === "settings"
+          ? "Indstillinger gemt."
+          : "";
+const errorMessage =
+  error === "action" ? "Handlingen kunne ikke gennemfoeres." : "";
+
+const upcomingBookings = dashboard.bookings.filter(
+  (item) => item.status === "pending" || item.status === "approved"
+);
+const recentCustomers = dashboard.customers.slice(0, 12);
+---
+
+<Layout title="Admin" description="WashMax admin dashboard.">
+  <main class="px-4 pb-12 pt-8 sm:px-6">
+    <section class="mx-auto max-w-7xl">
+      <div class="grid gap-6 xl:grid-cols-[18rem_1fr]">
+        <aside class="rounded-[2rem] bg-[linear-gradient(180deg,#0e3557,#14486b)] p-5 text-white shadow-[0_28px_80px_rgba(8,27,21,0.2)]">
+          <div class="rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
+            <div class="flex h-20 w-20 items-center justify-center rounded-full bg-[#6ec7eb] text-3xl font-semibold text-[#083047]">
+              A
+            </div>
+            <p class="mt-4 text-2xl font-semibold">Admin</p>
+            <p class="mt-1 text-sm text-white/72">{session.email}</p>
+          </div>
+
+          <nav class="mt-5 grid gap-2 text-sm">
+            <a
+              href="/admin?view=dashboard"
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "dashboard"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:bar-chart-alt-2" class="h-5 w-5" />
+              Dashboard
+            </a>
+            <a
+              href="/admin?view=calendar"
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "calendar"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:calendar" class="h-5 w-5" />
+              Kalender
+            </a>
+            <a
+              href="/admin?view=customers"
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "customers"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:group" class="h-5 w-5" />
+              Kunder
+            </a>
+            <a
+              href="/admin?view=settings"
+              class:list={[
+                "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
+                view === "settings"
+                  ? "bg-white text-[#0f3555]"
+                  : "text-white/82 hover:bg-white/8",
+              ]}>
+              <Icon name="bx:cog" class="h-5 w-5" />
+              Indstillinger
+            </a>
+          </nav>
+
+          <div class="mt-5 rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
+            <p class="text-sm font-semibold uppercase tracking-[0.16em] text-[#a7e7ff]">
+              Hurtige stats
+            </p>
+            <div class="mt-4 grid gap-3 text-sm text-white/82">
+              <div class="flex items-center justify-between">
+                <span>Bookinger</span>
+                <strong>{dashboard.stats.totalBookings}</strong>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Omsaetning</span>
+                <strong>{formatPrice(dashboard.stats.totalRevenue)}</strong>
+              </div>
+              <div class="flex items-center justify-between">
+                <span>Kunder</span>
+                <strong>{dashboard.stats.totalCustomers}</strong>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <div class="space-y-6">
+          <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.1)]">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">
+                  WashMax Admin
+                </p>
+                <h1 class="mt-3 font-display text-4xl font-semibold text-[var(--ink)]">
+                  {view === "calendar"
+                    ? "Kalender og dagsplan"
+                    : view === "customers"
+                      ? "Kunder og bookinghistorik"
+                      : view === "settings"
+                        ? "Booking- og emailindstillinger"
+                        : "Booking dashboard"}
+                </h1>
+                <p class="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+                  Godkend bookinger, tilfoj bookinger manuelt, styr arbejdstider og
+                  hold styr pa kundeoplysningerne fra et samlet panel.
+                </p>
+              </div>
+
+              <div class="flex flex-wrap gap-3">
+                <a
+                  href="/booking"
+                  class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--line)] px-4 text-sm font-semibold text-[var(--ink)] transition hover:border-[#55b9df]">
+                  <Icon name="bx:calendar-plus" class="h-5 w-5" />
+                  Ny booking
+                </a>
+                <form action="/api/admin/logout" method="POST">
+                  <button
+                    type="submit"
+                    class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-4 text-sm font-semibold text-white transition hover:bg-[#1b75b7]">
+                    <Icon name="bx:log-out" class="h-5 w-5" />
+                    Log ud
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+
+          {
+            !hasDatabase && (
+              <div class="rounded-[1.5rem] border border-[#ffe3b5] bg-[#fff7e8] px-5 py-4 text-sm text-[#8d5d08]">
+                `DATABASE_URL` mangler. Adminpanelet kan vises, men bookinger bliver
+                ikke gemt foer databasen er sat op.
+              </div>
+            )
+          }
+
+          {
+            (statusMessage || errorMessage) && (
+              <div
+                class:list={[
+                  "rounded-[1.5rem] border px-5 py-4 text-sm",
+                  errorMessage
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-[#cde6f6] bg-[#f6fbff] text-[#1a506d]",
+                ]}>
+                {errorMessage || statusMessage}
+              </div>
+            )
+          }
+
+          {
+            view === "dashboard" && (
+              <>
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Afventer</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">
+                      {dashboard.stats.pendingBookings}
+                    </p>
+                  </div>
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Kommende</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">
+                      {dashboard.stats.upcomingBookings}
+                    </p>
+                  </div>
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Omsaetning</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">
+                      {formatShortPrice(dashboard.stats.totalRevenue)}
+                    </p>
+                  </div>
+                  <div class="rounded-[1.6rem] border border-[var(--line)] bg-white p-5 shadow-[0_16px_45px_rgba(8,27,21,0.07)]">
+                    <p class="text-sm text-[var(--muted)]">Kunder</p>
+                    <p class="mt-3 text-4xl font-semibold text-[var(--ink)]">
+                      {dashboard.stats.totalCustomers}
+                    </p>
+                  </div>
+                </div>
+
+                <div class="grid gap-6 xl:grid-cols-[1.15fr_0.85fr]">
+                  <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                    <div class="flex items-center justify-between gap-4">
+                      <div>
+                        <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                          Bookinger
+                        </h2>
+                        <p class="mt-1 text-sm text-[var(--muted)]">
+                          Godkend, afslut eller annuller direkte fra listen.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="mt-5 grid gap-4">
+                      {
+                        dashboard.bookings.length > 0 ? (
+                          dashboard.bookings.map((booking) => (
+                            <article class="rounded-[1.5rem] border border-[var(--line)] p-5">
+                              <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                                <div>
+                                  <div class="flex flex-wrap items-center gap-3">
+                                    <h3 class="text-xl font-semibold text-[var(--ink)]">
+                                      {booking.packageLabel} - {booking.category}
+                                    </h3>
+                                    <span
+                                      class:list={[
+                                        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                        getStatusTone(booking.status),
+                                      ]}>
+                                      {getStatusLabel(booking.status)}
+                                    </span>
+                                  </div>
+                                  <p class="mt-2 text-sm text-[var(--muted)]">
+                                    {booking.vehicleName} · {booking.registrationNumber}
+                                  </p>
+                                  <div class="mt-4 grid gap-2 text-sm text-[var(--ink)] sm:grid-cols-2">
+                                    <p class="flex items-center gap-2">
+                                      <Icon name="bx:calendar" class="h-4 w-4 text-[#55b9df]" />
+                                      {booking.appointmentLabel}
+                                    </p>
+                                    <p class="flex items-center gap-2">
+                                      <Icon name="bx:credit-card" class="h-4 w-4 text-[#55b9df]" />
+                                      {formatPrice(booking.total)}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div class="grid gap-2 sm:grid-cols-2">
+                                  <form action={`/api/admin/bookings/${booking.id}`} method="POST">
+                                    <input type="hidden" name="action" value="approve" />
+                                    <button
+                                      type="submit"
+                                      class="inline-flex h-10 items-center justify-center rounded-xl border border-[#bce6ca] bg-[#effaf4] px-4 text-sm font-semibold text-[#1f7a4b] transition hover:brightness-95">
+                                      Godkend
+                                    </button>
+                                  </form>
+                                  <form action={`/api/admin/bookings/${booking.id}`} method="POST">
+                                    <input type="hidden" name="action" value="complete" />
+                                    <button
+                                      type="submit"
+                                      class="inline-flex h-10 items-center justify-center rounded-xl border border-[#cde6f6] bg-[#f6fbff] px-4 text-sm font-semibold text-[#1f6aa4] transition hover:brightness-95">
+                                      Afslut
+                                    </button>
+                                  </form>
+                                  <form action={`/api/admin/bookings/${booking.id}`} method="POST">
+                                    <input type="hidden" name="action" value="cancel" />
+                                    <button
+                                      type="submit"
+                                      class="inline-flex h-10 items-center justify-center rounded-xl border border-[#f7d0d0] bg-[#fff3f3] px-4 text-sm font-semibold text-[#c43d3d] transition hover:brightness-95">
+                                      Annuller
+                                    </button>
+                                  </form>
+                                  <form action={`/api/admin/bookings/${booking.id}`} method="POST">
+                                    <input type="hidden" name="action" value="delete" />
+                                    <button
+                                      type="submit"
+                                      class="inline-flex h-10 items-center justify-center rounded-xl border border-[var(--line)] px-4 text-sm font-semibold text-[var(--ink)] transition hover:border-[#d4a9a9]">
+                                      Slet
+                                    </button>
+                                  </form>
+                                </div>
+                              </div>
+                            </article>
+                          ))
+                        ) : (
+                          <div class="rounded-[1.5rem] border border-dashed border-[var(--line)] px-5 py-8 text-sm text-[var(--muted)]">
+                            Ingen bookinger endnu.
+                          </div>
+                        )
+                      }
+                    </div>
+                  </div>
+
+                  <div class="space-y-6">
+                    <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                      <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                        Tilfoj booking manuelt
+                      </h2>
+                      <p class="mt-1 text-sm text-[var(--muted)]">
+                        Brug denne formular, hvis du vil oprette en booking direkte fra admin.
+                      </p>
+
+                      <form action="/api/admin/bookings/create" method="POST" class="mt-5 grid gap-4">
+                        <div class="grid gap-4 md:grid-cols-2">
+                          <input name="first_name" placeholder="Fornavn" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="last_name" placeholder="Efternavn" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="email" type="email" placeholder="Email" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="phone" placeholder="Telefon" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="plate" placeholder="Regnr." class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="vehicle_name" placeholder="Bilnavn" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="category" placeholder="Kategori" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <select name="package_id" class="h-11 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none focus:border-[#55b9df]">
+                            {
+                              cleaningPackages.map((item) => (
+                                <option value={item.id}>{item.title}</option>
+                              ))
+                            }
+                          </select>
+                          <input name="appointment_date" type="date" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <select name="appointment_time" class="h-11 rounded-xl border border-[#cbd9e4] bg-white px-4 outline-none focus:border-[#55b9df]">
+                            {
+                              timeSlots.map((slot) => <option value={slot}>{slot}</option>)
+                            }
+                          </select>
+                          <input name="total" type="number" min="0" placeholder="Pris i kr." class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="address" placeholder="Adresse" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="postal_code" placeholder="Postnr." class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                          <input name="city" placeholder="By" class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                        </div>
+                        <label class="inline-flex items-center gap-3 text-sm text-[var(--ink)]">
+                          <input type="checkbox" name="send_email" class="h-4 w-4 rounded border-[#8da2b1] text-[#55b9df]" />
+                          Send bookingmail til kunden
+                        </label>
+                        <button
+                          type="submit"
+                          class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-4 text-sm font-semibold text-white transition hover:bg-[#1b75b7]">
+                          <Icon name="bx:calendar-plus" class="h-5 w-5" />
+                          Opret booking
+                        </button>
+                      </form>
+                    </div>
+
+                    <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                      <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                        Hurtige kunder
+                      </h2>
+                      <div class="mt-4 grid gap-3">
+                        {
+                          recentCustomers.length > 0 ? (
+                            recentCustomers.map((customer) => (
+                              <div class="rounded-[1.25rem] border border-[var(--line)] px-4 py-3">
+                                <p class="font-semibold text-[var(--ink)]">
+                                  {[customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email}
+                                </p>
+                                <p class="mt-1 text-sm text-[var(--muted)]">{customer.email}</p>
+                              </div>
+                            ))
+                          ) : (
+                            <p class="text-sm text-[var(--muted)]">Ingen kunder endnu.</p>
+                          )
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )
+          }
+
+          {
+            view === "calendar" && (
+              <div class="grid gap-5">
+                {
+                  dashboard.calendar.length > 0 ? (
+                    dashboard.calendar.map((day) => (
+                      <section class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_20px_55px_rgba(8,27,21,0.08)]">
+                        <div class="flex items-center justify-between gap-4">
+                          <div>
+                            <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                              {day.label}
+                            </h2>
+                            <p class="mt-1 text-sm text-[var(--muted)]">
+                              {day.bookings.length} booking(er)
+                            </p>
+                          </div>
+                        </div>
+                        <div class="mt-5 grid gap-3">
+                          {
+                            day.bookings.map((booking) => (
+                              <div class="rounded-[1.4rem] border border-[var(--line)] px-4 py-4">
+                                <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                                  <div>
+                                    <p class="font-semibold text-[var(--ink)]">
+                                      {booking.appointmentTime} · {booking.vehicleName}
+                                    </p>
+                                    <p class="mt-1 text-sm text-[var(--muted)]">
+                                      {booking.packageLabel} - {booking.category} · {booking.registrationNumber}
+                                    </p>
+                                  </div>
+                                  <span
+                                    class:list={[
+                                      "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
+                                      getStatusTone(booking.status),
+                                    ]}>
+                                    {getStatusLabel(booking.status)}
+                                  </span>
+                                </div>
+                              </div>
+                            ))
+                          }
+                        </div>
+                      </section>
+                    ))
+                  ) : (
+                    <div class="rounded-[2rem] border border-dashed border-[var(--line)] bg-white px-6 py-10 text-sm text-[var(--muted)]">
+                      Ingen kalenderbookinger endnu.
+                    </div>
+                  )
+                }
+              </div>
+            )
+          }
+
+          {
+            view === "customers" && (
+              <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                  Kunder
+                </h2>
+                <div class="mt-5 grid gap-4">
+                  {
+                    dashboard.customers.length > 0 ? (
+                      dashboard.customers.map((customer) => (
+                        <article class="rounded-[1.5rem] border border-[var(--line)] p-5">
+                          <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                            <div>
+                              <h3 class="text-xl font-semibold text-[var(--ink)]">
+                                {[customer.firstName, customer.lastName].filter(Boolean).join(" ") || "Kunde"}
+                              </h3>
+                              <p class="mt-1 text-sm text-[var(--muted)]">{customer.email}</p>
+                              <p class="mt-2 text-sm text-[var(--ink)]">
+                                {customer.address}, {customer.postalCode} {customer.city}
+                              </p>
+                              {
+                                customer.company && (
+                                  <p class="mt-1 text-sm text-[var(--muted)]">
+                                    {customer.company}
+                                    {customer.companyId ? ` · ${customer.companyId}` : ""}
+                                  </p>
+                                )
+                              }
+                            </div>
+                            <div class="rounded-xl bg-[#f6fbff] px-4 py-3 text-sm text-[#1a506d]">
+                              Portal: `/kunde/{customer.portalToken.slice(0, 8)}...`
+                            </div>
+                          </div>
+                        </article>
+                      ))
+                    ) : (
+                      <p class="text-sm text-[var(--muted)]">Ingen kunder gemt endnu.</p>
+                    )
+                  }
+                </div>
+              </div>
+            )
+          }
+
+          {
+            view === "settings" && (
+              <div class="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
+                <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                  <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                    Bookingindstillinger
+                  </h2>
+                  <form action="/api/admin/settings" method="POST" class="mt-5 grid gap-4">
+                    <div class="grid gap-4 md:grid-cols-2">
+                      <label class="grid gap-2 text-sm text-[var(--ink)]">
+                        <span class="font-medium">Firmanavn</span>
+                        <input name="company_name" value={dashboard.settings.companyName} class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                      </label>
+                      <label class="grid gap-2 text-sm text-[var(--ink)]">
+                        <span class="font-medium">Support email</span>
+                        <input name="support_email" value={dashboard.settings.supportEmail} class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                      </label>
+                      <label class="grid gap-2 text-sm text-[var(--ink)]">
+                        <span class="font-medium">Admin notifikationer</span>
+                        <input name="admin_notify_email" value={dashboard.settings.adminNotifyEmail} class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                      </label>
+                      <label class="grid gap-2 text-sm text-[var(--ink)]">
+                        <span class="font-medium">Første time</span>
+                        <input name="start_hour" type="number" min="0" max="23" value={dashboard.settings.startHour} class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                      </label>
+                      <label class="grid gap-2 text-sm text-[var(--ink)]">
+                        <span class="font-medium">Sidste time</span>
+                        <input name="end_hour" type="number" min="1" max="24" value={dashboard.settings.endHour} class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                      </label>
+                      <label class="grid gap-2 text-sm text-[var(--ink)]">
+                        <span class="font-medium">Slot minutter</span>
+                        <input name="slot_minutes" type="number" min="15" step="15" value={dashboard.settings.slotMinutes} class="h-11 rounded-xl border border-[#cbd9e4] px-4 outline-none focus:border-[#55b9df]" />
+                      </label>
+                    </div>
+                    <button
+                      type="submit"
+                      class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-5 text-sm font-semibold text-white transition hover:bg-[#1b75b7]">
+                      <Icon name="bx:save" class="h-5 w-5" />
+                      Gem indstillinger
+                    </button>
+                  </form>
+                </div>
+
+                <div class="space-y-6">
+                  <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                    <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                      Emailopsaetning
+                    </h2>
+                    <div class="mt-5 grid gap-3 text-sm text-[var(--ink)]">
+                      <div class="rounded-xl border border-[var(--line)] px-4 py-3">
+                        <span class="block text-xs uppercase text-[var(--muted)]">SMTP host</span>
+                        <strong>{import.meta.env.SMTP_HOST || "Ikke sat"}</strong>
+                      </div>
+                      <div class="rounded-xl border border-[var(--line)] px-4 py-3">
+                        <span class="block text-xs uppercase text-[var(--muted)]">SMTP bruger</span>
+                        <strong>{import.meta.env.SMTP_USER || "Ikke sat"}</strong>
+                      </div>
+                      <div class="rounded-xl border border-[var(--line)] px-4 py-3">
+                        <span class="block text-xs uppercase text-[var(--muted)]">Afsender</span>
+                        <strong>{import.meta.env.MAIL_FROM || "Ikke sat"}</strong>
+                      </div>
+                      <div class="rounded-xl border border-[#cde6f6] bg-[#f6fbff] px-4 py-3 text-[#1a506d]">
+                        SMTP-password vises ikke her. Den skal ligge i `SMTP_PASSWORD` i Vercel.
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="rounded-[2rem] border border-[var(--line)] bg-white p-6 shadow-[0_24px_70px_rgba(8,27,21,0.08)]">
+                    <h2 class="font-display text-2xl font-semibold text-[var(--ink)]">
+                      Aktive tider
+                    </h2>
+                    <div class="mt-4 flex flex-wrap gap-2">
+                      {
+                        timeSlots.map((slot) => (
+                          <span class="inline-flex rounded-full bg-[#eef8ff] px-3 py-2 text-sm font-medium text-[#1f6aa4]">
+                            {slot}
+                          </span>
+                        ))
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>
