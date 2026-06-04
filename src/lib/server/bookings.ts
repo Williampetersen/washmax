@@ -37,10 +37,10 @@ type RawCustomer = {
   company_id: string | null;
   marketing_opt_in: boolean;
   portal_token: string | null;
-  portal_token_expires_at: string | null;
+  portal_token_expires_at: string | Date | null;
   tags_json: string[] | null;
-  created_at: string;
-  updated_at: string;
+  created_at: string | Date;
+  updated_at: string | Date;
 };
 
 type RawBooking = {
@@ -60,8 +60,8 @@ type RawBooking = {
   travel_surcharge: number;
   area_name: string | null;
   estimated_duration_minutes: number;
-  appointment_date: string;
-  appointment_time: string;
+  appointment_date: string | Date;
+  appointment_time: string | Date;
   status: BookingStatus;
   payment_status: PaymentStatus;
   payment_method: string | null;
@@ -70,8 +70,8 @@ type RawBooking = {
   invoice_number: string | null;
   admin_notes: string | null;
   source: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | Date;
+  updated_at: string | Date;
 };
 
 type RawSettings = {
@@ -91,13 +91,13 @@ type RawSettings = {
 
 type RawAvailabilityBlock = {
   id: string;
-  start_date: string;
-  end_date: string;
-  start_time: string;
-  end_time: string;
+  start_date: string | Date;
+  end_date: string | Date;
+  start_time: string | Date;
+  end_time: string | Date;
   reason: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string | Date;
+  updated_at: string | Date;
 };
 
 type RawEmailLog = {
@@ -110,8 +110,8 @@ type RawEmailLog = {
   subject: string;
   status: string;
   error_message: string | null;
-  sent_at: string | null;
-  created_at: string;
+  sent_at: string | Date | null;
+  created_at: string | Date;
 };
 
 type RawActivity = {
@@ -121,7 +121,7 @@ type RawActivity = {
   activity_type: string;
   summary: string;
   details_json: Record<string, unknown> | null;
-  created_at: string;
+  created_at: string | Date;
 };
 
 export type BookingCustomer = {
@@ -406,7 +406,7 @@ const normalizeAutoBookingStatus = (value?: string | null): AutoBookingStatus =>
     : defaultBookingSettings.defaultBookingStatus;
 
 const getDatabaseErrorMessage = (error: unknown) =>
-  error instanceof Error ? error.message : "Databasen kunne ikke laeses.";
+  error instanceof Error ? error.message : "Databasen kunne ikke læses.";
 
 const toComparableText = (value: unknown) => String(value ?? "");
 
@@ -416,34 +416,67 @@ const compareText = (left: unknown, right: unknown) =>
     sensitivity: "base",
   });
 
+const toDateText = (value: unknown) => {
+  if (value instanceof Date) {
+    const year = value.getFullYear().toString();
+    const month = (value.getMonth() + 1).toString().padStart(2, "0");
+    const day = value.getDate().toString().padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  }
+
+  const text = String(value ?? "").trim();
+  return text.length >= 10 ? text.slice(0, 10) : text;
+};
+
+const toDateTimeText = (value: unknown) => {
+  if (value instanceof Date) {
+    return value.toISOString();
+  }
+
+  return String(value ?? "").trim();
+};
+
+const toTimeText = (value: unknown, fallback = "00:00") => {
+  if (value instanceof Date) {
+    const hours = value.getHours().toString().padStart(2, "0");
+    const minutes = value.getMinutes().toString().padStart(2, "0");
+    return `${hours}:${minutes}`;
+  }
+
+  const text = String(value ?? "").trim();
+  return text ? text.slice(0, 5) : fallback;
+};
+
+const getTodayDateText = () => toDateText(new Date());
+
 const customerFromRow = (row: RawCustomer): BookingCustomer => ({
-  id: row.id,
-  email: row.email,
-  firstName: row.first_name ?? "",
-  lastName: row.last_name ?? "",
-  phone: row.phone ?? "",
-  address: row.address ?? "",
-  postalCode: row.postal_code ?? "",
-  city: row.city ?? "",
-  notes: row.notes ?? "",
+  id: String(row.id ?? ""),
+  email: String(row.email ?? ""),
+  firstName: String(row.first_name ?? ""),
+  lastName: String(row.last_name ?? ""),
+  phone: String(row.phone ?? ""),
+  address: String(row.address ?? ""),
+  postalCode: String(row.postal_code ?? ""),
+  city: String(row.city ?? ""),
+  notes: String(row.notes ?? ""),
   customerType: (row.customer_type as CustomerType) || "private",
-  company: row.company ?? "",
-  companyId: row.company_id ?? "",
+  company: String(row.company ?? ""),
+  companyId: String(row.company_id ?? ""),
   marketingOptIn: Boolean(row.marketing_opt_in),
-  portalToken: row.portal_token ?? "",
-  portalTokenExpiresAt: row.portal_token_expires_at ?? "",
+  portalToken: String(row.portal_token ?? ""),
+  portalTokenExpiresAt: toDateTimeText(row.portal_token_expires_at),
   tags: Array.isArray(row.tags_json) ? uniqueTextList(row.tags_json) : [],
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
+  createdAt: toDateTimeText(row.created_at),
+  updatedAt: toDateTimeText(row.updated_at),
 });
 
 const availabilityBlockFromRow = (row: RawAvailabilityBlock): AvailabilityBlock => ({
-  id: row.id,
-  startDate: row.start_date,
-  endDate: row.end_date,
-  startTime: row.start_time,
-  endTime: row.end_time,
-  reason: row.reason,
+  id: String(row.id ?? ""),
+  startDate: toDateText(row.start_date),
+  endDate: toDateText(row.end_date),
+  startTime: toTimeText(row.start_time, "00:00"),
+  endTime: toTimeText(row.end_time, "23:59"),
+  reason: String(row.reason ?? ""),
 });
 
 const settingsFromRow = (row?: RawSettings | null): BookingSettings => ({
@@ -470,27 +503,27 @@ const settingsFromRow = (row?: RawSettings | null): BookingSettings => ({
 });
 
 const emailLogFromRow = (row: RawEmailLog): BookingEmailLog => ({
-  id: row.id,
-  bookingId: row.booking_id ?? "",
-  customerId: row.customer_id ?? "",
-  recipient: row.recipient,
-  recipientRole: row.recipient_role,
-  templateKey: row.template_key,
-  subject: row.subject,
-  status: row.status,
-  errorMessage: row.error_message ?? "",
-  sentAt: row.sent_at ?? "",
-  createdAt: row.created_at,
+  id: String(row.id ?? ""),
+  bookingId: String(row.booking_id ?? ""),
+  customerId: String(row.customer_id ?? ""),
+  recipient: String(row.recipient ?? ""),
+  recipientRole: String(row.recipient_role ?? ""),
+  templateKey: String(row.template_key ?? ""),
+  subject: String(row.subject ?? ""),
+  status: String(row.status ?? ""),
+  errorMessage: String(row.error_message ?? ""),
+  sentAt: toDateTimeText(row.sent_at),
+  createdAt: toDateTimeText(row.created_at),
 });
 
 const activityFromRow = (row: RawActivity): BookingActivityItem => ({
-  id: row.id,
-  bookingId: row.booking_id,
-  actor: row.actor,
-  activityType: row.activity_type,
-  summary: row.summary,
+  id: String(row.id ?? ""),
+  bookingId: String(row.booking_id ?? ""),
+  actor: String(row.actor ?? ""),
+  activityType: String(row.activity_type ?? ""),
+  summary: String(row.summary ?? ""),
   details: row.details_json ?? {},
-  createdAt: row.created_at,
+  createdAt: toDateTimeText(row.created_at),
 });
 
 const bookingFromRow = (
@@ -498,52 +531,64 @@ const bookingFromRow = (
   customer?: BookingCustomer,
   emailLogs: BookingEmailLog[] = [],
   activity: BookingActivityItem[] = []
-): DashboardBooking => ({
-  id: row.id,
-  plate: row.plate,
-  registrationNumber: row.registration_number ?? row.plate,
-  vehicleName: row.vehicle_name ?? "Din bil",
-  vehicleYear: row.vehicle_year,
-  vehicleType: row.vehicle_type ?? "",
-  category: row.category ?? "",
-  packageId: row.package_id ?? "",
-  packageLabel: row.package_label ?? "",
-  addons: Array.isArray(row.addons_json) ? row.addons_json : [],
-  subtotal: Number(row.subtotal || 0),
-  total: Number(row.total || 0),
-  travelSurcharge: Number(row.travel_surcharge || 0),
-  areaName: row.area_name ?? "",
-  estimatedMinutes: Number(row.estimated_duration_minutes || 0),
-  appointmentDate: row.appointment_date,
-  appointmentTime: row.appointment_time,
-  appointmentEndTime: addMinutesToTime(
-    row.appointment_time,
-    Number(row.estimated_duration_minutes || 0)
-  ),
-  appointmentLabel: formatDateTimeLabel(row.appointment_date, row.appointment_time),
-  status: row.status,
-  paymentStatus: row.payment_status ?? "unpaid",
-  paymentMethod: row.payment_method ?? "",
-  invoiceRequested: Boolean(row.invoice_requested),
-  invoiceStatus: row.invoice_status ?? "not_requested",
-  invoiceNumber: row.invoice_number ?? "",
-  adminNotes: row.admin_notes ?? "",
-  source: row.source,
-  createdAt: row.created_at,
-  updatedAt: row.updated_at,
-  customerId: customer?.id ?? row.customer_id,
-  customerName: [customer?.firstName, customer?.lastName].filter(Boolean).join(" ") || customer?.email || "",
-  customerEmail: customer?.email ?? "",
-  customerPhone: customer?.phone ?? "",
-  address: customer?.address ?? "",
-  postalCode: customer?.postalCode ?? "",
-  city: customer?.city ?? "",
-  company: customer?.company ?? "",
-  companyId: customer?.companyId ?? "",
-  customerTags: customer?.tags ?? [],
-  emailLogs,
-  activity,
-});
+): DashboardBooking => {
+  const appointmentDate = toDateText(row.appointment_date);
+  const appointmentTime = toTimeText(row.appointment_time, "08:00");
+  const estimatedMinutes = Number(row.estimated_duration_minutes || 0);
+
+  return {
+    id: String(row.id ?? ""),
+    plate: String(row.plate ?? ""),
+    registrationNumber: String(row.registration_number ?? row.plate ?? ""),
+    vehicleName: String(row.vehicle_name ?? "Din bil"),
+    vehicleYear: row.vehicle_year,
+    vehicleType: String(row.vehicle_type ?? ""),
+    category: String(row.category ?? ""),
+    packageId: String(row.package_id ?? ""),
+    packageLabel: String(row.package_label ?? ""),
+    addons: Array.isArray(row.addons_json)
+      ? row.addons_json.map((item) => ({
+          id: String(item.id ?? ""),
+          label: String(item.label ?? ""),
+          price: Number(item.price || 0),
+        }))
+      : [],
+    subtotal: Number(row.subtotal || 0),
+    total: Number(row.total || 0),
+    travelSurcharge: Number(row.travel_surcharge || 0),
+    areaName: String(row.area_name ?? ""),
+    estimatedMinutes,
+    appointmentDate,
+    appointmentTime,
+    appointmentEndTime: addMinutesToTime(appointmentTime, estimatedMinutes),
+    appointmentLabel: formatDateTimeLabel(appointmentDate, appointmentTime),
+    status: row.status,
+    paymentStatus: row.payment_status ?? "unpaid",
+    paymentMethod: String(row.payment_method ?? ""),
+    invoiceRequested: Boolean(row.invoice_requested),
+    invoiceStatus: row.invoice_status ?? "not_requested",
+    invoiceNumber: String(row.invoice_number ?? ""),
+    adminNotes: String(row.admin_notes ?? ""),
+    source: String(row.source ?? ""),
+    createdAt: toDateTimeText(row.created_at),
+    updatedAt: toDateTimeText(row.updated_at),
+    customerId: customer?.id ?? String(row.customer_id ?? ""),
+    customerName:
+      [customer?.firstName, customer?.lastName].filter(Boolean).join(" ") ||
+      customer?.email ||
+      "",
+    customerEmail: customer?.email ?? "",
+    customerPhone: customer?.phone ?? "",
+    address: customer?.address ?? "",
+    postalCode: customer?.postalCode ?? "",
+    city: customer?.city ?? "",
+    company: customer?.company ?? "",
+    companyId: customer?.companyId ?? "",
+    customerTags: customer?.tags ?? [],
+    emailLogs,
+    activity,
+  };
+};
 
 const summarizeCustomer = (customer: BookingCustomer, bookings: DashboardBooking[]): CustomerSummary => {
   const upcomingBookings = bookings.filter(
@@ -1361,7 +1406,7 @@ export const getAdminDashboardData = async (): Promise<DashboardData> => {
     const customerSummaries = customers.map((customer) =>
       summarizeCustomer(customer, bookingsByCustomerId.get(customer.id) || [])
     );
-    const today = new Date().toISOString().slice(0, 10);
+    const today = getTodayDateText();
     const upcomingBookings = bookings.filter(
       (item) =>
         item.status !== "cancelled" &&
@@ -1392,7 +1437,14 @@ export const getAdminDashboardData = async (): Promise<DashboardData> => {
       }
     }
 
-    const calendarKeys = Array.from(new Set([...calendarMap.keys(), ...blockMap.keys()])).sort();
+    const calendarKeySet = new Set([...calendarMap.keys(), ...blockMap.keys()]);
+    const calendarCursor = new Date(`${today}T00:00:00`);
+    for (let index = 0; index < 21; index += 1) {
+      calendarKeySet.add(toDateText(calendarCursor));
+      calendarCursor.setDate(calendarCursor.getDate() + 1);
+    }
+
+    const calendarKeys = Array.from(calendarKeySet).sort();
     const calendar = calendarKeys.map((date) => ({
       date,
       label: formatDateTimeLabel(date, "00:00").replace(/\s+kl\..*$/, ""),

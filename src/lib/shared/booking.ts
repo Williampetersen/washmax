@@ -91,7 +91,7 @@ export const cleaningPackages: CleaningPackage[] = [
   {
     id: "whole",
     title: "Hele bilen",
-    description: "Grundig og professionel rengoring af hele bilen.",
+    description: "Grundig og professionel rengøring af hele bilen.",
     duration: "85 - 130 min.",
     estimatedMinutes: 110,
     badge: "Gratis voks",
@@ -99,7 +99,7 @@ export const cleaningPackages: CleaningPackage[] = [
   {
     id: "inside",
     title: "Indvendigt",
-    description: "Grundig og professionel indvendig rengoring.",
+    description: "Grundig og professionel indvendig rengøring.",
     duration: "60 - 80 min.",
     estimatedMinutes: 75,
     badge: "Kabine",
@@ -107,7 +107,7 @@ export const cleaningPackages: CleaningPackage[] = [
   {
     id: "outside",
     title: "Udvendigt",
-    description: "Grundig og professionel udvendig rengoring.",
+    description: "Grundig og professionel udvendig rengøring.",
     duration: "50 - 70 min.",
     estimatedMinutes: 65,
     badge: "Finish",
@@ -119,19 +119,19 @@ export const vehicleCategories: VehicleCategory[] = [
     id: "van",
     label: "Varevogn",
     price: 1500,
-    description: "Varebil eller totalvaegt over 2.500 kg.",
+    description: "Varebil eller totalvægt over 2.500 kg.",
   },
   {
     id: "large",
     label: "Stor bil",
     price: 999,
-    description: "Stor familiebil, SUV eller totalvaegt over 2.000 kg.",
+    description: "Stor familiebil, SUV eller totalvægt over 2.000 kg.",
   },
   {
     id: "medium",
     label: "Mellem bil",
     price: 899,
-    description: "Almindelig personbil med totalvaegt over 1.300 kg.",
+    description: "Almindelig personbil med totalvægt over 1.300 kg.",
   },
   {
     id: "small",
@@ -142,25 +142,25 @@ export const vehicleCategories: VehicleCategory[] = [
 ];
 
 export const interiorAddOns: AddOn[] = [
-  { id: "dyrehaar", label: "Dyrehar", price: 299 },
+  { id: "dyrehaar", label: "Dyrehår", price: 299 },
   { id: "ekstra-beskidt", label: "Ekstra beskidt", price: 299 },
-  { id: "laederpleje", label: "Laederpleje af saeder", price: 399 },
-  { id: "toemning-foererkabine", label: "Toemning af foererkabine", price: 99 },
+  { id: "laederpleje", label: "Læderpleje af sæder", price: 399 },
+  { id: "toemning-foererkabine", label: "Tømning af førerkabine", price: 99 },
   { id: "vinylpleje", label: "Vinylpleje", price: 249 },
-  { id: "gummimaatter", label: "Pleje af gummimaatter", price: 99 },
+  { id: "gummimaatter", label: "Pleje af gummimåtter", price: 99 },
   { id: "ventilationsrens", label: "Ventilationsrens", price: 99 },
-  { id: "hulrumsrengoering", label: "Hulrumsrengoering", price: 99 },
+  { id: "hulrumsrengoering", label: "Hulrumsrengøring", price: 99 },
 ];
 
 export const quantityAddOns: AddOn[] = [
-  { id: "saederens", label: "Dybdegaende saederens" },
-  { id: "boernesaeder", label: "Rens af boernesaeder" },
+  { id: "saederens", label: "Dybdegående sæderens" },
+  { id: "boernesaeder", label: "Rens af børnesæder" },
 ];
 
 export const exteriorAddOns: AddOn[] = [
-  { id: "lakrens", label: "Lakrens (tjaerepletter, mm.)", price: 199 },
-  { id: "faelgrens", label: "Ekstra faelgrens", price: 149 },
-  { id: "daekshine", label: "Daekshine", price: 99 },
+  { id: "lakrens", label: "Lakrens (tjærepletter, mm.)", price: 199 },
+  { id: "faelgrens", label: "Ekstra fælgrens", price: 149 },
+  { id: "daekshine", label: "Dækshine", price: 99 },
   { id: "vinylpleje-udvendig", label: "Vinylpleje udvendig", price: 199 },
 ];
 
@@ -281,31 +281,48 @@ export const formatShortPrice = (price: number) =>
   `${Math.round(price).toLocaleString("da-DK")},-`;
 
 export const formatDateTimeLabel = (
-  appointmentDate: string,
-  appointmentTime: string,
+  appointmentDate: string | Date,
+  appointmentTime: string | Date,
   locale = "da-DK"
 ) => {
+  const dateText =
+    appointmentDate instanceof Date
+      ? `${appointmentDate.getFullYear()}-${(appointmentDate.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}-${appointmentDate.getDate().toString().padStart(2, "0")}`
+      : String(appointmentDate || "");
+  const timeText =
+    appointmentTime instanceof Date
+      ? `${appointmentTime.getHours().toString().padStart(2, "0")}:${appointmentTime
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}`
+      : String(appointmentTime || "").slice(0, 5);
+
   try {
-    const date = new Date(`${appointmentDate}T${appointmentTime}:00`);
+    const date = new Date(`${dateText}T${timeText}:00`);
     return `${date.toLocaleDateString(locale, {
       day: "numeric",
       month: "long",
       year: "numeric",
-    })} kl. ${appointmentTime}`;
+    })} kl. ${timeText}`;
   } catch {
-    return `${appointmentDate} kl. ${appointmentTime}`;
+    return `${dateText} kl. ${timeText}`;
   }
 };
 
 export const getTimeSlots = (settings: Pick<BookingSettings, "startHour" | "endHour" | "slotMinutes">) => {
   const slots: string[] = [];
-  const startMinutes = settings.startHour * 60;
-  const endMinutes = settings.endHour * 60;
+  const startHour = Math.max(0, Math.min(23, Number(settings.startHour) || 8));
+  const endHour = Math.max(startHour + 1, Math.min(24, Number(settings.endHour) || 18));
+  const slotMinutes = Math.max(15, Number(settings.slotMinutes) || 30);
+  const startMinutes = startHour * 60;
+  const endMinutes = endHour * 60;
 
   for (
     let minutes = startMinutes;
-    minutes + settings.slotMinutes <= endMinutes;
-    minutes += settings.slotMinutes
+    minutes + slotMinutes <= endMinutes;
+    minutes += slotMinutes
   ) {
     const hours = Math.floor(minutes / 60)
       .toString()
@@ -423,9 +440,9 @@ export const getAutoBookingStatusLabel = (status: AutoBookingStatus) => {
 export const getAutoBookingStatusDescription = (status: AutoBookingStatus) => {
   switch (status) {
     case "approved":
-      return "Nye bookinger bliver straks godkendt, og kunden får en godkendelsesmail med det samme.";
+      return "Nye bookinger godkendes straks, og kunden får en bekræftelse med det samme.";
     default:
-      return "Nye bookinger starter som afventer, og kunden får en modtaget-mail nu samt en ny mail, når du godkender.";
+      return "Nye bookinger starter som afventer, og kunden får en mail, når du godkender.";
   }
 };
 

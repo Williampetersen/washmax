@@ -29,9 +29,9 @@ export default async function AdminLoginPage({
   const error = Array.isArray(params.error) ? params.error[0] : params.error;
   const errorMessage =
     error === "config"
-      ? "Admin-login er ikke konfigureret endnu. Tilfoej ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET."
+      ? "Admin-login er ikke konfigureret endnu. Tilføj ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET."
       : error === "invalid"
-        ? "Forkert email eller password."
+        ? "Forkert e-mail eller adgangskode."
         : "";
 
   return (
@@ -46,15 +46,15 @@ export default async function AdminLoginPage({
               Booking, kalender og kundeoverblik samlet et sted.
             </h1>
             <p className="mt-5 text-base leading-7 text-white/78">
-              Brug adminpanelet til at godkende bookinger, opdatere tider, tilfoeje
-              bookinger manuelt og holde styr pa dagens plan.
+              Brug adminpanelet til at godkende bookinger, opdatere tider, tilføje
+              bookinger manuelt og holde styr på dagens plan.
             </p>
 
             <div className="mt-8 grid gap-3">
               {[
                 "Kundeportal med bookinghistorik og profil",
                 "Adminhandlinger til godkend, afslut, annuller og slet",
-                "Emailbekraeftelser og tidsplan styret fra samme system",
+                "E-mailbekræftelser og tidsplan styret fra samme system",
               ].map((item) => (
                 <div
                   key={item}
@@ -89,25 +89,25 @@ export default async function AdminLoginPage({
 
             {!isAdminConfigured() ? (
               <div className="mt-6 rounded-2xl border border-[#cde6f6] bg-[#f6fbff] px-4 py-4 text-sm text-[#1a506d]">
-                Mangler opsaetning. Du skal have disse variabler i Vercel:
+                Mangler opsætning. Du skal have disse variabler i Vercel:
                 ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET.
               </div>
             ) : null}
 
             <form action="/api/admin/login" method="POST" className="mt-6 grid gap-4">
               <label className="grid gap-2 text-sm text-[var(--ink)]">
-                <span className="font-medium">Admin email</span>
+                <span className="font-medium">Admin e-mail</span>
                 <Input type="email" name="email" autoComplete="username" />
               </label>
 
               <label className="grid gap-2 text-sm text-[var(--ink)]">
-                <span className="font-medium">Password</span>
+                <span className="font-medium">Adgangskode</span>
                 <Input type="password" name="password" autoComplete="current-password" />
               </label>
 
               <Button type="submit" className="mt-2">
                 <LogIn className="h-5 w-5" />
-                Gaa til admin
+                Gå til admin
               </Button>
             </form>
 

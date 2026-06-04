@@ -40,6 +40,7 @@ export async function POST(
   const redirectWith = (query: string) =>
     NextResponse.redirect(new URL(`/admin?view=${encodeURIComponent(returnView)}&${query}`, request.url), 303);
 
+  try {
   if (action === "delete") {
     await deleteBooking(id);
     return redirectWith("saved=deleted");
@@ -53,15 +54,19 @@ export async function POST(
     });
 
     if (result && formData.get("notify_customer")) {
-      const settings = await getBookingSettings();
-      const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
-      const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
-      await sendCustomerBookingStatusEmail({
-        booking: result.booking,
-        customer: result.customer,
-        settings,
-        portalUrl,
-      });
+      try {
+        const settings = await getBookingSettings();
+        const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
+        const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
+        await sendCustomerBookingStatusEmail({
+          booking: result.booking,
+          customer: result.customer,
+          settings,
+          portalUrl,
+        });
+      } catch (error) {
+        console.error("Could not send reschedule email", error);
+      }
     }
 
     return redirectWith("saved=updated");
@@ -153,14 +158,22 @@ export async function POST(
       (status === "cancelled" && settings.emailAutomation.customerOnCancel);
 
     if (shouldSendStatusEmail) {
-      await sendCustomerBookingStatusEmail({
-        booking: result.booking,
-        customer: result.customer,
-        settings,
-        portalUrl,
-      });
+      try {
+        await sendCustomerBookingStatusEmail({
+          booking: result.booking,
+          customer: result.customer,
+          settings,
+          portalUrl,
+        });
+      } catch (error) {
+        console.error("Could not send booking status email", error);
+      }
     }
   }
 
   return redirectWith("saved=updated");
+  } catch (error) {
+    console.error("Could not handle booking action", error);
+    return redirectWith("error=action");
+  }
 }
