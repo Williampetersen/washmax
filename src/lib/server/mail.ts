@@ -5,6 +5,7 @@ import {
   getStatusLabel,
   type BookingStatus,
 } from "@/lib/shared/booking";
+import { recordEmailLog } from "@/lib/server/bookings";
 
 type MailBooking = {
   id: string;
@@ -18,9 +19,11 @@ type MailBooking = {
   appointmentDate: string;
   appointmentTime: string;
   status: BookingStatus;
+  adminNotes?: string;
 };
 
 type MailCustomer = {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -38,6 +41,24 @@ type MailSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+};
+
+type CustomerMailInput = {
+  booking: MailBooking;
+  customer: MailCustomer;
+  settings: MailSettings;
+  portalUrl?: string;
+};
+
+type LoggedMessage = {
+  bookingId?: string;
+  customerId?: string;
+  recipient: string;
+  recipientRole: string;
+  templateKey: string;
+  subject: string;
+  html: string;
+  text: string;
 };
 
 let cachedTransporter: nodemailer.Transporter | null | undefined;
@@ -78,158 +99,451 @@ const getTransporter = () => {
   return cachedTransporter;
 };
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const getCustomerName = (customer: MailCustomer) =>
+  [customer.firstName, customer.lastName].filter(Boolean).join(" ");
+
+const getAppointmentLabel = (booking: MailBooking) =>
+  formatDateTimeLabel(booking.appointmentDate, booking.appointmentTime);
+
+const getAddressLine = (customer: MailCustomer) =>
+  [customer.address, [customer.postalCode, customer.city].filter(Boolean).join(" ")]
+    .filter(Boolean)
+    .join(", ");
+
 const getAddonMarkup = (addons: MailBooking["addons"]) => {
   if (addons.length === 0) {
     return '<p style="margin:0;color:#5b6b75;">Ingen tilvalg</p>';
   }
 
   return `<ul style="margin:0;padding-left:18px;color:#16303a;">${addons
-    .map((item) => `<li>${item.label} (${formatPrice(item.price)})</li>`)
+    .map(
+      (item) =>
+        `<li>${escapeHtml(item.label)} (${escapeHtml(formatPrice(item.price))})</li>`
+    )
     .join("")}</ul>`;
 };
 
-export const sendBookingConfirmationEmails = async (input: {
+const getAddonText = (addons: MailBooking["addons"]) =>
+  addons.length > 0
+    ? addons.map((item) => `${item.label} (${formatPrice(item.price)})`).join(", ")
+    : "Ingen tilvalg";
+
+const renderRows = (rows: Array<[string, string]>) =>
+  `<table style="border-collapse:collapse;width:100%;margin-top:18px;">${rows
+    .map(
+      ([label, value]) =>
+        `<tr><td style="padding:8px 0;font-weight:700;vertical-align:top;">${escapeHtml(
+          label
+        )}</td><td style="padding:8px 0;">${escapeHtml(value)}</td></tr>`
+    )
+    .join("")}</table>`;
+
+const renderPortalButton = (portalUrl?: string, label = "Aabn kundeportal") =>
+  portalUrl
+    ? `<p style="margin:20px 0 0;"><a href="${escapeHtml(
+        portalUrl
+      )}" style="display:inline-block;background:#55b9df;color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700;">${escapeHtml(
+        label
+      )}</a></p>`
+    : "";
+
+const renderAdminNote = (adminNotes?: string) => {
+  const note = String(adminNotes || "").trim();
+  if (!note) return "";
+
+  return `
+    <div style="margin-top:18px;padding:14px 16px;border-radius:14px;background:#f6fbff;border:1px solid #cde6f6;">
+      <p style="margin:0 0 6px;font-weight:700;color:#16303a;">Besked fra WashMax</p>
+      <p style="margin:0;color:#36505d;">${escapeHtml(note)}</p>
+    </div>
+  `;
+};
+
+const renderCustomerEmailHtml = (input: {
+  eyebrow: string;
+  title: string;
+  intro: string;
+  highlight: string;
+  footer: string;
+  booking: MailBooking;
+  customer: MailCustomer;
+  settings: MailSettings;
+  portalUrl?: string;
+  portalLabel?: string;
+}) => {
+  const appointmentLabel = getAppointmentLabel(input.booking);
+  const addressLine = getAddressLine(input.customer);
+
+  return `
+    <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
+      <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">${escapeHtml(
+        input.eyebrow
+      )}</p>
+      <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">${escapeHtml(input.title)}</h2>
+      <p style="margin:0;color:#36505d;">${escapeHtml(input.intro)}</p>
+      <div style="margin-top:16px;padding:14px 16px;border-radius:14px;background:#eef8ff;border:1px solid #cde6f6;color:#1a506d;">
+        ${escapeHtml(input.highlight)}
+      </div>
+      ${renderPortalButton(input.portalUrl, input.portalLabel)}
+      ${renderRows([
+        ["Status", getStatusLabel(input.booking.status)],
+        ["Tid", appointmentLabel],
+        ["Bil", input.booking.vehicleName],
+        ["Regnr.", input.booking.registrationNumber],
+        ["Pakke", `${input.booking.packageLabel} - ${input.booking.category}`],
+        ["Adresse", addressLine],
+        ["Total", formatPrice(input.booking.total)],
+      ])}
+      <div style="margin-top:16px;">
+        <strong>Tilvalg</strong>
+        ${getAddonMarkup(input.booking.addons)}
+      </div>
+      ${renderAdminNote(input.booking.adminNotes)}
+      <p style="margin-top:20px;color:#36505d;">${escapeHtml(input.footer)}</p>
+      <p style="margin-top:10px;color:#36505d;">Support: ${escapeHtml(input.settings.supportEmail)}</p>
+    </div>
+  `;
+};
+
+const renderCustomerEmailText = (input: {
+  title: string;
+  intro: string;
+  highlight: string;
+  footer: string;
+  booking: MailBooking;
+  customer: MailCustomer;
+  settings: MailSettings;
+  portalUrl?: string;
+}) => {
+  const appointmentLabel = getAppointmentLabel(input.booking);
+  const addressLine = getAddressLine(input.customer);
+  const lines = [
+    input.title,
+    "",
+    input.intro,
+    input.highlight,
+    "",
+    `Status: ${getStatusLabel(input.booking.status)}`,
+    `Tid: ${appointmentLabel}`,
+    `Bil: ${input.booking.vehicleName}`,
+    `Regnr.: ${input.booking.registrationNumber}`,
+    `Pakke: ${input.booking.packageLabel} - ${input.booking.category}`,
+    `Adresse: ${addressLine}`,
+    `Total: ${formatPrice(input.booking.total)}`,
+    `Tilvalg: ${getAddonText(input.booking.addons)}`,
+  ];
+
+  if (input.booking.adminNotes?.trim()) {
+    lines.push("", `Besked fra WashMax: ${input.booking.adminNotes.trim()}`);
+  }
+
+  if (input.portalUrl) {
+    lines.push("", `Kundeportal: ${input.portalUrl}`);
+  }
+
+  lines.push("", input.footer, `Support: ${input.settings.supportEmail}`);
+
+  return lines.join("\n");
+};
+
+const getCustomerCreationCopy = (
+  booking: MailBooking,
+  settings: MailSettings
+): {
+  subject: string;
+  eyebrow: string;
+  title: string;
+  intro: string;
+  highlight: string;
+  footer: string;
+  portalLabel: string;
+} => {
+  const appointmentLabel = getAppointmentLabel(booking);
+
+  switch (booking.status) {
+    case "approved":
+      return {
+        subject: `${settings.companyName}: din booking er godkendt`,
+        eyebrow: "Booking godkendt",
+        title: "Din booking er godkendt",
+        intro: `Vi har godkendt din booking hos ${settings.companyName} og reserveret tiden ${appointmentLabel}.`,
+        highlight:
+          "Du har nu en aktiv tid i kalenderen. Brug kundeportalen, hvis du vil gennemga detaljerne eller opdatere dine oplysninger.",
+        footer:
+          "Har du brug for at aendre noget, kan du svare pa denne mail eller kontakte os direkte.",
+        portalLabel: "Se din booking",
+      };
+    default:
+      return {
+        subject: `${settings.companyName}: booking modtaget`,
+        eyebrow: "Booking modtaget",
+        title: "Vi har modtaget din booking",
+        intro: `Tak for din booking hos ${settings.companyName}. Vi gennemgaar nu forespoergslen for ${appointmentLabel}.`,
+        highlight:
+          "Du faar en ny mail, saa snart bookingen er godkendt eller hvis vi har brug for at justere noget.",
+        footer:
+          "Du kan bruge kundeportalen allerede nu, hvis du vil tjekke oplysningerne eller sende os en kommentar.",
+        portalLabel: "Aabn kundeportal",
+      };
+  }
+};
+
+const getCustomerStatusCopy = (
+  booking: MailBooking,
+  settings: MailSettings
+): {
+  subject: string;
+  eyebrow: string;
+  title: string;
+  intro: string;
+  highlight: string;
+  footer: string;
+  portalLabel: string;
+} => {
+  const appointmentLabel = getAppointmentLabel(booking);
+
+  switch (booking.status) {
+    case "approved":
+      return {
+        subject: `${settings.companyName}: din booking er godkendt`,
+        eyebrow: "Booking godkendt",
+        title: "Din booking er godkendt",
+        intro: `Vi har nu godkendt din booking for ${appointmentLabel}.`,
+        highlight:
+          "Din tid er reserveret. Har du brug for at justere adresse eller kontaktoplysninger, kan du gore det fra kundeportalen.",
+        footer:
+          "Tak for at booke hos os. Svar gerne pa mailen, hvis der er noget, vi skal vide inden besoeg.",
+        portalLabel: "Se din booking",
+      };
+    case "completed":
+      return {
+        subject: `${settings.companyName}: din booking er afsluttet`,
+        eyebrow: "Booking afsluttet",
+        title: "Tak for din booking",
+        intro: `Din booking for ${appointmentLabel} er nu afsluttet.`,
+        highlight:
+          "Tak fordi du valgte WashMax. Du kan altid finde forlobet igen i kundeportalen og booke en ny tid derfra.",
+        footer:
+          "Hvis du vil have en ny tid eller har feedback, er du altid velkommen til at kontakte os.",
+        portalLabel: "Se bookinghistorik",
+      };
+    case "cancelled":
+      return {
+        subject: `${settings.companyName}: din booking er annulleret`,
+        eyebrow: "Booking annulleret",
+        title: "Din booking er annulleret",
+        intro: `Din booking for ${appointmentLabel} er blevet annulleret.`,
+        highlight:
+          "Hvis du gerne vil have en ny tid, kan du booke igen fra kundeportalen eller skrive til os, saa finder vi en ny aftale.",
+        footer:
+          "Vi hjaelper gerne med at finde en ny tid, hvis annulleringen skal aendres til en ombooking.",
+        portalLabel: "Aabn kundeportal",
+      };
+    default:
+      return {
+        subject: `${settings.companyName}: booking afventer godkendelse`,
+        eyebrow: "Booking afventer",
+        title: "Din booking afventer godkendelse",
+        intro: `Vi er i gang med at behandle din booking for ${appointmentLabel}.`,
+        highlight:
+          "Du faar en ny mail, saa snart bookingen er godkendt eller hvis vi mangler noget fra dig.",
+        footer:
+          "Du kan bruge kundeportalen til at holde overblik over status og dine kontaktoplysninger.",
+        portalLabel: "Aabn kundeportal",
+      };
+  }
+};
+
+const sendLoggedMail = async (message: LoggedMessage) => {
+  const transporter = getTransporter();
+
+  if (!transporter) {
+    await recordEmailLog({
+      bookingId: message.bookingId,
+      customerId: message.customerId,
+      recipient: message.recipient,
+      recipientRole: message.recipientRole,
+      templateKey: message.templateKey,
+      subject: message.subject,
+      status: "not_configured",
+      errorMessage: "SMTP is not configured.",
+    });
+    return;
+  }
+
+  const config = getMailConfig();
+
+  try {
+    await transporter.sendMail({
+      from: config.from,
+      to: message.recipient,
+      subject: message.subject,
+      html: message.html,
+      text: message.text,
+    });
+
+    await recordEmailLog({
+      bookingId: message.bookingId,
+      customerId: message.customerId,
+      recipient: message.recipient,
+      recipientRole: message.recipientRole,
+      templateKey: message.templateKey,
+      subject: message.subject,
+      status: "sent",
+      sentAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    await recordEmailLog({
+      bookingId: message.bookingId,
+      customerId: message.customerId,
+      recipient: message.recipient,
+      recipientRole: message.recipientRole,
+      templateKey: message.templateKey,
+      subject: message.subject,
+      status: "failed",
+      errorMessage: error instanceof Error ? error.message : "Unknown mail error.",
+    });
+    throw error;
+  }
+};
+
+export const sendCustomerBookingCreatedEmail = async (input: CustomerMailInput) => {
+  const copy = getCustomerCreationCopy(input.booking, input.settings);
+  const customerName = getCustomerName(input.customer);
+
+  await sendLoggedMail({
+    bookingId: input.booking.id,
+    customerId: input.customer.id,
+    recipient: input.customer.email,
+    recipientRole: "customer",
+    templateKey:
+      input.booking.status === "approved" ? "customer_created_approved" : "customer_created_pending",
+    subject: copy.subject,
+    html: renderCustomerEmailHtml({
+      ...copy,
+      booking: input.booking,
+      customer: input.customer,
+      settings: input.settings,
+      portalUrl: input.portalUrl,
+      intro: customerName ? `Hej ${customerName}. ${copy.intro}` : copy.intro,
+    }),
+    text: renderCustomerEmailText({
+      ...copy,
+      booking: input.booking,
+      customer: input.customer,
+      settings: input.settings,
+      portalUrl: input.portalUrl,
+      intro: customerName ? `Hej ${customerName}. ${copy.intro}` : copy.intro,
+    }),
+  });
+};
+
+export const sendCustomerBookingStatusEmail = async (input: CustomerMailInput) => {
+  const copy = getCustomerStatusCopy(input.booking, input.settings);
+  const customerName = getCustomerName(input.customer);
+
+  await sendLoggedMail({
+    bookingId: input.booking.id,
+    customerId: input.customer.id,
+    recipient: input.customer.email,
+    recipientRole: "customer",
+    templateKey: `customer_status_${input.booking.status}`,
+    subject: copy.subject,
+    html: renderCustomerEmailHtml({
+      ...copy,
+      booking: input.booking,
+      customer: input.customer,
+      settings: input.settings,
+      portalUrl: input.portalUrl,
+      intro: customerName ? `Hej ${customerName}. ${copy.intro}` : copy.intro,
+    }),
+    text: renderCustomerEmailText({
+      ...copy,
+      booking: input.booking,
+      customer: input.customer,
+      settings: input.settings,
+      portalUrl: input.portalUrl,
+      intro: customerName ? `Hej ${customerName}. ${copy.intro}` : copy.intro,
+    }),
+  });
+};
+
+export const sendAdminNewBookingAlert = async (input: {
   booking: MailBooking;
   customer: MailCustomer;
   settings: MailSettings;
   portalUrl: string;
 }) => {
-  const transporter = getTransporter();
-  if (!transporter) return;
-
+  const appointmentLabel = getAppointmentLabel(input.booking);
+  const customerName = getCustomerName(input.customer);
   const config = getMailConfig();
-  const appointmentLabel = formatDateTimeLabel(
-    input.booking.appointmentDate,
-    input.booking.appointmentTime
-  );
-  const customerName = [input.customer.firstName, input.customer.lastName]
-    .filter(Boolean)
-    .join(" ");
   const adminEmail =
     input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
 
-  const customerHtml = `
-    <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;">
-      <h2 style="margin:0 0 12px;">Tak for din booking hos ${input.settings.companyName}</h2>
-      <p>Hej ${customerName || "kunde"},</p>
-      <p>Vi har modtaget din booking og sender dig videre til dit kundeoverblik her:</p>
-      <p><a href="${input.portalUrl}" style="display:inline-block;background:#55b9df;color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700;">Aabn din kundeportal</a></p>
-      <table style="border-collapse:collapse;width:100%;margin-top:18px;">
-        <tr><td style="padding:8px 0;font-weight:700;">Bil</td><td>${input.booking.vehicleName}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Regnr.</td><td>${input.booking.registrationNumber}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Pakke</td><td>${input.booking.packageLabel} - ${input.booking.category}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Tid</td><td>${appointmentLabel}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Adresse</td><td>${input.customer.address}, ${input.customer.postalCode} ${input.customer.city}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Total</td><td>${formatPrice(input.booking.total)}</td></tr>
-      </table>
-      <div style="margin-top:16px;">
-        <strong>Tilvalg</strong>
-        ${getAddonMarkup(input.booking.addons)}
-      </div>
-      <p style="margin-top:20px;">Hvis noget skal aendres, kan du svare direkte pa denne mail eller kontakte os pa ${input.settings.supportEmail}.</p>
-    </div>
-  `;
-
-  const customerText = [
-    `Tak for din booking hos ${input.settings.companyName}`,
-    "",
-    `Bil: ${input.booking.vehicleName}`,
-    `Regnr.: ${input.booking.registrationNumber}`,
-    `Pakke: ${input.booking.packageLabel} - ${input.booking.category}`,
-    `Tid: ${appointmentLabel}`,
-    `Adresse: ${input.customer.address}, ${input.customer.postalCode} ${input.customer.city}`,
-    `Total: ${formatPrice(input.booking.total)}`,
-    `Kundeportal: ${input.portalUrl}`,
-  ].join("\n");
-
-  const adminHtml = `
-    <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;">
-      <h2 style="margin:0 0 12px;">Ny booking modtaget</h2>
-      <p><strong>${customerName || input.customer.email}</strong> har lavet en booking.</p>
-      <table style="border-collapse:collapse;width:100%;margin-top:18px;">
-        <tr><td style="padding:8px 0;font-weight:700;">Status</td><td>${getStatusLabel(input.booking.status)}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Tid</td><td>${appointmentLabel}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Telefon</td><td>${input.customer.phone}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Email</td><td>${input.customer.email}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Adresse</td><td>${input.customer.address}, ${input.customer.postalCode} ${input.customer.city}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Bil</td><td>${input.booking.vehicleName} (${input.booking.registrationNumber})</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Service</td><td>${input.booking.packageLabel} - ${input.booking.category}</td></tr>
-        <tr><td style="padding:8px 0;font-weight:700;">Pris</td><td>${formatPrice(input.booking.total)}</td></tr>
-      </table>
-      <div style="margin-top:16px;">
-        <strong>Tilvalg</strong>
-        ${getAddonMarkup(input.booking.addons)}
-      </div>
-      ${
-        input.customer.notes
-          ? `<p style="margin-top:16px;"><strong>Bemaerkninger:</strong><br />${input.customer.notes}</p>`
-          : ""
-      }
-    </div>
-  `;
-
-  const adminText = [
-    "Ny booking modtaget",
-    "",
-    `Kunde: ${customerName || input.customer.email}`,
-    `Status: ${getStatusLabel(input.booking.status)}`,
-    `Tid: ${appointmentLabel}`,
-    `Telefon: ${input.customer.phone}`,
-    `Email: ${input.customer.email}`,
-    `Adresse: ${input.customer.address}, ${input.customer.postalCode} ${input.customer.city}`,
-    `Bil: ${input.booking.vehicleName} (${input.booking.registrationNumber})`,
-    `Service: ${input.booking.packageLabel} - ${input.booking.category}`,
-    `Pris: ${formatPrice(input.booking.total)}`,
-  ].join("\n");
-
-  await Promise.all([
-    transporter.sendMail({
-      from: config.from,
-      to: input.customer.email,
-      subject: `${input.settings.companyName}: booking modtaget`,
-      html: customerHtml,
-      text: customerText,
-    }),
-    transporter.sendMail({
-      from: config.from,
-      to: adminEmail,
-      subject: `${input.settings.companyName}: ny booking ${input.booking.registrationNumber}`,
-      html: adminHtml,
-      text: adminText,
-    }),
-  ]);
-};
-
-export const sendBookingStatusEmail = async (input: {
-  booking: MailBooking;
-  customer: MailCustomer;
-  settings: MailSettings;
-}) => {
-  const transporter = getTransporter();
-  if (!transporter) return;
-
-  const config = getMailConfig();
-  const appointmentLabel = formatDateTimeLabel(
-    input.booking.appointmentDate,
-    input.booking.appointmentTime
-  );
-
-  await transporter.sendMail({
-    from: config.from,
-    to: input.customer.email,
-    subject: `${input.settings.companyName}: din booking er ${getStatusLabel(input.booking.status).toLowerCase()}`,
+  await sendLoggedMail({
+    bookingId: input.booking.id,
+    customerId: input.customer.id,
+    recipient: adminEmail,
+    recipientRole: "admin",
+    templateKey: "admin_new_booking",
+    subject: `${input.settings.companyName}: ny booking ${input.booking.registrationNumber}`,
     html: `
-      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;">
-        <h2 style="margin:0 0 12px;">Opdatering pa din booking</h2>
-        <p>Din booking for ${appointmentLabel} er nu markeret som <strong>${getStatusLabel(
-          input.booking.status
-        )}</strong>.</p>
-        <p>Service: ${input.booking.packageLabel} - ${input.booking.category}</p>
-        <p>Regnr.: ${input.booking.registrationNumber}</p>
+      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
+        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Ny booking</p>
+        <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">Ny booking modtaget</h2>
+        <p style="margin:0;color:#36505d;"><strong>${escapeHtml(
+          customerName || input.customer.email
+        )}</strong> har lavet en booking fra websitet.</p>
+        ${renderPortalButton(input.portalUrl, "Aabn kundeportal")}
+        ${renderRows([
+          ["Status", getStatusLabel(input.booking.status)],
+          ["Tid", appointmentLabel],
+          ["Kunde", customerName || input.customer.email],
+          ["Telefon", input.customer.phone],
+          ["Email", input.customer.email],
+          ["Adresse", getAddressLine(input.customer)],
+          ["Bil", `${input.booking.vehicleName} (${input.booking.registrationNumber})`],
+          ["Service", `${input.booking.packageLabel} - ${input.booking.category}`],
+          ["Pris", formatPrice(input.booking.total)],
+        ])}
+        <div style="margin-top:16px;">
+          <strong>Tilvalg</strong>
+          ${getAddonMarkup(input.booking.addons)}
+        </div>
+        ${
+          input.customer.notes
+            ? `<p style="margin-top:16px;"><strong>Bemaerkninger:</strong><br />${escapeHtml(
+                input.customer.notes
+              )}</p>`
+            : ""
+        }
       </div>
     `,
-    text: `Din booking for ${appointmentLabel} er nu ${getStatusLabel(
-      input.booking.status
-    ).toLowerCase()}.`,
+    text: [
+      "Ny booking modtaget",
+      "",
+      `Kunde: ${customerName || input.customer.email}`,
+      `Status: ${getStatusLabel(input.booking.status)}`,
+      `Tid: ${appointmentLabel}`,
+      `Telefon: ${input.customer.phone}`,
+      `Email: ${input.customer.email}`,
+      `Adresse: ${getAddressLine(input.customer)}`,
+      `Bil: ${input.booking.vehicleName} (${input.booking.registrationNumber})`,
+      `Service: ${input.booking.packageLabel} - ${input.booking.category}`,
+      `Pris: ${formatPrice(input.booking.total)}`,
+      `Tilvalg: ${getAddonText(input.booking.addons)}`,
+      `Kundeportal: ${input.portalUrl}`,
+      input.customer.notes ? `Bemaerkninger: ${input.customer.notes}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n"),
   });
 };

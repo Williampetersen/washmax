@@ -3,6 +3,7 @@ export type CleaningPackage = {
   title: string;
   description: string;
   duration: string;
+  estimatedMinutes: number;
   badge: string;
 };
 
@@ -19,8 +20,46 @@ export type VehicleCategory = {
   description: string;
 };
 
+export type ServiceCatalog = {
+  packages: CleaningPackage[];
+  vehicleCategories: VehicleCategory[];
+  interiorAddOns: AddOn[];
+  quantityAddOns: AddOn[];
+  exteriorAddOns: AddOn[];
+};
+
+export type ServiceArea = {
+  id: string;
+  label: string;
+  postalPrefixes: string[];
+  cityHints: string;
+  surcharge: number;
+  notes: string;
+  isActive: boolean;
+};
+
+export type AvailabilityBlock = {
+  id: string;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  reason: string;
+};
+
 export type BookingStatus = "pending" | "approved" | "completed" | "cancelled";
+export type AutoBookingStatus = "pending" | "approved";
 export type CustomerType = "private" | "business";
+export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded";
+export type InvoiceStatus = "not_requested" | "ready" | "sent" | "paid";
+
+export type EmailAutomationSettings = {
+  customerOnCreate: boolean;
+  customerOnApprove: boolean;
+  customerOnComplete: boolean;
+  customerOnCancel: boolean;
+  adminOnCreate: boolean;
+};
 
 export type VehicleLookupResult = {
   registration_number: string;
@@ -37,9 +76,15 @@ export type BookingSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  defaultBookingStatus: AutoBookingStatus;
   startHour: number;
   endHour: number;
   slotMinutes: number;
+  travelBufferMinutes: number;
+  workingDays: number[];
+  catalog: ServiceCatalog;
+  serviceAreas: ServiceArea[];
+  emailAutomation: EmailAutomationSettings;
 };
 
 export const cleaningPackages: CleaningPackage[] = [
@@ -48,6 +93,7 @@ export const cleaningPackages: CleaningPackage[] = [
     title: "Hele bilen",
     description: "Grundig og professionel rengoring af hele bilen.",
     duration: "85 - 130 min.",
+    estimatedMinutes: 110,
     badge: "Gratis voks",
   },
   {
@@ -55,6 +101,7 @@ export const cleaningPackages: CleaningPackage[] = [
     title: "Indvendigt",
     description: "Grundig og professionel indvendig rengoring.",
     duration: "60 - 80 min.",
+    estimatedMinutes: 75,
     badge: "Kabine",
   },
   {
@@ -62,6 +109,7 @@ export const cleaningPackages: CleaningPackage[] = [
     title: "Udvendigt",
     description: "Grundig og professionel udvendig rengoring.",
     duration: "50 - 70 min.",
+    estimatedMinutes: 65,
     badge: "Finish",
   },
 ];
@@ -123,13 +171,54 @@ export const bookingStatuses: BookingStatus[] = [
   "cancelled",
 ];
 
+export const autoBookingStatuses: AutoBookingStatus[] = ["pending", "approved"];
+export const paymentStatuses: PaymentStatus[] = ["unpaid", "pending", "paid", "refunded"];
+export const invoiceStatuses: InvoiceStatus[] = [
+  "not_requested",
+  "ready",
+  "sent",
+  "paid",
+];
+
+export const defaultServiceCatalog: ServiceCatalog = {
+  packages: cleaningPackages,
+  vehicleCategories,
+  interiorAddOns,
+  quantityAddOns,
+  exteriorAddOns,
+};
+
+export const defaultEmailAutomation: EmailAutomationSettings = {
+  customerOnCreate: true,
+  customerOnApprove: true,
+  customerOnComplete: true,
+  customerOnCancel: true,
+  adminOnCreate: true,
+};
+
+export const weekdayOptions = [
+  { value: 0, label: "Sondag" },
+  { value: 1, label: "Mandag" },
+  { value: 2, label: "Tirsdag" },
+  { value: 3, label: "Onsdag" },
+  { value: 4, label: "Torsdag" },
+  { value: 5, label: "Fredag" },
+  { value: 6, label: "Lordag" },
+] as const;
+
 export const defaultBookingSettings: BookingSettings = {
   companyName: "WashMax",
   supportEmail: "info@washmax.dk",
   adminNotifyEmail: "",
+  defaultBookingStatus: "pending",
   startHour: 8,
   endHour: 18,
   slotMinutes: 150,
+  travelBufferMinutes: 30,
+  workingDays: [0, 1, 2, 3, 4, 5, 6],
+  catalog: defaultServiceCatalog,
+  serviceAreas: [],
+  emailAutomation: defaultEmailAutomation,
 };
 
 export const sanitizePlate = (plate: string) =>
@@ -138,17 +227,51 @@ export const sanitizePlate = (plate: string) =>
     .replace(/[^A-Z0-9]/g, "")
     .slice(0, 10);
 
+export const normalizePostalCode = (postalCode: string) =>
+  postalCode.replace(/\s+/g, "").trim();
+
 export const buildVehicleName = (vehicle?: Partial<VehicleLookupResult> | null) =>
   [vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Din bil";
 
-export const getVehicleCategory = (vehicle?: Partial<VehicleLookupResult> | null) => {
+export const getCatalogPackage = (catalog: ServiceCatalog, packageId: string) =>
+  catalog.packages.find((item) => item.id === packageId) ?? catalog.packages[0];
+
+export const getPackageTitle = (packageId: string, catalog = defaultServiceCatalog) =>
+  getCatalogPackage(catalog, packageId)?.title ?? "Hele bilen";
+
+export const getVehicleCategory = (
+  vehicle?: Partial<VehicleLookupResult> | null,
+  categories = vehicleCategories
+) => {
   const type = String(vehicle?.type || "").toLowerCase();
   const totalWeight = Number(vehicle?.total_weight || 0);
 
-  if (type === "varebil" || totalWeight > 2500) return vehicleCategories[0];
-  if (totalWeight > 2000) return vehicleCategories[1];
-  if (totalWeight > 1300) return vehicleCategories[2];
-  return vehicleCategories[3];
+  if (type === "varebil" || totalWeight > 2500) {
+    return categories.find((item) => item.id === "van") ?? categories[0];
+  }
+  if (totalWeight > 2000) {
+    return categories.find((item) => item.id === "large") ?? categories[1] ?? categories[0];
+  }
+  if (totalWeight > 1300) {
+    return categories.find((item) => item.id === "medium") ?? categories[2] ?? categories[0];
+  }
+  return categories.find((item) => item.id === "small") ?? categories[3] ?? categories[0];
+};
+
+export const findMatchingServiceArea = (postalCode: string, serviceAreas: ServiceArea[]) => {
+  const normalized = normalizePostalCode(postalCode);
+
+  if (!normalized) {
+    return null;
+  }
+
+  return (
+    serviceAreas.find(
+      (area) =>
+        area.isActive &&
+        area.postalPrefixes.some((prefix) => normalized.startsWith(normalizePostalCode(prefix)))
+    ) || null
+  );
 };
 
 export const formatPrice = (price: number) =>
@@ -174,7 +297,7 @@ export const formatDateTimeLabel = (
   }
 };
 
-export const getTimeSlots = (settings: BookingSettings) => {
+export const getTimeSlots = (settings: Pick<BookingSettings, "startHour" | "endHour" | "slotMinutes">) => {
   const slots: string[] = [];
   const startMinutes = settings.startHour * 60;
   const endMinutes = settings.endHour * 60;
@@ -194,8 +317,73 @@ export const getTimeSlots = (settings: BookingSettings) => {
   return slots;
 };
 
-export const getPackageTitle = (packageId: string) =>
-  cleaningPackages.find((item) => item.id === packageId)?.title ?? "Hele bilen";
+export const timeStringToMinutes = (time: string) => {
+  const [hours, minutes] = time.split(":").map((value) => Number(value || 0));
+  return hours * 60 + minutes;
+};
+
+export const addMinutesToTime = (time: string, minutesToAdd: number) => {
+  const totalMinutes = timeStringToMinutes(time) + minutesToAdd;
+  const hours = Math.floor(totalMinutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const minutes = (totalMinutes % 60).toString().padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
+
+export const isWorkingDay = (date: Date, workingDays: number[]) =>
+  workingDays.includes(date.getDay());
+
+const isDateInRange = (dateValue: string, startDate: string, endDate: string) =>
+  dateValue >= startDate && dateValue <= endDate;
+
+export const isDateBlocked = (dateValue: string, blocks: AvailabilityBlock[]) =>
+  blocks.some(
+    (block) =>
+      isDateInRange(dateValue, block.startDate, block.endDate) &&
+      block.startTime === "00:00" &&
+      block.endTime === "23:59"
+  );
+
+export const isTimeSlotBlocked = (
+  dateValue: string,
+  timeValue: string,
+  slotMinutes: number,
+  blocks: AvailabilityBlock[]
+) => {
+  const slotStart = timeStringToMinutes(timeValue);
+  const slotEnd = slotStart + slotMinutes;
+
+  return blocks.some((block) => {
+    if (!isDateInRange(dateValue, block.startDate, block.endDate)) {
+      return false;
+    }
+
+    const blockStart = timeStringToMinutes(block.startTime || "00:00");
+    const blockEnd = timeStringToMinutes(block.endTime || "23:59");
+
+    return slotStart < blockEnd && slotEnd > blockStart;
+  });
+};
+
+export const getAvailableTimeSlots = (
+  dateValue: string,
+  settings: Pick<BookingSettings, "startHour" | "endHour" | "slotMinutes" | "workingDays">,
+  blocks: AvailabilityBlock[]
+) => {
+  const date = new Date(`${dateValue}T00:00:00`);
+  if (Number.isNaN(date.getTime()) || !isWorkingDay(date, settings.workingDays)) {
+    return [];
+  }
+
+  if (isDateBlocked(dateValue, blocks)) {
+    return [];
+  }
+
+  return getTimeSlots(settings).filter(
+    (slot) => !isTimeSlotBlocked(dateValue, slot, settings.slotMinutes, blocks)
+  );
+};
 
 export const getStatusLabel = (status: BookingStatus) => {
   switch (status) {
@@ -220,5 +408,75 @@ export const getStatusTone = (status: BookingStatus) => {
       return "bg-[#fff0f0] text-[#c43d3d]";
     default:
       return "bg-[#fff7e8] text-[#9a6a14]";
+  }
+};
+
+export const getAutoBookingStatusLabel = (status: AutoBookingStatus) => {
+  switch (status) {
+    case "approved":
+      return "Godkend automatisk";
+    default:
+      return "Afventer godkendelse";
+  }
+};
+
+export const getAutoBookingStatusDescription = (status: AutoBookingStatus) => {
+  switch (status) {
+    case "approved":
+      return "Nye bookinger bliver straks godkendt, og kunden faar en godkendelsesmail med det samme.";
+    default:
+      return "Nye bookinger starter som afventer, og kunden faar en modtaget-mail nu samt en ny mail, naar du godkender.";
+  }
+};
+
+export const getPaymentStatusLabel = (status: PaymentStatus) => {
+  switch (status) {
+    case "pending":
+      return "Afventer betaling";
+    case "paid":
+      return "Betalt";
+    case "refunded":
+      return "Refunderet";
+    default:
+      return "Ubetalt";
+  }
+};
+
+export const getPaymentStatusTone = (status: PaymentStatus) => {
+  switch (status) {
+    case "pending":
+      return "bg-[#fff7e8] text-[#9a6a14]";
+    case "paid":
+      return "bg-[#ebf8f1] text-[#1f7a4b]";
+    case "refunded":
+      return "bg-[#eef8ff] text-[#1f6aa4]";
+    default:
+      return "bg-[#fff0f0] text-[#c43d3d]";
+  }
+};
+
+export const getInvoiceStatusLabel = (status: InvoiceStatus) => {
+  switch (status) {
+    case "ready":
+      return "Klar til faktura";
+    case "sent":
+      return "Faktura sendt";
+    case "paid":
+      return "Faktura betalt";
+    default:
+      return "Ingen faktura";
+  }
+};
+
+export const getInvoiceStatusTone = (status: InvoiceStatus) => {
+  switch (status) {
+    case "ready":
+      return "bg-[#fff7e8] text-[#9a6a14]";
+    case "sent":
+      return "bg-[#eef8ff] text-[#1f6aa4]";
+    case "paid":
+      return "bg-[#ebf8f1] text-[#1f7a4b]";
+    default:
+      return "bg-[#f4f6f8] text-[#56626b]";
   }
 };

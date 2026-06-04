@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BookingFlow } from "@/components/booking/booking-flow";
-import { getBookingSettings } from "@/lib/server/bookings";
-import { getTimeSlots, sanitizePlate } from "@/lib/shared/booking";
+import { getAvailabilityBlocks, getBookingSettings } from "@/lib/server/bookings";
+import { sanitizePlate } from "@/lib/shared/booking";
 
 export const metadata: Metadata = {
   title: "Booking",
@@ -19,15 +19,15 @@ export default async function BookingPage({
   const params = await searchParams;
   const initialPlate = Array.isArray(params.plate) ? params.plate[0] : params.plate || "";
   const bookingSettings = await getBookingSettings();
-  const timeSlots = getTimeSlots(bookingSettings);
+  const availabilityBlocks = await getAvailabilityBlocks();
   const minDate = new Date().toISOString().slice(0, 10);
 
   return (
     <BookingFlow
       initialPlate={sanitizePlate(initialPlate)}
-      timeSlots={timeSlots}
       minDate={minDate}
       settings={bookingSettings}
+      availabilityBlocks={availabilityBlocks}
     />
   );
 }

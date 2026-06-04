@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
 import { createBooking, getBookingSettings } from "@/lib/server/bookings";
 import { isDatabaseConfigured } from "@/lib/server/db";
-import { sendBookingConfirmationEmails } from "@/lib/server/mail";
+import {
+  sendAdminNewBookingAlert,
+  sendCustomerBookingCreatedEmail,
+} from "@/lib/server/mail";
 import { sanitizePlate } from "@/lib/shared/booking";
 
 const json = (body: unknown, status = 200) =>
@@ -36,10 +39,12 @@ export async function POST(request: Request) {
       );
     }
 
-    const { customer, ...bookingInput } = parsed.data;
+    const settings = await getBookingSettings();
+    const { customer, total: _quotedTotal, ...bookingInput } = parsed.data;
     const bookingResult = await createBooking({
       ...bookingInput,
       plate: sanitizePlate(bookingInput.plate),
+      status: settings.defaultBookingStatus,
       customer: {
         firstName: customer.firstName,
         lastName: customer.lastName,
@@ -57,21 +62,44 @@ export async function POST(request: Request) {
       source: "website",
     });
 
-    const settings = await getBookingSettings();
     const requestOrigin = new URL(request.url).origin;
     const portalBaseUrl = process.env.APP_URL || requestOrigin;
     const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
 
-    await sendBookingConfirmationEmails({
-      booking: bookingResult.booking,
-      customer: bookingResult.customer,
-      settings,
-      portalUrl,
-    });
+    const mailJobs = [];
+    if (settings.emailAutomation.customerOnCreate) {
+      mailJobs.push(
+        sendCustomerBookingCreatedEmail({
+          booking: bookingResult.booking,
+          customer: bookingResult.customer,
+          settings,
+          portalUrl,
+        })
+      );
+    }
+    if (settings.emailAutomation.adminOnCreate) {
+      mailJobs.push(
+        sendAdminNewBookingAlert({
+          booking: bookingResult.booking,
+          customer: bookingResult.customer,
+          settings,
+          portalUrl,
+        })
+      );
+    }
+
+    const mailResults = await Promise.allSettled(mailJobs);
+
+    for (const result of mailResults) {
+      if (result.status === "rejected") {
+        console.error("Booking mail failed", result.reason);
+      }
+    }
 
     return json({
       ok: true,
       bookingId: bookingResult.booking.id,
+      bookingStatus: bookingResult.booking.status,
       portalUrl,
     });
   } catch (error) {

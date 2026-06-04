@@ -8,7 +8,6 @@ import { da } from "date-fns/locale";
 import { format } from "date-fns";
 import {
   CalendarDays,
-  CarFront,
   Check,
   Clock3,
   LoaderCircle,
@@ -25,17 +24,20 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { bookingCustomerSchema } from "@/lib/schemas/booking";
 import {
+  findMatchingServiceArea,
   buildVehicleName,
-  cleaningPackages,
-  exteriorAddOns,
   formatDateTimeLabel,
   formatPrice,
   formatShortPrice,
+  getAvailableTimeSlots,
+  getCatalogPackage,
   getVehicleCategory,
-  interiorAddOns,
-  quantityAddOns,
+  isDateBlocked,
+  isWorkingDay,
   sanitizePlate,
+  type AvailabilityBlock,
   type BookingSettings,
+  type BookingStatus,
   type VehicleLookupResult,
 } from "@/lib/shared/booking";
 import { Button } from "@/components/ui/button";
@@ -57,20 +59,45 @@ const bookingFormSchema = bookingCustomerSchema.extend({
 
 type BookingFlowProps = {
   initialPlate: string;
-  timeSlots: string[];
   minDate: string;
   settings: BookingSettings;
+  availabilityBlocks: AvailabilityBlock[];
 };
 
 type BookingFormValues = z.input<typeof bookingFormSchema>;
 type AddOnSelection = { id: string; label: string; price: number };
 
+const toCalendarDate = (dateValue: string) => new Date(`${dateValue}T12:00:00`);
+
+const findFirstBookableDate = (
+  minDate: string,
+  settings: Pick<BookingSettings, "startHour" | "endHour" | "slotMinutes" | "workingDays">,
+  availabilityBlocks: AvailabilityBlock[]
+) => {
+  const start = toCalendarDate(minDate);
+
+  for (let offset = 0; offset < 90; offset += 1) {
+    const nextDate = new Date(start);
+    nextDate.setDate(start.getDate() + offset);
+    const dateValue = format(nextDate, "yyyy-MM-dd");
+    if (getAvailableTimeSlots(dateValue, settings, availabilityBlocks).length > 0) {
+      return nextDate;
+    }
+  }
+
+  return undefined;
+};
+
 export function BookingFlow({
   initialPlate,
-  timeSlots,
   minDate,
   settings,
+  availabilityBlocks,
 }: BookingFlowProps) {
+  const initialBookableDate = useMemo(
+    () => findFirstBookableDate(minDate, settings, availabilityBlocks),
+    [availabilityBlocks, minDate, settings]
+  );
   const [plate, setPlate] = useState(initialPlate);
   const [lookupStatus, setLookupStatus] = useState<{
     message: string;
@@ -81,12 +108,10 @@ export function BookingFlow({
     type: "error" | "success";
   } | null>(null);
   const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(null);
-  const [activePackage, setActivePackage] = useState(cleaningPackages[0].id);
+  const [activePackage, setActivePackage] = useState(settings.catalog.packages[0]?.id || "");
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
-  const [appointmentDate, setAppointmentDate] = useState<Date | undefined>(
-    new Date(`${minDate}T00:00:00`)
-  );
-  const [appointmentTime, setAppointmentTime] = useState(timeSlots[0] || "");
+  const [appointmentDate, setAppointmentDate] = useState<Date | undefined>(initialBookableDate);
+  const [selectedAppointmentTime, setSelectedAppointmentTime] = useState("");
   const [isLookupPending, startLookupTransition] = useTransition();
   const [isSubmitting, startSubmitTransition] = useTransition();
   const autoLookupRef = useRef(false);
@@ -111,7 +136,7 @@ export function BookingFlow({
   });
 
   const selectedAddons = useMemo(() => {
-    const available = [...interiorAddOns, ...exteriorAddOns];
+    const available = [...settings.catalog.interiorAddOns, ...settings.catalog.exteriorAddOns];
     return selectedAddonIds
       .map((id) => available.find((item) => item.id === id))
       .filter(Boolean)
@@ -120,23 +145,58 @@ export function BookingFlow({
         label: item!.label,
         price: Number(item!.price || 0),
       }));
-  }, [selectedAddonIds]);
+  }, [selectedAddonIds, settings.catalog.exteriorAddOns, settings.catalog.interiorAddOns]);
 
-  const category = vehicle ? getVehicleCategory(vehicle) : null;
-  const activePackageData =
-    cleaningPackages.find((item) => item.id === activePackage) ?? cleaningPackages[0];
+  const category = vehicle
+    ? getVehicleCategory(vehicle, settings.catalog.vehicleCategories)
+    : null;
+  const activePackageData = getCatalogPackage(settings.catalog, activePackage);
   const vehicleName = buildVehicleName(vehicle);
   const basePrice = category?.price ?? 0;
+  const postalCodeValue = useWatch({
+    control: form.control,
+    name: "postalCode",
+  });
   const addonsTotal = selectedAddons.reduce((sum, item) => sum + item.price, 0);
-  const total = basePrice + addonsTotal;
-  const appointmentDateValue = appointmentDate
-    ? format(appointmentDate, "yyyy-MM-dd")
-    : minDate;
-  const appointmentLabel = formatDateTimeLabel(appointmentDateValue, appointmentTime || "00:00");
+  const matchedArea = useMemo(
+    () => findMatchingServiceArea(postalCodeValue || "", settings.serviceAreas),
+    [postalCodeValue, settings.serviceAreas]
+  );
+  const travelSurcharge = matchedArea?.surcharge ?? 0;
+  const total = basePrice + addonsTotal + travelSurcharge;
+  const appointmentDateValue = appointmentDate ? format(appointmentDate, "yyyy-MM-dd") : "";
+  const availableTimeSlots = useMemo(
+    () =>
+      appointmentDateValue
+        ? getAvailableTimeSlots(appointmentDateValue, settings, availabilityBlocks)
+        : [],
+    [appointmentDateValue, availabilityBlocks, settings]
+  );
+  const appointmentTime = availableTimeSlots.includes(selectedAppointmentTime)
+    ? selectedAppointmentTime
+    : availableTimeSlots[0] || "";
+  const appointmentLabel = appointmentDateValue
+    ? formatDateTimeLabel(appointmentDateValue, appointmentTime || "00:00")
+    : "Vaelg en ledig dag";
   const customerType = useWatch({
     control: form.control,
     name: "customerType",
   });
+  const bookingStatusHint =
+    settings.defaultBookingStatus === "approved"
+      ? "Din booking bliver godkendt med det samme, og du faar en endelig bekraeftelse pa email."
+      : "Din booking starter som afventer. Du faar en mail med det samme og en ny mail, naar vi har godkendt tiden.";
+  const areaCoverageHint = !postalCodeValue?.trim()
+    ? "Indtast dit postnummer for at se, om der er en koerselszone eller et tillaeg."
+    : matchedArea
+      ? `${matchedArea.label} matcher din adresse${
+          matchedArea.surcharge > 0
+            ? ` med et koerselstillaeg pa ${formatPrice(matchedArea.surcharge)}.`
+            : " uden ekstra koerselstillaeg."
+        }`
+      : settings.serviceAreas.length > 0
+        ? "Dit postnummer ligger uden for de faste zoner. Vi gennemgaar bookingen manuelt, hvis koersel skal justeres."
+        : "Vi daekker fortsat din adresse uden registreret zonetillaeg.";
 
   const lookupVehicle = async (nextPlateValue: string) => {
     const normalizedPlate = sanitizePlate(nextPlateValue);
@@ -212,9 +272,9 @@ export function BookingFlow({
       return;
     }
 
-    if (!appointmentTime) {
+    if (!appointmentDateValue || !appointmentTime) {
       setFormStatus({
-        message: "Vaelg tidspunkt for bookingen.",
+        message: "Vaelg en dag med ledige tider for bookingen.",
         type: "error",
       });
       return;
@@ -252,14 +312,20 @@ export function BookingFlow({
           ok?: boolean;
           error?: string;
           portalUrl?: string;
+          bookingStatus?: BookingStatus;
         };
 
         if (!response.ok || !payload?.ok || !payload.portalUrl) {
           throw new Error(payload?.error || "Kunne ikke oprette bookingen. Prov igen.");
         }
 
+        const successMessage =
+          payload.bookingStatus === "approved"
+            ? "Booking godkendt. Du bliver sendt videre til kundeportalen..."
+            : "Booking modtaget. Vi sender en ny email, saa snart den er godkendt.";
+
         setFormStatus({
-          message: "Booking oprettet. Du bliver sendt videre til kundeportalen...",
+          message: successMessage,
           type: "success",
         });
         window.location.href = payload.portalUrl;
@@ -297,13 +363,13 @@ export function BookingFlow({
           >
             <label className="block">
               <span className="sr-only">Dansk nummerplade</span>
-              <span className="flex h-[4.35rem] overflow-hidden rounded-md border border-[#9cb0bd] bg-white focus-within:border-[#2388d1] focus-within:ring-4 focus-within:ring-[#2388d1]/16">
+              <div className="flex w-full max-w-full overflow-hidden rounded-md border border-[#9cb0bd] bg-white focus-within:border-[#2388d1] focus-within:ring-4 focus-within:ring-[#2388d1]/16">
                 <Image
                   src="/DKEU.svg"
                   alt="DK"
                   width={48}
                   height={54}
-                  className="h-full w-14 shrink-0 object-cover"
+                  className="h-[4.35rem] w-14 shrink-0 object-cover"
                 />
                 <input
                   name="plate"
@@ -315,9 +381,9 @@ export function BookingFlow({
                   maxLength={10}
                   value={plate}
                   onChange={(event) => setPlate(sanitizePlate(event.target.value))}
-                  className="min-w-0 flex-1 border-0 bg-white px-4 text-[clamp(2rem,7vw,3.25rem)] font-semibold uppercase tracking-[0.08em] text-[#222] outline-none placeholder:text-[#d7d7d7]"
+                  className="w-0 min-w-0 flex-1 border-0 bg-white px-4 text-[clamp(1.5rem,7vw,3rem)] font-semibold uppercase tracking-[0.08em] text-[#222] outline-none placeholder:text-[#d7d7d7]"
                 />
-              </span>
+              </div>
             </label>
 
             <Button type="submit" size="lg" className="h-14 rounded-md" disabled={isLookupPending}>
@@ -394,7 +460,7 @@ export function BookingFlow({
                     </div>
 
                     <div className="mt-5 grid gap-4 md:grid-cols-3">
-                      {cleaningPackages.map((item) => {
+                      {settings.catalog.packages.map((item) => {
                         const isActive = item.id === activePackage;
                         return (
                           <button
@@ -467,7 +533,7 @@ export function BookingFlow({
                       <div>
                         <h4 className="text-sm font-semibold uppercase text-[#2388d1]">Indvendigt</h4>
                         <div className="mt-3 grid gap-3">
-                          {interiorAddOns.map((addon) => {
+                          {settings.catalog.interiorAddOns.map((addon) => {
                             const isSelected = selectedAddonIds.includes(addon.id);
                             return (
                               <button
@@ -526,7 +592,7 @@ export function BookingFlow({
                             </span>
                           </div>
 
-                          {exteriorAddOns.map((addon) => {
+                          {settings.catalog.exteriorAddOns.map((addon) => {
                             const isSelected = selectedAddonIds.includes(addon.id);
                             return (
                               <button
@@ -573,9 +639,9 @@ export function BookingFlow({
                       <div className="rounded-[1.5rem] border border-dashed border-[#cde6f6] bg-[#fbfeff] px-4 py-4 text-sm text-[var(--muted)]">
                         <p className="font-semibold text-[var(--ink)]">Manuelle tilvalg</p>
                         <p className="mt-2">
-                          {quantityAddOns.map((item) => item.label).join(" og ")} kan stadig
-                          laegges pa senere. De er bevaret i systemet, men har ikke automatisk
-                          prisberegning endnu.
+                          {settings.catalog.quantityAddOns.map((item) => item.label).join(" og ")}{" "}
+                          kan stadig laegges pa senere. De er bevaret i systemet, men har ikke
+                          automatisk prisberegning endnu.
                         </p>
                       </div>
                     </div>
@@ -605,20 +671,27 @@ export function BookingFlow({
                           locale={da}
                           weekStartsOn={1}
                           showOutsideDays
-                          disabled={{ before: new Date(`${minDate}T00:00:00`) }}
+                          disabled={(date) => {
+                            const dateValue = format(date, "yyyy-MM-dd");
+                            return (
+                              date < toCalendarDate(minDate) ||
+                              !isWorkingDay(date, settings.workingDays) ||
+                              isDateBlocked(dateValue, availabilityBlocks)
+                            );
+                          }}
                         />
                       </div>
 
                       <div className="rounded-[1.5rem] border border-[var(--line)] p-4">
                         <p className="text-sm font-semibold text-[var(--ink)]">Ledige tider</p>
                         <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                          {timeSlots.map((slot) => {
+                          {availableTimeSlots.map((slot) => {
                             const isActive = slot === appointmentTime;
                             return (
                               <button
                                 key={slot}
                                 type="button"
-                                onClick={() => setAppointmentTime(slot)}
+                                onClick={() => setSelectedAppointmentTime(slot)}
                                 className={cn(
                                   "rounded-xl border px-4 py-3 text-sm font-semibold transition",
                                   isActive
@@ -631,9 +704,18 @@ export function BookingFlow({
                             );
                           })}
                         </div>
+                        {availableTimeSlots.length === 0 ? (
+                          <p className="mt-4 text-sm text-[var(--muted)]">
+                            Der er ingen ledige tider pa den valgte dag. Vaelg en anden dag i
+                            kalenderen.
+                          </p>
+                        ) : null}
                         <p className="mt-4 text-sm text-[var(--muted)]">
-                          Vi bekraefter den endelige tid pa email og SMS.
+                          {settings.defaultBookingStatus === "approved"
+                            ? "Denne booking bliver godkendt automatisk, og du faar bekraeftelsen pa email med det samme."
+                            : "Denne booking starter som afventer, og vi sender en ny email, saa snart tiden er godkendt."}
                         </p>
+                        <p className="mt-3 text-sm text-[var(--muted)]">{areaCoverageHint}</p>
                       </div>
                     </div>
                   </Card>
@@ -726,6 +808,13 @@ export function BookingFlow({
                       </div>
 
                       <div className="space-y-3 text-sm">
+                        <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-4 py-4 text-[#1a506d]">
+                          <p className="flex items-center gap-2 font-semibold text-[var(--ink)]">
+                            <Mail className="h-4 w-4 text-[#2388d1]" />
+                            Emailopdateringer
+                          </p>
+                          <p className="mt-2 leading-6">{bookingStatusHint}</p>
+                        </div>
                         <label className="flex items-start gap-3">
                           <input
                             type="checkbox"
@@ -792,6 +881,16 @@ export function BookingFlow({
                   <div className="space-y-5 px-6 py-6">
                     <SummaryRow label="Pakke" value={activePackageData.title} />
                     <SummaryRow label="Grundpris" value={formatPrice(basePrice)} />
+                    <SummaryRow
+                      label="Serviceomrade"
+                      value={matchedArea ? matchedArea.label : "Standard daekning"}
+                    />
+                    {travelSurcharge > 0 ? (
+                      <SummaryRow
+                        label="Koerselstillaeg"
+                        value={formatPrice(travelSurcharge)}
+                      />
+                    ) : null}
                     <SummaryRow
                       label="Tilvalg"
                       value={
