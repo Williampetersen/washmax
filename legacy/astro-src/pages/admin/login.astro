@@ -15,7 +15,7 @@ if (getAdminSession(Astro.cookies)) {
 const error = Astro.url.searchParams.get("error");
 const errorMessage =
   error === "config"
-    ? "Admin-login er ikke konfigureret endnu. Tilføj ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET."
+    ? "Admin-login er ikke konfigureret endnu.. Tilføj ADMIN_EMAIL, ADMIN_PASSWORD og ADMIN_SESSION_SECRET."
     : error === "invalid"
       ? "Forkert email eller password."
       : "";
