@@ -39,6 +39,7 @@ import {
 } from "@/lib/server/bookings";
 import { isDatabaseConfigured } from "@/lib/server/db";
 import {
+  defaultBookingSettings,
   formatPrice,
   formatShortPrice,
   getAutoBookingStatusDescription,
@@ -149,6 +150,33 @@ const statusMessages: Record<string, string> = {
   email: "Emailen er sendt igen.",
 };
 
+const getEmptyDashboardData = (): DashboardData => ({
+  settings: {
+    ...defaultBookingSettings,
+    adminNotifyEmail: process.env.BOOKING_ADMIN_EMAIL || defaultBookingSettings.adminNotifyEmail,
+    supportEmail: process.env.SMTP_USER || defaultBookingSettings.supportEmail,
+  },
+  stats: {
+    totalBookings: 0,
+    pendingBookings: 0,
+    approvedBookings: 0,
+    completedBookings: 0,
+    cancelledBookings: 0,
+    totalRevenue: 0,
+    upcomingBookings: 0,
+    totalCustomers: 0,
+    todayBookings: 0,
+    unpaidBookings: 0,
+    outstandingRevenue: 0,
+  },
+  bookings: [],
+  customers: [],
+  availabilityBlocks: [],
+  emailLogs: [],
+  routePlan: [],
+  calendar: [],
+});
+
 export default async function AdminPage({
   searchParams,
 }: {
@@ -167,7 +195,17 @@ export default async function AdminPage({
     : "overview";
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
-  const dashboard = await getAdminDashboardData();
+  let dashboard = getEmptyDashboardData();
+  let dashboardLoadError = "";
+
+  try {
+    dashboard = await getAdminDashboardData();
+  } catch (adminError) {
+    dashboardLoadError =
+      "Admin-data kunne ikke hentes lige nu. Siden vises med tomme tal, saa du stadig kan logge ud og kontrollere opsaetningen.";
+    console.error("Failed to load admin dashboard data", adminError);
+  }
+
   const hasDatabase = isDatabaseConfigured();
   const today = new Date().toISOString().slice(0, 10);
   const timeSlots = getTimeSlots(dashboard.settings);
@@ -292,6 +330,12 @@ export default async function AdminPage({
               <div className="rounded-[1.5rem] border border-[#ffe3b5] bg-[#fff7e8] px-5 py-4 text-sm text-[#8d5d08]">
                 DATABASE_URL mangler. Panelet kan vises, men bookinger og aendringer bliver
                 ikke gemt foer databasen er sat op.
+              </div>
+            ) : null}
+
+            {dashboardLoadError ? (
+              <div className="rounded-[1.5rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                {dashboardLoadError}
               </div>
             ) : null}
 

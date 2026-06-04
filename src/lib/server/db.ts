@@ -285,5 +285,10 @@ export const ensureSchema = async () => {
     })();
   }
 
-  await schemaPromise;
+  try {
+    await schemaPromise;
+  } catch (error) {
+    schemaPromise = null;
+    throw error;
+  }
 };
