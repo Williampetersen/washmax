@@ -69,14 +69,14 @@ export const metadata: Metadata = {
 };
 
 const navItems = [
-  { id: "overview", label: "Dashboard", icon: BarChart3 },
+  { id: "overview", label: "Overblik", icon: BarChart3 },
   { id: "calendar", label: "Kalender", icon: Calendar },
   { id: "bookings", label: "Bookinger", icon: ListFilter },
   { id: "customers", label: "Kunder", icon: Users },
-  { id: "services", label: "Services", icon: Sparkles },
-  { id: "availability", label: "Tilgaengelighed", icon: CalendarClock },
-  { id: "emails", label: "Emails", icon: Mail },
-  { id: "areas", label: "Omraader", icon: MapPinned },
+  { id: "services", label: "Ydelser", icon: Sparkles },
+  { id: "availability", label: "Tilgængelighed", icon: CalendarClock },
+  { id: "emails", label: "E-mails", icon: Mail },
+  { id: "areas", label: "Områder", icon: MapPinned },
   { id: "payments", label: "Betalinger", icon: CreditCard },
   { id: "settings", label: "Indstillinger", icon: Settings2 },
 ] as const;
@@ -85,49 +85,49 @@ type AdminView = (typeof navItems)[number]["id"];
 
 const viewMeta: Record<AdminView, { title: string; description: string }> = {
   overview: {
-    title: "Operations dashboard",
+    title: "Driftsoversigt",
     description:
-      "Fa overblik over dagens bookinger, ventende godkendelser, emails, kunder og betalinger fra et samlet panel.",
+      "Få overblik over dagens bookinger, ventende godkendelser, kunder, betalinger og beskeder fra ét samlet panel.",
   },
   calendar: {
     title: "Kalender og kapacitet",
     description:
-      "Se de kommende dage, blokeringer og dagens forloeb i et format der fungerer lige godt pa mobil og desktop.",
+      "Se de kommende dage, blokeringer og dagens forløb i et format, der fungerer lige godt på mobil og desktop.",
   },
   bookings: {
-    title: "Booking queue og detaljer",
+    title: "Bookingkø og detaljer",
     description:
-      "Godkend, flyt, annuller, fuldfor og opret bookinger manuelt med fuld historik, mailspor og betaling pa samme booking.",
+      "Godkend, flyt, annuller, fuldfør og opret bookinger manuelt med fuld historik, mailspor og betaling på samme booking.",
   },
   customers: {
     title: "Kunder og historik",
     description:
-      "Hold styr pa kundedata, tags, noter, vaerdi og tilbagevendende kunder uden at hoppe mellem flere systemer.",
+      "Hold styr på kundedata, tags, noter, værdi og tilbagevendende kunder uden at hoppe mellem flere systemer.",
   },
   services: {
-    title: "Services og priser",
+    title: "Ydelser og priser",
     description:
-      "Opdater pakketekster, varigheder, kategori-priser og tilvalg. Aendringerne slaar direkte igennem i bookingflowet.",
+      "Opdater pakketekster, varigheder, kategori-priser og tilvalg. Ændringerne slår direkte igennem i bookingflowet.",
   },
   availability: {
     title: "Arbejdstider og blokeringer",
     description:
-      "Vaelg arbejdsdage, bookingvindue, slotlaengde og blokeringer for ferier, heldage eller travle tidsrum.",
+      "Vælg arbejdsdage, bookingvindue, slotlængde og blokeringer for ferier, heldage eller travle tidsrum.",
   },
   emails: {
-    title: "Email center",
+    title: "E-mailcenter",
     description:
-      "Styr hvilke automatiske mails der sendes, se loggen over udsendelser og resend nuvaerende kundemail eller admin-alert.",
+      "Styr hvilke automatiske e-mails der sendes, se loggen over udsendelser og send nuværende kundemail eller admin-notifikation igen.",
   },
   areas: {
-    title: "Omraader og ruter",
+    title: "Områder og ruter",
     description:
-      "Definer serviceomraader med postnumre og tillaeg, og se den kommende ruteplan grupperet efter dag og zone.",
+      "Definér serviceområder med postnumre og tillæg, og se den kommende ruteplan grupperet efter dag og zone.",
   },
   payments: {
     title: "Betalinger og fakturaer",
     description:
-      "Folg ubetalte bookinger, opdater betalingsstatus, noter betalingsmetode og hold styr pa faktura-status.",
+      "Følg ubetalte bookinger, opdater betalingsstatus, noter betalingsmetode og hold styr på fakturastatus.",
   },
   settings: {
     title: "Generelle indstillinger",
@@ -137,16 +137,16 @@ const viewMeta: Record<AdminView, { title: string; description: string }> = {
 };
 
 const selectClassName =
-  "h-12 w-full rounded-xl border border-[#cbd9e4] bg-white px-4 text-[var(--ink)] outline-none transition focus:border-[#55b9df] focus:ring-4 focus:ring-[#55b9df]/12";
+  "h-12 w-full rounded-2xl border border-[#d7e5ee] bg-white/96 px-4 text-[var(--ink)] outline-none transition focus:border-[#7fc8ea] focus:ring-4 focus:ring-[#7fc8ea]/18";
 
 const statusMessages: Record<string, string> = {
   created: "Bookingen er oprettet.",
-  updated: "Aendringerne er gemt.",
+  updated: "Ændringerne er gemt.",
   deleted: "Bookingen er slettet.",
   settings: "Indstillingerne er gemt.",
   customer: "Kunden er opdateret.",
   availability: "Kalenderblokken er opdateret.",
-  email: "Emailen er sendt igen.",
+  email: "E-mailen er sendt igen.",
 };
 
 export default async function AdminPage({
@@ -186,36 +186,37 @@ export default async function AdminPage({
   const calendarDays = dashboard.calendar
     .filter((item) => item.date >= today || item.blocks.length > 0)
     .slice(0, 12);
-  const bookingsByCustomer = new Map(
-    dashboard.customers.map((customer) => [
-      customer.id,
-      dashboard.bookings
-        .filter((booking) => booking.customerId === customer.id)
-        .sort(sortBookings),
-    ])
-  );
+  const bookingsByCustomer = new Map<string, DashboardBooking[]>();
+  for (const booking of dashboard.bookings) {
+    const list = bookingsByCustomer.get(booking.customerId) || [];
+    list.push(booking);
+    bookingsByCustomer.set(booking.customerId, list);
+  }
+  for (const list of bookingsByCustomer.values()) {
+    list.sort(sortBookings);
+  }
   const statusMessage = statusMessages[saved] || "";
-  const errorMessage = error === "action" ? "Handlingen kunne ikke gennemfoeres." : "";
+  const errorMessage = error === "action" ? "Handlingen kunne ikke gennemføres." : "";
 
   return (
-    <main className="min-h-screen bg-[#f4f8fb] px-4 pb-12 pt-6 sm:px-6">
-      <section className="mx-auto max-w-7xl">
-        <div className="grid gap-6 xl:grid-cols-[18rem_1fr]">
-          <aside className="overflow-hidden rounded-[2rem] bg-[linear-gradient(180deg,#0e3557,#154d70)] text-white shadow-[0_28px_90px_rgba(8,27,21,0.18)] xl:sticky xl:top-6 xl:self-start">
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(146,214,244,0.22),transparent_28rem),radial-gradient(circle_at_100%_0%,rgba(25,103,146,0.08),transparent_22rem),linear-gradient(180deg,#f8fbfe_0%,#eef4f9_45%,#e7eff6_100%)] px-4 pb-10 pt-4 sm:px-6 sm:pb-12">
+      <section className="mx-auto max-w-[1480px]">
+        <div className="grid gap-5 xl:grid-cols-[18rem_minmax(0,1fr)]">
+          <aside className="overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,#113a5c,#0c304e_62%,#102c46)] text-white shadow-[0_28px_90px_rgba(7,38,63,0.2)] xl:sticky xl:top-5 xl:self-start">
             <div className="border-b border-white/10 px-5 py-6">
               <div className="flex items-center gap-4">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#8fdef8] text-xl font-semibold text-[#083047]">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#8fdcf6] text-xl font-semibold text-[#0b3049] shadow-[0_12px_24px_rgba(143,220,246,0.22)]">
                   A
                 </div>
                 <div>
-                  <p className="text-sm uppercase tracking-[0.18em] text-[#b8ebff]">WashMax</p>
-                  <p className="mt-1 text-lg font-semibold">Admin</p>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-[#b8ebff]">WashMax</p>
+                  <p className="mt-1 text-xl font-semibold">Admin</p>
                   <p className="text-sm text-white/72">{session.email}</p>
                 </div>
               </div>
             </div>
 
-            <nav className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 xl:grid-cols-1">
+            <nav className="flex snap-x gap-2 overflow-x-auto px-4 py-4 xl:grid xl:grid-cols-1 xl:overflow-visible">
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id;
@@ -224,10 +225,10 @@ export default async function AdminPage({
                     key={item.id}
                     href={`/admin?view=${item.id}`}
                     className={cn(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition",
+                      "min-w-[10.75rem] snap-start flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition xl:min-w-0",
                       isActive
-                        ? "bg-white text-[#0f3555]"
-                        : "bg-white/4 text-white/84 hover:bg-white/10"
+                        ? "bg-white text-[#0f3555] shadow-[0_14px_32px_rgba(255,255,255,0.14)]"
+                        : "bg-white/6 text-white/84 hover:bg-white/12"
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0" />
@@ -238,17 +239,25 @@ export default async function AdminPage({
             </nav>
 
             <div className="border-t border-white/10 px-5 py-5">
-              <div className="grid gap-3 text-sm text-white/84">
-                <div className="flex items-center justify-between gap-4">
-                  <span>Dagens bookinger</span>
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#9fdff7]">
+                  Dagens drift
+                </p>
+                <span className="rounded-full border border-white/12 bg-white/8 px-3 py-1 text-xs text-white/72">
+                  Live
+                </span>
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-sm text-white/84">
+                <div className="rounded-2xl border border-white/8 bg-white/6 px-3 py-3">
+                  <span className="block text-xs text-white/56">I dag</span>
                   <strong>{dashboard.stats.todayBookings}</strong>
                 </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span>Ventende</span>
+                <div className="rounded-2xl border border-white/8 bg-white/6 px-3 py-3">
+                  <span className="block text-xs text-white/56">Afventer</span>
                   <strong>{dashboard.stats.pendingBookings}</strong>
                 </div>
-                <div className="flex items-center justify-between gap-4">
-                  <span>Udestaaende</span>
+                <div className="rounded-2xl border border-white/8 bg-white/6 px-3 py-3">
+                  <span className="block text-xs text-white/56">Udestår</span>
                   <strong>{formatShortPrice(dashboard.stats.outstandingRevenue)}</strong>
                 </div>
               </div>
@@ -256,16 +265,16 @@ export default async function AdminPage({
           </aside>
 
           <div className="space-y-6">
-            <section className="rounded-[1.9rem] border border-[#d8e6ef] bg-white px-5 py-6 shadow-[0_18px_50px_rgba(8,27,21,0.06)] sm:px-6">
+            <section className="rounded-[2rem] border border-[#d8e6ef] bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(245,250,255,0.94))] px-5 py-6 shadow-[0_22px_65px_rgba(7,38,63,0.08)] sm:px-7">
               <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#2388d1]">
                     {navItems.find((item) => item.id === view)?.label}
                   </p>
-                  <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
+                  <h1 className="mt-3 font-display text-3xl font-semibold text-[#0c2132] sm:text-5xl">
                     {viewMeta[view].title}
                   </h1>
-                  <p className="mt-3 max-w-3xl text-sm leading-6 text-[var(--muted)]">
+                  <p className="mt-3 max-w-3xl text-base leading-7 text-[#4b6474]">
                     {viewMeta[view].description}
                   </p>
                 </div>
@@ -273,7 +282,7 @@ export default async function AdminPage({
                 <div className="flex flex-wrap gap-3">
                   <Link
                     href="/booking"
-                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)] transition hover:border-[#55b9df]"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#d4e3ed] bg-white px-4 text-sm font-semibold text-[var(--ink)] transition hover:border-[#7fc8ea] hover:text-[#0d526d]"
                   >
                     <CalendarPlus className="h-4 w-4" />
                     Ny booking
@@ -289,15 +298,15 @@ export default async function AdminPage({
             </section>
 
             {!hasDatabase ? (
-              <div className="rounded-[1.5rem] border border-[#ffe3b5] bg-[#fff7e8] px-5 py-4 text-sm text-[#8d5d08]">
-                DATABASE_URL mangler. Panelet kan vises, men bookinger og aendringer bliver
-                ikke gemt foer databasen er sat op.
+              <div className="rounded-[1.6rem] border border-[#ffe2af] bg-[#fff8ea] px-5 py-4 text-sm text-[#8d5d08] shadow-[0_12px_32px_rgba(141,93,8,0.08)]">
+                DATABASE_URL mangler. Panelet kan vises, men bookinger og ændringer bliver
+                ikke gemt, før databasen er sat op.
               </div>
             ) : null}
 
             {dashboard.databaseError ? (
-              <div className="rounded-[1.5rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
-                Databasen kunne ikke indlaeses: {dashboard.databaseError}
+              <div className="rounded-[1.6rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-[0_12px_32px_rgba(176,38,38,0.08)]">
+                Databasen kunne ikke indlæses: {dashboard.databaseError}
               </div>
             ) : null}
 
@@ -404,7 +413,7 @@ function OverviewView({
           icon={CalendarClock}
         />
         <MetricCard
-          label="Omsaetning"
+          label="Omsætning"
           value={formatShortPrice(dashboard.stats.totalRevenue)}
           detail={`${formatShortPrice(dashboard.stats.outstandingRevenue)} mangler betaling`}
           icon={BarChart3}
@@ -416,7 +425,7 @@ function OverviewView({
           icon={Users}
         />
         <MetricCard
-          label="Emails"
+          label="E-mails"
           value={dashboard.emailLogs.length.toString()}
           detail={`${dashboard.emailLogs.filter((item) => item.status === "failed").length} fejl i loggen`}
           icon={Mail}
@@ -426,9 +435,9 @@ function OverviewView({
       <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
         <section className="space-y-4">
           <SectionHeading
-            eyebrow="Naeste handlinger"
+            eyebrow="Næste handlinger"
             title="Ventende bookinger"
-            description="De bookinger der typisk skal ses foerst af admin."
+            description="De bookinger der typisk skal ses først af admin."
           />
           <div className="grid gap-4">
             {pendingBookings.length > 0 ? (
@@ -465,7 +474,7 @@ function OverviewView({
                         href={`/admin?view=bookings#booking-${booking.id}`}
                         className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)] transition hover:border-[#55b9df]"
                       >
-                        Aabn
+                        Åbn
                         <ArrowRight className="h-4 w-4" />
                       </Link>
                     </div>
@@ -483,7 +492,7 @@ function OverviewView({
             <SectionHeading
               eyebrow="I dag"
               title="Dagens plan"
-              description="Et kompakt overblik der fungerer godt pa mobilen i felten."
+              description="Et kompakt overblik der fungerer godt på mobilen i felten."
             />
             <div className="mt-4 grid gap-3">
               {todayBookings.length > 0 ? (
@@ -513,9 +522,9 @@ function OverviewView({
 
           <div>
             <SectionHeading
-              eyebrow="Naeste ruter"
-              title="Omraadeplan"
-              description="Grupperet efter dag og zone, saa ruten er lettere at planlaegge."
+              eyebrow="Næste ruter"
+              title="Områdeplan"
+              description="Grupperet efter dag og zone, så ruten er lettere at planlægge."
             />
             <div className="mt-4 grid gap-4">
               {dashboard.routePlan.slice(0, 3).map((day) => (
@@ -527,7 +536,7 @@ function OverviewView({
                     <div>
                       <p className="font-semibold text-[var(--ink)]">{day.label}</p>
                       <p className="mt-1 text-sm text-[var(--muted)]">
-                        {day.areas.length} omrader planlagt
+                        {day.areas.length} områder planlagt
                       </p>
                     </div>
                     <Route className="h-5 w-5 text-[#2388d1]" />
@@ -555,8 +564,8 @@ function OverviewView({
           <div>
             <SectionHeading
               eyebrow="Betaling"
-              title="Udestaaende betalinger"
-              description="Bookinger der mangler betaling eller faktura-opfoelgning."
+              title="Udestående betalinger"
+              description="Bookinger der mangler betaling eller fakturaopfølgning."
             />
             <div className="mt-4 grid gap-3">
               {unpaidBookings.length > 0 ? (
@@ -593,7 +602,7 @@ function OverviewView({
       <section className="space-y-4">
         <SectionHeading
           eyebrow="Kommende"
-          title="Naeste bookinger"
+          title="Næste bookinger"
           description="Et hurtigt kig pa de naeste jobs i kalenderen."
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -620,7 +629,7 @@ function OverviewView({
                 href={`/admin?view=bookings#booking-${booking.id}`}
                 className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#2388d1]"
               >
-                Aabn booking
+                Åbn booking
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </article>
@@ -665,7 +674,7 @@ function CalendarView({
 
       <section className="space-y-4">
         <SectionHeading
-          eyebrow="Naeste 12 dage"
+          eyebrow="Næste 12 dage"
           title="Kalenderoversigt"
           description="Hver dag viser bookinger og blokeringer i samme kort."
         />
@@ -1036,7 +1045,7 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
           <SectionHeading
             eyebrow="Pakker"
             title="Servicepakker"
-            description="Aendringer her rammer bookingkortene og tidsestimaterne med det samme."
+            description="Ændringer her rammer bookingkortene og tidsestimaterne med det samme."
           />
           <div className="grid gap-4 lg:grid-cols-3">
             {dashboard.settings.catalog.packages.map((pkg) => (
@@ -1392,7 +1401,7 @@ function EmailsView({
         <MetricCard
           label="Admin alert"
           value={dashboard.settings.emailAutomation.adminOnCreate ? "Til" : "Fra"}
-          detail="Admin fa notifikation ved ny booking"
+          detail="Admin får notifikation ved ny booking"
           icon={BellRing}
         />
         <MetricCard
@@ -1408,7 +1417,7 @@ function EmailsView({
           <SectionHeading
             eyebrow="Automation"
             title="Hvilke mails skal sendes?"
-            description="Sluk eller taend pr. situation. Aendringer virker med det samme."
+            description="Slå til eller fra pr. situation. Ændringer virker med det samme."
           />
           <form
             action="/api/admin/settings"
@@ -1497,7 +1506,7 @@ function EmailsView({
           <SectionHeading
             eyebrow="Log"
             title="Seneste emailhændelser"
-            description="Her kan admin se hvad der er sendt, om det fejlede, og resend den nuvaerende mail med et klik."
+            description="Her kan admin se, hvad der er sendt, om det fejlede, og sende den nuværende mail igen med ét klik."
           />
           <div className="grid gap-4">
             {recentEmails.length > 0 ? (
@@ -1612,7 +1621,7 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
           <SectionHeading
             eyebrow="Ruteplan"
             title="Kommende omraadegrupper"
-            description="Naeste jobs er samlet pr. dag og zone, saa admin hurtigt kan se belastning og omsaetning."
+            description="Næste jobs er samlet pr. dag og zone, så admin hurtigt kan se belastning og omsætning."
           />
           <div className="grid gap-4">
             {dashboard.routePlan.length > 0 ? (
@@ -1700,7 +1709,7 @@ function PaymentsView({
           icon={ReceiptText}
         />
         <MetricCard
-          label="Udestaaende omsaetning"
+          label="Udestående omsætning"
           value={formatShortPrice(dashboard.stats.outstandingRevenue)}
           detail="Ikke markeret som betalt endnu"
           icon={BarChart3}
@@ -1768,7 +1777,7 @@ function SettingsView({
           <SectionHeading
             eyebrow="Generelt"
             title="Virksomheds- og bookingopsætning"
-            description="Alt det admin typisk justerer foerst, inkl. standardstatus for nye bookinger."
+            description="Alt det admin typisk justerer først, inkl. standardstatus for nye bookinger."
           />
           <form
             action="/api/admin/settings"
@@ -1923,7 +1932,7 @@ function BookingActionCard({
               <DetailRow label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
               <DetailRow label="Pakke" value={`${booking.packageLabel} - ${booking.category}`} />
               <DetailRow label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-              <DetailRow label="Omraade" value={booking.areaName || booking.city || "Ikke sat"} />
+              <DetailRow label="Område" value={booking.areaName || booking.city || "Ikke sat"} />
               <DetailRow label="Varighed" value={`${booking.estimatedMinutes} min.`} />
             </div>
             {booking.addons.length > 0 ? (
@@ -2096,7 +2105,7 @@ function BookingActionCard({
                   defaultChecked={booking.invoiceRequested}
                   className="mt-1 h-4 w-4 rounded border-[#9cb0bd]"
                 />
-                <span>Faktura oenskes eller er pa kraevet</span>
+                <span>Faktura ønskes eller er påkrævet</span>
               </label>
               <Field label="Fakturastatus">
                 <select name="invoice_status" defaultValue={booking.invoiceStatus} className={selectClassName}>
@@ -2126,7 +2135,7 @@ function BookingActionCard({
                 <input type="hidden" name="return_view" value={returnView} />
                 <input type="hidden" name="admin_notes" value={booking.adminNotes} />
                 <Button type="submit" variant="outline" className="w-full">
-                  Resend nuvaerende kundemail
+                  Send nuværende kundemail igen
                 </Button>
               </form>
               <form action={`/api/admin/bookings/${booking.id}`} method="POST">
@@ -2134,7 +2143,7 @@ function BookingActionCard({
                 <input type="hidden" name="return_view" value={returnView} />
                 <input type="hidden" name="admin_notes" value={booking.adminNotes} />
                 <Button type="submit" variant="outline" className="w-full">
-                  Resend admin alert
+                  Send adminnotifikation igen
                 </Button>
               </form>
             </div>
@@ -2346,7 +2355,7 @@ function PaymentCard({ booking }: { booking: DashboardBooking }) {
             defaultChecked={booking.invoiceRequested}
             className="h-4 w-4 rounded border-[#9cb0bd]"
           />
-          Faktura oenskes eller skal udsendes
+          Faktura ønskes eller skal udsendes
         </label>
         <div className="sm:col-span-2">
           <Button type="submit">Gem betaling</Button>
@@ -2394,7 +2403,7 @@ function EmailLogCard({ email }: { email: BookingEmailLog }) {
             <input type="hidden" name="return_view" value="emails" />
             <input type="hidden" name="admin_notes" value="" />
             <Button type="submit" variant="outline">
-              Resend
+              Send igen
             </Button>
           </form>
         ) : null}
@@ -2415,14 +2424,14 @@ function MetricCard({
   icon: LucideIcon;
 }) {
   return (
-    <article className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
+    <article className="rounded-[1.6rem] border border-[#d9e7f0] bg-[linear-gradient(180deg,#ffffff,#f7fbff)] px-5 py-5 shadow-[0_16px_42px_rgba(7,38,63,0.07)]">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm text-[var(--muted)]">{label}</p>
-          <p className="mt-3 text-3xl font-semibold text-[var(--ink)] break-words">{value}</p>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{detail}</p>
+          <p className="text-sm font-medium text-[#5f7888]">{label}</p>
+          <p className="mt-3 text-4xl font-semibold text-[#0c2132] break-words">{value}</p>
+          <p className="mt-3 text-sm leading-6 text-[#5f7888]">{detail}</p>
         </div>
-        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#eef8ff] text-[#2388d1]">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eef7ff] text-[#2388d1] shadow-[inset_0_0_0_1px_rgba(35,136,209,0.08)]">
           <Icon className="h-5 w-5" />
         </span>
       </div>
@@ -2441,9 +2450,9 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#2388d1]">{eyebrow}</p>
-      <h2 className="mt-2 text-2xl font-semibold text-[var(--ink)]">{title}</h2>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--muted)]">{description}</p>
+      <p className="text-sm font-semibold uppercase tracking-[0.22em] text-[#2388d1]">{eyebrow}</p>
+      <h2 className="mt-2 text-[clamp(1.8rem,3vw,2.45rem)] font-semibold text-[#0c2132]">{title}</h2>
+      <p className="mt-2 max-w-3xl text-sm leading-7 text-[#5f7888]">{description}</p>
     </div>
   );
 }
@@ -2467,8 +2476,8 @@ function Field({
 
 function InfoPanel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-[1.4rem] border border-[#e4edf3] bg-[#fbfdff] px-4 py-4">
-      <p className="text-sm font-semibold uppercase tracking-[0.12em] text-[#2388d1]">{title}</p>
+    <section className="rounded-[1.5rem] border border-[#e1ebf2] bg-[linear-gradient(180deg,#fbfdff,#f6fbff)] px-5 py-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
+      <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">{title}</p>
       <div className="mt-4">{children}</div>
     </section>
   );
@@ -2476,9 +2485,9 @@ function InfoPanel({ title, children }: { title: string; children: ReactNode }) 
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-[#e4edf3] bg-white px-4 py-3">
-      <p className="text-xs uppercase tracking-[0.12em] text-[#8aa0ae]">{label}</p>
-      <p className="mt-1 text-[var(--ink)]">{value || "-"}</p>
+    <div className="rounded-2xl border border-[#e4edf3] bg-white px-4 py-3 shadow-[0_8px_20px_rgba(7,38,63,0.04)]">
+      <p className="text-xs uppercase tracking-[0.16em] text-[#8aa0ae]">{label}</p>
+      <p className="mt-1 text-[#0c2132]">{value || "-"}</p>
     </div>
   );
 }
@@ -2524,7 +2533,7 @@ function InvoicePill({ status }: { status: (typeof invoiceStatuses)[number] }) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-[1.4rem] border border-dashed border-[#cddbe5] bg-[#fbfdff] px-5 py-5 text-sm text-[var(--muted)]">
+    <div className="rounded-[1.5rem] border border-dashed border-[#cfe0ea] bg-[rgba(255,255,255,0.72)] px-5 py-5 text-sm text-[#5f7888]">
       {text}
     </div>
   );

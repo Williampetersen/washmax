@@ -12,14 +12,14 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] hover:brightness-105",
+    "bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] text-white shadow-[0_18px_40px_rgba(43,147,220,0.2)] hover:brightness-105",
   secondary:
-    "bg-[#eef8ff] text-[#0d526d] hover:bg-[#e1f4ff]",
+    "bg-[#eef7ff] text-[#0d526d] shadow-[inset_0_0_0_1px_rgba(35,136,209,0.08)] hover:bg-[#e5f4ff]",
   ghost: "bg-transparent text-[var(--ink)] hover:bg-black/4",
   outline:
-    "border border-[var(--line)] bg-white text-[var(--ink)] hover:border-[#55b9df] hover:text-[#0d526d]",
+    "border border-[#d4e3ed] bg-white text-[var(--ink)] shadow-[0_10px_24px_rgba(7,38,63,0.04)] hover:border-[#7fc8ea] hover:text-[#0d526d]",
   success:
-    "bg-[linear-gradient(135deg,#2cd2a6,#15946f)] text-[#04150f] shadow-[0_18px_40px_rgba(17,148,111,0.22)] hover:brightness-105",
+    "bg-[linear-gradient(135deg,#2cd2a6,#15946f)] text-[#04150f] shadow-[0_18px_40px_rgba(17,148,111,0.2)] hover:brightness-105",
 };
 
 const sizes: Record<ButtonSize, string> = {
@@ -37,7 +37,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       type={type}
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition disabled:cursor-not-allowed disabled:opacity-70",
+        "inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition duration-200 disabled:cursor-not-allowed disabled:opacity-70",
         variants[variant],
         sizes[size],
         className

@@ -408,6 +408,14 @@ const normalizeAutoBookingStatus = (value?: string | null): AutoBookingStatus =>
 const getDatabaseErrorMessage = (error: unknown) =>
   error instanceof Error ? error.message : "Databasen kunne ikke laeses.";
 
+const toComparableText = (value: unknown) => String(value ?? "");
+
+const compareText = (left: unknown, right: unknown) =>
+  toComparableText(left).localeCompare(toComparableText(right), "da-DK", {
+    numeric: true,
+    sensitivity: "base",
+  });
+
 const customerFromRow = (row: RawCustomer): BookingCustomer => ({
   id: row.id,
   email: row.email,
@@ -543,7 +551,10 @@ const summarizeCustomer = (customer: BookingCustomer, bookings: DashboardBooking
   );
   const completedBookings = bookings.filter((item) => item.status === "completed");
   const lastBooking = [...bookings].sort((a, b) =>
-    `${b.appointmentDate}T${b.appointmentTime}`.localeCompare(`${a.appointmentDate}T${a.appointmentTime}`)
+    compareText(
+      `${b.appointmentDate}T${b.appointmentTime}`,
+      `${a.appointmentDate}T${a.appointmentTime}`
+    )
   )[0];
 
   return {
@@ -568,12 +579,12 @@ const getRoutePlan = (bookings: DashboardBooking[]): RoutePlanDay[] => {
   }
 
   return Array.from(groupedByDate.entries())
-    .sort(([left], [right]) => left.localeCompare(right))
+    .sort(([left], [right]) => compareText(left, right))
     .map(([date, items]) => {
       const groupedByArea = new Map<string, DashboardBooking[]>();
 
-      for (const booking of items.sort((a, b) => a.appointmentTime.localeCompare(b.appointmentTime))) {
-        const key = booking.areaName || booking.city || "Uden omrade";
+      for (const booking of items.sort((a, b) => compareText(a.appointmentTime, b.appointmentTime))) {
+        const key = toComparableText(booking.areaName || booking.city || "Uden omrade");
         const list = groupedByArea.get(key) || [];
         list.push(booking);
         groupedByArea.set(key, list);
@@ -1341,11 +1352,14 @@ export const getAdminDashboardData = async (): Promise<DashboardData> => {
         activityMap.get(row.id) || []
       )
     );
+    const bookingsByCustomerId = new Map<string, DashboardBooking[]>();
+    for (const booking of bookings) {
+      const list = bookingsByCustomerId.get(booking.customerId) || [];
+      list.push(booking);
+      bookingsByCustomerId.set(booking.customerId, list);
+    }
     const customerSummaries = customers.map((customer) =>
-      summarizeCustomer(
-        customer,
-        bookings.filter((booking) => booking.customerId === customer.id)
-      )
+      summarizeCustomer(customer, bookingsByCustomerId.get(customer.id) || [])
     );
     const today = new Date().toISOString().slice(0, 10);
     const upcomingBookings = bookings.filter(
@@ -1384,7 +1398,7 @@ export const getAdminDashboardData = async (): Promise<DashboardData> => {
       label: formatDateTimeLabel(date, "00:00").replace(/\s+kl\..*$/, ""),
       bookings:
         (calendarMap.get(date) || []).sort((left, right) =>
-          left.appointmentTime.localeCompare(right.appointmentTime)
+          compareText(left.appointmentTime, right.appointmentTime)
         ),
       blocks: blockMap.get(date) || [],
     }));

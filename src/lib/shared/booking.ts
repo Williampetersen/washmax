@@ -197,13 +197,13 @@ export const defaultEmailAutomation: EmailAutomationSettings = {
 };
 
 export const weekdayOptions = [
-  { value: 0, label: "Sondag" },
+  { value: 0, label: "Søndag" },
   { value: 1, label: "Mandag" },
   { value: 2, label: "Tirsdag" },
   { value: 3, label: "Onsdag" },
   { value: 4, label: "Torsdag" },
   { value: 5, label: "Fredag" },
-  { value: 6, label: "Lordag" },
+  { value: 6, label: "Lørdag" },
 ] as const;
 
 export const defaultBookingSettings: BookingSettings = {
@@ -423,9 +423,9 @@ export const getAutoBookingStatusLabel = (status: AutoBookingStatus) => {
 export const getAutoBookingStatusDescription = (status: AutoBookingStatus) => {
   switch (status) {
     case "approved":
-      return "Nye bookinger bliver straks godkendt, og kunden faar en godkendelsesmail med det samme.";
+      return "Nye bookinger bliver straks godkendt, og kunden får en godkendelsesmail med det samme.";
     default:
-      return "Nye bookinger starter som afventer, og kunden faar en modtaget-mail nu samt en ny mail, naar du godkender.";
+      return "Nye bookinger starter som afventer, og kunden får en modtaget-mail nu samt en ny mail, når du godkender.";
   }
 };
 

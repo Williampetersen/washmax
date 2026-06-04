@@ -50,7 +50,12 @@ const updateLabelOnlyAddOns = (formData: FormData, addOns: AddOn[], prefix: "qua
   }));
 
 const sortAreas = (areas: ServiceArea[]) =>
-  [...areas].sort((left, right) => left.label.localeCompare(right.label, "da-DK"));
+  [...areas].sort((left, right) =>
+    String(left.label || "").localeCompare(String(right.label || ""), "da-DK", {
+      numeric: true,
+      sensitivity: "base",
+    })
+  );
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
