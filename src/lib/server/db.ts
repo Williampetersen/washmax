@@ -63,13 +63,35 @@ export const ensureSchema = async () => {
       `;
 
       await sql`
+        ALTER TABLE customers
+          ADD COLUMN IF NOT EXISTS email TEXT,
+          ADD COLUMN IF NOT EXISTS first_name TEXT,
+          ADD COLUMN IF NOT EXISTS last_name TEXT,
+          ADD COLUMN IF NOT EXISTS phone TEXT,
+          ADD COLUMN IF NOT EXISTS address TEXT,
+          ADD COLUMN IF NOT EXISTS postal_code TEXT,
+          ADD COLUMN IF NOT EXISTS city TEXT,
+          ADD COLUMN IF NOT EXISTS notes TEXT,
+          ADD COLUMN IF NOT EXISTS customer_type TEXT NOT NULL DEFAULT 'private',
+          ADD COLUMN IF NOT EXISTS company TEXT,
+          ADD COLUMN IF NOT EXISTS company_id TEXT,
+          ADD COLUMN IF NOT EXISTS marketing_opt_in BOOLEAN NOT NULL DEFAULT false,
+          ADD COLUMN IF NOT EXISTS portal_token TEXT,
+          ADD COLUMN IF NOT EXISTS portal_token_expires_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS tags_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+      `;
+
+      await sql`
         CREATE INDEX IF NOT EXISTS customers_email_idx
         ON customers (LOWER(email));
       `;
 
       await sql`
-        ALTER TABLE customers
-        ADD COLUMN IF NOT EXISTS tags_json JSONB NOT NULL DEFAULT '[]'::jsonb;
+        CREATE UNIQUE INDEX IF NOT EXISTS customers_portal_token_idx
+        ON customers (portal_token)
+        WHERE portal_token IS NOT NULL;
       `;
 
       await sql`
@@ -107,35 +129,32 @@ export const ensureSchema = async () => {
 
       await sql`
         ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS travel_surcharge INTEGER NOT NULL DEFAULT 0;
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS area_name TEXT;
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER NOT NULL DEFAULT 120;
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid';
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS payment_method TEXT;
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS invoice_requested BOOLEAN NOT NULL DEFAULT false;
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS invoice_status TEXT NOT NULL DEFAULT 'not_requested';
-      `;
-      await sql`
-        ALTER TABLE bookings
-        ADD COLUMN IF NOT EXISTS invoice_number TEXT;
+          ADD COLUMN IF NOT EXISTS plate TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS registration_number TEXT,
+          ADD COLUMN IF NOT EXISTS vehicle_name TEXT,
+          ADD COLUMN IF NOT EXISTS vehicle_year INTEGER,
+          ADD COLUMN IF NOT EXISTS vehicle_type TEXT,
+          ADD COLUMN IF NOT EXISTS category TEXT,
+          ADD COLUMN IF NOT EXISTS package_id TEXT,
+          ADD COLUMN IF NOT EXISTS package_label TEXT,
+          ADD COLUMN IF NOT EXISTS addons_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS subtotal INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS total INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS travel_surcharge INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS area_name TEXT,
+          ADD COLUMN IF NOT EXISTS estimated_duration_minutes INTEGER NOT NULL DEFAULT 120,
+          ADD COLUMN IF NOT EXISTS appointment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+          ADD COLUMN IF NOT EXISTS appointment_time TEXT NOT NULL DEFAULT '08:00',
+          ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
+          ADD COLUMN IF NOT EXISTS payment_status TEXT NOT NULL DEFAULT 'unpaid',
+          ADD COLUMN IF NOT EXISTS payment_method TEXT,
+          ADD COLUMN IF NOT EXISTS invoice_requested BOOLEAN NOT NULL DEFAULT false,
+          ADD COLUMN IF NOT EXISTS invoice_status TEXT NOT NULL DEFAULT 'not_requested',
+          ADD COLUMN IF NOT EXISTS invoice_number TEXT,
+          ADD COLUMN IF NOT EXISTS admin_notes TEXT,
+          ADD COLUMN IF NOT EXISTS source TEXT NOT NULL DEFAULT 'website',
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
       `;
 
       await sql`
@@ -170,27 +189,21 @@ export const ensureSchema = async () => {
 
       await sql`
         ALTER TABLE booking_settings
-        ADD COLUMN IF NOT EXISTS default_booking_status TEXT NOT NULL DEFAULT 'pending';
-      `;
-      await sql`
-        ALTER TABLE booking_settings
-        ADD COLUMN IF NOT EXISTS travel_buffer_minutes INTEGER NOT NULL DEFAULT 30;
-      `;
-      await sql`
-        ALTER TABLE booking_settings
-        ADD COLUMN IF NOT EXISTS working_days_json JSONB NOT NULL DEFAULT '[0,1,2,3,4,5,6]'::jsonb;
-      `;
-      await sql`
-        ALTER TABLE booking_settings
-        ADD COLUMN IF NOT EXISTS service_catalog_json JSONB NOT NULL DEFAULT '{}'::jsonb;
-      `;
-      await sql`
-        ALTER TABLE booking_settings
-        ADD COLUMN IF NOT EXISTS service_areas_json JSONB NOT NULL DEFAULT '[]'::jsonb;
-      `;
-      await sql`
-        ALTER TABLE booking_settings
-        ADD COLUMN IF NOT EXISTS email_automation_json JSONB NOT NULL DEFAULT '{}'::jsonb;
+          ADD COLUMN IF NOT EXISTS settings_key TEXT,
+          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'WashMax',
+          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          ADD COLUMN IF NOT EXISTS admin_notify_email TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS default_booking_status TEXT NOT NULL DEFAULT 'pending',
+          ADD COLUMN IF NOT EXISTS start_hour INTEGER NOT NULL DEFAULT 8,
+          ADD COLUMN IF NOT EXISTS end_hour INTEGER NOT NULL DEFAULT 18,
+          ADD COLUMN IF NOT EXISTS slot_minutes INTEGER NOT NULL DEFAULT 150,
+          ADD COLUMN IF NOT EXISTS travel_buffer_minutes INTEGER NOT NULL DEFAULT 30,
+          ADD COLUMN IF NOT EXISTS working_days_json JSONB NOT NULL DEFAULT '[0,1,2,3,4,5,6]'::jsonb,
+          ADD COLUMN IF NOT EXISTS service_catalog_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+          ADD COLUMN IF NOT EXISTS service_areas_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+          ADD COLUMN IF NOT EXISTS email_automation_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
       `;
 
       await sql`
@@ -228,6 +241,20 @@ export const ensureSchema = async () => {
       `;
 
       await sql`
+        ALTER TABLE email_logs
+          ADD COLUMN IF NOT EXISTS booking_id TEXT,
+          ADD COLUMN IF NOT EXISTS customer_id TEXT,
+          ADD COLUMN IF NOT EXISTS recipient TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS recipient_role TEXT NOT NULL DEFAULT 'customer',
+          ADD COLUMN IF NOT EXISTS template_key TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS subject TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'pending',
+          ADD COLUMN IF NOT EXISTS error_message TEXT,
+          ADD COLUMN IF NOT EXISTS sent_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+      `;
+
+      await sql`
         CREATE INDEX IF NOT EXISTS email_logs_booking_idx
         ON email_logs (booking_id, created_at DESC);
       `;
@@ -242,6 +269,15 @@ export const ensureSchema = async () => {
           details_json JSONB NOT NULL DEFAULT '{}'::jsonb,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
+      `;
+
+      await sql`
+        ALTER TABLE booking_activity
+          ADD COLUMN IF NOT EXISTS actor TEXT NOT NULL DEFAULT 'system',
+          ADD COLUMN IF NOT EXISTS activity_type TEXT NOT NULL DEFAULT 'note',
+          ADD COLUMN IF NOT EXISTS summary TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS details_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
       `;
 
       await sql`
@@ -285,5 +321,10 @@ export const ensureSchema = async () => {
     })();
   }
 
-  await schemaPromise;
+  try {
+    await schemaPromise;
+  } catch (error) {
+    schemaPromise = null;
+    throw error;
+  }
 };

@@ -238,6 +238,7 @@ export type RoutePlanDay = {
 };
 
 export type DashboardData = {
+  databaseError?: string;
   settings: BookingSettings;
   stats: {
     totalBookings: number;
@@ -403,6 +404,9 @@ const normalizeAutoBookingStatus = (value?: string | null): AutoBookingStatus =>
   autoBookingStatuses.includes(value as AutoBookingStatus)
     ? (value as AutoBookingStatus)
     : defaultBookingSettings.defaultBookingStatus;
+
+const getDatabaseErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : "Databasen kunne ikke laeses.";
 
 const customerFromRow = (row: RawCustomer): BookingCustomer => ({
   id: row.id,
@@ -762,15 +766,20 @@ export const getAvailabilityBlocks = async (): Promise<AvailabilityBlock[]> => {
     return [];
   }
 
-  await ensureSchema();
-  const sql = getSql();
-  const rows = await sql<RawAvailabilityBlock[]>`
-    SELECT *
-    FROM availability_blocks
-    ORDER BY start_date ASC, start_time ASC;
-  `;
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const rows = await sql<RawAvailabilityBlock[]>`
+      SELECT *
+      FROM availability_blocks
+      ORDER BY start_date ASC, start_time ASC;
+    `;
 
-  return rows.map(availabilityBlockFromRow);
+    return rows.map(availabilityBlockFromRow);
+  } catch (error) {
+    console.error("Could not load availability blocks", error);
+    return [];
+  }
 };
 
 export const getBookingSettings = async (): Promise<BookingSettings> => {
@@ -782,28 +791,37 @@ export const getBookingSettings = async (): Promise<BookingSettings> => {
     };
   }
 
-  await ensureSchema();
-  const sql = getSql();
-  const [row] = await sql<RawSettings[]>`
-    SELECT
-      company_name,
-      support_email,
-      admin_notify_email,
-      default_booking_status,
-      start_hour,
-      end_hour,
-      slot_minutes,
-      travel_buffer_minutes,
-      working_days_json,
-      service_catalog_json,
-      service_areas_json,
-      email_automation_json
-    FROM booking_settings
-    WHERE settings_key = 'default'
-    LIMIT 1;
-  `;
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const [row] = await sql<RawSettings[]>`
+      SELECT
+        company_name,
+        support_email,
+        admin_notify_email,
+        default_booking_status,
+        start_hour,
+        end_hour,
+        slot_minutes,
+        travel_buffer_minutes,
+        working_days_json,
+        service_catalog_json,
+        service_areas_json,
+        email_automation_json
+      FROM booking_settings
+      WHERE settings_key = 'default'
+      LIMIT 1;
+    `;
 
-  return settingsFromRow(row);
+    return settingsFromRow(row);
+  } catch (error) {
+    console.error("Could not load booking settings", error);
+    return {
+      ...defaultBookingSettings,
+      adminNotifyEmail: process.env.BOOKING_ADMIN_EMAIL || "",
+      supportEmail: process.env.SMTP_USER || defaultBookingSettings.supportEmail,
+    };
+  }
 };
 
 export const saveBookingSettings = async (input: BookingSettings) => {
@@ -997,43 +1015,48 @@ export const getPortalData = async (portalToken: string) => {
     return null;
   }
 
-  await ensureSchema();
-  const sql = getSql();
-  const [customerRow] = await sql<RawCustomer[]>`
-    SELECT *
-    FROM customers
-    WHERE portal_token = ${portalToken}
-      AND (portal_token_expires_at IS NULL OR portal_token_expires_at > NOW())
-    LIMIT 1;
-  `;
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const [customerRow] = await sql<RawCustomer[]>`
+      SELECT *
+      FROM customers
+      WHERE portal_token = ${portalToken}
+        AND (portal_token_expires_at IS NULL OR portal_token_expires_at > NOW())
+      LIMIT 1;
+    `;
 
-  if (!customerRow) {
+    if (!customerRow) {
+      return null;
+    }
+
+    const bookingRows = await sql<RawBooking[]>`
+      SELECT *
+      FROM bookings
+      WHERE customer_id = ${customerRow.id}
+      ORDER BY appointment_date DESC, appointment_time DESC;
+    `;
+
+    const customer = customerFromRow(customerRow);
+    const bookings = bookingRows.map((row) => {
+      const item = bookingFromRow(row, customer);
+      return {
+        ...item,
+        emailLogs: [],
+        activity: [],
+      };
+    });
+
+    return {
+      customer,
+      bookings,
+      settings: await getBookingSettings(),
+      availabilityBlocks: await getAvailabilityBlocks(),
+    };
+  } catch (error) {
+    console.error("Could not load customer portal data", error);
     return null;
   }
-
-  const bookingRows = await sql<RawBooking[]>`
-    SELECT *
-    FROM bookings
-    WHERE customer_id = ${customerRow.id}
-    ORDER BY appointment_date DESC, appointment_time DESC;
-  `;
-
-  const customer = customerFromRow(customerRow);
-  const bookings = bookingRows.map((row) => {
-    const item = bookingFromRow(row, customer);
-    return {
-      ...item,
-      emailLogs: [],
-      activity: [],
-    };
-  });
-
-  return {
-    customer,
-    bookings,
-    settings: await getBookingSettings(),
-    availabilityBlocks: await getAvailabilityBlocks(),
-  };
 };
 
 export const updatePortalCustomer = async (
@@ -1232,6 +1255,7 @@ export const deleteBooking = async (bookingId: string) => {
 export const getAdminDashboardData = async (): Promise<DashboardData> => {
   if (!isDatabaseConfigured()) {
     return {
+      databaseError: undefined,
       settings: await getBookingSettings(),
       stats: {
         totalBookings: 0,
@@ -1255,139 +1279,167 @@ export const getAdminDashboardData = async (): Promise<DashboardData> => {
     };
   }
 
-  await ensureSchema();
-  const sql = getSql();
-  const settings = await getBookingSettings();
-  const [bookingRows, customerRows, blockRows, emailRows, activityRows] = await Promise.all([
-    sql<RawBooking[]>`
-      SELECT *
-      FROM bookings
-      ORDER BY appointment_date ASC, appointment_time ASC, created_at DESC;
-    `,
-    sql<RawCustomer[]>`
-      SELECT *
-      FROM customers
-      ORDER BY created_at DESC;
-    `,
-    sql<RawAvailabilityBlock[]>`
-      SELECT *
-      FROM availability_blocks
-      ORDER BY start_date ASC, start_time ASC;
-    `,
-    sql<RawEmailLog[]>`
-      SELECT *
-      FROM email_logs
-      ORDER BY created_at DESC
-      LIMIT 250;
-    `,
-    sql<RawActivity[]>`
-      SELECT *
-      FROM booking_activity
-      ORDER BY created_at DESC
-      LIMIT 500;
-    `,
-  ]);
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const settings = await getBookingSettings();
+    const [bookingRows, customerRows, blockRows, emailRows, activityRows] = await Promise.all([
+      sql<RawBooking[]>`
+        SELECT *
+        FROM bookings
+        ORDER BY appointment_date ASC, appointment_time ASC, created_at DESC;
+      `,
+      sql<RawCustomer[]>`
+        SELECT *
+        FROM customers
+        ORDER BY created_at DESC;
+      `,
+      sql<RawAvailabilityBlock[]>`
+        SELECT *
+        FROM availability_blocks
+        ORDER BY start_date ASC, start_time ASC;
+      `,
+      sql<RawEmailLog[]>`
+        SELECT *
+        FROM email_logs
+        ORDER BY created_at DESC
+        LIMIT 250;
+      `,
+      sql<RawActivity[]>`
+        SELECT *
+        FROM booking_activity
+        ORDER BY created_at DESC
+        LIMIT 500;
+      `,
+    ]);
 
-  const customers = customerRows.map(customerFromRow);
-  const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
-  const availabilityBlocks = blockRows.map(availabilityBlockFromRow);
-  const emailLogs = emailRows.map(emailLogFromRow);
-  const activity = activityRows.map(activityFromRow);
-  const emailLogMap = new Map<string, BookingEmailLog[]>();
-  const activityMap = new Map<string, BookingActivityItem[]>();
+    const customers = customerRows.map(customerFromRow);
+    const customerMap = new Map(customers.map((customer) => [customer.id, customer]));
+    const availabilityBlocks = blockRows.map(availabilityBlockFromRow);
+    const emailLogs = emailRows.map(emailLogFromRow);
+    const activity = activityRows.map(activityFromRow);
+    const emailLogMap = new Map<string, BookingEmailLog[]>();
+    const activityMap = new Map<string, BookingActivityItem[]>();
 
-  for (const item of emailLogs) {
-    const list = emailLogMap.get(item.bookingId) || [];
-    list.push(item);
-    emailLogMap.set(item.bookingId, list);
-  }
-
-  for (const item of activity) {
-    const list = activityMap.get(item.bookingId) || [];
-    list.push(item);
-    activityMap.set(item.bookingId, list);
-  }
-
-  const bookings = bookingRows.map((row) =>
-    bookingFromRow(
-      row,
-      customerMap.get(row.customer_id),
-      emailLogMap.get(row.id) || [],
-      activityMap.get(row.id) || []
-    )
-  );
-  const customerSummaries = customers.map((customer) =>
-    summarizeCustomer(
-      customer,
-      bookings.filter((booking) => booking.customerId === customer.id)
-    )
-  );
-  const today = new Date().toISOString().slice(0, 10);
-  const upcomingBookings = bookings.filter(
-    (item) =>
-      item.status !== "cancelled" &&
-      `${item.appointmentDate}T${item.appointmentTime}` >= `${today}T00:00`
-  );
-  const routePlan = getRoutePlan(
-    upcomingBookings.filter((item) => item.status === "pending" || item.status === "approved")
-  );
-
-  const calendarMap = new Map<string, DashboardBooking[]>();
-  for (const booking of bookings) {
-    const list = calendarMap.get(booking.appointmentDate) || [];
-    list.push(booking);
-    calendarMap.set(booking.appointmentDate, list);
-  }
-
-  const blockMap = new Map<string, AvailabilityBlock[]>();
-  for (const block of availabilityBlocks) {
-    let cursor = new Date(`${block.startDate}T00:00:00`);
-    const end = new Date(`${block.endDate}T00:00:00`);
-
-    while (cursor.getTime() <= end.getTime()) {
-      const key = cursor.toISOString().slice(0, 10);
-      const list = blockMap.get(key) || [];
-      list.push(block);
-      blockMap.set(key, list);
-      cursor.setDate(cursor.getDate() + 1);
+    for (const item of emailLogs) {
+      const list = emailLogMap.get(item.bookingId) || [];
+      list.push(item);
+      emailLogMap.set(item.bookingId, list);
     }
+
+    for (const item of activity) {
+      const list = activityMap.get(item.bookingId) || [];
+      list.push(item);
+      activityMap.set(item.bookingId, list);
+    }
+
+    const bookings = bookingRows.map((row) =>
+      bookingFromRow(
+        row,
+        customerMap.get(row.customer_id),
+        emailLogMap.get(row.id) || [],
+        activityMap.get(row.id) || []
+      )
+    );
+    const customerSummaries = customers.map((customer) =>
+      summarizeCustomer(
+        customer,
+        bookings.filter((booking) => booking.customerId === customer.id)
+      )
+    );
+    const today = new Date().toISOString().slice(0, 10);
+    const upcomingBookings = bookings.filter(
+      (item) =>
+        item.status !== "cancelled" &&
+        `${item.appointmentDate}T${item.appointmentTime}` >= `${today}T00:00`
+    );
+    const routePlan = getRoutePlan(
+      upcomingBookings.filter((item) => item.status === "pending" || item.status === "approved")
+    );
+
+    const calendarMap = new Map<string, DashboardBooking[]>();
+    for (const booking of bookings) {
+      const list = calendarMap.get(booking.appointmentDate) || [];
+      list.push(booking);
+      calendarMap.set(booking.appointmentDate, list);
+    }
+
+    const blockMap = new Map<string, AvailabilityBlock[]>();
+    for (const block of availabilityBlocks) {
+      let cursor = new Date(`${block.startDate}T00:00:00`);
+      const end = new Date(`${block.endDate}T00:00:00`);
+
+      while (cursor.getTime() <= end.getTime()) {
+        const key = cursor.toISOString().slice(0, 10);
+        const list = blockMap.get(key) || [];
+        list.push(block);
+        blockMap.set(key, list);
+        cursor.setDate(cursor.getDate() + 1);
+      }
+    }
+
+    const calendarKeys = Array.from(new Set([...calendarMap.keys(), ...blockMap.keys()])).sort();
+    const calendar = calendarKeys.map((date) => ({
+      date,
+      label: formatDateTimeLabel(date, "00:00").replace(/\s+kl\..*$/, ""),
+      bookings:
+        (calendarMap.get(date) || []).sort((left, right) =>
+          left.appointmentTime.localeCompare(right.appointmentTime)
+        ),
+      blocks: blockMap.get(date) || [],
+    }));
+
+    return {
+      databaseError: undefined,
+      settings,
+      stats: {
+        totalBookings: bookings.length,
+        pendingBookings: bookings.filter((item) => item.status === "pending").length,
+        approvedBookings: bookings.filter((item) => item.status === "approved").length,
+        completedBookings: bookings.filter((item) => item.status === "completed").length,
+        cancelledBookings: bookings.filter((item) => item.status === "cancelled").length,
+        totalRevenue: bookings
+          .filter((item) => item.status !== "cancelled")
+          .reduce((sum, item) => sum + item.total, 0),
+        upcomingBookings: upcomingBookings.length,
+        totalCustomers: customerSummaries.length,
+        todayBookings: bookings.filter((item) => item.appointmentDate === today).length,
+        unpaidBookings: bookings.filter((item) => item.paymentStatus !== "paid").length,
+        outstandingRevenue: bookings
+          .filter((item) => item.status !== "cancelled" && item.paymentStatus !== "paid")
+          .reduce((sum, item) => sum + item.total, 0),
+      },
+      bookings,
+      customers: customerSummaries,
+      availabilityBlocks,
+      emailLogs,
+      routePlan,
+      calendar,
+    };
+  } catch (error) {
+    console.error("Could not load admin dashboard data", error);
+    return {
+      databaseError: getDatabaseErrorMessage(error),
+      settings: await getBookingSettings(),
+      stats: {
+        totalBookings: 0,
+        pendingBookings: 0,
+        approvedBookings: 0,
+        completedBookings: 0,
+        cancelledBookings: 0,
+        totalRevenue: 0,
+        upcomingBookings: 0,
+        totalCustomers: 0,
+        todayBookings: 0,
+        unpaidBookings: 0,
+        outstandingRevenue: 0,
+      },
+      bookings: [],
+      customers: [],
+      availabilityBlocks: [],
+      emailLogs: [],
+      routePlan: [],
+      calendar: [],
+    };
   }
-
-  const calendarKeys = Array.from(new Set([...calendarMap.keys(), ...blockMap.keys()])).sort();
-  const calendar = calendarKeys.map((date) => ({
-    date,
-    label: formatDateTimeLabel(date, "00:00").replace(/\s+kl\..*$/, ""),
-    bookings:
-      (calendarMap.get(date) || []).sort((left, right) =>
-        left.appointmentTime.localeCompare(right.appointmentTime)
-      ),
-    blocks: blockMap.get(date) || [],
-  }));
-
-  return {
-    settings,
-    stats: {
-      totalBookings: bookings.length,
-      pendingBookings: bookings.filter((item) => item.status === "pending").length,
-      approvedBookings: bookings.filter((item) => item.status === "approved").length,
-      completedBookings: bookings.filter((item) => item.status === "completed").length,
-      cancelledBookings: bookings.filter((item) => item.status === "cancelled").length,
-      totalRevenue: bookings
-        .filter((item) => item.status !== "cancelled")
-        .reduce((sum, item) => sum + item.total, 0),
-      upcomingBookings: upcomingBookings.length,
-      totalCustomers: customerSummaries.length,
-      todayBookings: bookings.filter((item) => item.appointmentDate === today).length,
-      unpaidBookings: bookings.filter((item) => item.paymentStatus !== "paid").length,
-      outstandingRevenue: bookings
-        .filter((item) => item.status !== "cancelled" && item.paymentStatus !== "paid")
-        .reduce((sum, item) => sum + item.total, 0),
-    },
-    bookings,
-    customers: customerSummaries,
-    availabilityBlocks,
-    emailLogs,
-    routePlan,
-    calendar,
-  };
 };

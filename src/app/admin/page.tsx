@@ -295,6 +295,12 @@ export default async function AdminPage({
               </div>
             ) : null}
 
+            {dashboard.databaseError ? (
+              <div className="rounded-[1.5rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+                Databasen kunne ikke indlaeses: {dashboard.databaseError}
+              </div>
+            ) : null}
+
             {statusMessage || errorMessage ? (
               <div
                 className={cn(
