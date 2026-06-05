@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import nodemailer from "nodemailer";
+import { siteConfig } from "@/lib/site";
 import {
   formatDateTimeLabel,
   formatPrice,
@@ -9,6 +10,7 @@ import {
 import { recordEmailLog } from "@/lib/server/bookings";
 import {
   EnvValidationError,
+  getAppUrl,
   getMailFromName,
   getNumberEnv,
   getOptionalEnv,
@@ -48,6 +50,7 @@ type MailSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  vatRate?: number;
 };
 
 type CustomerMailInput = {
@@ -218,6 +221,77 @@ const getAddonText = (addons: MailBooking["addons"]) =>
     ? addons.map((item) => `${item.label} (${formatPrice(item.price)})`).join(", ")
     : "Ingen tilvalg";
 
+const formatDetailedPrice = (amount: number) =>
+  `${amount.toLocaleString("da-DK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} kr`;
+
+const getVatBreakdown = (totalInclVat: number, vatRate = 25) => {
+  const safeVatRate = Number.isFinite(vatRate) ? Math.max(0, vatRate) : 25;
+  const divisor = 1 + safeVatRate / 100;
+  const subtotal = Math.round((totalInclVat / divisor) * 100) / 100;
+  const vatAmount = Math.round((totalInclVat - subtotal) * 100) / 100;
+
+  return {
+    subtotal,
+    vatAmount,
+    total: Math.round(totalInclVat * 100) / 100,
+    vatRate: safeVatRate,
+  };
+};
+
+const getStatusBadgeLabel = (status: BookingStatus) => {
+  switch (status) {
+    case "approved":
+      return "GODKENDT";
+    case "completed":
+      return "AFSLUTTET";
+    case "cancelled":
+      return "ANNULLERET";
+    default:
+      return "AFVENTER BEKRAEFTELSE";
+  }
+};
+
+const getStatusBadgeStyle = (status: BookingStatus) => {
+  switch (status) {
+    case "approved":
+      return "background:#edf8f1;color:#256c49;border:1px solid #cfe7d9;";
+    case "completed":
+      return "background:#eef6ff;color:#275d9a;border:1px solid #d8e6f7;";
+    case "cancelled":
+      return "background:#fff1f2;color:#a53b47;border:1px solid #f4cdd3;";
+    default:
+      return "background:#f6f8fb;color:#48617f;border:1px solid #dbe5ef;";
+  }
+};
+
+const getBookingHeaderDate = (booking: MailBooking) => {
+  try {
+    return new Intl.DateTimeFormat("da-DK", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date(`${booking.appointmentDate}T${booking.appointmentTime}:00`));
+  } catch {
+    return booking.appointmentDate;
+  }
+};
+
+const getBookingLineItems = (booking: MailBooking) => {
+  const serviceLabel = [booking.packageLabel, booking.category].filter(Boolean).join(" - ") || "Service";
+  return [
+    { label: serviceLabel, detail: "Service", price: booking.total },
+    ...booking.addons.map((addon) => ({
+      label: addon.label,
+      detail: "Tilvalg",
+      price: addon.price,
+    })),
+  ];
+};
+
 const renderRows = (rows: Array<[string, string]>) =>
   `<table style="border-collapse:collapse;width:100%;margin-top:18px;">${rows
     .map(
@@ -237,18 +311,6 @@ const renderPortalButton = (portalUrl?: string, label = "Aabn kundeportal") =>
       )}</a></p>`
     : "";
 
-const renderAdminNote = (adminNotes?: string) => {
-  const note = String(adminNotes || "").trim();
-  if (!note) return "";
-
-  return `
-    <div style="margin-top:18px;padding:14px 16px;border-radius:14px;background:#f6fbff;border:1px solid #cde6f6;">
-      <p style="margin:0 0 6px;font-weight:700;color:#16303a;">Besked fra Clean Wash</p>
-      <p style="margin:0;color:#36505d;">${escapeHtml(note)}</p>
-    </div>
-  `;
-};
-
 const renderCustomerEmailHtml = (input: {
   eyebrow: string;
   title: string;
@@ -263,38 +325,181 @@ const renderCustomerEmailHtml = (input: {
 }) => {
   const appointmentLabel = getAppointmentLabel(input.booking);
   const addressLine = getAddressLine(input.customer);
+  const customerName = getCustomerName(input.customer) || input.customer.company || input.customer.email;
+  const logoUrl = `${getAppUrl(siteConfig.url) || siteConfig.url}/logo.png`;
+  const companyName = input.settings.companyName || siteConfig.name;
+  const companyEmail = input.settings.supportEmail || siteConfig.email;
+  const companyWebsite = getAppUrl(siteConfig.url) || siteConfig.url;
+  const companyPhone = siteConfig.phoneDisplay;
+  const pricing = getVatBreakdown(input.booking.total, input.settings.vatRate ?? 25);
+  const lineItems = getBookingLineItems(input.booking);
+  const badgeStyle = getStatusBadgeStyle(input.booking.status);
+  const headerDate = getBookingHeaderDate(input.booking);
+  const note = String(input.booking.adminNotes || "").trim();
+  const contactLine = [
+    companyEmail,
+    companyPhone,
+    companyWebsite.replace(/^https?:\/\//, ""),
+  ]
+    .filter(Boolean)
+    .map((value) => escapeHtml(value))
+    .join(" | ");
 
   return `
-    <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
-      <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">${escapeHtml(
-        input.eyebrow
-      )}</p>
-      <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">${escapeHtml(input.title)}</h2>
-      <p style="margin:0;color:#36505d;">${escapeHtml(input.intro)}</p>
-      <div style="margin-top:16px;padding:14px 16px;border-radius:14px;background:#eef8ff;border:1px solid #cde6f6;color:#1a506d;">
-        ${escapeHtml(input.highlight)}
-      </div>
-      ${renderPortalButton(input.portalUrl, input.portalLabel)}
-      ${renderRows([
-        ["Status", getStatusLabel(input.booking.status)],
-        ["Tid", appointmentLabel],
-        ["Bil", input.booking.vehicleName],
-        ["Regnr.", input.booking.registrationNumber],
-        ["Pakke", `${input.booking.packageLabel} - ${input.booking.category}`],
-        ["Adresse", addressLine],
-        ["Total", formatPrice(input.booking.total)],
-      ])}
-      <div style="margin-top:16px;">
-        <strong>Tilvalg</strong>
-        ${getAddonMarkup(input.booking.addons)}
-      </div>
-      ${renderAdminNote(input.booking.adminNotes)}
-      <p style="margin-top:18px;color:#5b6b75;font-size:13px;">
-        Du modtager denne mail, fordi du har en booking hos ${escapeHtml(input.settings.companyName)}.
-      </p>
-      <p style="margin-top:20px;color:#36505d;">${escapeHtml(input.footer)}</p>
-      <p style="margin-top:10px;color:#36505d;">Support: ${escapeHtml(input.settings.supportEmail)}</p>
-    </div>
+    <!DOCTYPE html>
+    <html lang="da">
+      <body style="margin:0;padding:0;background:#f6f7f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;color:#0f172a;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f6f7f9;padding:24px 12px;">
+          <tr>
+            <td align="center">
+              <table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="background:#ffffff;max-width:600px;width:100%;border:1px solid #d9e3ee;border-radius:6px;overflow:hidden;">
+                <tr>
+                  <td style="padding:28px 36px 16px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="vertical-align:top;">
+                          <img src="${escapeHtml(logoUrl)}" alt="${escapeHtml(companyName)}" style="display:block;max-width:160px;width:auto;height:38px;object-fit:contain;" />
+                        </td>
+                        <td align="right" style="font-size:12px;color:#64748b;line-height:1.5;">
+                          Booking #${escapeHtml(input.booking.id)}<br />
+                          ${escapeHtml(headerDate)}
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 36px 22px;">
+                    <div style="font-size:13px;color:#0f172a;font-weight:600;line-height:1.5;">${escapeHtml(customerName)}</div>
+                    <div style="font-size:13px;color:#475569;line-height:1.5;">${escapeHtml(addressLine)}</div>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 36px 8px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+                      <tr>
+                        <td style="font-size:20px;font-weight:700;color:#0f172a;letter-spacing:-0.3px;">${escapeHtml(input.title)}</td>
+                        <td align="right">
+                          <span style="display:inline-block;padding:5px 11px;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;${badgeStyle}">
+                            ${escapeHtml(getStatusBadgeLabel(input.booking.status))}
+                          </span>
+                        </td>
+                      </tr>
+                    </table>
+                    <hr style="border:none;border-top:1px solid #e2e8f0;margin:12px 0 0;" />
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 36px 8px;">
+                    <p style="margin:0 0 10px;font-size:13px;color:#475569;line-height:1.6;">${escapeHtml(input.intro)}</p>
+                    <p style="margin:0;font-size:13px;color:#475569;line-height:1.6;">${escapeHtml(input.highlight)}</p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:18px 36px 8px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size:13px;color:#0f172a;">
+                      <tr>
+                        <td style="padding:4px 0;color:#64748b;width:120px;">Tidspunkt</td>
+                        <td style="padding:4px 0;">${escapeHtml(appointmentLabel)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:4px 0;color:#64748b;">Adresse</td>
+                        <td style="padding:4px 0;">${escapeHtml(addressLine)}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:4px 0;color:#64748b;">Bil</td>
+                        <td style="padding:4px 0;">${escapeHtml(input.booking.vehicleName)}${input.booking.registrationNumber ? ` (${escapeHtml(input.booking.registrationNumber)})` : ""}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:24px 36px 0;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0;">
+                      <tr>
+                        <td style="padding:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Beskrivelse</td>
+                        <td align="right" style="padding:0 0 8px;font-weight:700;text-transform:uppercase;letter-spacing:0.4px;">Pris</td>
+                      </tr>
+                    </table>
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size:13px;color:#0f172a;">
+                      ${lineItems
+                        .map(
+                          (item, index) => `
+                            <tr>
+                              <td colspan="2" style="padding:${index === 0 ? "14px" : "10px"} 0 4px;font-weight:${index === 0 ? "700" : "600"};color:#0f172a;">
+                                ${escapeHtml(item.label)}
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:3px 0 3px 12px;color:#475569;">${escapeHtml(item.detail)}</td>
+                              <td align="right" style="padding:3px 0;">${escapeHtml(formatDetailedPrice(item.price))}</td>
+                            </tr>
+                          `
+                        )
+                        .join("")}
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:0 36px 24px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="font-size:13px;">
+                      <tr>
+                        <td style="padding:6px 0;color:#64748b;" align="right">Subtotal</td>
+                        <td style="padding:6px 0;color:#0f172a;width:120px;" align="right">${escapeHtml(formatDetailedPrice(pricing.subtotal))}</td>
+                      </tr>
+                      <tr>
+                        <td style="padding:6px 0;color:#64748b;" align="right">Moms (${pricing.vatRate}%)</td>
+                        <td style="padding:6px 0;color:#0f172a;" align="right">${escapeHtml(formatDetailedPrice(pricing.vatAmount))}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2" style="padding:0;"><hr style="border:none;border-top:1px solid #e2e8f0;margin:4px 0;" /></td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;font-weight:700;color:#0f172a;font-size:15px;" align="right">Total DKK</td>
+                        <td style="padding:8px 0;font-weight:700;color:#0f172a;font-size:15px;" align="right">${escapeHtml(formatDetailedPrice(pricing.total))}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                ${note ? `
+                <tr>
+                  <td style="padding:0 36px 20px;">
+                    <div style="padding:14px 16px;border-radius:14px;background:#f6fbff;border:1px solid #cde6f6;">
+                      <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#16303a;text-transform:uppercase;letter-spacing:0.04em;">Besked fra Clean Wash</p>
+                      <p style="margin:0;font-size:13px;color:#36505d;line-height:1.6;">${escapeHtml(note)}</p>
+                    </div>
+                  </td>
+                </tr>` : ""}
+                <tr>
+                  <td style="padding:8px 36px 12px;">
+                    <p style="margin:0;font-size:12px;color:#64748b;line-height:1.7;">
+                      ${escapeHtml(input.footer)}
+                    </p>
+                  </td>
+                </tr>
+                ${input.portalUrl ? `
+                <tr>
+                  <td align="center" style="padding:0 36px 30px;">
+                    <a href="${escapeHtml(input.portalUrl)}" style="display:inline-block;padding:11px 24px;background:#ffffff;border:1px solid #14496b;border-radius:6px;color:#14496b;font-size:13px;font-weight:700;text-decoration:none;">
+                      ${escapeHtml(input.portalLabel || "Se min booking")}
+                    </a>
+                  </td>
+                </tr>` : ""}
+                <tr>
+                  <td style="padding:20px 36px 28px;border-top:1px solid #e2e8f0;">
+                    <p style="margin:0 0 4px;font-size:12px;color:#475569;line-height:1.6;">
+                      Med venlig hilsen,<br />
+                      <strong style="color:#0f172a;">${escapeHtml(companyName)}</strong>
+                    </p>
+                    <p style="margin:8px 0 0;font-size:11px;color:#94a3b8;line-height:1.7;">${contactLine}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
   `;
 };
 
@@ -310,20 +515,30 @@ const renderCustomerEmailText = (input: {
 }) => {
   const appointmentLabel = getAppointmentLabel(input.booking);
   const addressLine = getAddressLine(input.customer);
+  const customerName = getCustomerName(input.customer) || input.customer.company || input.customer.email;
+  const pricing = getVatBreakdown(input.booking.total, input.settings.vatRate ?? 25);
+  const lineItems = getBookingLineItems(input.booking);
   const lines = [
     input.title,
+    "",
+    `${customerName}`,
+    `${addressLine}`,
     "",
     input.intro,
     input.highlight,
     "",
-    `Status: ${getStatusLabel(input.booking.status)}`,
+    `Status: ${getStatusBadgeLabel(input.booking.status)}`,
     `Tid: ${appointmentLabel}`,
+    `Adresse: ${addressLine}`,
     `Bil: ${input.booking.vehicleName}`,
     `Regnr.: ${input.booking.registrationNumber}`,
-    `Pakke: ${input.booking.packageLabel} - ${input.booking.category}`,
-    `Adresse: ${addressLine}`,
-    `Total: ${formatPrice(input.booking.total)}`,
-    `Tilvalg: ${getAddonText(input.booking.addons)}`,
+    "",
+    "Beskrivelse:",
+    ...lineItems.map((item) => `- ${item.label} (${item.detail}): ${formatDetailedPrice(item.price)}`),
+    "",
+    `Subtotal: ${formatDetailedPrice(pricing.subtotal)}`,
+    `Moms (${pricing.vatRate}%): ${formatDetailedPrice(pricing.vatAmount)}`,
+    `Total DKK: ${formatDetailedPrice(pricing.total)}`,
   ];
 
   if (input.booking.adminNotes?.trim()) {
@@ -334,7 +549,13 @@ const renderCustomerEmailText = (input: {
     lines.push("", `Kundeportal: ${input.portalUrl}`);
   }
 
-  lines.push("", input.footer, `Support: ${input.settings.supportEmail}`);
+  lines.push(
+    "",
+    input.footer,
+    `Support: ${input.settings.supportEmail}`,
+    `Telefon: ${siteConfig.phoneDisplay}`,
+    `Website: ${(getAppUrl(siteConfig.url) || siteConfig.url).replace(/^https?:\/\//, "")}`
+  );
 
   return lines.join("\n");
 };
