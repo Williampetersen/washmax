@@ -327,8 +327,8 @@ export default async function AdminPage({
 
             {!hasDatabase ? (
               <div className="rounded-[1.6rem] border border-[#ffe2af] bg-[#fff8ea] px-5 py-4 text-sm text-[#8d5d08] shadow-[0_12px_32px_rgba(141,93,8,0.08)]">
-                DATABASE_URL mangler. Panelet kan vises, men bookinger og ændringer bliver
-                ikke gemt, før databasen er sat op.
+                Databaseforbindelsen mangler. Panelet kan vises, men bookinger og aendringer bliver
+                ikke gemt, foer databasen er sat op i Vercel.
               </div>
             ) : null}
 
@@ -2629,9 +2629,11 @@ function SettingsView({
             <p className="text-lg font-semibold text-[var(--ink)]">Mailmiljoe</p>
             <div className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
               <p className="flex items-center justify-between gap-4">
-                <span>DATABASE_URL</span>
+                <span>Database env</span>
                 <strong className="text-[var(--ink)]">
-                  {envSummary.databaseConfigured ? "Sat" : "Mangler"}
+                  {envSummary.databaseConfigured
+                    ? envSummary.databaseSource || "Sat"
+                    : "Mangler"}
                 </strong>
               </p>
               <p className="flex items-center justify-between gap-4">

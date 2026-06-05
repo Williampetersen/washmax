@@ -77,11 +77,26 @@ export const getAppUrl = (fallback?: string) =>
 
 export const getMailFromName = () => getOptionalEnv("MAIL_FROM_NAME") || "Clean Wash";
 
+export const getDatabaseUrl = () =>
+  getOptionalEnv("DATABASE_URL") || getOptionalEnv("POSTGRES_URL") || "";
+
+export const getDatabaseEnvSource = () => {
+  if (hasEnv("DATABASE_URL")) {
+    return "DATABASE_URL";
+  }
+
+  if (hasEnv("POSTGRES_URL")) {
+    return "POSTGRES_URL";
+  }
+
+  return "";
+};
+
 const getMissingEnvNames = (names: string[]) => names.filter((name) => !hasEnv(name));
 
 export const getServerEnvironmentSummary = () => {
+  const databaseConfigured = Boolean(getDatabaseUrl());
   const requiredCore = [
-    "DATABASE_URL",
     "APP_URL",
     "ADMIN_EMAIL",
     "ADMIN_PASSWORD",
@@ -97,7 +112,8 @@ export const getServerEnvironmentSummary = () => {
   const mailSenderConfigured = hasEnv("MAIL_FROM") || hasEnv("SMTP_USER");
 
   return {
-    databaseConfigured: hasEnv("DATABASE_URL"),
+    databaseConfigured,
+    databaseSource: getDatabaseEnvSource(),
     appUrlConfigured: hasEnv("APP_URL"),
     adminConfigured:
       hasEnv("ADMIN_EMAIL") && hasEnv("ADMIN_PASSWORD") && hasEnv("ADMIN_SESSION_SECRET"),
@@ -106,7 +122,7 @@ export const getServerEnvironmentSummary = () => {
     motorApiConfigured: hasEnv("MOTORAPI_API_KEY"),
     mailFromConfigured: hasEnv("MAIL_FROM"),
     mailFromNameConfigured: hasEnv("MAIL_FROM_NAME"),
-    missingCore: getMissingEnvNames(requiredCore),
+    missingCore: [...(databaseConfigured ? [] : ["DATABASE_URL or POSTGRES_URL"]), ...getMissingEnvNames(requiredCore)],
     missingMail:
       requiredMail.every((name) => hasEnv(name)) && mailSenderConfigured
         ? []

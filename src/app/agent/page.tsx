@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { isDatabaseConfigured } from "@/lib/server/db";
 import { getCachedAgentDashboardData } from "@/lib/server/cache-tags";
 import { getBookingInvoiceData, type BookingInvoiceData } from "@/lib/server/invoices";
 import { AgentDashboard, type AgentView } from "@/components/agent/agent-dashboard";
@@ -35,9 +36,13 @@ export default async function AgentPage({
     redirect("/agent/login");
   }
 
+  if (!isDatabaseConfigured()) {
+    redirect("/agent/login?error=config");
+  }
+
   const data = await getCachedAgentDashboardData(session.agentId);
   if (!data) {
-    redirect("/agent/login");
+    redirect("/agent/login?error=session");
   }
 
   const params = await searchParams;

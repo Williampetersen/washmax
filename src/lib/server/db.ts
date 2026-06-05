@@ -1,11 +1,11 @@
 import postgres, { type Sql } from "postgres";
 import { defaultBookingSettings } from "@/lib/shared/booking";
-import { getOptionalEnv } from "@/lib/server/env";
+import { getDatabaseUrl } from "@/lib/server/env";
 
 let cachedSql: Sql | null | undefined;
 let schemaPromise: Promise<void> | null = null;
 
-const getConnectionString = () => getOptionalEnv("DATABASE_URL") || "";
+const getConnectionString = () => getDatabaseUrl();
 
 export const isDatabaseConfigured = () => Boolean(getConnectionString());
 

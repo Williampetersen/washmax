@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { LockKeyhole, LogIn, ShieldCheck } from "lucide-react";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { getAgentById } from "@/lib/server/agents";
+import { isDatabaseConfigured } from "@/lib/server/db";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,7 +23,9 @@ export default async function AgentLoginPage({
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const cookieStore = await cookies();
-  if (getAgentSession(cookieStore.get(AGENT_COOKIE_NAME)?.value)) {
+  const session = getAgentSession(cookieStore.get(AGENT_COOKIE_NAME)?.value);
+  const agent = session && isDatabaseConfigured() ? await getAgentById(session.agentId) : null;
+  if (session && agent && agent.status !== "disabled") {
     redirect("/agent");
   }
 
@@ -31,8 +35,16 @@ export default async function AgentLoginPage({
     error === "invalid"
       ? "Forkert agent e-mail eller adgangskode."
       : error === "config"
-        ? "Agent-login kunne ikke gennemfoeres. Tjek database og session secret."
+        ? "Agentpanelet kunne ikke indlaeses. Tjek databaseforbindelsen og session secret."
+        : error === "session"
+          ? "Din eksisterende agentsession kunne ikke bruges. Log ind igen."
         : "";
+  const sessionWarning =
+    session && !agent
+      ? !isDatabaseConfigured()
+        ? "Databasen er ikke tilgaengelig i dette miljoe endnu, sa agentpanelet kan ikke aabnes."
+        : "Din gemte agentsession matcher ikke laengere en aktiv agentprofil."
+      : "";
 
   return (
     <main className="px-4 pb-12 pt-10 sm:px-6">
@@ -68,6 +80,12 @@ export default async function AgentLoginPage({
             {errorMessage ? (
               <div className="mt-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {errorMessage}
+              </div>
+            ) : null}
+
+            {sessionWarning ? (
+              <div className="mt-4 rounded-2xl border border-[#cde6f6] bg-[#f6fbff] px-4 py-3 text-sm text-[#1a506d]">
+                {sessionWarning}
               </div>
             ) : null}
 
