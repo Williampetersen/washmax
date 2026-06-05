@@ -1,22 +1,61 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import {
   BarChart3,
   CalendarClock,
   CheckCircle2,
-  Clock3,
   Image as ImageIcon,
   MessageCircle,
   UserRound,
-  XCircle,
 } from "lucide-react";
-import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { AdminAgentsData, AdminAgentSummary, AgentBooking } from "@/lib/server/agents";
+import type { AdminAgentsData, AdminAgentSummary, Agent, AgentBooking } from "@/lib/server/agents";
 import { formatPrice } from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 
 const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+const maxAvatarSizeBytes = 2 * 1024 * 1024;
+
+type Feedback = {
+  tone: "success" | "error";
+  message: string;
+};
+
+const emptyStats: AdminAgentSummary["stats"] = {
+  totalAssigned: 0,
+  pending: 0,
+  accepted: 0,
+  rejected: 0,
+  inProgress: 0,
+  done: 0,
+  cancelled: 0,
+  currentMonthDone: 0,
+  currentMonthCancelled: 0,
+  byStatus: [],
+  perMonth: [],
+};
+
+const makeAgentSummary = (agent: Agent): AdminAgentSummary => ({
+  ...agent,
+  services: [],
+  availability: [],
+  unavailableDates: [],
+  stats: emptyStats,
+  unreadAdminMessages: 0,
+});
+
+const mergeAgentSummary = (current: AdminAgentSummary, next: Agent) => ({
+  ...current,
+  ...next,
+});
+
+async function parseJson<T>(response: Response): Promise<T> {
+  return (await response.json().catch(() => ({}))) as T;
+}
 
 export function AdminAgentsView({
   data,
@@ -27,38 +66,104 @@ export function AdminAgentsView({
   saved?: string;
   error?: string;
 }) {
-  const assignableBookings = data.bookings
-    .filter((booking) => booking.status !== "completed" && booking.status !== "cancelled")
-    .sort((left, right) =>
-      `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
-        `${right.appointmentDate}T${right.appointmentTime}`
+  const [agents, setAgents] = useState(data.agents);
+  const [bookings, setBookings] = useState(data.bookings);
+  const [feedback, setFeedback] = useState<Feedback | null>(
+    saved === "agent"
+      ? { tone: "success", message: "Agent update saved." }
+      : error === "agent"
+        ? { tone: "error", message: "Agent action could not be completed." }
+        : null
+  );
+
+  const assignableBookings = useMemo(
+    () =>
+      bookings
+        .filter((booking) => booking.status !== "completed" && booking.status !== "cancelled")
+        .sort((left, right) =>
+          `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
+            `${right.appointmentDate}T${right.appointmentTime}`
+          )
+        ),
+    [bookings]
+  );
+
+  const handleAgentCreated = (agent: Agent) => {
+    setAgents((current) => [makeAgentSummary(agent), ...current]);
+    setFeedback({ tone: "success", message: "Agent saved successfully." });
+  };
+
+  const handleAgentUpdated = (agent: Agent) => {
+    setAgents((current) =>
+      current.map((item) => (item.id === agent.id ? mergeAgentSummary(item, agent) : item))
+    );
+    setFeedback({ tone: "success", message: "Agent saved successfully." });
+  };
+
+  const handleAgentDeleted = (agentId: string) => {
+    setAgents((current) => current.filter((item) => item.id !== agentId));
+    setBookings((current) =>
+      current.map((booking) =>
+        booking.assignedAgentId === agentId
+          ? {
+              ...booking,
+              assignedAgentId: "",
+              assignedAgentName: "",
+              assignedAgentEmail: "",
+              assignedAgentAvatarUrl: "",
+            }
+          : booking
       )
     );
+    setFeedback({ tone: "success", message: "Agent deleted successfully." });
+  };
+
+  const handleBookingAssigned = (bookingId: string, agentId: string, note: string) => {
+    const targetAgent = agents.find((agent) => agent.id === agentId);
+    setBookings((current) =>
+      current.map((booking) =>
+        booking.id === bookingId
+          ? {
+              ...booking,
+              assignedAgentId: agentId,
+              assignedAgentName: targetAgent?.fullName || "",
+              assignedAgentEmail: targetAgent?.email || "",
+              assignedAgentAvatarUrl: targetAgent?.avatarUrl || "",
+              agentNote: note,
+            }
+          : booking
+      )
+    );
+    setFeedback({ tone: "success", message: "Booking assigned successfully." });
+  };
 
   return (
     <div className="space-y-5">
       {data.databaseError ? (
         <div className="rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-[13px] font-medium text-red-700">
-          Agents kunne ikke indlaeses: {data.databaseError}
+          Agents could not be loaded: {data.databaseError}
         </div>
       ) : null}
 
-      {saved === "agent" || error === "agent" ? (
+      {feedback ? (
         <div
           className={cn(
             "rounded-3xl border px-4 py-4 text-[13px] font-medium",
-            error === "agent"
+            feedback.tone === "error"
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
           )}
         >
-          {error === "agent" ? "Agent-handlingen kunne ikke gennemfoeres." : "Agent-opdateringen er gemt."}
+          {feedback.message}
         </div>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
-        <CreateAgentCard />
-        <AgentOverviewPanel data={data} />
+        <CreateAgentCard
+          onCreated={handleAgentCreated}
+          onError={(message) => setFeedback({ tone: "error", message })}
+        />
+        <AgentOverviewPanel agents={agents} bookings={bookings} unread={data.notifications.filter((item) => !item.isRead).length} />
       </div>
 
       <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
@@ -76,7 +181,13 @@ export function AdminAgentsView({
         <div className="mt-4 grid gap-3">
           {assignableBookings.length > 0 ? (
             assignableBookings.slice(0, 18).map((booking) => (
-              <AssignmentRow key={booking.id} booking={booking} agents={data.agents} />
+              <AssignmentRow
+                key={booking.id}
+                booking={booking}
+                agents={agents}
+                onAssigned={handleBookingAssigned}
+                onError={(message) => setFeedback({ tone: "error", message })}
+              />
             ))
           ) : (
             <EmptyState text="No active bookings are ready for assignment." />
@@ -85,8 +196,16 @@ export function AdminAgentsView({
       </section>
 
       <div className="grid gap-5">
-        {data.agents.length > 0 ? (
-          data.agents.map((agent) => <AgentAdminCard key={agent.id} agent={agent} />)
+        {agents.length > 0 ? (
+          agents.map((agent) => (
+            <AgentAdminCard
+              key={agent.id}
+              agent={agent}
+              onUpdated={handleAgentUpdated}
+              onDeleted={handleAgentDeleted}
+              onError={(message) => setFeedback({ tone: "error", message })}
+            />
+          ))
         ) : (
           <EmptyState text="No agents yet. Create the first staff profile above." />
         )}
@@ -95,7 +214,74 @@ export function AdminAgentsView({
   );
 }
 
-function CreateAgentCard() {
+function CreateAgentCard({
+  onCreated,
+  onError,
+}: {
+  onCreated: (agent: Agent) => void;
+  onError: (message: string) => void;
+}) {
+  const [pending, setPending] = useState(false);
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    assignedServices: "",
+    workingArea: "",
+    notes: "",
+  });
+
+  const submit = async () => {
+    setPending(true);
+    try {
+      const response = await fetch("/api/admin/agents", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          password: form.password,
+          assignedServices: form.assignedServices
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          workingArea: form.workingArea,
+          notes: form.notes,
+          status: "active",
+        }),
+      });
+      const payload = await parseJson<{
+        success?: boolean;
+        agent?: Agent;
+        message?: string;
+      }>(response);
+
+      if (!response.ok || !payload.success || !payload.agent) {
+        onError(payload.message || "Agent could not be created.");
+        return;
+      }
+
+      onCreated(payload.agent);
+      setForm({
+        fullName: "",
+        email: "",
+        phone: "",
+        password: "",
+        assignedServices: "",
+        workingArea: "",
+        notes: "",
+      });
+    } catch {
+      onError("Agent could not be created.");
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
       <div className="flex items-center gap-3">
@@ -107,47 +293,53 @@ function CreateAgentCard() {
           <p className="text-[12px] font-medium text-[#8E95B5]">Separate login and scoped dashboard access.</p>
         </div>
       </div>
-      <form action="/api/admin/agents" method="POST" className="mt-4 grid gap-3">
-        <input type="hidden" name="action" value="create" />
+      <div className="mt-4 grid gap-3">
         <Field label="Full name">
-          <Input name="full_name" required />
+          <Input value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
         </Field>
         <div className="grid gap-3 sm:grid-cols-2">
           <Field label="Email">
-            <Input type="email" name="email" required />
+            <Input type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
           </Field>
           <Field label="Phone">
-            <Input name="phone" />
+            <Input value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
           </Field>
         </div>
         <Field label="Password">
-          <Input type="password" name="password" required autoComplete="new-password" />
+          <Input type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
         </Field>
         <Field label="Assigned services">
-          <Input name="assigned_services" placeholder="Exterior, Interior, Polishing" />
+          <Input value={form.assignedServices} onChange={(event) => setForm((current) => ({ ...current, assignedServices: event.target.value }))} placeholder="Exterior, Interior, Polishing" />
         </Field>
         <Field label="Working area">
-          <Input name="working_area" />
+          <Input value={form.workingArea} onChange={(event) => setForm((current) => ({ ...current, workingArea: event.target.value }))} />
         </Field>
         <Field label="Notes">
-          <Textarea name="notes" className="min-h-20" />
+          <Textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} className="min-h-20" />
         </Field>
-        <Button type="submit" className="w-full">
+        <Button onClick={submit} disabled={pending} className="w-full">
           <CheckCircle2 className="h-5 w-5" />
-          Create agent
+          {pending ? "Saving..." : "Create agent"}
         </Button>
-      </form>
+      </div>
     </section>
   );
 }
 
-function AgentOverviewPanel({ data }: { data: AdminAgentsData }) {
-  const totalAssigned = data.agents.reduce((sum, agent) => sum + agent.stats.totalAssigned, 0);
-  const completed = data.agents.reduce((sum, agent) => sum + agent.stats.done, 0);
-  const activeAgents = data.agents.filter((agent) => agent.status === "active").length;
-  const unread = data.notifications.filter((item) => !item.isRead).length;
+function AgentOverviewPanel({
+  agents,
+  bookings,
+  unread,
+}: {
+  agents: AdminAgentSummary[];
+  bookings: AgentBooking[];
+  unread: number;
+}) {
+  const totalAssigned = agents.reduce((sum, agent) => sum + agent.stats.totalAssigned, 0);
+  const completed = agents.reduce((sum, agent) => sum + agent.stats.done, 0);
+  const activeAgents = agents.filter((agent) => agent.status === "active").length;
   const cards = [
-    { label: "Agents", value: activeAgents.toString(), detail: `${data.agents.length} total`, icon: UserRound },
+    { label: "Agents", value: activeAgents.toString(), detail: `${agents.length} total`, icon: UserRound },
     { label: "Assigned", value: totalAssigned.toString(), detail: "All agent tasks", icon: CalendarClock },
     { label: "Done", value: completed.toString(), detail: "Completed by agents", icon: CheckCircle2 },
     { label: "Unread", value: unread.toString(), detail: "Admin notifications", icon: MessageCircle },
@@ -178,7 +370,7 @@ function AgentOverviewPanel({ data }: { data: AdminAgentsData }) {
           <p className="text-[14px] font-semibold text-[#1F2340]">Agent workload</p>
         </div>
         <div className="grid gap-2">
-          {data.agents.slice(0, 8).map((agent) => (
+          {agents.slice(0, 8).map((agent) => (
             <div key={agent.id} className="grid gap-1">
               <div className="flex justify-between gap-3 text-[12px] font-semibold text-[#4B5563]">
                 <span>{agent.fullName}</span>
@@ -201,18 +393,45 @@ function AgentOverviewPanel({ data }: { data: AdminAgentsData }) {
 function AssignmentRow({
   booking,
   agents,
+  onAssigned,
+  onError,
 }: {
   booking: AgentBooking;
   agents: AdminAgentSummary[];
+  onAssigned: (bookingId: string, agentId: string, note: string) => void;
+  onError: (message: string) => void;
 }) {
+  const [agentId, setAgentId] = useState(booking.assignedAgentId);
+  const [note, setNote] = useState(booking.agentNote);
+  const [pending, setPending] = useState(false);
   const activeAgents = agents.filter((agent) => agent.status === "active");
 
+  const submit = async () => {
+    setPending(true);
+    try {
+      const response = await fetch(`/api/admin/bookings/${booking.id}/assign-agent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ agentId, note }),
+      });
+      const payload = await parseJson<{ success?: boolean; message?: string }>(response);
+      if (!response.ok || !payload.success) {
+        onError(payload.message || "Booking could not be assigned.");
+        return;
+      }
+
+      onAssigned(booking.id, agentId, note);
+    } catch {
+      onError("Booking could not be assigned.");
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
-    <form
-      action={`/api/admin/bookings/${booking.id}/assign-agent`}
-      method="POST"
-      className="grid gap-3 rounded-2xl border border-white/55 bg-white/55 px-3 py-3 lg:grid-cols-[minmax(0,1fr)_14rem_minmax(10rem,0.35fr)_auto] lg:items-center"
-    >
+    <div className="grid gap-3 rounded-2xl border border-white/55 bg-white/55 px-3 py-3 lg:grid-cols-[minmax(0,1fr)_14rem_minmax(10rem,0.35fr)_auto] lg:items-center">
       <div className="min-w-0">
         <p className="truncate text-[13px] font-semibold text-[#1F2340]">
           {booking.customerName || booking.customerEmail} | {booking.packageLabel}
@@ -225,10 +444,9 @@ function AssignmentRow({
         </p>
       </div>
       <select
-        name="agent_id"
-        defaultValue={booking.assignedAgentId}
+        value={agentId}
+        onChange={(event) => setAgentId(event.target.value)}
         className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none"
-        required
       >
         <option value="">Choose agent</option>
         {activeAgents.map((agent) => (
@@ -237,30 +455,195 @@ function AssignmentRow({
           </option>
         ))}
       </select>
-      <Input name="note" placeholder="Assignment note" defaultValue={booking.agentNote} />
-      <Button type="submit" className="h-10">
-        Assign
+      <Input value={note} onChange={(event) => setNote(event.target.value)} placeholder="Assignment note" />
+      <Button onClick={submit} disabled={pending || !agentId} className="h-10">
+        {pending ? "Saving..." : "Assign"}
       </Button>
-    </form>
+    </div>
   );
 }
 
-function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
+function AgentAdminCard({
+  agent,
+  onUpdated,
+  onDeleted,
+  onError,
+}: {
+  agent: AdminAgentSummary;
+  onUpdated: (agent: Agent) => void;
+  onDeleted: (agentId: string) => void;
+  onError: (message: string) => void;
+}) {
+  const [form, setForm] = useState({
+    fullName: agent.fullName,
+    email: agent.email,
+    phone: agent.phone,
+    password: "",
+    status: agent.status,
+    assignedServices: agent.assignedServices.join(", "),
+    workingArea: agent.workingArea,
+    notes: agent.notes,
+  });
+  const [pending, setPending] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(agent.avatarUrl);
+  const [previewUrl, setPreviewUrl] = useState("");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPending, setAvatarPending] = useState(false);
+  const [localFeedback, setLocalFeedback] = useState<Feedback | null>(null);
+
+  const displayedAvatar = previewUrl || avatarUrl;
+
+  const saveAgent = async () => {
+    setPending(true);
+    setLocalFeedback(null);
+    try {
+      const response = await fetch(`/api/admin/agents/${agent.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          password: form.password || undefined,
+          status: form.status,
+          assignedServices: form.assignedServices
+            .split(",")
+            .map((item) => item.trim())
+            .filter(Boolean),
+          workingArea: form.workingArea,
+          notes: form.notes,
+        }),
+      });
+      const payload = await parseJson<{
+        success?: boolean;
+        agent?: Agent;
+        message?: string;
+      }>(response);
+      if (!response.ok || !payload.success || !payload.agent) {
+        onError(payload.message || "Agent could not be saved.");
+        return;
+      }
+
+      onUpdated(payload.agent);
+      setForm((current) => ({ ...current, password: "" }));
+      setAvatarUrl(payload.agent.avatarUrl);
+      setLocalFeedback({ tone: "success", message: payload.message || "Agent saved successfully." });
+    } catch {
+      onError("Agent could not be saved.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const deleteAgent = async () => {
+    setPending(true);
+    try {
+      const response = await fetch(`/api/admin/agents/${agent.id}`, {
+        method: "DELETE",
+      });
+      const payload = await parseJson<{ success?: boolean; message?: string }>(response);
+      if (!response.ok || !payload.success) {
+        onError(payload.message || "Agent could not be deleted.");
+        return;
+      }
+
+      onDeleted(agent.id);
+    } catch {
+      onError("Agent could not be deleted.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const handleAvatarSelected = (file: File | null) => {
+    if (!file) {
+      setAvatarFile(null);
+      setPreviewUrl("");
+      return;
+    }
+
+    if (!allowedImageTypes.includes(file.type)) {
+      setAvatarFile(null);
+      setPreviewUrl("");
+      setLocalFeedback({ tone: "error", message: "Invalid image file. Use JPG, PNG, or WebP." });
+      return;
+    }
+
+    if (file.size > maxAvatarSizeBytes) {
+      setAvatarFile(null);
+      setPreviewUrl("");
+      setLocalFeedback({ tone: "error", message: "Image is too large. Maximum size is 2MB." });
+      return;
+    }
+
+    setAvatarFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+    setLocalFeedback(null);
+  };
+
+  const saveAvatar = async () => {
+    if (!avatarFile) {
+      setLocalFeedback({ tone: "error", message: "Please choose an image file first." });
+      return;
+    }
+
+    setAvatarPending(true);
+    try {
+      const formData = new FormData();
+      formData.set("avatar", avatarFile);
+
+      const response = await fetch(`/api/admin/agents/${agent.id}/avatar`, {
+        method: "POST",
+        headers: {
+          "x-requested-with": "fetch",
+          accept: "application/json",
+        },
+        body: formData,
+      });
+      const payload = await parseJson<{
+        success?: boolean;
+        avatarUrl?: string;
+        agent?: Agent;
+        message?: string;
+      }>(response);
+      if (!response.ok || !payload.success || !payload.avatarUrl || !payload.agent) {
+        setPreviewUrl("");
+        setAvatarFile(null);
+        onError(payload.message || "Avatar could not be saved.");
+        return;
+      }
+
+      setAvatarUrl(payload.avatarUrl);
+      setPreviewUrl("");
+      setAvatarFile(null);
+      onUpdated(payload.agent);
+      setLocalFeedback({ tone: "success", message: payload.message || "Avatar saved successfully." });
+    } catch {
+      setPreviewUrl("");
+      setAvatarFile(null);
+      onError("Avatar could not be saved.");
+    } finally {
+      setAvatarPending(false);
+    }
+  };
+
   return (
     <article className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 gap-3">
-          <AgentAvatar agent={agent} />
+          <AgentAvatar name={agent.fullName} email={agent.email} avatarUrl={displayedAvatar} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="truncate text-xl font-bold text-[#1F2340]">{agent.fullName}</h3>
-              <StatusPill status={agent.status} />
+              <h3 className="truncate text-xl font-bold text-[#1F2340]">{form.fullName}</h3>
+              <StatusPill status={form.status} />
             </div>
             <p className="mt-1 truncate text-[13px] font-medium text-[#8E95B5]">
-              {agent.email} | {agent.phone || "No phone"}
+              {form.email} | {form.phone || "No phone"}
             </p>
             <p className="mt-1 text-[13px] font-medium text-[#4B5563]">
-              {agent.workingArea || "No working area"} | Last login: {agent.lastLoginAt || "-"}
+              {form.workingArea || "No working area"} | Last login: {agent.lastLoginAt || "-"}
             </p>
           </div>
         </div>
@@ -272,24 +655,23 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
       </div>
 
       <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <form action={`/api/admin/agents/${agent.id}`} method="POST" className="grid gap-3">
-          <input type="hidden" name="action" value="update" />
+        <div className="grid gap-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Full name">
-              <Input name="full_name" defaultValue={agent.fullName} required />
+              <Input value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
             </Field>
             <Field label="Email">
-              <Input type="email" name="email" defaultValue={agent.email} required />
+              <Input type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
             </Field>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Phone">
-              <Input name="phone" defaultValue={agent.phone} />
+              <Input value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
             </Field>
             <Field label="Status">
               <select
-                name="status"
-                defaultValue={agent.status}
+                value={form.status}
+                onChange={(event) => setForm((current) => ({ ...current, status: event.target.value === "disabled" ? "disabled" : "active" }))}
                 className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none"
               >
                 <option value="active">Active</option>
@@ -298,42 +680,51 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
             </Field>
           </div>
           <Field label="New password">
-            <Input type="password" name="password" autoComplete="new-password" placeholder="Leave blank to keep current" />
+            <Input type="password" autoComplete="new-password" placeholder="Leave blank to keep current" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
           </Field>
           <Field label="Assigned services">
-            <Input name="assigned_services" defaultValue={agent.assignedServices.join(", ")} />
+            <Input value={form.assignedServices} onChange={(event) => setForm((current) => ({ ...current, assignedServices: event.target.value }))} />
           </Field>
           <Field label="Working area">
-            <Input name="working_area" defaultValue={agent.workingArea} />
+            <Input value={form.workingArea} onChange={(event) => setForm((current) => ({ ...current, workingArea: event.target.value }))} />
           </Field>
           <Field label="Notes">
-            <Textarea name="notes" defaultValue={agent.notes} className="min-h-20" />
+            <Textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} className="min-h-20" />
           </Field>
           <div className="flex flex-wrap gap-2">
-            <Button type="submit">Save agent</Button>
+            <Button onClick={saveAgent} disabled={pending}>{pending ? "Saving..." : "Save agent"}</Button>
             <Button
-              type="submit"
-              name="action"
-              value="delete"
+              onClick={deleteAgent}
+              disabled={pending}
               variant="outline"
               className="border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
             >
               Delete
             </Button>
           </div>
-        </form>
+          {localFeedback ? (
+            <p className={cn("text-xs font-medium", localFeedback.tone === "error" ? "text-red-700" : "text-[#08745a]")}>
+              {localFeedback.message}
+            </p>
+          ) : null}
+        </div>
 
         <div className="grid gap-3">
-          <form action={`/api/admin/agents/${agent.id}/avatar`} method="POST" encType="multipart/form-data" className="rounded-2xl border border-white/55 bg-white/50 p-3">
+          <div className="rounded-2xl border border-white/55 bg-white/50 p-3">
             <div className="flex items-center gap-2">
               <ImageIcon className="h-5 w-5 text-[#6366F1]" />
               <p className="text-[13px] font-semibold text-[#1F2340]">Avatar upload</p>
             </div>
-            <Input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" className="mt-3" />
-            <Button type="submit" variant="outline" className="mt-3 w-full">
-              Upload avatar
+            <Input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              className="mt-3"
+              onChange={(event) => handleAvatarSelected(event.target.files?.[0] || null)}
+            />
+            <Button onClick={saveAvatar} disabled={avatarPending || !avatarFile} variant="outline" className="mt-3 w-full">
+              {avatarPending ? "Saving avatar..." : "Save avatar"}
             </Button>
-          </form>
+          </div>
 
           <div className="rounded-2xl border border-white/55 bg-white/50 p-3">
             <p className="text-[13px] font-semibold text-[#1F2340]">Services</p>
@@ -393,13 +784,21 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
   );
 }
 
-function AgentAvatar({ agent }: { agent: AdminAgentSummary }) {
-  if (agent.avatarUrl) {
+function AgentAvatar({
+  name,
+  email,
+  avatarUrl,
+}: {
+  name: string;
+  email: string;
+  avatarUrl: string;
+}) {
+  if (avatarUrl) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={agent.avatarUrl}
-        alt=""
+        src={avatarUrl}
+        alt={`${name || email} avatar`}
         className="h-14 w-14 shrink-0 rounded-2xl object-cover ring-1 ring-white/70"
       />
     );
@@ -407,7 +806,7 @@ function AgentAvatar({ agent }: { agent: AdminAgentSummary }) {
 
   return (
     <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] text-lg font-bold text-[#6366F1]">
-      {(agent.fullName || agent.email || "A").slice(0, 2).toUpperCase()}
+      {(name || email || "A").slice(0, 2).toUpperCase()}
     </span>
   );
 }
@@ -442,7 +841,7 @@ function Field({
   children,
 }: {
   label: string;
-  children: ReactNode;
+  children: React.ReactNode;
 }) {
   return (
     <label className="grid gap-1.5 text-[13px] font-medium text-[#1F2340]">

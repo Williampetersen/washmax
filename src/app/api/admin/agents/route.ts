@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import {
+  revalidateAdminAgentsCache,
+  revalidateAdminDashboardCache,
+} from "@/lib/server/cache-tags";
 import { createAgent, getAdminAgentsData } from "@/lib/server/agents";
 
 const splitServices = (value: FormDataEntryValue | null) =>
@@ -27,6 +31,49 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/admin/login", request.url), 303);
   }
 
+  const contentType = request.headers.get("content-type") || "";
+  if (contentType.includes("application/json")) {
+    const body = (await request.json()) as {
+      fullName?: string;
+      email?: string;
+      phone?: string;
+      password?: string;
+      assignedServices?: string[];
+      workingArea?: string;
+      notes?: string;
+      status?: string;
+    };
+
+    try {
+      const agent = await createAgent({
+        fullName: String(body.fullName || "").trim(),
+        email: String(body.email || "").trim(),
+        phone: String(body.phone || "").trim(),
+        password: String(body.password || ""),
+        assignedServices: Array.isArray(body.assignedServices) ? body.assignedServices : [],
+        workingArea: String(body.workingArea || "").trim(),
+        notes: String(body.notes || "").trim(),
+        status: body.status === "disabled" ? "disabled" : "active",
+      });
+      revalidateAdminAgentsCache();
+      revalidateAdminDashboardCache();
+      return NextResponse.json({
+        success: true,
+        agent,
+        message: "Agent saved successfully.",
+      });
+    } catch (error) {
+      console.error("Could not create agent", error);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Agent could not be created.",
+        },
+        { status: 400 }
+      );
+    }
+  }
+
   const formData = await request.formData();
 
   try {
@@ -40,6 +87,8 @@ export async function POST(request: Request) {
       notes: String(formData.get("notes") || "").trim(),
       status: String(formData.get("status") || "active") === "disabled" ? "disabled" : "active",
     });
+    revalidateAdminAgentsCache();
+    revalidateAdminDashboardCache();
 
     return NextResponse.redirect(new URL("/admin?view=agents&saved=agent", request.url), 303);
   } catch (error) {

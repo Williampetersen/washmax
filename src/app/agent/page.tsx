@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
-import { getAgentDashboardData } from "@/lib/server/agents";
+import { getCachedAgentDashboardData } from "@/lib/server/cache-tags";
 import { getBookingInvoiceData, type BookingInvoiceData } from "@/lib/server/invoices";
 import { AgentDashboard, type AgentView } from "@/components/agent/agent-dashboard";
 
 export const metadata: Metadata = {
   title: "Agent dashboard",
-  description: "WashMax agent dashboard.",
+  description: "Clean Wash agent dashboard.",
   alternates: {
     canonical: "/agent",
   },
@@ -35,7 +35,7 @@ export default async function AgentPage({
     redirect("/agent/login");
   }
 
-  const data = await getAgentDashboardData(session.agentId);
+  const data = await getCachedAgentDashboardData(session.agentId);
   if (!data) {
     redirect("/agent/login");
   }
@@ -45,12 +45,9 @@ export default async function AgentPage({
   const view = views.includes(rawView as AgentView) ? (rawView as AgentView) : "overview";
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
-  const invoiceDataEntries =
-    view === "tasks"
-      ? await Promise.all(
-          data.bookings.map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
-        )
-      : [];
+  const invoiceDataEntries = await Promise.all(
+    data.bookings.map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
+  );
   const invoiceDataByBookingId: Record<string, BookingInvoiceData> = {};
   for (const [bookingId, invoiceData] of invoiceDataEntries) {
     if (invoiceData) {
@@ -62,7 +59,7 @@ export default async function AgentPage({
     <AgentDashboard
       data={data}
       invoiceDataByBookingId={invoiceDataByBookingId}
-      view={view}
+      initialView={view}
       saved={saved}
       error={error}
     />

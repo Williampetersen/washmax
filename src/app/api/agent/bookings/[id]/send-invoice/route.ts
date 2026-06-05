@@ -20,6 +20,7 @@ export async function POST(
       bookingId: id,
       actorType: "agent",
       agentId: session.agentId,
+      createdByUserId: session.agentId,
     });
     const query = result.sent ? "saved=invoice-sent" : "error=mail";
     return isJson

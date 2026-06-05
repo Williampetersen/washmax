@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import {
   BarChart3,
   Calendar,
@@ -12,6 +15,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InvoiceWorkflowButton } from "@/components/invoices/invoice-workflow-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type {
@@ -37,21 +41,46 @@ const tabs = [
 export type AgentView = (typeof tabs)[number]["id"];
 
 const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
+const maxAvatarSizeBytes = 2 * 1024 * 1024;
 
 export function AgentDashboard({
   data,
   invoiceDataByBookingId,
-  view,
+  initialView,
   saved,
   error,
 }: {
   data: AgentDashboardData;
   invoiceDataByBookingId: Record<string, BookingInvoiceData>;
-  view: AgentView;
+  initialView: AgentView;
   saved?: string;
   error?: string;
 }) {
-  const unread = data.notifications.filter((item) => !item.isRead).length;
+  const [dashboardData, setDashboardData] = useState(data);
+  const [view, setView] = useState(initialView);
+  const [feedback, setFeedback] = useState<{
+    tone: "success" | "error";
+    message: string;
+  } | null>(
+    saved
+      ? { tone: "success", message: "The update was saved." }
+      : error
+        ? { tone: "error", message: "The action could not be completed." }
+        : null
+  );
+  const unread = dashboardData.notifications.filter((item) => !item.isRead).length;
+
+  const switchView = (nextView: AgentView) => {
+    setView(nextView);
+    if (typeof window !== "undefined") {
+      const url = new URL(window.location.href);
+      url.searchParams.set("view", nextView);
+      url.searchParams.delete("saved");
+      url.searchParams.delete("error");
+      window.history.replaceState({}, "", url.toString());
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#F6F8FE] px-4 py-5 text-[#1F2340] sm:px-6">
@@ -60,13 +89,13 @@ export function AgentDashboard({
           <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.72] shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl xl:sticky xl:top-5 xl:self-start">
             <div className="border-b border-white/55 px-4 py-5">
               <div className="flex items-center gap-3">
-                <AgentAvatar name={data.agent.fullName} avatarUrl={data.agent.avatarUrl} />
+                <AgentAvatar name={dashboardData.agent.fullName} avatarUrl={dashboardData.agent.avatarUrl} />
                 <div className="min-w-0">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
                     Agent
                   </p>
-                  <p className="mt-1 truncate text-[13px] font-semibold">{data.agent.fullName}</p>
-                  <p className="truncate text-[12px] font-medium text-[#8E95B5]">{data.agent.email}</p>
+                  <p className="mt-1 truncate text-[13px] font-semibold">{dashboardData.agent.fullName}</p>
+                  <p className="truncate text-[12px] font-medium text-[#8E95B5]">{dashboardData.agent.email}</p>
                 </div>
               </div>
             </div>
@@ -76,10 +105,10 @@ export function AgentDashboard({
                 const Icon = tab.icon;
                 const active = view === tab.id;
                 return (
-                  <Link
+                  <button
                     key={tab.id}
-                    href={`/agent?view=${tab.id}`}
-                    scroll={false}
+                    type="button"
+                    onClick={() => switchView(tab.id)}
                     className={cn(
                       "flex min-w-[8.75rem] items-center gap-2 rounded-2xl px-3 py-2.5 text-[13px] font-semibold transition xl:min-w-0",
                       active
@@ -89,15 +118,15 @@ export function AgentDashboard({
                   >
                     <Icon className="h-5 w-5 shrink-0" />
                     <span className="truncate">{tab.label}</span>
-                  </Link>
+                  </button>
                 );
               })}
             </nav>
 
             <div className="border-t border-white/55 px-4 py-4">
               <div className="grid grid-cols-3 gap-2">
-                <SmallStat label="Pending" value={data.stats.pending.toString()} />
-                <SmallStat label="Done" value={data.stats.done.toString()} />
+                <SmallStat label="Pending" value={dashboardData.stats.pending.toString()} />
+                <SmallStat label="Done" value={dashboardData.stats.done.toString()} />
                 <SmallStat label="Unread" value={unread.toString()} />
               </div>
               <form action="/api/agent/logout" method="POST" className="mt-4">
@@ -120,32 +149,59 @@ export function AgentDashboard({
               </p>
             </header>
 
-            {saved || error ? (
+            {feedback ? (
               <div
                 className={cn(
                   "rounded-3xl border px-4 py-4 text-[13px] font-medium",
-                  error ? "border-red-200 bg-red-50 text-red-700" : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
+                  feedback.tone === "error"
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
                 )}
               >
-                {error ? "Handlingen kunne ikke gennemfoeres." : "Aendringen er gemt."}
+                {feedback.message}
               </div>
             ) : null}
 
-            {view === "overview" ? <Overview data={data} /> : null}
-            {view === "calendar" ? <CalendarView bookings={data.bookings} /> : null}
+            {view === "overview" ? <Overview data={dashboardData} /> : null}
+            {view === "calendar" ? <CalendarView bookings={dashboardData.bookings} /> : null}
             {view === "tasks" ? (
               <TasksView
-                bookings={data.bookings}
+                bookings={dashboardData.bookings}
                 invoiceDataByBookingId={invoiceDataByBookingId}
-                services={data.services}
+                services={dashboardData.services}
               />
             ) : null}
             {view === "availability" ? (
-              <AvailabilityView availability={data.availability} />
+              <AvailabilityView
+                availability={dashboardData.availability}
+                onSaved={(availability) => {
+                  setDashboardData((current) => ({ ...current, availability }));
+                  setFeedback({ tone: "success", message: "Availability saved successfully." });
+                }}
+                onError={(message) => setFeedback({ tone: "error", message })}
+              />
             ) : null}
-            {view === "services" ? <ServicesView services={data.services} /> : null}
-            {view === "chat" ? <ChatView data={data} /> : null}
-            {view === "profile" ? <ProfileView data={data} /> : null}
+            {view === "services" ? (
+              <ServicesView
+                services={dashboardData.services}
+                onSaved={(services) => {
+                  setDashboardData((current) => ({ ...current, services }));
+                  setFeedback({ tone: "success", message: "Services saved successfully." });
+                }}
+                onError={(message) => setFeedback({ tone: "error", message })}
+              />
+            ) : null}
+            {view === "chat" ? <ChatView data={dashboardData} /> : null}
+            {view === "profile" ? (
+              <ProfileView
+                agent={dashboardData.agent}
+                onSaved={(agent) => {
+                  setDashboardData((current) => ({ ...current, agent }));
+                  setFeedback({ tone: "success", message: "Profile saved successfully." });
+                }}
+                onError={(message) => setFeedback({ tone: "error", message })}
+              />
+            ) : null}
           </div>
         </div>
       </section>
@@ -459,17 +515,36 @@ function InvoiceWorkbench({
           <Button type="submit" variant="outline">Generate invoice</Button>
         </form>
         {invoice?.pdfUrl ? (
-          <a
-            href={invoice.pdfUrl}
-            target="_blank"
-            className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-          >
-            Preview invoice
-          </a>
+          <>
+            <a
+              href={invoice.pdfUrl}
+              target="_blank"
+              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+            >
+              View invoice
+            </a>
+            <a
+              href={`${invoice.pdfUrl}?download=1`}
+              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+            >
+              Download PDF
+            </a>
+          </>
         ) : null}
-        <form action={`/api/agent/bookings/${booking.id}/send-invoice`} method="POST">
-          <Button type="submit">Generate and send invoice</Button>
-        </form>
+        <InvoiceWorkflowButton
+          endpoint="/api/invoices/generate-send"
+          body={{ bookingId: booking.id }}
+          label="Generate and send invoice"
+          pendingLabel="Generating and sending..."
+        />
+        {invoice ? (
+          <InvoiceWorkflowButton
+            endpoint={`/api/invoices/${invoice.id}/resend`}
+            label="Send again"
+            pendingLabel="Sending..."
+            buttonVariant="outline"
+          />
+        ) : null}
       </div>
     </section>
   );
@@ -556,63 +631,248 @@ function InvoiceBadge({ status }: { status: string }) {
   );
 }
 
-function AvailabilityView({ availability }: { availability: AgentAvailability[] }) {
-  const byWeekday = new Map(availability.map((item) => [item.weekday, item]));
+function AvailabilityView({
+  availability,
+  onSaved,
+  onError,
+}: {
+  availability: AgentAvailability[];
+  onSaved: (availability: AgentAvailability[]) => void;
+  onError: (message: string) => void;
+}) {
+  const [entries, setEntries] = useState(
+    Array.from({ length: 7 }, (_, weekday) => {
+      const item = availability.find((value) => value.weekday === weekday);
+      return {
+        weekday,
+        startTime: item?.startTime || "09:00",
+        endTime: item?.endTime || "17:00",
+        breakStartTime: item?.breakStartTime || "",
+        breakEndTime: item?.breakEndTime || "",
+        isAvailable: item?.isAvailable ?? true,
+      };
+    })
+  );
+  const [unavailableForm, setUnavailableForm] = useState({
+    startDate: "",
+    endDate: "",
+    reason: "",
+  });
+  const [pending, setPending] = useState(false);
+  const [blocking, setBlocking] = useState(false);
+
+  const saveAvailability = async () => {
+    setPending(true);
+    try {
+      const response = await fetch("/api/agent/availability", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ entries }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        availability?: AgentAvailability[];
+      };
+      if (!response.ok || !payload.availability) {
+        onError("Availability could not be saved.");
+        return;
+      }
+      onSaved(payload.availability);
+    } catch {
+      onError("Availability could not be saved.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const addUnavailable = async () => {
+    setBlocking(true);
+    try {
+      const formData = new FormData();
+      formData.set("action", "unavailable");
+      formData.set("start_date", unavailableForm.startDate);
+      formData.set("end_date", unavailableForm.endDate);
+      formData.set("reason", unavailableForm.reason);
+      const response = await fetch("/api/agent/availability", {
+        method: "POST",
+        body: formData,
+      });
+      if (!response.ok) {
+        onError("Blocked dates could not be saved.");
+        return;
+      }
+      setUnavailableForm({ startDate: "", endDate: "", reason: "" });
+      onSaved(availability);
+    } catch {
+      onError("Blocked dates could not be saved.");
+    } finally {
+      setBlocking(false);
+    }
+  };
 
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
-      <form action="/api/agent/availability" method="POST" className="grid gap-3">
+      <div className="grid gap-3">
         {weekdays.map((day, index) => {
-          const item = byWeekday.get(index);
+          const item = entries[index];
           return (
             <div key={day} className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3 md:grid-cols-[10rem_1fr_1fr_1fr_1fr] md:items-center">
               <label className="flex items-center gap-2 text-[13px] font-semibold">
-                <input type="checkbox" name={`is_available_${index}`} defaultChecked={item?.isAvailable ?? true} />
+                <input
+                  type="checkbox"
+                  checked={item.isAvailable}
+                  onChange={(event) =>
+                    setEntries((current) =>
+                      current.map((entry) =>
+                        entry.weekday === index ? { ...entry, isAvailable: event.target.checked } : entry
+                      )
+                    )
+                  }
+                />
                 {day}
               </label>
-              <Input type="time" name={`start_time_${index}`} defaultValue={item?.startTime || "09:00"} />
-              <Input type="time" name={`end_time_${index}`} defaultValue={item?.endTime || "17:00"} />
-              <Input type="time" name={`break_start_time_${index}`} defaultValue={item?.breakStartTime || ""} />
-              <Input type="time" name={`break_end_time_${index}`} defaultValue={item?.breakEndTime || ""} />
+              <Input type="time" value={item.startTime} onChange={(event) => setEntries((current) => current.map((entry) => entry.weekday === index ? { ...entry, startTime: event.target.value } : entry))} />
+              <Input type="time" value={item.endTime} onChange={(event) => setEntries((current) => current.map((entry) => entry.weekday === index ? { ...entry, endTime: event.target.value } : entry))} />
+              <Input type="time" value={item.breakStartTime} onChange={(event) => setEntries((current) => current.map((entry) => entry.weekday === index ? { ...entry, breakStartTime: event.target.value } : entry))} />
+              <Input type="time" value={item.breakEndTime} onChange={(event) => setEntries((current) => current.map((entry) => entry.weekday === index ? { ...entry, breakEndTime: event.target.value } : entry))} />
             </div>
           );
         })}
-        <Button type="submit">Save availability</Button>
-      </form>
-      <form action="/api/agent/availability" method="POST" className="mt-4 grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
-        <input type="hidden" name="action" value="unavailable" />
-        <Input type="date" name="start_date" required />
-        <Input type="date" name="end_date" />
-        <Input name="reason" placeholder="Vacation / blocked reason" />
-        <Button type="submit" variant="outline">Block dates</Button>
-      </form>
+        <Button onClick={saveAvailability} disabled={pending}>{pending ? "Saving..." : "Save availability"}</Button>
+      </div>
+      <div className="mt-4 grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
+        <Input type="date" value={unavailableForm.startDate} onChange={(event) => setUnavailableForm((current) => ({ ...current, startDate: event.target.value }))} required />
+        <Input type="date" value={unavailableForm.endDate} onChange={(event) => setUnavailableForm((current) => ({ ...current, endDate: event.target.value }))} />
+        <Input value={unavailableForm.reason} onChange={(event) => setUnavailableForm((current) => ({ ...current, reason: event.target.value }))} placeholder="Vacation / blocked reason" />
+        <Button onClick={addUnavailable} disabled={blocking || !unavailableForm.startDate} variant="outline">{blocking ? "Saving..." : "Block dates"}</Button>
+      </div>
     </section>
   );
 }
 
-function ServicesView({ services }: { services: AgentService[] }) {
+function ServicesView({
+  services,
+  onSaved,
+  onError,
+}: {
+  services: AgentService[];
+  onSaved: (services: AgentService[]) => void;
+  onError: (message: string) => void;
+}) {
+  const [items, setItems] = useState(services);
+  const [newService, setNewService] = useState("");
+  const [pending, setPending] = useState(false);
+
+  const addService = async () => {
+    setPending(true);
+    try {
+      const response = await fetch("/api/agent/services", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ serviceName: newService, isEnabled: true }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { service?: AgentService };
+      if (!response.ok || !payload.service) {
+        onError("Service could not be added.");
+        return;
+      }
+      const next = [...items, payload.service];
+      setItems(next);
+      setNewService("");
+      onSaved(next);
+    } catch {
+      onError("Service could not be added.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const updateService = async (serviceId: string, updates: Partial<AgentService>) => {
+    try {
+      const response = await fetch(`/api/agent/services/${serviceId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceName: updates.serviceName,
+          isEnabled: updates.isEnabled,
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { service?: AgentService };
+      if (!response.ok || !payload.service) {
+        onError("Service could not be saved.");
+        return;
+      }
+      const next = items.map((item) => (item.id === serviceId ? payload.service! : item));
+      setItems(next);
+      onSaved(next);
+    } catch {
+      onError("Service could not be saved.");
+    }
+  };
+
+  const removeService = async (serviceId: string) => {
+    try {
+      const response = await fetch(`/api/agent/services/${serviceId}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        onError("Service could not be deleted.");
+        return;
+      }
+      const next = items.filter((item) => item.id !== serviceId);
+      setItems(next);
+      onSaved(next);
+    } catch {
+      onError("Service could not be deleted.");
+    }
+  };
+
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
-      <form action="/api/agent/services" method="POST" className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <Input name="service_name" placeholder="Add service name" required />
-        <Button type="submit">Add service</Button>
-      </form>
+      <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+        <Input value={newService} onChange={(event) => setNewService(event.target.value)} placeholder="Add service name" required />
+        <Button onClick={addService} disabled={pending || !newService.trim()}>{pending ? "Saving..." : "Add service"}</Button>
+      </div>
       <div className="mt-4 grid gap-3">
-        {services.length > 0 ? (
-          services.map((service) => (
-            <form key={service.id} action={`/api/agent/services/${service.id}`} method="POST" className="grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3 sm:grid-cols-[1fr_auto_auto]">
-              <Input name="service_name" defaultValue={service.serviceName} />
+        {items.length > 0 ? (
+          items.map((service) => (
+            <div key={service.id} className="grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3 sm:grid-cols-[1fr_auto_auto]">
+              <Input
+                value={service.serviceName}
+                onChange={(event) =>
+                  setItems((current) =>
+                    current.map((item) =>
+                      item.id === service.id ? { ...item, serviceName: event.target.value } : item
+                    )
+                  )
+                }
+              />
               <label className="flex items-center gap-2 text-[13px] font-semibold">
-                <input type="checkbox" name="is_enabled" defaultChecked={service.isEnabled} />
+                <input
+                  type="checkbox"
+                  checked={service.isEnabled}
+                  onChange={(event) =>
+                    setItems((current) =>
+                      current.map((item) =>
+                        item.id === service.id ? { ...item, isEnabled: event.target.checked } : item
+                      )
+                    )
+                  }
+                />
                 Enabled
               </label>
               <div className="flex gap-2">
-                <Button type="submit" className="h-10">Save</Button>
-                <Button type="submit" name="action" value="delete" variant="outline" className="h-10">
+                <Button onClick={() => updateService(service.id, service)} className="h-10">Save</Button>
+                <Button onClick={() => removeService(service.id)} variant="outline" className="h-10">
                   Delete
                 </Button>
               </div>
-            </form>
+            </div>
           ))
         ) : (
           <EmptyState text="No services on your profile yet." />
@@ -664,24 +924,165 @@ function ChatView({ data }: { data: AgentDashboardData }) {
   );
 }
 
-function ProfileView({ data }: { data: AgentDashboardData }) {
+function ProfileView({
+  agent,
+  onSaved,
+  onError,
+}: {
+  agent: AgentDashboardData["agent"];
+  onSaved: (agent: AgentDashboardData["agent"]) => void;
+  onError: (message: string) => void;
+}) {
+  const [form, setForm] = useState({
+    fullName: agent.fullName,
+    email: agent.email,
+    phone: agent.phone,
+    workingArea: agent.workingArea,
+    notes: agent.notes,
+    password: "",
+  });
+  const [pending, setPending] = useState(false);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState("");
+  const [avatarPending, setAvatarPending] = useState(false);
+
+  const saveProfile = async () => {
+    setPending(true);
+    try {
+      const response = await fetch("/api/agent/me", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          workingArea: form.workingArea,
+          notes: form.notes,
+          password: form.password || undefined,
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        success?: boolean;
+        agent?: AgentDashboardData["agent"];
+        message?: string;
+      };
+      if (!response.ok || !payload.success || !payload.agent) {
+        onError(payload.message || "Profile could not be saved.");
+        return;
+      }
+
+      setForm((current) => ({ ...current, password: "" }));
+      onSaved(payload.agent);
+    } catch {
+      onError("Profile could not be saved.");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  const saveAvatar = async () => {
+    if (!avatarFile) {
+      onError("Please choose an image file first.");
+      return;
+    }
+
+    setAvatarPending(true);
+    try {
+      const formData = new FormData();
+      formData.set("avatar", avatarFile);
+      const response = await fetch("/api/agent/me/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = (await response.json().catch(() => ({}))) as {
+        success?: boolean;
+        agent?: AgentDashboardData["agent"];
+        message?: string;
+      };
+      if (!response.ok || !payload.success || !payload.agent) {
+        onError(payload.message || "Avatar could not be saved.");
+        return;
+      }
+
+      setAvatarFile(null);
+      setAvatarPreview("");
+      onSaved(payload.agent);
+    } catch {
+      onError("Avatar could not be saved.");
+    } finally {
+      setAvatarPending(false);
+    }
+  };
+
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
       <div className="flex items-center gap-3">
-        <AgentAvatar name={data.agent.fullName} avatarUrl={data.agent.avatarUrl} large />
+        <AgentAvatar name={form.fullName} avatarUrl={avatarPreview || agent.avatarUrl} large />
         <div>
-          <h2 className="text-2xl font-bold">{data.agent.fullName}</h2>
-          <p className="text-[13px] font-medium text-[#8E95B5]">{data.agent.email}</p>
+          <h2 className="text-2xl font-bold">{form.fullName}</h2>
+          <p className="text-[13px] font-medium text-[#8E95B5]">{form.email}</p>
         </div>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <Info label="Phone" value={data.agent.phone || "-"} />
-        <Info label="Status" value={data.agent.status} />
-        <Info label="Working area" value={data.agent.workingArea || "-"} />
-        <Info label="Last login" value={data.agent.lastLoginAt || "-"} />
+        <Info label="Phone" value={form.phone || "-"} />
+        <Info label="Status" value={agent.status} />
+        <Info label="Working area" value={form.workingArea || "-"} />
+        <Info label="Last login" value={agent.lastLoginAt || "-"} />
       </div>
-      <div className="mt-4 rounded-2xl border border-white/55 bg-white/55 p-3 text-[13px] font-medium text-[#4B5563]">
-        {data.agent.notes || "No profile notes."}
+      <div className="mt-4 grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Full name">
+            <Input value={form.fullName} onChange={(event) => setForm((current) => ({ ...current, fullName: event.target.value }))} />
+          </Field>
+          <Field label="Email">
+            <Input type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
+          </Field>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Field label="Phone">
+            <Input value={form.phone} onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))} />
+          </Field>
+          <Field label="Working area">
+            <Input value={form.workingArea} onChange={(event) => setForm((current) => ({ ...current, workingArea: event.target.value }))} />
+          </Field>
+        </div>
+        <Field label="New password">
+          <Input type="password" autoComplete="new-password" value={form.password} onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))} />
+        </Field>
+        <Field label="Notes">
+          <Textarea value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} className="min-h-24" />
+        </Field>
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end">
+          <Field label="Avatar">
+            <Input
+              type="file"
+              accept="image/png,image/jpeg,image/webp"
+              onChange={(event) => {
+                const file = event.target.files?.[0] || null;
+                if (file && (!allowedImageTypes.includes(file.type) || file.size > maxAvatarSizeBytes)) {
+                  setAvatarFile(null);
+                  setAvatarPreview("");
+                  onError(
+                    !allowedImageTypes.includes(file.type)
+                      ? "Invalid image file. Use JPG, PNG, or WebP."
+                      : "Image is too large. Maximum size is 2MB."
+                  );
+                  return;
+                }
+                setAvatarFile(file);
+                setAvatarPreview(file ? URL.createObjectURL(file) : "");
+              }}
+            />
+          </Field>
+          <Button onClick={saveAvatar} disabled={avatarPending || !avatarFile} variant="outline">
+            {avatarPending ? "Saving avatar..." : "Save avatar"}
+          </Button>
+        </div>
+        <Button onClick={saveProfile} disabled={pending}>
+          {pending ? "Saving..." : "Save profile"}
+        </Button>
       </div>
     </section>
   );
@@ -734,6 +1135,21 @@ function getAgentStatusTone(status: string) {
     default:
       return "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]";
   }
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="grid gap-1.5 text-[13px] font-medium text-[#1F2340]">
+      <span>{label}</span>
+      {children}
+    </label>
+  );
 }
 
 function Info({ label, value }: { label: string; value: string }) {

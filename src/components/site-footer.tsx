@@ -11,7 +11,7 @@ export function SiteFooter() {
           <div className="max-w-xl">
             <Image
               src="/logo.png"
-              alt="WashMax"
+              alt="Clean Wash"
               width={220}
               height={48}
               className="h-12 w-auto max-w-[14rem] object-contain"
@@ -65,7 +65,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-white/10 pt-6 text-sm text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} WashMax. Alle rettigheder forbeholdes.</p>
+          <p>&copy; {new Date().getFullYear()} Clean Wash. Alle rettigheder forbeholdes.</p>
           <p>Ekstra koersel udenfor daekningsomradet kan udlose et tillaeg pa 250 kr.</p>
         </div>
       </div>

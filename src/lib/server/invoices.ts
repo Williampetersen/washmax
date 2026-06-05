@@ -1,12 +1,18 @@
-import { mkdir } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import path from "node:path";
 import PDFDocument from "pdfkit";
+import { siteConfig } from "@/lib/site";
 import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
+import { getAppUrl } from "@/lib/server/env";
 import { getAgentById, type Agent } from "@/lib/server/agents";
 import { getBookingById, getBookingSettings, type BookingCustomer, type DashboardBooking } from "@/lib/server/bookings";
-import { sendAdminInvoiceNotice, sendCustomerInvoiceEmail } from "@/lib/server/mail";
-import { formatPrice } from "@/lib/shared/booking";
+import { isMailConfigured, sendAdminInvoiceNotice, sendCustomerInvoiceEmail } from "@/lib/server/mail";
+import {
+  formatDateTimeLabel,
+  formatPrice,
+  type BookingSettings,
+  type InvoiceStatus as BookingInvoiceFieldStatus,
+} from "@/lib/shared/booking";
 
 export const bookingLineItemTypes = [
   "original_service",
@@ -17,12 +23,13 @@ export type BookingLineItemType = (typeof bookingLineItemTypes)[number];
 
 export const invoiceStatuses = ["draft", "sent", "paid", "cancelled"] as const;
 export type InvoiceStatus = (typeof invoiceStatuses)[number];
+export type InvoiceActorType = "admin" | "agent" | "system";
 
 type RawLineItem = {
   id: string;
   booking_id: string;
   agent_id: string | null;
-  created_by_type: "admin" | "agent" | "system";
+  created_by_type: InvoiceActorType;
   item_type: BookingLineItemType;
   service_id: string | null;
   description: string;
@@ -48,9 +55,18 @@ type RawInvoice = {
   moms_amount_dkk: number;
   total_incl_moms_dkk: number;
   pdf_url: string | null;
+  pdf_file_name: string | null;
+  pdf_content: Buffer | Uint8Array | null;
+  pdf_content_type: string | null;
+  pdf_size_bytes: number | null;
+  customer_email: string | null;
   sent_to_email: string | null;
+  email_sent: boolean | null;
+  email_sent_at: string | Date | null;
   sent_at: string | Date | null;
   paid_at: string | Date | null;
+  created_by_user_id: string | null;
+  created_by_role: InvoiceActorType | null;
   created_at: string | Date;
   updated_at: string | Date;
 };
@@ -71,7 +87,7 @@ export type BookingLineItem = {
   bookingId: string;
   agentId: string;
   agentName: string;
-  createdByType: "admin" | "agent" | "system";
+  createdByType: InvoiceActorType;
   itemType: BookingLineItemType;
   serviceId: string;
   description: string;
@@ -107,9 +123,16 @@ export type Invoice = {
   momsAmountDkk: number;
   totalInclMomsDkk: number;
   pdfUrl: string;
+  pdfFileName: string;
+  pdfSizeBytes: number;
+  customerEmail: string;
   sentToEmail: string;
+  emailSent: boolean;
+  emailSentAt: string;
   sentAt: string;
   paidAt: string;
+  createdByUserId: string;
+  createdByRole: InvoiceActorType;
   createdAt: string;
   updatedAt: string;
   items: InvoiceItem[];
@@ -133,6 +156,18 @@ export type BookingInvoiceData = {
   invoice: Invoice | null;
 };
 
+export class InvoiceWorkflowError extends Error {
+  statusCode: number;
+  code: string;
+
+  constructor(message: string, statusCode = 400, code = "invoice_error") {
+    super(message);
+    this.name = "InvoiceWorkflowError";
+    this.statusCode = statusCode;
+    this.code = code;
+  }
+}
+
 const createId = (prefix: string) => `${prefix}_${randomBytes(10).toString("hex")}`;
 
 const toDateTimeText = (value: unknown) => {
@@ -143,18 +178,42 @@ const toDateTimeText = (value: unknown) => {
   return String(value ?? "").trim();
 };
 
-const normalizeQuantity = (value: unknown) =>
-  Math.max(1, Math.round(Number(value || 1)));
+const normalizeQuantity = (value: unknown) => Math.max(1, Math.round(Number(value || 1)));
 
-const normalizePrice = (value: unknown) =>
-  Math.max(0, Math.round(Number(value || 0)));
+const normalizePrice = (value: unknown) => Math.max(0, Math.round(Number(value || 0)));
+
+const getInvoiceDownloadUrl = (invoiceId: string) => `/api/invoices/${invoiceId}/download`;
+
+export const buildInvoiceDownloadUrl = getInvoiceDownloadUrl;
+
+const getAbsoluteInvoiceDownloadUrl = (invoiceId: string) => {
+  const appUrl = getAppUrl();
+  const relativeUrl = getInvoiceDownloadUrl(invoiceId);
+  return appUrl ? `${appUrl}${relativeUrl}` : relativeUrl;
+};
+
+const getInvoiceFileName = (invoiceNumber: string) => `clean-wash-invoice-${invoiceNumber}.pdf`;
+
+const normalizeInvoiceCompanyName = (value: string) => {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) {
+    return "Clean Wash";
+  }
+
+  return /washmax/i.test(trimmed) ? "Clean Wash" : trimmed;
+};
 
 const lineItemFromRow = (row: RawLineItem): BookingLineItem => ({
   id: String(row.id ?? ""),
   bookingId: String(row.booking_id ?? ""),
   agentId: String(row.agent_id ?? ""),
   agentName: String(row.agent_full_name ?? ""),
-  createdByType: row.created_by_type === "agent" ? "agent" : row.created_by_type === "admin" ? "admin" : "system",
+  createdByType:
+    row.created_by_type === "agent"
+      ? "agent"
+      : row.created_by_type === "admin"
+        ? "admin"
+        : "system",
   itemType: bookingLineItemTypes.includes(row.item_type) ? row.item_type : "manual_extra_charge",
   serviceId: String(row.service_id ?? ""),
   description: String(row.description ?? ""),
@@ -190,13 +249,33 @@ const invoiceFromRow = (row: RawInvoice, items: InvoiceItem[] = []): Invoice => 
   momsAmountDkk: Number(row.moms_amount_dkk || 0),
   totalInclMomsDkk: Number(row.total_incl_moms_dkk || 0),
   pdfUrl: String(row.pdf_url ?? ""),
+  pdfFileName: String(row.pdf_file_name ?? ""),
+  pdfSizeBytes: Number(row.pdf_size_bytes || 0),
+  customerEmail: String(row.customer_email ?? ""),
   sentToEmail: String(row.sent_to_email ?? ""),
+  emailSent: Boolean(row.email_sent),
+  emailSentAt: toDateTimeText(row.email_sent_at),
   sentAt: toDateTimeText(row.sent_at),
   paidAt: toDateTimeText(row.paid_at),
+  createdByUserId: String(row.created_by_user_id ?? ""),
+  createdByRole:
+    row.created_by_role === "agent"
+      ? "agent"
+      : row.created_by_role === "admin"
+        ? "admin"
+        : "system",
   createdAt: toDateTimeText(row.created_at),
   updatedAt: toDateTimeText(row.updated_at),
   items,
 });
+
+const getStoredPdfBuffer = (row: RawInvoice) => {
+  if (!row.pdf_content) {
+    return null;
+  }
+
+  return Buffer.isBuffer(row.pdf_content) ? row.pdf_content : Buffer.from(row.pdf_content);
+};
 
 export const calculatePriceSummary = (lineItems: BookingLineItem[]): PriceSummary => {
   const originalBookingPriceDkk = lineItems
@@ -238,7 +317,7 @@ const ensureOriginalLineItem = async (bookingId: string) => {
 
   const result = await getBookingById(bookingId);
   if (!result) {
-    throw new Error("Booking was not found.");
+    throw new InvoiceWorkflowError("Booking was not found.", 404, "booking_not_found");
   }
 
   const { booking } = result;
@@ -295,9 +374,36 @@ export const listBookingLineItems = async (bookingId: string) => {
 export const assertAgentOwnsBooking = async (bookingId: string, agentId: string) => {
   const result = await getBookingById(bookingId);
   if (!result || result.booking.assignedAgentId !== agentId) {
-    throw new Error("Booking is not assigned to this agent.");
+    throw new InvoiceWorkflowError("Booking is not assigned to this agent.", 403, "agent_forbidden");
   }
   return result;
+};
+
+const getInvoiceRecordById = async (invoiceId: string) => {
+  await ensureSchema();
+  const sql = getSql();
+  const [row] = await sql<RawInvoice[]>`
+    SELECT *
+    FROM invoices
+    WHERE id = ${invoiceId}
+    LIMIT 1;
+  `;
+
+  if (!row) {
+    return null;
+  }
+
+  const itemRows = await sql<RawInvoiceItem[]>`
+    SELECT *
+    FROM invoice_items
+    WHERE invoice_id = ${invoiceId}
+    ORDER BY created_at ASC;
+  `;
+
+  return {
+    row,
+    items: itemRows.map(invoiceItemFromRow),
+  };
 };
 
 const latestInvoiceForBooking = async (bookingId: string) => {
@@ -319,13 +425,16 @@ const latestInvoiceForBooking = async (bookingId: string) => {
     WHERE invoice_id = ${invoiceRow.id}
     ORDER BY created_at ASC;
   `;
-  return invoiceFromRow(invoiceRow, itemRows.map(invoiceItemFromRow));
+  return {
+    row: invoiceRow,
+    invoice: invoiceFromRow(invoiceRow, itemRows.map(invoiceItemFromRow)),
+  };
 };
 
 const assertEditableLineItems = async (bookingId: string, actorType: "admin" | "agent") => {
-  const invoice = await latestInvoiceForBooking(bookingId);
-  if (actorType === "agent" && invoice && ["sent", "paid"].includes(invoice.status)) {
-    throw new Error("Invoice has already been sent.");
+  const latest = await latestInvoiceForBooking(bookingId);
+  if (actorType === "agent" && latest?.invoice && ["sent", "paid"].includes(latest.invoice.status)) {
+    throw new InvoiceWorkflowError("Invoice has already been sent.", 400, "invoice_locked");
   }
 };
 
@@ -416,7 +525,7 @@ export const updateBookingLineItem = async (
   `;
 
   if (!row) {
-    throw new Error("Line item was not found or is locked.");
+    throw new InvoiceWorkflowError("Line item was not found or is locked.", 404, "line_item_missing");
   }
 
   return lineItemFromRow(row);
@@ -455,6 +564,30 @@ const getNextInvoiceNumber = async () => {
   return `CW-${year}-${(last + 1).toString().padStart(6, "0")}`;
 };
 
+const getBookingInvoiceFieldStatus = (status: InvoiceStatus): BookingInvoiceFieldStatus => {
+  switch (status) {
+    case "sent":
+      return "sent";
+    case "paid":
+      return "paid";
+    default:
+      return "ready";
+  }
+};
+
+const syncBookingInvoiceFields = async (invoice: Invoice) => {
+  const sql = getSql();
+  await sql`
+    UPDATE bookings
+    SET
+      invoice_requested = true,
+      invoice_status = ${getBookingInvoiceFieldStatus(invoice.status)},
+      invoice_number = ${invoice.invoiceNumber},
+      updated_at = NOW()
+    WHERE id = ${invoice.bookingId};
+  `;
+};
+
 const drawRow = (
   doc: PDFKit.PDFDocument,
   y: number,
@@ -465,77 +598,109 @@ const drawRow = (
   }
 };
 
-const renderInvoicePdf = async (data: BookingInvoiceData, invoice: Invoice) =>
+const getCompanyDetails = (settings: BookingSettings) => ({
+  name: normalizeInvoiceCompanyName(String(settings.companyName || siteConfig.name || "Clean Wash")),
+  address: "",
+  cvr: "",
+  phone: siteConfig.phoneDisplay,
+  email: String(settings.supportEmail || siteConfig.email || "").trim(),
+  website: String(getAppUrl(siteConfig.url) || "").trim(),
+});
+
+const renderInvoicePdf = async (
+  data: BookingInvoiceData,
+  invoice: Invoice,
+  settings: BookingSettings
+) =>
   new Promise<Buffer>((resolve, reject) => {
     const doc = new PDFDocument({ margin: 44, size: "A4" });
     const chunks: Buffer[] = [];
+    const company = getCompanyDetails(settings);
+    const logoPath = path.join(process.cwd(), "public", "logo.png");
+    const createdAtLabel = new Date(invoice.createdAt || Date.now()).toLocaleDateString("da-DK");
+    const customerName =
+      [data.customer.firstName, data.customer.lastName].filter(Boolean).join(" ") ||
+      data.customer.company ||
+      data.customer.email;
+    const customerAddress = [
+      data.customer.address,
+      [data.customer.postalCode, data.customer.city].filter(Boolean).join(" "),
+    ]
+      .filter(Boolean)
+      .join(", ");
+    const bookingService = [data.booking.packageLabel, data.booking.category]
+      .filter(Boolean)
+      .join(" - ");
+    const addOnText = data.booking.addons.length
+      ? data.booking.addons.map((item) => item.label).join(", ")
+      : "Ingen tilvalg";
+
     doc.on("data", (chunk: Buffer) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
     doc.on("error", reject);
 
-    const logoPath = path.join(process.cwd(), "public", "logo.png");
     try {
-      doc.image(logoPath, 44, 38, { width: 82 });
+      doc.image(logoPath, 44, 34, { width: 96 });
     } catch {
-      doc.fontSize(18).fillColor("#1F2340").text("WashMax", 44, 44);
+      doc.fontSize(22).fillColor("#123D52").text("Clean Wash", 44, 44);
     }
 
     doc
-      .fillColor("#1F2340")
+      .fillColor("#123D52")
       .fontSize(24)
-      .text("Invoice", 380, 44, { align: "right" })
+      .text("Invoice", 380, 42, { align: "right" })
       .fontSize(11)
-      .fillColor("#4B5563")
+      .fillColor("#4D6470")
       .text(invoice.invoiceNumber, 380, 74, { align: "right" })
-      .text(new Date(invoice.createdAt || Date.now()).toLocaleDateString("da-DK"), 380, 90, { align: "right" });
+      .text(createdAtLabel, 380, 90, { align: "right" });
 
     const companyRows = [
-      process.env.COMPANY_NAME || "WashMax / CleanWash",
-      process.env.COMPANY_ADDRESS || "",
-      process.env.COMPANY_CVR ? `CVR: ${process.env.COMPANY_CVR}` : "",
-      process.env.COMPANY_PHONE || "",
-      process.env.COMPANY_EMAIL || process.env.SMTP_USER || "",
-      process.env.COMPANY_WEBSITE || "",
+      company.name,
+      company.address,
+      company.cvr ? `CVR: ${company.cvr}` : "",
+      company.phone,
+      company.email,
+      company.website,
     ].filter(Boolean);
     doc
       .fontSize(10)
-      .fillColor("#4B5563")
-      .text(companyRows.join("\n"), 44, 124, { width: 230, lineGap: 3 });
+      .fillColor("#4D6470")
+      .text(companyRows.join("\n"), 44, 126, { width: 240, lineGap: 3 });
 
-    const customerName =
-      [data.customer.firstName, data.customer.lastName].filter(Boolean).join(" ") ||
-      data.customer.email;
     const customerRows = [
       customerName,
       data.customer.email,
       data.customer.phone,
-      [data.customer.address, [data.customer.postalCode, data.customer.city].filter(Boolean).join(" ")].filter(Boolean).join(", "),
+      customerAddress,
     ].filter(Boolean);
     doc
       .fontSize(10)
-      .fillColor("#4B5563")
-      .text("Bill to", 330, 124, { width: 180 })
+      .fillColor("#4D6470")
+      .text("Bill to", 330, 126, { width: 180 })
       .fontSize(11)
-      .fillColor("#1F2340")
-      .text(customerRows.join("\n"), 330, 144, { width: 180, lineGap: 3 });
+      .fillColor("#123D52")
+      .text(customerRows.join("\n"), 330, 146, { width: 180, lineGap: 3 });
 
     const bookingRows = [
-      `Booking: ${data.booking.id}`,
-      `Tid: ${data.booking.appointmentLabel}`,
-      `Bil: ${data.booking.vehicleName} (${data.booking.registrationNumber})`,
-      `Agent: ${data.agent?.fullName || "-"}`,
-      `Betaling: ${data.booking.paymentStatus}`,
+      `Booking ID: ${data.booking.id}`,
+      `Appointment: ${data.booking.appointmentLabel || formatDateTimeLabel(data.booking.appointmentDate, data.booking.appointmentTime)}`,
+      `Service: ${bookingService || "Clean Wash service"}`,
+      `Add-ons: ${addOnText}`,
+      `Vehicle: ${[data.booking.vehicleName, data.booking.registrationNumber].filter(Boolean).join(" | ") || "-"}`,
+      `Payment status: ${data.booking.paymentStatus || "-"}`,
     ];
     doc
+      .roundedRect(44, 228, 507, 82, 12)
+      .fill("#F4F9FB")
+      .fillColor("#123D52")
       .fontSize(10)
-      .fillColor("#4B5563")
-      .text(bookingRows.join("\n"), 44, 220, { lineGap: 3 });
+      .text(bookingRows.join("\n"), 58, 242, { width: 478, lineGap: 4 });
 
-    const tableTop = 302;
+    const tableTop = 342;
     doc
       .roundedRect(44, tableTop - 10, 507, 24, 8)
-      .fill("#EEF0FF")
-      .fillColor("#1F2340")
+      .fill("#E7F3F8")
+      .fillColor("#123D52")
       .fontSize(9);
     drawRow(doc, tableTop - 3, [
       ["Description", 56, 240],
@@ -550,7 +715,8 @@ const renderInvoicePdf = async (data: BookingInvoiceData, invoice: Invoice) =>
         doc.addPage();
         y = 54;
       }
-      doc.fillColor("#1F2340").fontSize(9);
+
+      doc.fillColor("#123D52").fontSize(9);
       drawRow(doc, y, [
         [item.description, 56, 240],
         [item.quantity.toString(), 318, 40, "right"],
@@ -560,56 +726,91 @@ const renderInvoicePdf = async (data: BookingInvoiceData, invoice: Invoice) =>
       y += 26;
     }
 
-    y += 18;
+    const totalsTop = Math.max(y + 16, 640);
     doc
-      .moveTo(330, y - 8)
-      .lineTo(550, y - 8)
-      .strokeColor("#DDE3F5")
-      .stroke();
+      .roundedRect(330, totalsTop, 221, 86, 12)
+      .fill("#F4F9FB");
     const totals: Array<[string, number]> = [
       ["Subtotal ex. moms", invoice.subtotalExMomsDkk],
-      ["Moms 25% included", invoice.momsAmountDkk],
+      ["Moms 25%", invoice.momsAmountDkk],
       ["Total incl. moms", invoice.totalInclMomsDkk],
     ];
+    let totalY = totalsTop + 16;
     for (const [label, value] of totals) {
+      const strong = label.startsWith("Total");
       doc
-        .fillColor(label.startsWith("Total") ? "#1F2340" : "#4B5563")
-        .fontSize(label.startsWith("Total") ? 12 : 10)
-        .text(label, 330, y, { width: 120 })
-        .text(formatPrice(value), 450, y, { width: 100, align: "right" });
-      y += 22;
+        .fillColor(strong ? "#123D52" : "#4D6470")
+        .fontSize(strong ? 12 : 10)
+        .text(label, 346, totalY, { width: 118 })
+        .text(formatPrice(value), 445, totalY, { width: 90, align: "right" });
+      totalY += 22;
     }
 
+    const footerTop = Math.max(totalY + 20, 748);
     doc
-      .fontSize(10)
-      .fillColor("#4B5563")
+      .moveTo(44, footerTop - 10)
+      .lineTo(551, footerTop - 10)
+      .strokeColor("#D7E8EF")
+      .stroke();
+    doc
+      .fontSize(9)
+      .fillColor("#4D6470")
       .text(
-        process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-          "Payment instructions: Please pay according to the agreement with WashMax. Thank you for your booking.",
+        [
+          "Payment instructions:",
+          "Please pay according to your agreement with Clean Wash.",
+          [company.name, company.phone, company.email].filter(Boolean).join(" | "),
+        ].join(" "),
         44,
-        Math.max(y + 18, 690),
+        footerTop,
         { width: 507, lineGap: 3 }
       );
 
     doc.end();
   });
 
-const writeInvoicePdf = async (data: BookingInvoiceData, invoice: Invoice) => {
-  const output = await renderInvoicePdf(data, invoice);
-  const relativeDir = "/uploads/invoices";
-  const publicDir = path.join(process.cwd(), "public", "uploads", "invoices");
-  await mkdir(publicDir, { recursive: true });
-  const fileName = `${invoice.invoiceNumber}.pdf`;
-  const filePath = path.join(publicDir, fileName);
-  await import("node:fs/promises").then(({ writeFile }) => writeFile(filePath, output));
-  return { pdfUrl: `${relativeDir}/${fileName}`, filePath };
+const persistInvoicePdf = async (
+  invoiceId: string,
+  invoiceNumber: string,
+  pdfBuffer: Buffer
+) => {
+  const sql = getSql();
+  const fileName = getInvoiceFileName(invoiceNumber);
+  const [updated] = await sql<RawInvoice[]>`
+    UPDATE invoices
+    SET
+      pdf_url = ${getInvoiceDownloadUrl(invoiceId)},
+      pdf_file_name = ${fileName},
+      pdf_content = ${pdfBuffer},
+      pdf_content_type = 'application/pdf',
+      pdf_size_bytes = ${pdfBuffer.byteLength},
+      updated_at = NOW()
+    WHERE id = ${invoiceId}
+    RETURNING *;
+  `;
+
+  return updated;
+};
+
+const renderAndStoreInvoicePdf = async (
+  data: BookingInvoiceData,
+  invoice: Invoice,
+  settings: BookingSettings
+) => {
+  const pdfBuffer = await renderInvoicePdf(data, invoice, settings);
+  const updated = await persistInvoicePdf(invoice.id, invoice.invoiceNumber, pdfBuffer);
+  return {
+    row: updated,
+    buffer: pdfBuffer,
+    invoice: invoiceFromRow(updated, invoice.items),
+  };
 };
 
 export const getBookingInvoiceData = async (bookingId: string): Promise<BookingInvoiceData | null> => {
   const result = await getBookingById(bookingId);
   if (!result) return null;
   const lineItems = await listBookingLineItems(bookingId);
-  const invoice = await latestInvoiceForBooking(bookingId);
+  const latest = await latestInvoiceForBooking(bookingId);
   const agent = result.booking.assignedAgentId
     ? await getAgentById(result.booking.assignedAgentId)
     : null;
@@ -620,7 +821,33 @@ export const getBookingInvoiceData = async (bookingId: string): Promise<BookingI
     agent,
     lineItems,
     summary: calculatePriceSummary(lineItems),
-    invoice,
+    invoice: latest?.invoice ?? null,
+  };
+};
+
+const ensureInvoicePdfStored = async (data: BookingInvoiceData, invoice: Invoice) => {
+  const record = await getInvoiceRecordById(invoice.id);
+  if (!record) {
+    throw new InvoiceWorkflowError("Invoice was not found.", 404, "invoice_not_found");
+  }
+
+  const existingBuffer = getStoredPdfBuffer(record.row);
+  if (existingBuffer && invoice.pdfUrl) {
+    return {
+      invoice: invoiceFromRow(record.row, record.items),
+      buffer: existingBuffer,
+    };
+  }
+
+  const settings = await getBookingSettings();
+  const rendered = await renderAndStoreInvoicePdf(
+    { ...data, invoice: { ...invoice, items: record.items } },
+    { ...invoice, items: record.items },
+    settings
+  );
+  return {
+    invoice: rendered.invoice,
+    buffer: rendered.buffer,
   };
 };
 
@@ -628,6 +855,7 @@ export const generateInvoiceForBooking = async (input: {
   bookingId: string;
   actorType: "admin" | "agent";
   agentId?: string;
+  createdByUserId?: string;
 }) => {
   await ensureSchema();
   if (input.actorType === "agent") {
@@ -636,16 +864,25 @@ export const generateInvoiceForBooking = async (input: {
 
   const data = await getBookingInvoiceData(input.bookingId);
   if (!data) {
-    throw new Error("Booking was not found.");
+    throw new InvoiceWorkflowError("Booking was not found.", 404, "booking_not_found");
   }
 
   const sql = getSql();
-  let invoice = data.invoice;
+  const summary = data.summary;
+  const loadedSettings = await getBookingSettings();
+  const settings = {
+    ...loadedSettings,
+    companyName: normalizeInvoiceCompanyName(loadedSettings.companyName),
+  };
+  const latest = data.invoice ? await latestInvoiceForBooking(input.bookingId) : null;
+  let invoice = latest?.invoice ?? data.invoice;
+
   if (invoice && invoice.status !== "draft") {
-    return { invoice, data };
+    const ensured = await ensureInvoicePdfStored(data, invoice);
+    await syncBookingInvoiceFields(ensured.invoice);
+    return { invoice: ensured.invoice, data: { ...data, invoice: ensured.invoice } };
   }
 
-  const summary = data.summary;
   if (!invoice) {
     const [row] = await sql<RawInvoice[]>`
       INSERT INTO invoices (
@@ -659,7 +896,10 @@ export const generateInvoiceForBooking = async (input: {
         subtotal_ex_moms_dkk,
         moms_amount_dkk,
         total_incl_moms_dkk,
-        sent_to_email
+        customer_email,
+        sent_to_email,
+        created_by_user_id,
+        created_by_role
       )
       VALUES (
         ${createId("inv")},
@@ -672,7 +912,10 @@ export const generateInvoiceForBooking = async (input: {
         ${summary.subtotalExMomsDkk},
         ${summary.momsAmountDkk},
         ${summary.totalInclMomsDkk},
-        ${data.customer.email}
+        ${data.customer.email},
+        ${data.customer.email},
+        ${input.createdByUserId || null},
+        ${input.actorType}
       )
       RETURNING *;
     `;
@@ -685,7 +928,10 @@ export const generateInvoiceForBooking = async (input: {
         moms_amount_dkk = ${summary.momsAmountDkk},
         total_incl_moms_dkk = ${summary.totalInclMomsDkk},
         agent_id = ${input.agentId || data.booking.assignedAgentId || null},
+        customer_email = ${data.customer.email},
         sent_to_email = ${data.customer.email},
+        created_by_user_id = ${input.createdByUserId || null},
+        created_by_role = ${input.actorType},
         updated_at = NOW()
       WHERE id = ${invoice.id}
       RETURNING *;
@@ -725,71 +971,161 @@ export const generateInvoiceForBooking = async (input: {
   `).map(invoiceItemFromRow);
   invoice = { ...invoice, items: invoiceItems };
 
-  const { pdfUrl } = await writeInvoicePdf({ ...data, invoice }, invoice);
-  const [updated] = await sql<RawInvoice[]>`
+  const rendered = await renderAndStoreInvoicePdf({ ...data, invoice }, invoice, settings);
+  await syncBookingInvoiceFields(rendered.invoice);
+
+  return { invoice: rendered.invoice, data: { ...data, invoice: rendered.invoice } };
+};
+
+const sendInvoiceMail = async (input: {
+  invoice: Invoice;
+  data: BookingInvoiceData;
+  pdfBuffer: Buffer;
+  actorName: string;
+  notifyAdmin: boolean;
+}) => {
+  if (!input.data.customer.email) {
+    throw new InvoiceWorkflowError("Customer email is missing.", 400, "customer_email_missing");
+  }
+
+  if (!isMailConfigured()) {
+    console.error("Invoice email could not be sent because SMTP configuration is incomplete.");
+    throw new InvoiceWorkflowError(
+      "Invoice email is not configured on the server.",
+      500,
+      "smtp_not_configured"
+    );
+  }
+
+  const loadedSettings = await getBookingSettings();
+  const settings = {
+    ...loadedSettings,
+    companyName: normalizeInvoiceCompanyName(loadedSettings.companyName),
+  };
+  const customerName =
+    [input.data.customer.firstName, input.data.customer.lastName].filter(Boolean).join(" ") ||
+    input.data.customer.email;
+  if (!getAppUrl()) {
+    console.warn("APP_URL is missing. Invoice emails will use a relative fallback invoice link.");
+  }
+  const invoiceUrl = getAbsoluteInvoiceDownloadUrl(input.invoice.id);
+  const sendStatus = await sendCustomerInvoiceEmail({
+    bookingId: input.data.booking.id,
+    customerId: input.data.customer.id,
+    customerName,
+    customerEmail: input.data.customer.email,
+    invoiceNumber: input.invoice.invoiceNumber,
+    totalInclMomsDkk: input.invoice.totalInclMomsDkk,
+    appointmentLabel:
+      input.data.booking.appointmentLabel ||
+      formatDateTimeLabel(input.data.booking.appointmentDate, input.data.booking.appointmentTime),
+    invoiceUrl,
+    pdfBuffer: input.pdfBuffer,
+    settings,
+  });
+
+  if (sendStatus !== "sent") {
+    throw new InvoiceWorkflowError(
+      "Invoice email could not be sent.",
+      500,
+      "invoice_email_not_sent"
+    );
+  }
+
+  const sql = getSql();
+  const [row] = await sql<RawInvoice[]>`
     UPDATE invoices
-    SET pdf_url = ${pdfUrl}, updated_at = NOW()
-    WHERE id = ${invoice.id}
+    SET
+      status = CASE WHEN status = 'draft' THEN 'sent' ELSE status END,
+      customer_email = ${input.data.customer.email},
+      sent_to_email = ${input.data.customer.email},
+      email_sent = true,
+      email_sent_at = NOW(),
+      sent_at = COALESCE(sent_at, NOW()),
+      updated_at = NOW()
+    WHERE id = ${input.invoice.id}
     RETURNING *;
   `;
-  invoice = invoiceFromRow(updated, invoiceItems);
 
-  return { invoice, data: { ...data, invoice } };
+  await sql`
+    UPDATE booking_line_items
+    SET locked_at = COALESCE(locked_at, NOW()), updated_at = NOW()
+    WHERE booking_id = ${input.data.booking.id};
+  `;
+
+  const sentInvoice = invoiceFromRow(row, input.invoice.items);
+  await syncBookingInvoiceFields(sentInvoice);
+
+  if (input.notifyAdmin) {
+    await sendAdminInvoiceNotice({
+      bookingId: input.data.booking.id,
+      agentName: input.actorName,
+      invoiceNumber: sentInvoice.invoiceNumber,
+      totalInclMomsDkk: sentInvoice.totalInclMomsDkk,
+      settings,
+    });
+  }
+
+  return sentInvoice;
 };
 
 export const sendInvoiceForBooking = async (input: {
   bookingId: string;
   actorType: "admin" | "agent";
   agentId?: string;
+  createdByUserId?: string;
 }) => {
   const generated = await generateInvoiceForBooking(input);
-  const { invoice, data } = generated;
-  const settings = await getBookingSettings();
-  const pdfPath = invoice.pdfUrl
-    ? path.join(process.cwd(), "public", invoice.pdfUrl.replace(/^\//, ""))
-    : "";
-  const customerName =
-    [data.customer.firstName, data.customer.lastName].filter(Boolean).join(" ") ||
-    data.customer.email;
-
-  const sendStatus = await sendCustomerInvoiceEmail({
-    bookingId: data.booking.id,
-    customerId: data.customer.id,
-    customerName,
-    customerEmail: data.customer.email,
-    invoiceNumber: invoice.invoiceNumber,
-    totalInclMomsDkk: invoice.totalInclMomsDkk,
-    pdfPath,
-    settings,
+  const ensured = await ensureInvoicePdfStored(generated.data, generated.invoice);
+  const sentInvoice = await sendInvoiceMail({
+    invoice: ensured.invoice,
+    data: generated.data,
+    pdfBuffer: ensured.buffer,
+    actorName: generated.data.agent?.fullName || (input.actorType === "agent" ? "Agent" : "Admin"),
+    notifyAdmin: true,
   });
 
-  if (sendStatus !== "sent") {
-    return { invoice, sent: false, data };
+  return {
+    invoice: sentInvoice,
+    sent: true,
+    data: { ...generated.data, invoice: sentInvoice },
+  };
+};
+
+export const resendInvoiceById = async (input: {
+  invoiceId: string;
+  actorType: "admin" | "agent";
+  agentId?: string;
+}) => {
+  const record = await getInvoiceRecordById(input.invoiceId);
+  if (!record) {
+    throw new InvoiceWorkflowError("Invoice was not found.", 404, "invoice_not_found");
   }
 
-  const sql = getSql();
-  const [row] = await sql<RawInvoice[]>`
-    UPDATE invoices
-    SET status = 'sent', sent_at = NOW(), sent_to_email = ${data.customer.email}, updated_at = NOW()
-    WHERE id = ${invoice.id}
-    RETURNING *;
-  `;
-  await sql`
-    UPDATE booking_line_items
-    SET locked_at = COALESCE(locked_at, NOW()), updated_at = NOW()
-    WHERE booking_id = ${input.bookingId};
-  `;
+  const invoice = invoiceFromRow(record.row, record.items);
+  if (input.actorType === "agent") {
+    await assertAgentOwnsBooking(invoice.bookingId, input.agentId || "");
+  }
 
-  const sentInvoice = invoiceFromRow(row, invoice.items);
-  await sendAdminInvoiceNotice({
-    bookingId: data.booking.id,
-    agentName: data.agent?.fullName || "Admin",
-    invoiceNumber: sentInvoice.invoiceNumber,
-    totalInclMomsDkk: sentInvoice.totalInclMomsDkk,
-    settings,
+  const data = await getBookingInvoiceData(invoice.bookingId);
+  if (!data) {
+    throw new InvoiceWorkflowError("Booking was not found.", 404, "booking_not_found");
+  }
+
+  const ensured = await ensureInvoicePdfStored(data, invoice);
+  const resentInvoice = await sendInvoiceMail({
+    invoice: ensured.invoice,
+    data,
+    pdfBuffer: ensured.buffer,
+    actorName: data.agent?.fullName || (input.actorType === "agent" ? "Agent" : "Admin"),
+    notifyAdmin: false,
   });
 
-  return { invoice: sentInvoice, sent: true, data: { ...data, invoice: sentInvoice } };
+  return {
+    invoice: resentInvoice,
+    sent: true,
+    data: { ...data, invoice: resentInvoice },
+  };
 };
 
 export const listInvoices = async () => {
@@ -804,24 +1140,44 @@ export const listInvoices = async () => {
   return rows.map((row) => invoiceFromRow(row));
 };
 
-export const getInvoiceById = async (invoiceId: string) => {
-  if (!isDatabaseConfigured()) return null;
+export const listInvoicesForCustomer = async (customerId: string) => {
+  if (!isDatabaseConfigured()) return [];
   await ensureSchema();
   const sql = getSql();
-  const [row] = await sql<RawInvoice[]>`
+  const rows = await sql<RawInvoice[]>`
     SELECT *
     FROM invoices
-    WHERE id = ${invoiceId}
-    LIMIT 1;
+    WHERE customer_id = ${customerId}
+    ORDER BY created_at DESC;
   `;
-  if (!row) return null;
-  const itemRows = await sql<RawInvoiceItem[]>`
-    SELECT *
-    FROM invoice_items
-    WHERE invoice_id = ${invoiceId}
-    ORDER BY created_at ASC;
-  `;
-  return invoiceFromRow(row, itemRows.map(invoiceItemFromRow));
+  return rows.map((row) => invoiceFromRow(row));
+};
+
+export const getInvoiceById = async (invoiceId: string) => {
+  if (!isDatabaseConfigured()) return null;
+  const record = await getInvoiceRecordById(invoiceId);
+  return record ? invoiceFromRow(record.row, record.items) : null;
+};
+
+export const getInvoicePdfForDownload = async (invoiceId: string) => {
+  const record = await getInvoiceRecordById(invoiceId);
+  if (!record) {
+    return null;
+  }
+
+  const invoice = invoiceFromRow(record.row, record.items);
+  const data = await getBookingInvoiceData(invoice.bookingId);
+  if (!data) {
+    throw new InvoiceWorkflowError("Booking was not found.", 404, "booking_not_found");
+  }
+
+  const ensured = await ensureInvoicePdfStored(data, invoice);
+  return {
+    invoice: ensured.invoice,
+    fileName: ensured.invoice.pdfFileName || getInvoiceFileName(ensured.invoice.invoiceNumber),
+    contentType: "application/pdf",
+    buffer: ensured.buffer,
+  };
 };
 
 export const updateInvoiceStatus = async (invoiceId: string, status: InvoiceStatus) => {
@@ -836,5 +1192,18 @@ export const updateInvoiceStatus = async (invoiceId: string, status: InvoiceStat
     WHERE id = ${invoiceId}
     RETURNING *;
   `;
-  return row ? invoiceFromRow(row) : null;
+
+  if (!row) {
+    return null;
+  }
+
+  const itemRows = await sql<RawInvoiceItem[]>`
+    SELECT *
+    FROM invoice_items
+    WHERE invoice_id = ${invoiceId}
+    ORDER BY created_at ASC;
+  `;
+  const invoice = invoiceFromRow(row, itemRows.map(invoiceItemFromRow));
+  await syncBookingInvoiceFields(invoice);
+  return invoice;
 };

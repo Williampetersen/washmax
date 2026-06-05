@@ -109,7 +109,7 @@ export default function HomePage() {
             <h2 className="mt-5 section-title">Den rigtige kategori uden gaetteri.</h2>
             <p className="mt-5 support-copy">
               Nummerpladen bruges til at finde biltype og totalvaegt. Derfor kan
-              WashMax vise den rigtige pris, for kunden gar videre i bookingflowet.
+              Clean Wash vise den rigtige pris, for kunden gar videre i bookingflowet.
             </p>
           </div>
 
@@ -140,7 +140,7 @@ export default function HomePage() {
       <section className="mx-auto mt-10 max-w-7xl">
         <div className="rounded-lg bg-[#0d1f19] px-6 py-8 text-white shadow-[0_24px_70px_rgba(8,27,21,0.2)] sm:px-8 lg:flex lg:items-center lg:justify-between lg:gap-8">
           <div>
-            <p className="text-sm font-semibold uppercase text-[#88ddc2]">WashMax</p>
+            <p className="text-sm font-semibold uppercase text-[#88ddc2]">Clean Wash</p>
             <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">
               Klar til en renere bil uden turen til vaskehallen?
             </h2>

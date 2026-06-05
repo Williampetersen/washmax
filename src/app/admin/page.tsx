@@ -32,7 +32,13 @@ import {
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { getAdminAgentsData } from "@/lib/server/agents";
 import { getBookingSetupData } from "@/lib/server/booking-setup";
-import { getBookingInvoiceData, type BookingInvoiceData, type BookingLineItem } from "@/lib/server/invoices";
+import {
+  getBookingInvoiceData,
+  listInvoices,
+  type BookingInvoiceData,
+  type BookingLineItem,
+  type Invoice,
+} from "@/lib/server/invoices";
 import {
   getAdminDashboardData,
   type BookingEmailLog,
@@ -41,6 +47,12 @@ import {
   type DashboardData,
 } from "@/lib/server/bookings";
 import { isDatabaseConfigured } from "@/lib/server/db";
+import { getServerEnvironmentSummary } from "@/lib/server/env";
+import {
+  getCachedAdminAgentsData,
+  getCachedAdminDashboardData,
+  getCachedBookingSetupData,
+} from "@/lib/server/cache-tags";
 import {
   formatPrice,
   formatShortPrice,
@@ -60,6 +72,7 @@ import {
   type BookingStatus,
 } from "@/lib/shared/booking";
 import { Button } from "@/components/ui/button";
+import { InvoiceWorkflowButton } from "@/components/invoices/invoice-workflow-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { AdminCalendarPanel } from "@/components/admin/admin-calendar";
@@ -73,7 +86,7 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Admin",
-  description: "WashMax admin dashboard.",
+  description: "Clean Wash admin dashboard.",
   alternates: {
     canonical: "/admin",
   },
@@ -214,9 +227,11 @@ export default async function AdminPage({
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
   const searchQuery = Array.isArray(params.q) ? params.q[0] || "" : params.q || "";
-  const dashboard = await getAdminDashboardData();
-  const agentsData = view === "agents" ? await getAdminAgentsData() : undefined;
-  const bookingSetupData = view === "booking-setup" ? await getBookingSetupData() : undefined;
+  const envSummary = getServerEnvironmentSummary();
+  const dashboard = await getCachedAdminDashboardData();
+  const agentsData = view === "agents" ? await getCachedAdminAgentsData() : undefined;
+  const bookingSetupData =
+    view === "booking-setup" ? await getCachedBookingSetupData() : undefined;
   const hasDatabase = isDatabaseConfigured();
   const bookingInvoiceDataEntries =
     view === "bookings" && hasDatabase
@@ -232,6 +247,14 @@ export default async function AdminPage({
       bookingInvoiceDataById[bookingId] = invoiceData;
     }
   }
+  const customerInvoices =
+    view === "customers" && hasDatabase ? await listInvoices() : [];
+  const invoicesByCustomerId = customerInvoices.reduce<Map<string, Invoice[]>>((map, invoice) => {
+    const list = map.get(invoice.customerId) || [];
+    list.push(invoice);
+    map.set(invoice.customerId, list);
+    return map;
+  }, new Map());
   const today = getTodayDateText();
   const timeSlots = getTimeSlots(dashboard.settings);
   const upcomingBookings = [...dashboard.bookings]
@@ -256,7 +279,12 @@ export default async function AdminPage({
     list.sort(sortBookings);
   }
   const statusMessage = statusMessages[saved] || "";
-  const errorMessage = error === "action" ? "Handlingen kunne ikke gennemføres." : "";
+  const errorMessage =
+    error === "action"
+      ? "Handlingen kunne ikke gennemfoeres."
+      : error === "mail"
+        ? "Mailen kunne ikke sendes. Tjek SMTP-opsaetningen."
+        : "";
 
   return (
     <AdminShellLayout>
@@ -360,6 +388,7 @@ export default async function AdminPage({
               <CustomersView
                 customers={dashboard.customers}
                 bookingsByCustomer={bookingsByCustomer}
+                invoicesByCustomerId={invoicesByCustomerId}
               />
             ) : null}
 
@@ -378,7 +407,11 @@ export default async function AdminPage({
             ) : null}
 
             {view === "emails" ? (
-              <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs.slice(0, 30)} />
+              <EmailsView
+                dashboard={dashboard}
+                recentEmails={dashboard.emailLogs.slice(0, 30)}
+                envSummary={envSummary}
+              />
             ) : null}
 
             {view === "areas" ? <AreasView dashboard={dashboard} /> : null}
@@ -388,7 +421,7 @@ export default async function AdminPage({
             ) : null}
 
             {view === "settings" ? (
-              <SettingsView dashboard={dashboard} smtpConfigured={Boolean(process.env.SMTP_HOST)} />
+              <SettingsView dashboard={dashboard} envSummary={envSummary} />
             ) : null}
           </div>
         </div>
@@ -1082,7 +1115,7 @@ function AdminOverviewDashboard({
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e9e6ff] text-lg font-semibold text-[#6257e8]">
             WM
           </div>
-          <p className="mt-3 font-semibold text-[#211955]">WashMax Admin</p>
+          <p className="mt-3 font-semibold text-[#211955]">Clean Wash Admin</p>
           <p className="mt-1 text-xs text-[#8b85aa]">{dashboard.settings.supportEmail}</p>
         </div>
 
@@ -1226,7 +1259,7 @@ function GlassCalendarPanel({
                 {monthName}
               </p>
               <p className="mt-3 max-w-xl text-sm leading-6 text-[#817b9f]">
-                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra WashMax.
+                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra Clean Wash.
               </p>
             </div>
 
@@ -1648,9 +1681,11 @@ function BookingsView({
 function CustomersView({
   customers,
   bookingsByCustomer,
+  invoicesByCustomerId,
 }: {
   customers: CustomerSummary[];
   bookingsByCustomer: Map<string, DashboardBooking[]>;
+  invoicesByCustomerId: Map<string, Invoice[]>;
 }) {
   const visibleCustomers = customers.slice(0, INITIAL_CUSTOMER_LIMIT);
 
@@ -1696,6 +1731,7 @@ function CustomersView({
                 key={customer.id}
                 customer={customer}
                 bookings={bookingsByCustomer.get(customer.id) || []}
+                invoices={invoicesByCustomerId.get(customer.id) || []}
               />
             ))
           ) : (
@@ -2083,9 +2119,11 @@ function AvailabilityView({
 function EmailsView({
   dashboard,
   recentEmails,
+  envSummary,
 }: {
   dashboard: DashboardData;
   recentEmails: BookingEmailLog[];
+  envSummary: ReturnType<typeof getServerEnvironmentSummary>;
 }) {
   return (
     <div className="space-y-8">
@@ -2194,21 +2232,38 @@ function EmailsView({
             <div className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
               <p className="flex items-center justify-between gap-4">
                 <span>SMTP host</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_HOST || "Ikke sat"}</strong>
+                <strong className="text-[var(--ink)]">
+                  {envSummary.smtpConfigured || !envSummary.missingMail.includes("SMTP_HOST")
+                    ? "Sat"
+                    : "Mangler"}
+                </strong>
               </p>
               <p className="flex items-center justify-between gap-4">
-                <span>SMTP user</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_USER || "Ikke sat"}</strong>
+                <span>SMTP auth</span>
+                <strong className="text-[var(--ink)]">
+                  {envSummary.missingMail.some((name) =>
+                    ["SMTP_USER", "SMTP_PASSWORD"].includes(name)
+                  )
+                    ? "Mangler"
+                    : "Sat"}
+                </strong>
               </p>
               <p className="flex items-center justify-between gap-4">
                 <span>Mail from</span>
-                <strong className="text-[var(--ink)]">{process.env.MAIL_FROM || "Ikke sat"}</strong>
+                <strong className="text-[var(--ink)]">
+                  {envSummary.mailFromConfigured ? "Sat" : "Bruger SMTP_USER som fallback"}
+                </strong>
               </p>
               <p className="flex items-center justify-between gap-4">
                 <span>Support e-mail</span>
                 <strong className="text-[var(--ink)]">{dashboard.settings.supportEmail}</strong>
               </p>
             </div>
+            {envSummary.missingMail.length > 0 ? (
+              <p className="mt-4 rounded-2xl bg-[#fff7e8] px-4 py-3 text-sm text-[#8b5b05]">
+                Mangler mailvariabler: {envSummary.missingMail.join(", ")}
+              </p>
+            ) : null}
           </div>
         </section>
 
@@ -2453,10 +2508,10 @@ function PaymentsView({
 
 function SettingsView({
   dashboard,
-  smtpConfigured,
+  envSummary,
 }: {
   dashboard: DashboardData;
-  smtpConfigured: boolean;
+  envSummary: ReturnType<typeof getServerEnvironmentSummary>;
 }) {
   return (
     <div className="space-y-8">
@@ -2481,7 +2536,7 @@ function SettingsView({
         />
         <MetricCard
           label="SMTP"
-          value={smtpConfigured ? "Klar" : "Mangler"}
+          value={envSummary.smtpConfigured ? "Klar" : "Mangler"}
           detail="Mailserver for udsendelser"
           icon={ShieldCheck}
         />
@@ -2574,18 +2629,29 @@ function SettingsView({
             <p className="text-lg font-semibold text-[var(--ink)]">Mailmiljoe</p>
             <div className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
               <p className="flex items-center justify-between gap-4">
-                <span>SMTP host</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_HOST || "Ikke sat"}</strong>
+                <span>DATABASE_URL</span>
+                <strong className="text-[var(--ink)]">
+                  {envSummary.databaseConfigured ? "Sat" : "Mangler"}
+                </strong>
               </p>
               <p className="flex items-center justify-between gap-4">
-                <span>SMTP port</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_PORT || "587"}</strong>
+                <span>APP_URL</span>
+                <strong className="text-[var(--ink)]">
+                  {envSummary.appUrlConfigured ? "Sat" : "Mangler"}
+                </strong>
               </p>
               <p className="flex items-center justify-between gap-4">
-                <span>MAIL_FROM</span>
-                <strong className="text-[var(--ink)]">{process.env.MAIL_FROM || "Ikke sat"}</strong>
+                <span>SMTP + afsender</span>
+                <strong className="text-[var(--ink)]">
+                  {envSummary.smtpConfigured ? "Klar" : "Mangler"}
+                </strong>
               </p>
             </div>
+            {envSummary.missingCore.length > 0 ? (
+              <p className="mt-4 rounded-[1.2rem] bg-[#fff7e8] px-4 py-4 text-sm text-[#8b5b05]">
+                Mangler centrale variabler: {envSummary.missingCore.join(", ")}
+              </p>
+            ) : null}
           </div>
         </section>
       </div>
@@ -2878,9 +2944,11 @@ function BookingActionCard({
 function CustomerCard({
   customer,
   bookings,
+  invoices,
 }: {
   customer: CustomerSummary;
   bookings: DashboardBooking[];
+  invoices: Invoice[];
 }) {
   return (
     <details className="group rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
@@ -2931,28 +2999,80 @@ function CustomerCard({
         </InfoPanel>
 
         <InfoPanel title="Bookinghistorik">
-          {bookings.length > 0 ? (
-            <div className="grid gap-3">
-              {bookings.slice(0, 6).map((booking) => (
-                <div
-                  key={booking.id}
-                  className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4 text-sm"
-                >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-semibold text-[var(--ink)]">{booking.packageLabel}</span>
-                    <StatusPill status={booking.status} />
-                    <PaymentPill status={booking.paymentStatus} />
+          <div className="grid gap-4">
+            {bookings.length > 0 ? (
+              <div className="grid gap-3">
+                {bookings.slice(0, 6).map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="font-semibold text-[var(--ink)]">{booking.packageLabel}</span>
+                      <StatusPill status={booking.status} />
+                      <PaymentPill status={booking.paymentStatus} />
+                    </div>
+                    <p className="mt-2 text-[var(--muted)]">{booking.appointmentLabel}</p>
+                    <p className="mt-1 text-[var(--muted)]">
+                      {booking.vehicleName} | {booking.registrationNumber}
+                    </p>
                   </div>
-                  <p className="mt-2 text-[var(--muted)]">{booking.appointmentLabel}</p>
-                  <p className="mt-1 text-[var(--muted)]">
-                    {booking.vehicleName} | {booking.registrationNumber}
-                  </p>
-                </div>
-              ))}
+                ))}
+              </div>
+            ) : (
+              <EmptyState text="Kunden har ingen bookinger endnu." />
+            )}
+
+            <div className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8aa0b2]">
+                Fakturaer
+              </p>
+              <div className="mt-3 grid gap-3">
+                {invoices.length > 0 ? (
+                  invoices.map((invoice) => (
+                    <div
+                      key={invoice.id}
+                      className="rounded-2xl border border-[#d9e7f0] bg-white px-4 py-3"
+                    >
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold text-[var(--ink)]">
+                            {invoice.invoiceNumber}
+                          </p>
+                          <p className="mt-1 text-xs text-[var(--muted)]">
+                            {formatPrice(invoice.totalInclMomsDkk)} | {invoice.status}
+                          </p>
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href={invoice.pdfUrl}
+                            target="_blank"
+                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[#DDE3F5] bg-white px-3 text-xs font-semibold text-[#1F2340]"
+                          >
+                            View invoice
+                          </a>
+                          <a
+                            href={`${invoice.pdfUrl}?download=1`}
+                            className="inline-flex h-9 items-center justify-center rounded-xl border border-[#DDE3F5] bg-white px-3 text-xs font-semibold text-[#1F2340]"
+                          >
+                            Download PDF
+                          </a>
+                          <InvoiceWorkflowButton
+                            endpoint={`/api/invoices/${invoice.id}/resend`}
+                            label="Send again"
+                            pendingLabel="Sending..."
+                            buttonVariant="outline"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-[var(--muted)]">Ingen fakturaer endnu.</p>
+                )}
+              </div>
             </div>
-          ) : (
-            <EmptyState text="Kunden har ingen bookinger endnu." />
-          )}
+          </div>
         </InfoPanel>
       </div>
     </details>
@@ -3090,17 +3210,36 @@ function AdminInvoicePanel({
             <Button type="submit" variant="outline">Generer faktura</Button>
           </form>
           {invoice?.pdfUrl ? (
-            <a
-              href={invoice.pdfUrl}
-              target="_blank"
-              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-            >
-              Preview faktura
-            </a>
+            <>
+              <a
+                href={invoice.pdfUrl}
+                target="_blank"
+                className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+              >
+                View invoice
+              </a>
+              <a
+                href={`${invoice.pdfUrl}?download=1`}
+                className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+              >
+                Download PDF
+              </a>
+            </>
           ) : null}
-          <form action={`/api/admin/bookings/${booking.id}/send-invoice`} method="POST">
-            <Button type="submit">Send faktura</Button>
-          </form>
+          <InvoiceWorkflowButton
+            endpoint="/api/invoices/generate-send"
+            body={{ bookingId: booking.id }}
+            label="Generate and send invoice"
+            pendingLabel="Generating and sending..."
+          />
+          {invoice ? (
+            <InvoiceWorkflowButton
+              endpoint={`/api/invoices/${invoice.id}/resend`}
+              label="Send again"
+              pendingLabel="Sending..."
+              buttonVariant="outline"
+            />
+          ) : null}
         </div>
 
         {invoice ? (

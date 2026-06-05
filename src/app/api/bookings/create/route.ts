@@ -10,6 +10,7 @@ import {
   sendAdminNewBookingAlert,
   sendCustomerBookingCreatedEmail,
 } from "@/lib/server/mail";
+import { getAppUrl } from "@/lib/server/env";
 import { sanitizePlate } from "@/lib/shared/booking";
 
 const json = (body: unknown, status = 200) =>
@@ -81,7 +82,7 @@ export async function POST(request: Request) {
     });
 
     const requestOrigin = new URL(request.url).origin;
-    const portalBaseUrl = process.env.APP_URL || requestOrigin;
+    const portalBaseUrl = getAppUrl(requestOrigin);
     const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
 
     const mailJobs = [];

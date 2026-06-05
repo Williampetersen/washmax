@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidateCustomerPortalCache } from "@/lib/server/cache-tags";
 import { updatePortalCustomer } from "@/lib/server/bookings";
 
 export async function POST(
@@ -17,6 +18,7 @@ export async function POST(
     city: String(formData.get("city") || "").trim(),
     notes: String(formData.get("notes") || "").trim(),
   });
+  revalidateCustomerPortalCache(token);
 
   return NextResponse.redirect(new URL(`/kunde/${token}?view=profile&saved=1`, request.url), 303);
 }

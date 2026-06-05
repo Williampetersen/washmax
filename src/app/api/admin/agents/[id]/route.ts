@@ -1,6 +1,11 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import {
+  revalidateAdminAgentsCache,
+  revalidateAdminDashboardCache,
+  revalidateAgentDashboardCache,
+} from "@/lib/server/cache-tags";
 import { deleteAgent, getAgentById, updateAgent } from "@/lib/server/agents";
 
 const splitServices = (value: FormDataEntryValue | null) =>
@@ -46,6 +51,9 @@ export async function POST(
   try {
     if (action === "delete") {
       await deleteAgent(id);
+      revalidateAdminAgentsCache();
+      revalidateAdminDashboardCache();
+      revalidateAgentDashboardCache(id);
       return NextResponse.redirect(new URL("/admin?view=agents&saved=agent", request.url), 303);
     }
 
@@ -59,6 +67,9 @@ export async function POST(
       workingArea: String(formData.get("working_area") || "").trim(),
       notes: String(formData.get("notes") || "").trim(),
     });
+    revalidateAdminAgentsCache();
+    revalidateAdminDashboardCache();
+    revalidateAgentDashboardCache(id);
 
     return NextResponse.redirect(new URL("/admin?view=agents&saved=agent", request.url), 303);
   } catch (error) {
@@ -101,8 +112,11 @@ export async function PATCH(
     workingArea: body.workingArea ?? current.workingArea,
     notes: body.notes ?? current.notes,
   });
+  revalidateAdminAgentsCache();
+  revalidateAdminDashboardCache();
+  revalidateAgentDashboardCache(id);
 
-  return NextResponse.json({ agent });
+  return NextResponse.json({ success: true, agent, message: "Agent saved successfully." });
 }
 
 export async function DELETE(
@@ -115,5 +129,8 @@ export async function DELETE(
 
   const { id } = await context.params;
   await deleteAgent(id);
-  return NextResponse.json({ ok: true });
+  revalidateAdminAgentsCache();
+  revalidateAdminDashboardCache();
+  revalidateAgentDashboardCache(id);
+  return NextResponse.json({ success: true, message: "Agent deleted successfully." });
 }

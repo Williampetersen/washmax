@@ -1,10 +1,12 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import path from "node:path";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import sharp from "sharp";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
-import { setAgentAvatar } from "@/lib/server/agents";
+import {
+  revalidateAdminAgentsCache,
+  revalidateAdminDashboardCache,
+  revalidateAgentDashboardCache,
+} from "@/lib/server/cache-tags";
+import { AgentAvatarError, saveAgentAvatarFile } from "@/lib/server/agent-avatar";
 
 const ensureAdmin = async () => {
   const cookieStore = await cookies();
@@ -22,32 +24,45 @@ export async function POST(
   const { id } = await context.params;
   const formData = await request.formData();
   const avatar = formData.get("avatar");
+  const wantsJson =
+    request.headers.get("x-requested-with") === "fetch" ||
+    (request.headers.get("accept") || "").includes("application/json");
 
-  if (!(avatar instanceof File) || avatar.size === 0) {
-    return NextResponse.redirect(new URL("/admin?view=agents&error=agent", request.url), 303);
-  }
-
-  if (!["image/jpeg", "image/png", "image/webp"].includes(avatar.type)) {
-    return NextResponse.redirect(new URL("/admin?view=agents&error=agent", request.url), 303);
+  if (!(avatar instanceof File)) {
+    return wantsJson
+      ? NextResponse.json({ success: false, message: "Please choose an image file." }, { status: 400 })
+      : NextResponse.redirect(new URL("/admin?view=agents&error=agent", request.url), 303);
   }
 
   try {
-    const bytes = Buffer.from(await avatar.arrayBuffer());
-    const output = await sharp(bytes)
-      .resize(320, 320, { fit: "cover" })
-      .webp({ quality: 82 })
-      .toBuffer();
-    const relativeDir = "/uploads/agents";
-    const publicDir = path.join(process.cwd(), "public", "uploads", "agents");
-    await mkdir(publicDir, { recursive: true });
+    const result = await saveAgentAvatarFile(id, avatar);
+    revalidateAdminAgentsCache();
+    revalidateAdminDashboardCache();
+    revalidateAgentDashboardCache(id);
 
-    const fileName = `${id}-${Date.now()}.webp`;
-    await writeFile(path.join(publicDir, fileName), output);
-    await setAgentAvatar(id, `${relativeDir}/${fileName}`);
-
-    return NextResponse.redirect(new URL("/admin?view=agents&saved=agent", request.url), 303);
+    return wantsJson
+      ? NextResponse.json({
+          success: true,
+          avatarUrl: result.avatarUrl,
+          agent: result.agent,
+          message: "Avatar saved successfully.",
+        })
+      : NextResponse.redirect(new URL("/admin?view=agents&saved=agent", request.url), 303);
   } catch (error) {
     console.error("Could not upload agent avatar", error);
+    if (wantsJson) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            error instanceof AgentAvatarError
+              ? error.message
+              : "Avatar could not be saved.",
+        },
+        { status: error instanceof AgentAvatarError ? error.statusCode : 500 }
+      );
+    }
+
     return NextResponse.redirect(new URL("/admin?view=agents&error=agent", request.url), 303);
   }
 }

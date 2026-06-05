@@ -5,7 +5,7 @@ import { sanitizePlate } from "@/lib/shared/booking";
 
 export const metadata: Metadata = {
   title: "Booking",
-  description: "Vaelg rengoring, tilvalg og se samlet pris for din bil hos WashMax.",
+  description: "Vaelg rengoring, tilvalg og se samlet pris for din bil hos Clean Wash.",
   alternates: {
     canonical: "/booking",
   },

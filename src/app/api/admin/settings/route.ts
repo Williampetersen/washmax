@@ -1,6 +1,10 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import {
+  revalidateAdminDashboardCache,
+  revalidateBookingSetupCache,
+} from "@/lib/server/cache-tags";
 import { getBookingSettings, saveBookingSettings } from "@/lib/server/bookings";
 import type { AddOn, CleaningPackage, ServiceArea, VehicleCategory } from "@/lib/shared/booking";
 
@@ -184,6 +188,8 @@ export async function POST(request: Request) {
     }
   }
 
+  revalidateAdminDashboardCache();
+  revalidateBookingSetupCache();
   return NextResponse.redirect(
     new URL(`/admin?view=${encodeURIComponent(returnView)}&saved=settings`, request.url),
     303

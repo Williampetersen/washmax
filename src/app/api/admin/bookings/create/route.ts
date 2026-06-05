@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { createBooking, getBookingSettings } from "@/lib/server/bookings";
+import { getAppUrl } from "@/lib/server/env";
 import { sendCustomerBookingCreatedEmail } from "@/lib/server/mail";
 import { getPackageTitle, sanitizePlate } from "@/lib/shared/booking";
 
@@ -68,7 +69,7 @@ export async function POST(request: Request) {
 
     if (settings.emailAutomation.customerOnCreate && formData.get("send_email")) {
       try {
-        const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
+        const portalBaseUrl = getAppUrl(new URL(request.url).origin);
         const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
         await sendCustomerBookingCreatedEmail({
           booking: bookingResult.booking,

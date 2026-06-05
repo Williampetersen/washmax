@@ -1,10 +1,11 @@
 import postgres, { type Sql } from "postgres";
 import { defaultBookingSettings } from "@/lib/shared/booking";
+import { getOptionalEnv } from "@/lib/server/env";
 
 let cachedSql: Sql | null | undefined;
 let schemaPromise: Promise<void> | null = null;
 
-const getConnectionString = () => process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
+const getConnectionString = () => getOptionalEnv("DATABASE_URL") || "";
 
 export const isDatabaseConfigured = () => Boolean(getConnectionString());
 
@@ -351,12 +352,34 @@ export const ensureSchema = async () => {
           moms_amount_dkk INTEGER NOT NULL DEFAULT 0,
           total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
           pdf_url TEXT,
+          pdf_file_name TEXT,
+          pdf_content BYTEA,
+          pdf_content_type TEXT,
+          pdf_size_bytes INTEGER NOT NULL DEFAULT 0,
+          customer_email TEXT,
           sent_to_email TEXT,
+          email_sent BOOLEAN NOT NULL DEFAULT false,
+          email_sent_at TIMESTAMPTZ,
           sent_at TIMESTAMPTZ,
           paid_at TIMESTAMPTZ,
+          created_by_user_id TEXT,
+          created_by_role TEXT NOT NULL DEFAULT 'system',
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
+      `;
+
+      await sql`
+        ALTER TABLE invoices
+          ADD COLUMN IF NOT EXISTS pdf_file_name TEXT,
+          ADD COLUMN IF NOT EXISTS pdf_content BYTEA,
+          ADD COLUMN IF NOT EXISTS pdf_content_type TEXT,
+          ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS customer_email TEXT,
+          ADD COLUMN IF NOT EXISTS email_sent BOOLEAN NOT NULL DEFAULT false,
+          ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS created_by_user_id TEXT,
+          ADD COLUMN IF NOT EXISTS created_by_role TEXT NOT NULL DEFAULT 'system';
       `;
 
       await sql`
@@ -410,8 +433,8 @@ export const ensureSchema = async () => {
       await sql`
         ALTER TABLE booking_settings
           ADD COLUMN IF NOT EXISTS settings_key TEXT,
-          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'WashMax',
-          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'Clean Wash',
+          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           ADD COLUMN IF NOT EXISTS admin_notify_email TEXT NOT NULL DEFAULT '',
           ADD COLUMN IF NOT EXISTS default_booking_status TEXT NOT NULL DEFAULT 'pending',
           ADD COLUMN IF NOT EXISTS start_hour INTEGER NOT NULL DEFAULT 8,
@@ -580,8 +603,8 @@ export const ensureSchema = async () => {
           disabled_message TEXT NOT NULL DEFAULT 'Online booking is temporarily unavailable.',
           currency TEXT NOT NULL DEFAULT 'DKK',
           vat_rate INTEGER NOT NULL DEFAULT 25,
-          company_name TEXT NOT NULL DEFAULT 'WashMax',
-          support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          company_name TEXT NOT NULL DEFAULT 'Clean Wash',
+          support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           admin_notify_email TEXT NOT NULL DEFAULT '',
           customer_confirmation_enabled BOOLEAN NOT NULL DEFAULT true,
           admin_notification_enabled BOOLEAN NOT NULL DEFAULT true,

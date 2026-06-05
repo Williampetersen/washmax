@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { revalidateAgentDashboardCache } from "@/lib/server/cache-tags";
 import { addAgentService, listAgentServices } from "@/lib/server/agents";
 
 const getSession = async () => {
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
       String(body.serviceName || ""),
       body.isEnabled !== false
     );
+    revalidateAgentDashboardCache(session.agentId);
     return NextResponse.json({ service });
   }
 
@@ -40,5 +42,6 @@ export async function POST(request: Request) {
     String(formData.get("service_name") || ""),
     formData.get("is_enabled") !== "false"
   );
+  revalidateAgentDashboardCache(session.agentId);
   return NextResponse.redirect(new URL("/agent?view=services&saved=service", request.url), 303);
 }

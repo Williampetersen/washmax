@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { revalidateAgentDashboardCache } from "@/lib/server/cache-tags";
 import {
   addUnavailableDate,
   listAgentAvailability,
@@ -36,6 +37,7 @@ export async function POST(request: Request) {
   if (contentType.includes("application/json")) {
     const body = await request.json();
     const availability = await saveAgentAvailability(session.agentId, body.entries || []);
+    revalidateAgentDashboardCache(session.agentId);
     return NextResponse.json({ availability });
   }
 
@@ -48,6 +50,7 @@ export async function POST(request: Request) {
       endDate: String(formData.get("end_date") || formData.get("start_date") || ""),
       reason: String(formData.get("reason") || ""),
     });
+    revalidateAgentDashboardCache(session.agentId);
     return NextResponse.redirect(new URL("/agent?view=availability&saved=availability", request.url), 303);
   }
 
@@ -60,6 +63,7 @@ export async function POST(request: Request) {
     isAvailable: Boolean(formData.get(`is_available_${weekday}`)),
   }));
   await saveAgentAvailability(session.agentId, entries);
+  revalidateAgentDashboardCache(session.agentId);
 
   return NextResponse.redirect(new URL("/agent?view=availability&saved=availability", request.url), 303);
 }

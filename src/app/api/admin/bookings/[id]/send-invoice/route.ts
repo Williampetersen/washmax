@@ -8,14 +8,19 @@ export async function POST(
   context: { params: Promise<{ id: string }> }
 ) {
   const cookieStore = await cookies();
-  if (!getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value)) {
+  const session = getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+  if (!session) {
     return NextResponse.redirect(new URL("/admin/login", request.url), 303);
   }
 
   const { id } = await context.params;
   const isJson = (request.headers.get("content-type") || "").includes("application/json");
   try {
-    const result = await sendInvoiceForBooking({ bookingId: id, actorType: "admin" });
+    const result = await sendInvoiceForBooking({
+      bookingId: id,
+      actorType: "admin",
+      createdByUserId: session.email,
+    });
     const query = result.sent ? "saved=updated" : "error=action";
     return isJson
       ? NextResponse.json(result, { status: result.sent ? 200 : 202 })

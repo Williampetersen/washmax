@@ -1,10 +1,11 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { getOptionalEnv, requireEnv } from "@/lib/server/env";
 
 export const AGENT_COOKIE_NAME = "washmax_agent_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12;
 
 const getSecret = () =>
-  process.env.AGENT_SESSION_SECRET || process.env.ADMIN_SESSION_SECRET || "";
+  getOptionalEnv("AGENT_SESSION_SECRET") || getOptionalEnv("ADMIN_SESSION_SECRET") || "";
 
 const encode = (value: string) => Buffer.from(value, "utf-8").toString("base64url");
 const decode = (value: string) => Buffer.from(value, "base64url").toString("utf-8");
@@ -13,6 +14,7 @@ const sign = (value: string) =>
   createHmac("sha256", getSecret()).update(value).digest("base64url");
 
 export const createAgentSessionToken = (agentId: string, email: string) => {
+  const secret = getOptionalEnv("AGENT_SESSION_SECRET") || requireEnv("ADMIN_SESSION_SECRET");
   const payload = encode(
     JSON.stringify({
       agentId,
@@ -21,7 +23,7 @@ export const createAgentSessionToken = (agentId: string, email: string) => {
     })
   );
 
-  return `${payload}.${sign(payload)}`;
+  return `${payload}.${createHmac("sha256", secret).update(payload).digest("base64url")}`;
 };
 
 export const verifyAgentSessionToken = (token: string | undefined | null) => {

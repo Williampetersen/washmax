@@ -12,7 +12,9 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
+import { getCachedPortalData } from "@/lib/server/cache-tags";
 import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
+import { listInvoicesForCustomer } from "@/lib/server/invoices";
 import {
   formatPrice,
   formatShortPrice,
@@ -27,7 +29,7 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Kundeportal",
-  description: "Se dine WashMax bookinger.",
+  description: "Se dine Clean Wash bookinger.",
 };
 
 export default async function CustomerPortalPage({
@@ -41,7 +43,7 @@ export default async function CustomerPortalPage({
   const query = await searchParams;
   const view = Array.isArray(query.view) ? query.view[0] : query.view || "history";
   const saved = (Array.isArray(query.saved) ? query.saved[0] : query.saved) === "1";
-  const portalData = token ? await getPortalData(token) : null;
+  const portalData = token ? await getCachedPortalData(token) : null;
 
   if (!portalData) {
     return (
@@ -70,6 +72,7 @@ export default async function CustomerPortalPage({
   }
 
   const { customer, bookings } = portalData;
+  const invoices = await listInvoicesForCustomer(customer.id);
   const initials =
     `${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "K";
   const completedBookings = bookings.filter((item) => item.status === "completed");
@@ -209,6 +212,53 @@ export default async function CustomerPortalPage({
                 </div>
 
                 <Card className="!border-white/20 !bg-white/82 p-6 backdrop-blur-xl">
+                  <div className="mb-6 rounded-[1.5rem] border border-white/60 bg-white/70 p-5 shadow-[0_14px_34px_rgba(5,18,32,0.07)]">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold text-[var(--ink)]">Invoices</h3>
+                        <p className="mt-1 text-sm text-[var(--muted)]">
+                          View or download your Clean Wash invoices.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-4 grid gap-3">
+                      {invoices.length > 0 ? (
+                        invoices.map((invoice) => (
+                          <div
+                            key={invoice.id}
+                            className="flex flex-col gap-3 rounded-[1.2rem] border border-white/60 bg-white/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                          >
+                            <div>
+                              <p className="text-sm font-semibold text-[var(--ink)]">
+                                {invoice.invoiceNumber}
+                              </p>
+                              <p className="mt-1 text-sm text-[var(--muted)]">
+                                {formatPrice(invoice.totalInclMomsDkk)} | {invoice.status}
+                              </p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <a
+                                href={`${invoice.pdfUrl}?token=${token}`}
+                                target="_blank"
+                                className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9e7f0] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
+                              >
+                                View invoice
+                              </a>
+                              <a
+                                href={`${invoice.pdfUrl}?token=${token}&download=1`}
+                                className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9e7f0] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
+                              >
+                                Download PDF
+                              </a>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm text-[var(--muted)]">No invoices yet.</p>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="grid gap-4">
                     {bookings.map((booking) => (
                       <article key={booking.id} className="rounded-[1.5rem] border border-white/60 bg-white/70 p-5 shadow-[0_14px_34px_rgba(5,18,32,0.07)]">

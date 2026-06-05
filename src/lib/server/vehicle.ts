@@ -1,4 +1,5 @@
 import { sanitizePlate, type VehicleLookupResult } from "@/lib/shared/booking";
+import { requireEnv } from "@/lib/server/env";
 
 const MOTORAPI_BASE_URL = "https://v1.motorapi.dk";
 const PLATE_PATTERN = /^[A-Z0-9]{2,10}$/;
@@ -56,15 +57,11 @@ const fetchVehiclePayload = async (plate: string, apiKey: string) => {
 };
 
 export const lookupVehicle = async (input: string): Promise<VehicleLookupResult> => {
-  const apiKey = process.env.MOTORAPI_API_KEY;
+  const apiKey = requireEnv("MOTORAPI_API_KEY");
   const plate = sanitizePlate(input);
 
   if (!PLATE_PATTERN.test(plate)) {
     throw new Error("Invalid license plate number.");
-  }
-
-  if (!apiKey) {
-    throw new Error("MotorAPI key is not configured.");
   }
 
   const payload = await fetchVehiclePayload(plate, apiKey);

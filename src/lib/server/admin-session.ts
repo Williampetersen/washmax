@@ -1,9 +1,10 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { getOptionalEnv, requireEnv } from "@/lib/server/env";
 
 export const ADMIN_COOKIE_NAME = "washmax_admin_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12;
 
-const getSecret = () => process.env.ADMIN_SESSION_SECRET || "";
+const getSecret = () => getOptionalEnv("ADMIN_SESSION_SECRET") || "";
 
 const encode = (value: string) => Buffer.from(value, "utf-8").toString("base64url");
 const decode = (value: string) => Buffer.from(value, "base64url").toString("utf-8");
@@ -13,10 +14,13 @@ const sign = (value: string) =>
 
 export const isAdminConfigured = () =>
   Boolean(
-    process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD && process.env.ADMIN_SESSION_SECRET
+    getOptionalEnv("ADMIN_EMAIL") &&
+      getOptionalEnv("ADMIN_PASSWORD") &&
+      getOptionalEnv("ADMIN_SESSION_SECRET")
   );
 
 export const createAdminSessionToken = (email: string) => {
+  const secret = requireEnv("ADMIN_SESSION_SECRET");
   const payload = encode(
     JSON.stringify({
       email,
@@ -24,7 +28,7 @@ export const createAdminSessionToken = (email: string) => {
     })
   );
 
-  return `${payload}.${sign(payload)}`;
+  return `${payload}.${createHmac("sha256", secret).update(payload).digest("base64url")}`;
 };
 
 export const verifyAdminSessionToken = (token: string | undefined | null) => {
@@ -54,7 +58,7 @@ export const verifyAdminSessionToken = (token: string | undefined | null) => {
 };
 
 export const validateAdminCredentials = (email: string, password: string) =>
-  email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD;
+  email === getOptionalEnv("ADMIN_EMAIL") && password === getOptionalEnv("ADMIN_PASSWORD");
 
 export const getAdminSession = (cookieValue?: string | null) =>
   verifyAdminSessionToken(cookieValue);

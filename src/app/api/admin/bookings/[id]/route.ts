@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { getAppUrl } from "@/lib/server/env";
 import {
   deleteBooking,
   getBookingById,
@@ -56,7 +57,7 @@ export async function POST(
     if (result && formData.get("notify_customer")) {
       try {
         const settings = await getBookingSettings();
-        const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
+        const portalBaseUrl = getAppUrl(new URL(request.url).origin);
         const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
         await sendCustomerBookingStatusEmail({
           booking: result.booking,
@@ -102,7 +103,7 @@ export async function POST(
     }
 
     const settings = await getBookingSettings();
-    const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
+    const portalBaseUrl = getAppUrl(new URL(request.url).origin);
     const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
     if (result.booking.status === "pending") {
       await sendCustomerBookingCreatedEmail({
@@ -130,7 +131,7 @@ export async function POST(
     }
 
     const settings = await getBookingSettings();
-    const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
+    const portalBaseUrl = getAppUrl(new URL(request.url).origin);
     const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
     await sendAdminNewBookingAlert({
       booking: result.booking,
@@ -150,7 +151,7 @@ export async function POST(
   const result = await updateBookingStatus(id, status, adminNotes);
   if (result) {
     const settings = await getBookingSettings();
-    const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
+    const portalBaseUrl = getAppUrl(new URL(request.url).origin);
     const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
     const shouldSendStatusEmail =
       (status === "approved" && settings.emailAutomation.customerOnApprove) ||

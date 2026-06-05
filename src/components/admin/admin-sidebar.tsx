@@ -35,7 +35,7 @@ export function AdminSidebar({
           </div>
           <div className="min-w-0">
             <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
-              WashMax
+              Clean Wash
             </p>
             <p className="mt-1 text-[13px] font-semibold">Admin</p>
             <p className="truncate text-[12px] font-medium text-[#8E95B5]">{sessionEmail}</p>

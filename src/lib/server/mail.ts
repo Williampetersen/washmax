@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import nodemailer from "nodemailer";
 import {
   formatDateTimeLabel,
@@ -6,6 +7,12 @@ import {
   type BookingStatus,
 } from "@/lib/shared/booking";
 import { recordEmailLog } from "@/lib/server/bookings";
+import {
+  EnvValidationError,
+  getMailFromName,
+  getNumberEnv,
+  getOptionalEnv,
+} from "@/lib/server/env";
 
 type MailBooking = {
   id: string;
@@ -59,36 +66,110 @@ type LoggedMessage = {
   subject: string;
   html: string;
   text: string;
+  replyTo?: string;
   attachments?: nodemailer.SendMailOptions["attachments"];
 };
 
 let cachedTransporter: nodemailer.Transporter | null | undefined;
+let mailConfigWarningShown = false;
 
-const getMailConfig = () => ({
-  host: process.env.SMTP_HOST || "",
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: String(process.env.SMTP_SECURE || "false") === "true",
-  user: process.env.SMTP_USER || "",
-  pass: process.env.SMTP_PASSWORD || "",
-  from:
-    process.env.MAIL_FROM ||
-    `${process.env.MAIL_FROM_NAME || "WashMax"} <${process.env.SMTP_USER || ""}>`,
-});
+type MailConfig = {
+  host: string;
+  port: number;
+  secure: boolean;
+  user: string;
+  pass: string;
+  fromName: string;
+  fromAddress: string;
+  from: string;
+  replyTo: string;
+  missingVars: string[];
+};
+
+const extractEmailAddress = (value: string) => {
+  const match = value.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return match?.[0]?.trim().toLowerCase() || "";
+};
+
+const formatFromHeader = (name: string, address: string) =>
+  address ? `${name} <${address}>` : "";
+
+const getMailConfig = (): MailConfig => {
+  const host = getOptionalEnv("SMTP_HOST") || "";
+  const port = getNumberEnv("SMTP_PORT", 587) || 587;
+  const secureValue = getOptionalEnv("SMTP_SECURE");
+  const secure =
+    secureValue === undefined
+      ? port === 465
+      : ["1", "true", "yes", "on"].includes(secureValue.toLowerCase());
+  const user = getOptionalEnv("SMTP_USER") || "";
+  const pass = getOptionalEnv("SMTP_PASSWORD") || "";
+  const fromName = getMailFromName();
+  const fromAddress = extractEmailAddress(getOptionalEnv("MAIL_FROM") || "") || extractEmailAddress(user);
+  const replyTo =
+    extractEmailAddress(getOptionalEnv("BOOKING_ADMIN_EMAIL") || "") || fromAddress;
+  const missingVars = [
+    !host ? "SMTP_HOST" : "",
+    !getOptionalEnv("SMTP_PORT") ? "SMTP_PORT" : "",
+    secureValue === undefined ? "SMTP_SECURE" : "",
+    !user ? "SMTP_USER" : "",
+    !pass ? "SMTP_PASSWORD" : "",
+    !fromAddress ? "MAIL_FROM" : "",
+  ].filter(Boolean);
+
+  return {
+    host,
+    port,
+    secure,
+    user,
+    pass,
+    fromName,
+    fromAddress,
+    from: formatFromHeader(fromName, fromAddress),
+    replyTo,
+    missingVars,
+  };
+};
 
 export const isMailConfigured = () => {
-  const config = getMailConfig();
-  return Boolean(config.host && config.user && config.pass && config.from);
+  try {
+    const config = getMailConfig();
+    return config.missingVars.length === 0;
+  } catch (error) {
+    if (error instanceof EnvValidationError) {
+      return false;
+    }
+
+    throw error;
+  }
 };
 
 const getTransporter = () => {
   if (cachedTransporter === undefined) {
     const config = getMailConfig();
+    const smtpDomain = config.user.split("@")[1]?.toLowerCase() || "";
+    const fromDomain = config.fromAddress.split("@")[1]?.toLowerCase() || "";
 
-    cachedTransporter = isMailConfigured()
+    if (
+      !mailConfigWarningShown &&
+      config.fromAddress &&
+      config.user &&
+      smtpDomain &&
+      fromDomain &&
+      smtpDomain !== fromDomain
+    ) {
+      mailConfigWarningShown = true;
+      console.warn(
+        `MAIL_FROM (${fromDomain}) does not match SMTP_USER (${smtpDomain}). This can increase spam placement.`
+      );
+    }
+
+    cachedTransporter = config.missingVars.length === 0
       ? nodemailer.createTransport({
           host: config.host,
           port: config.port,
           secure: config.secure,
+          requireTLS: !config.secure,
           auth: {
             user: config.user,
             pass: config.pass,
@@ -162,7 +243,7 @@ const renderAdminNote = (adminNotes?: string) => {
 
   return `
     <div style="margin-top:18px;padding:14px 16px;border-radius:14px;background:#f6fbff;border:1px solid #cde6f6;">
-      <p style="margin:0 0 6px;font-weight:700;color:#16303a;">Besked fra WashMax</p>
+      <p style="margin:0 0 6px;font-weight:700;color:#16303a;">Besked fra Clean Wash</p>
       <p style="margin:0;color:#36505d;">${escapeHtml(note)}</p>
     </div>
   `;
@@ -208,6 +289,9 @@ const renderCustomerEmailHtml = (input: {
         ${getAddonMarkup(input.booking.addons)}
       </div>
       ${renderAdminNote(input.booking.adminNotes)}
+      <p style="margin-top:18px;color:#5b6b75;font-size:13px;">
+        Du modtager denne mail, fordi du har en booking hos ${escapeHtml(input.settings.companyName)}.
+      </p>
       <p style="margin-top:20px;color:#36505d;">${escapeHtml(input.footer)}</p>
       <p style="margin-top:10px;color:#36505d;">Support: ${escapeHtml(input.settings.supportEmail)}</p>
     </div>
@@ -243,7 +327,7 @@ const renderCustomerEmailText = (input: {
   ];
 
   if (input.booking.adminNotes?.trim()) {
-    lines.push("", `Besked fra WashMax: ${input.booking.adminNotes.trim()}`);
+    lines.push("", `Besked fra Clean Wash: ${input.booking.adminNotes.trim()}`);
   }
 
   if (input.portalUrl) {
@@ -331,7 +415,7 @@ const getCustomerStatusCopy = (
         title: "Tak for din booking",
         intro: `Din booking for ${appointmentLabel} er nu afsluttet.`,
         highlight:
-          "Tak fordi du valgte WashMax. Du kan altid finde forlobet igen i kundeportalen og booke en ny tid derfra.",
+          "Tak fordi du valgte Clean Wash. Du kan altid finde forlobet igen i kundeportalen og booke en ny tid derfra.",
         footer:
           "Hvis du vil have en ny tid eller har feedback, er du altid velkommen til at kontakte os.",
         portalLabel: "Se bookinghistorik",
@@ -364,9 +448,18 @@ const getCustomerStatusCopy = (
 };
 
 const sendLoggedMail = async (message: LoggedMessage) => {
-  const transporter = getTransporter();
+  let transporter: nodemailer.Transporter | null;
+  let config: MailConfig;
 
-  if (!transporter) {
+  try {
+    config = getMailConfig();
+    transporter = getTransporter();
+  } catch (error) {
+    if (!(error instanceof EnvValidationError)) {
+      throw error;
+    }
+
+    console.error(error.message);
     await recordEmailLog({
       bookingId: message.bookingId,
       customerId: message.customerId,
@@ -375,22 +468,59 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       templateKey: message.templateKey,
       subject: message.subject,
       status: "not_configured",
-      errorMessage: "SMTP is not configured.",
+      errorMessage: error.message,
     });
     return "not_configured";
   }
 
-  const config = getMailConfig();
+  if (!transporter) {
+    const errorMessage = config.missingVars.length
+      ? `SMTP is not configured. Missing: ${config.missingVars.join(", ")}.`
+      : "SMTP is not configured.";
+    console.error(errorMessage);
+    await recordEmailLog({
+      bookingId: message.bookingId,
+      customerId: message.customerId,
+      recipient: message.recipient,
+      recipientRole: message.recipientRole,
+      templateKey: message.templateKey,
+      subject: message.subject,
+      status: "not_configured",
+      errorMessage,
+    });
+    return "not_configured";
+  }
+
+  const messageIdDomain = config.fromAddress.split("@")[1] || "localhost";
+  const messageId = `<${message.templateKey}.${randomBytes(12).toString("hex")}@${messageIdDomain}>`;
 
   try {
-    await transporter.sendMail({
-      from: config.from,
+    const info = await transporter.sendMail({
+      from: {
+        name: config.fromName,
+        address: config.fromAddress,
+      },
+      sender: config.fromAddress,
+      envelope: {
+        from: config.fromAddress,
+        to: [message.recipient],
+      },
       to: message.recipient,
+      replyTo: message.replyTo || config.replyTo,
       subject: message.subject,
+      messageId,
+      headers: {
+        "X-Clean-Wash-Template": message.templateKey,
+        "X-Auto-Response-Suppress": "OOF, AutoReply",
+      },
       html: message.html,
       text: message.text,
       attachments: message.attachments,
     });
+
+    if (info.rejected.length > 0) {
+      throw new Error(`SMTP rejected recipient(s): ${info.rejected.join(", ")}`);
+    }
 
     await recordEmailLog({
       bookingId: message.bookingId,
@@ -404,6 +534,11 @@ const sendLoggedMail = async (message: LoggedMessage) => {
     });
     return "sent";
   } catch (error) {
+    console.error("Mail delivery failed", {
+      recipient: message.recipient,
+      templateKey: message.templateKey,
+      error: error instanceof Error ? error.message : "Unknown mail error.",
+    });
     await recordEmailLog({
       bookingId: message.bookingId,
       customerId: message.customerId,
@@ -430,6 +565,7 @@ export const sendCustomerBookingCreatedEmail = async (input: CustomerMailInput) 
     templateKey:
       input.booking.status === "approved" ? "customer_created_approved" : "customer_created_pending",
     subject: copy.subject,
+    replyTo: input.settings.supportEmail,
     html: renderCustomerEmailHtml({
       ...copy,
       booking: input.booking,
@@ -460,6 +596,7 @@ export const sendCustomerBookingStatusEmail = async (input: CustomerMailInput) =
     recipientRole: "customer",
     templateKey: `customer_status_${input.booking.status}`,
     subject: copy.subject,
+    replyTo: input.settings.supportEmail,
     html: renderCustomerEmailHtml({
       ...copy,
       booking: input.booking,
@@ -489,7 +626,7 @@ export const sendAdminNewBookingAlert = async (input: {
   const customerName = getCustomerName(input.customer);
   const config = getMailConfig();
   const adminEmail =
-    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+    input.settings.adminNotifyEmail || getOptionalEnv("BOOKING_ADMIN_EMAIL") || config.user;
 
   await sendLoggedMail({
     bookingId: input.booking.id,
@@ -498,6 +635,7 @@ export const sendAdminNewBookingAlert = async (input: {
     recipientRole: "admin",
     templateKey: "admin_new_booking",
     subject: `${input.settings.companyName}: ny booking ${input.booking.registrationNumber}`,
+    replyTo: input.settings.supportEmail,
     html: `
       <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
         <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Ny booking</p>
@@ -558,12 +696,15 @@ export const sendCustomerInvoiceEmail = async (input: {
   customerEmail: string;
   invoiceNumber: string;
   totalInclMomsDkk: number;
-  pdfPath?: string;
+  appointmentLabel?: string;
+  invoiceUrl?: string;
+  pdfBuffer?: Buffer;
   settings: MailSettings;
 }) => {
-  const subject = `Your CleanWash invoice #${input.invoiceNumber}`;
+  const subject = `${input.settings.companyName}: faktura ${input.invoiceNumber}`;
   const total = formatPrice(input.totalInclMomsDkk);
-  const greeting = input.customerName ? `Hi ${input.customerName}` : "Hi";
+  const greeting = input.customerName ? `Hej ${input.customerName}` : "Hej";
+  const paymentInstructions = "Betaling sker efter aftale med Clean Wash.";
 
   return sendLoggedMail({
     bookingId: input.bookingId,
@@ -572,49 +713,65 @@ export const sendCustomerInvoiceEmail = async (input: {
     recipientRole: "customer",
     templateKey: "customer_invoice",
     subject,
+    replyTo: input.settings.supportEmail,
     html: `
       <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
-        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Invoice</p>
+        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Faktura</p>
         <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">${escapeHtml(
           subject
         )}</h2>
         <p style="margin:0;color:#36505d;">${escapeHtml(
-          `${greeting}. Your invoice for booking ${input.bookingId} is ready.`
+          `${greeting}. Din faktura for booking ${input.bookingId} er klar.`
         )}</p>
         ${renderRows([
-          ["Invoice number", input.invoiceNumber],
+          ["Fakturanummer", input.invoiceNumber],
           ["Booking", input.bookingId],
-          ["Total amount", total],
-          [
-            "Payment",
-            process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-              "Please pay according to the agreement with WashMax.",
-          ],
+          ["Tid", input.appointmentLabel || "-"],
+          ["Belob", total],
+          ["Betaling", paymentInstructions],
         ])}
-        <p style="margin-top:20px;color:#36505d;">Thank you for choosing ${escapeHtml(
+        ${
+          input.invoiceUrl
+            ? `<p style="margin-top:16px;"><a href="${escapeHtml(
+                input.invoiceUrl
+              )}" style="display:inline-block;background:#55b9df;color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700;">Se faktura online</a></p>`
+            : ""
+        }
+        <p style="margin-top:20px;color:#36505d;">Tak fordi du valgte ${escapeHtml(
           input.settings.companyName
         )}.</p>
+        <p style="margin-top:10px;color:#5b6b75;font-size:13px;">
+          Du modtager denne mail, fordi du har bedt om en faktura for din booking hos ${escapeHtml(
+            input.settings.companyName
+          )}.
+        </p>
+        ${
+          input.invoiceUrl
+            ? `<p style="margin-top:10px;color:#36505d;">Hvis vedhaeftningen er blokeret i din mailapp, kan du bruge dette link i stedet: ${escapeHtml(
+                input.invoiceUrl
+              )}</p>`
+            : ""
+        }
       </div>
     `,
     text: [
       subject,
       "",
-      `${greeting}. Your invoice for booking ${input.bookingId} is ready.`,
-      `Invoice number: ${input.invoiceNumber}`,
+      `${greeting}. Din faktura for booking ${input.bookingId} er klar.`,
+      `Fakturanummer: ${input.invoiceNumber}`,
       `Booking: ${input.bookingId}`,
-      `Total amount: ${total}`,
-      `Payment: ${
-        process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-        "Please pay according to the agreement with WashMax."
-      }`,
+      `Tid: ${input.appointmentLabel || "-"}`,
+      `Belob: ${total}`,
+      `Betaling: ${paymentInstructions}`,
+      input.invoiceUrl ? `Se faktura online: ${input.invoiceUrl}` : "",
       "",
       `Support: ${input.settings.supportEmail}`,
     ].join("\n"),
-    attachments: input.pdfPath
+    attachments: input.pdfBuffer
       ? [
           {
             filename: `${input.invoiceNumber}.pdf`,
-            path: input.pdfPath,
+            content: input.pdfBuffer,
             contentType: "application/pdf",
           },
         ]
@@ -631,7 +788,7 @@ export const sendAdminInvoiceNotice = async (input: {
 }) => {
   const config = getMailConfig();
   const adminEmail =
-    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+    input.settings.adminNotifyEmail || getOptionalEnv("BOOKING_ADMIN_EMAIL") || config.user;
   const total = formatPrice(input.totalInclMomsDkk);
   const message = `Agent ${input.agentName} generated and sent invoice ${input.invoiceNumber} for booking ${input.bookingId}. Total: ${total}.`;
 
@@ -641,6 +798,7 @@ export const sendAdminInvoiceNotice = async (input: {
     recipientRole: "admin",
     templateKey: "admin_invoice_sent",
     subject: `${input.settings.companyName}: invoice ${input.invoiceNumber} sent`,
+    replyTo: input.settings.supportEmail,
     html: `
       <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
         <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Invoice sent</p>

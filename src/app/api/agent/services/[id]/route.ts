@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { revalidateAgentDashboardCache } from "@/lib/server/cache-tags";
 import { deleteAgentService, updateAgentService } from "@/lib/server/agents";
 
 const getSession = async () => {
@@ -28,6 +29,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  revalidateAgentDashboardCache(session.agentId);
   return NextResponse.json({ service });
 }
 
@@ -51,6 +53,7 @@ export async function POST(
       isEnabled: Boolean(formData.get("is_enabled")),
     });
   }
+  revalidateAgentDashboardCache(session.agentId);
 
   return NextResponse.redirect(new URL("/agent?view=services&saved=service", request.url), 303);
 }
@@ -66,5 +69,6 @@ export async function DELETE(
 
   const { id } = await context.params;
   await deleteAgentService(session.agentId, id);
+  revalidateAgentDashboardCache(session.agentId);
   return NextResponse.json({ ok: true });
 }

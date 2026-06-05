@@ -1136,6 +1136,29 @@ export const getPortalData = async (portalToken: string) => {
   }
 };
 
+export const getPortalCustomerByToken = async (portalToken: string) => {
+  if (!isDatabaseConfigured()) {
+    return null;
+  }
+
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const [customerRow] = await sql<RawCustomer[]>`
+      SELECT *
+      FROM customers
+      WHERE portal_token = ${portalToken}
+        AND (portal_token_expires_at IS NULL OR portal_token_expires_at > NOW())
+      LIMIT 1;
+    `;
+
+    return customerRow ? customerFromRow(customerRow) : null;
+  } catch (error) {
+    console.error("Could not load portal customer", error);
+    return null;
+  }
+};
+
 export const updatePortalCustomer = async (
   portalToken: string,
   input: Pick<
