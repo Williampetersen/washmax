@@ -1,7 +1,18 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CreditCard, Calendar, CalendarPlus, UserRound } from "lucide-react";
-import { getPortalData } from "@/lib/server/bookings";
+import {
+  Calendar,
+  CalendarPlus,
+  CheckCircle2,
+  Clock3,
+  CreditCard,
+  Mail,
+  MapPinned,
+  Phone,
+  Sparkles,
+  UserRound,
+} from "lucide-react";
+import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
 import {
   formatPrice,
   formatShortPrice,
@@ -34,12 +45,16 @@ export default async function CustomerPortalPage({
 
   if (!portalData) {
     return (
-      <main className="px-4 pb-12 pt-10 sm:px-6">
-        <section className="mx-auto max-w-3xl rounded-[2rem] border border-[var(--line)] bg-white p-8 text-center shadow-[0_24px_70px_rgba(8,27,21,0.1)]">
-          <h1 className="font-display text-4xl font-semibold text-[var(--ink)]">
+      <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#10243b_0%,#3f5870_44%,#826f63_100%)] px-4 pb-12 pt-10 sm:px-6">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.04)_36%,rgba(24,184,143,0.18)_100%)]"
+        />
+        <section className="relative mx-auto max-w-3xl rounded-[2rem] border border-white/22 bg-white/16 p-8 text-center text-white shadow-[0_30px_90px_rgba(5,18,32,0.28)] backdrop-blur-2xl">
+          <h1 className="font-display text-4xl font-semibold text-white">
             Linket er udloeber eller ugyldigt
           </h1>
-          <p className="mt-4 text-[var(--muted)]">
+          <p className="mt-4 text-white/76">
             Bed kunden bruge det seneste link fra bookingmailen eller oprette en ny
             booking.
           </p>
@@ -61,17 +76,30 @@ export default async function CustomerPortalPage({
   const upcomingBookings = bookings.filter(
     (item) => item.status === "pending" || item.status === "approved"
   );
+  const nextBooking = [...upcomingBookings].sort((left, right) =>
+    `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
+      `${right.appointmentDate}T${right.appointmentTime}`
+    )
+  )[0];
   const totalValue = bookings
     .filter((item) => item.status !== "cancelled")
     .reduce((sum, item) => sum + item.total, 0);
 
   return (
-    <main className="px-4 pb-12 pt-8 sm:px-6">
-      <section className="mx-auto max-w-7xl">
+    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#10243b_0%,#3f5870_44%,#826f63_100%)] px-4 pb-12 pt-8 sm:px-6">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.04)_36%,rgba(24,184,143,0.18)_100%)]"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:6rem_6rem]"
+      />
+      <section className="relative mx-auto max-w-7xl">
         <div className="grid gap-6 xl:grid-cols-[18rem_1fr]">
-          <aside className="rounded-[2rem] bg-[linear-gradient(180deg,#0e3557,#14486b)] p-5 text-white shadow-[0_28px_80px_rgba(8,27,21,0.2)]">
-            <div className="rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#6ec7eb] text-3xl font-semibold text-[#083047]">
+          <aside className="rounded-[2rem] border border-white/18 bg-white/12 p-5 text-white shadow-[0_28px_90px_rgba(5,18,32,0.28)] backdrop-blur-2xl">
+            <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/24 bg-white/90 text-3xl font-semibold text-[#083047] shadow-[0_16px_40px_rgba(5,18,32,0.18)]">
                 {initials}
               </div>
               <p className="mt-4 text-2xl font-semibold">
@@ -94,7 +122,9 @@ export default async function CustomerPortalPage({
                     href={`/kunde/${token}?view=${item.id}`}
                     className={cn(
                       "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
-                      isActive ? "bg-white text-[#0f3555]" : "text-white/82 hover:bg-white/8"
+                      isActive
+                        ? "bg-white text-[#0f3555] shadow-[0_16px_34px_rgba(255,255,255,0.16)]"
+                        : "border border-white/8 bg-white/6 text-white/82 hover:bg-white/12"
                     )}
                   >
                     <Icon className="h-5 w-5" />
@@ -104,7 +134,7 @@ export default async function CustomerPortalPage({
               })}
             </nav>
 
-            <div className="mt-5 rounded-[1.5rem] border border-white/12 bg-white/8 p-5">
+            <div className="mt-5 rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a7e7ff]">
                 Hurtige stats
               </p>
@@ -126,20 +156,20 @@ export default async function CustomerPortalPage({
           </aside>
 
           <div className="space-y-6">
-            <Card className="p-6">
+            <section className="rounded-[2rem] border border-white/22 bg-white/16 p-6 text-white shadow-[0_24px_70px_rgba(5,18,32,0.22)] backdrop-blur-2xl">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
                     Kundeportal
                   </p>
-                  <h1 className="mt-3 font-display text-4xl font-semibold text-[var(--ink)]">
+                  <h1 className="mt-3 font-display text-4xl font-semibold text-white">
                     {view === "profile"
                       ? "Personlige oplysninger"
                       : view === "payments"
                         ? "Betalingsmetoder"
                         : "Booking historik"}
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-white/76">
                     Se dine kommende tider, opdater kontaktoplysninger og behold
                     overblikket over dine bookinger.
                   </p>
@@ -152,7 +182,9 @@ export default async function CustomerPortalPage({
                   Ny booking
                 </Link>
               </div>
-            </Card>
+            </section>
+
+            <CustomerNextBooking booking={nextBooking} customerEmail={customer.email} />
 
             {saved ? (
               <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm text-[#1a506d]">
@@ -169,17 +201,17 @@ export default async function CustomerPortalPage({
                     ["Afsluttede", completedBookings.length],
                     ["Total vaerdi", formatShortPrice(totalValue)],
                   ].map(([label, value]) => (
-                    <Card key={label as string} className="p-5">
+                    <Card key={label as string} className="!border-white/20 !bg-white/82 p-5 backdrop-blur-xl">
                       <p className="text-sm text-[var(--muted)]">{label}</p>
                       <p className="mt-3 text-4xl font-semibold text-[var(--ink)]">{value}</p>
                     </Card>
                   ))}
                 </div>
 
-                <Card className="p-6">
+                <Card className="!border-white/20 !bg-white/82 p-6 backdrop-blur-xl">
                   <div className="grid gap-4">
                     {bookings.map((booking) => (
-                      <article key={booking.id} className="rounded-[1.5rem] border border-[var(--line)] p-5">
+                      <article key={booking.id} className="rounded-[1.5rem] border border-white/60 bg-white/70 p-5 shadow-[0_14px_34px_rgba(5,18,32,0.07)]">
                         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                           <div>
                             <div className="flex flex-wrap items-center gap-3">
@@ -217,7 +249,7 @@ export default async function CustomerPortalPage({
             ) : null}
 
             {view === "profile" ? (
-              <Card className="p-6">
+              <Card className="!border-white/20 !bg-white/86 p-6 backdrop-blur-xl">
                 <form action={`/api/customer/${token}`} method="POST" className="grid gap-4">
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field label="Fornavn">
@@ -252,7 +284,7 @@ export default async function CustomerPortalPage({
 
             {view === "payments" ? (
               <div className="space-y-6">
-                <Card className="p-10 text-center">
+                <Card className="!border-white/20 !bg-white/86 p-10 text-center backdrop-blur-xl">
                   <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#eef8ff] text-[#2388d1]">
                     <CreditCard className="h-10 w-10" />
                   </div>
@@ -265,7 +297,7 @@ export default async function CustomerPortalPage({
                   </p>
                 </Card>
 
-                <Card className="bg-[#f6fbff] p-6">
+                <Card className="!border-white/20 !bg-white/82 p-6 backdrop-blur-xl">
                   <h3 className="text-2xl font-semibold text-[var(--ink)]">
                     100% sikker betaling
                   </h3>
@@ -281,6 +313,119 @@ export default async function CustomerPortalPage({
         </div>
       </section>
     </main>
+  );
+}
+
+function CustomerNextBooking({
+  booking,
+  customerEmail,
+}: {
+  booking?: DashboardBooking;
+  customerEmail: string;
+}) {
+  if (!booking) {
+    return (
+      <section className="rounded-[2rem] border border-white/18 bg-white/12 p-6 text-white shadow-[0_24px_70px_rgba(5,18,32,0.18)] backdrop-blur-2xl">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
+              Naeste aftale
+            </p>
+            <h2 className="mt-3 font-display text-3xl font-semibold">Ingen kommende booking</h2>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72">
+              Din portal er klar, og nye bookinger vises automatisk her, naar de er oprettet.
+            </p>
+          </div>
+          <Link
+            href="/booking"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-[#10243b] shadow-[0_18px_42px_rgba(5,18,32,0.18)] transition hover:brightness-105"
+          >
+            <CalendarPlus className="h-5 w-5" />
+            Book tid
+          </Link>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="grid gap-4 rounded-[2rem] border border-white/18 bg-white/12 p-5 text-white shadow-[0_24px_70px_rgba(5,18,32,0.18)] backdrop-blur-2xl lg:grid-cols-[1.05fr_0.95fr]">
+      <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#10243b]">
+            <Calendar className="h-5 w-5" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
+              Naeste aftale
+            </p>
+            <h2 className="mt-1 font-display text-3xl font-semibold">
+              {booking.appointmentLabel}
+            </h2>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <CustomerFact icon={Sparkles} label="Service" value={`${booking.packageLabel} - ${booking.category}`} />
+          <CustomerFact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
+          <CustomerFact icon={MapPinned} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
+          <CustomerFact icon={CheckCircle2} label="Status" value={getStatusLabel(booking.status)} />
+        </div>
+      </div>
+
+      <div className="rounded-[1.5rem] border border-white/14 bg-white/82 p-5 text-[#10243b]">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+          Kontakt og betaling
+        </p>
+        <div className="mt-4 grid gap-3 text-sm">
+          <CustomerFactDark icon={Mail} label="E-mail" value={customerEmail} />
+          <CustomerFactDark icon={Phone} label="Telefon" value={booking.customerPhone || "Ikke angivet"} />
+          <CustomerFactDark icon={CreditCard} label="Pris" value={formatPrice(booking.total)} />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CustomerFact({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-white/12 bg-white/10 px-4 py-3">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/58">
+        <Icon className="h-4 w-4 shrink-0" />
+        {label}
+      </div>
+      <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
+    </div>
+  );
+}
+
+function CustomerFactDark({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#d9e7f0] bg-white/74 px-4 py-3">
+      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#e9fbf5] text-[#0c7a61]">
+        <Icon className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-xs text-[#617382]">{label}</p>
+        <p className="truncate text-sm font-semibold text-[#10243b]">{value}</p>
+      </div>
+    </div>
   );
 }
 

@@ -59,6 +59,7 @@ type LoggedMessage = {
   subject: string;
   html: string;
   text: string;
+  attachments?: nodemailer.SendMailOptions["attachments"];
 };
 
 let cachedTransporter: nodemailer.Transporter | null | undefined;
@@ -376,7 +377,7 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       status: "not_configured",
       errorMessage: "SMTP is not configured.",
     });
-    return;
+    return "not_configured";
   }
 
   const config = getMailConfig();
@@ -388,6 +389,7 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       subject: message.subject,
       html: message.html,
       text: message.text,
+      attachments: message.attachments,
     });
 
     await recordEmailLog({
@@ -400,6 +402,7 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       status: "sent",
       sentAt: new Date().toISOString(),
     });
+    return "sent";
   } catch (error) {
     await recordEmailLog({
       bookingId: message.bookingId,
@@ -545,5 +548,108 @@ export const sendAdminNewBookingAlert = async (input: {
     ]
       .filter(Boolean)
       .join("\n"),
+  });
+};
+
+export const sendCustomerInvoiceEmail = async (input: {
+  bookingId: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  invoiceNumber: string;
+  totalInclMomsDkk: number;
+  pdfPath?: string;
+  settings: MailSettings;
+}) => {
+  const subject = `Your CleanWash invoice #${input.invoiceNumber}`;
+  const total = formatPrice(input.totalInclMomsDkk);
+  const greeting = input.customerName ? `Hi ${input.customerName}` : "Hi";
+
+  return sendLoggedMail({
+    bookingId: input.bookingId,
+    customerId: input.customerId,
+    recipient: input.customerEmail,
+    recipientRole: "customer",
+    templateKey: "customer_invoice",
+    subject,
+    html: `
+      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
+        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Invoice</p>
+        <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">${escapeHtml(
+          subject
+        )}</h2>
+        <p style="margin:0;color:#36505d;">${escapeHtml(
+          `${greeting}. Your invoice for booking ${input.bookingId} is ready.`
+        )}</p>
+        ${renderRows([
+          ["Invoice number", input.invoiceNumber],
+          ["Booking", input.bookingId],
+          ["Total amount", total],
+          [
+            "Payment",
+            process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
+              "Please pay according to the agreement with WashMax.",
+          ],
+        ])}
+        <p style="margin-top:20px;color:#36505d;">Thank you for choosing ${escapeHtml(
+          input.settings.companyName
+        )}.</p>
+      </div>
+    `,
+    text: [
+      subject,
+      "",
+      `${greeting}. Your invoice for booking ${input.bookingId} is ready.`,
+      `Invoice number: ${input.invoiceNumber}`,
+      `Booking: ${input.bookingId}`,
+      `Total amount: ${total}`,
+      `Payment: ${
+        process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
+        "Please pay according to the agreement with WashMax."
+      }`,
+      "",
+      `Support: ${input.settings.supportEmail}`,
+    ].join("\n"),
+    attachments: input.pdfPath
+      ? [
+          {
+            filename: `${input.invoiceNumber}.pdf`,
+            path: input.pdfPath,
+            contentType: "application/pdf",
+          },
+        ]
+      : undefined,
+  });
+};
+
+export const sendAdminInvoiceNotice = async (input: {
+  bookingId: string;
+  agentName: string;
+  invoiceNumber: string;
+  totalInclMomsDkk: number;
+  settings: MailSettings;
+}) => {
+  const config = getMailConfig();
+  const adminEmail =
+    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+  const total = formatPrice(input.totalInclMomsDkk);
+  const message = `Agent ${input.agentName} generated and sent invoice ${input.invoiceNumber} for booking ${input.bookingId}. Total: ${total}.`;
+
+  return sendLoggedMail({
+    bookingId: input.bookingId,
+    recipient: adminEmail,
+    recipientRole: "admin",
+    templateKey: "admin_invoice_sent",
+    subject: `${input.settings.companyName}: invoice ${input.invoiceNumber} sent`,
+    html: `
+      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
+        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Invoice sent</p>
+        <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">Invoice ${escapeHtml(
+          input.invoiceNumber
+        )} sent</h2>
+        <p style="margin:0;color:#36505d;">${escapeHtml(message)}</p>
+      </div>
+    `,
+    text: message,
   });
 };

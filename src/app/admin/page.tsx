@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -30,6 +30,9 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { getAdminAgentsData } from "@/lib/server/agents";
+import { getBookingSetupData } from "@/lib/server/booking-setup";
+import { getBookingInvoiceData, type BookingInvoiceData, type BookingLineItem } from "@/lib/server/invoices";
 import {
   getAdminDashboardData,
   type BookingEmailLog,
@@ -52,12 +55,20 @@ import {
   getTimeSlots,
   invoiceStatuses,
   paymentStatuses,
+  timeStringToMinutes,
   weekdayOptions,
   type BookingStatus,
 } from "@/lib/shared/booking";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { AdminCalendarPanel } from "@/components/admin/admin-calendar";
+import { AdminAgentsView } from "@/components/admin/agents-view";
+import { BookingSetupView } from "@/components/admin/booking-setup-view";
+import { AdminCommandCenter } from "@/components/admin/admin-command-center";
+import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
+import { AdminSidebar as AdminSidebarLayout } from "@/components/admin/admin-sidebar";
+import { AdminTopbar as AdminTopbarLayout } from "@/components/admin/admin-topbar";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -73,6 +84,8 @@ const navItems = [
   { id: "calendar", label: "Kalender", icon: Calendar },
   { id: "bookings", label: "Bookinger", icon: ListFilter },
   { id: "customers", label: "Kunder", icon: Users },
+  { id: "agents", label: "Agents", icon: UserRound },
+  { id: "booking-setup", label: "Booking Setup", icon: Wrench },
   { id: "services", label: "Ydelser", icon: Sparkles },
   { id: "availability", label: "Tilgængelighed", icon: CalendarClock },
   { id: "emails", label: "E-mails", icon: Mail },
@@ -97,8 +110,8 @@ type AdminView = (typeof navItems)[number]["id"];
 
 const viewMeta: Record<AdminView, { title: string; description: string }> = {
   overview: {
-    title: "Driftsoversigt",
-    description: "KPI'er, dagens plan og næste handlinger samlet ét sted.",
+    title: "Dashboard",
+    description: "KPI'er, dagens plan og bookingudvikling samlet ét sted.",
   },
   calendar: {
     title: "Kalender",
@@ -111,6 +124,14 @@ const viewMeta: Record<AdminView, { title: string; description: string }> = {
   customers: {
     title: "Kunder",
     description: "Kundedata, noter og historik i korte kort.",
+  },
+  agents: {
+    title: "Agents",
+    description: "Opret medarbejdere, fordel bookinger og foelg agentstatus.",
+  },
+  "booking-setup": {
+    title: "Booking Setup",
+    description: "Styr services, tilvalg, åbningstider, felter og bookingregler.",
   },
   services: {
     title: "Ydelser og priser",
@@ -139,7 +160,7 @@ const viewMeta: Record<AdminView, { title: string; description: string }> = {
 };
 
 const selectClassName =
-  "h-10 w-full rounded-xl border border-[#dbe6ee] bg-white px-3 text-sm text-[var(--ink)] outline-none transition focus:border-[#16b88f] focus:ring-4 focus:ring-[#16b88f]/12";
+  "h-10 w-full rounded-2xl border border-[#E1E6F7] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#6366F1]/10";
 
 const statusMessages: Record<string, string> = {
   created: "Bookingen er oprettet.",
@@ -149,6 +170,29 @@ const statusMessages: Record<string, string> = {
   customer: "Kunden er opdateret.",
   availability: "Kalenderblokken er opdateret.",
   email: "E-mailen er sendt igen.",
+};
+
+const calendarHourHeight = 76;
+const glassWeekdayLabels = ["MAN", "TIR", "ONS", "TOR", "FRE", "LOR", "SON"];
+
+type GlassCalendarDay = DashboardData["calendar"][number] & {
+  dayNumber: string;
+  weekdayLabel: string;
+  isToday: boolean;
+};
+
+type CalendarBookingLayout = {
+  booking: DashboardBooking;
+  top: number;
+  height: number;
+  lane: number;
+  laneCount: number;
+};
+
+type CalendarBlockLayout = {
+  block: DashboardData["availabilityBlocks"][number];
+  top: number;
+  height: number;
 };
 
 export default async function AdminPage({
@@ -169,8 +213,25 @@ export default async function AdminPage({
     : "overview";
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
+  const searchQuery = Array.isArray(params.q) ? params.q[0] || "" : params.q || "";
   const dashboard = await getAdminDashboardData();
+  const agentsData = view === "agents" ? await getAdminAgentsData() : undefined;
+  const bookingSetupData = view === "booking-setup" ? await getBookingSetupData() : undefined;
   const hasDatabase = isDatabaseConfigured();
+  const bookingInvoiceDataEntries =
+    view === "bookings" && hasDatabase
+      ? await Promise.all(
+          dashboard.bookings
+            .slice(0, INITIAL_BOOKING_LIMIT)
+            .map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
+        )
+      : [];
+  const bookingInvoiceDataById: Record<string, BookingInvoiceData> = {};
+  for (const [bookingId, invoiceData] of bookingInvoiceDataEntries) {
+    if (invoiceData) {
+      bookingInvoiceDataById[bookingId] = invoiceData;
+    }
+  }
   const today = getTodayDateText();
   const timeSlots = getTimeSlots(dashboard.settings);
   const upcomingBookings = [...dashboard.bookings]
@@ -185,9 +246,6 @@ export default async function AdminPage({
   const unpaidBookings = dashboard.bookings
     .filter((item) => item.status !== "cancelled" && item.paymentStatus !== "paid")
     .sort(sortBookings);
-  const calendarDays = dashboard.calendar
-    .filter((item) => item.date >= today || item.blocks.length > 0)
-    .slice(0, 12);
   const bookingsByCustomer = new Map<string, DashboardBooking[]>();
   for (const booking of dashboard.bookings) {
     const list = bookingsByCustomer.get(booking.customerId) || [];
@@ -201,83 +259,22 @@ export default async function AdminPage({
   const errorMessage = error === "action" ? "Handlingen kunne ikke gennemføres." : "";
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(180deg,#fbfbfe_0%,#f4f8fb_48%,#eef5f7_100%)] px-3 pb-8 pt-3 sm:px-5 sm:pb-10">
-      <section className="mx-auto max-w-[1480px]">
+    <AdminShellLayout>
+      <section>
         <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-          <aside className="overflow-hidden rounded-2xl border border-white/10 bg-[linear-gradient(180deg,#113a5c,#0f344f_62%,#123047)] text-white shadow-[0_20px_60px_rgba(7,38,63,0.18)] xl:sticky xl:top-4 xl:self-start">
-            <div className="border-b border-white/10 px-4 py-5">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#8ee8d0] text-base font-semibold text-[#06251d] shadow-[0_10px_24px_rgba(20,184,143,0.2)]">
-                  A
-                </div>
-                <div>
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.22em] text-[#8ee8d0]">WashMax</p>
-                  <p className="mt-1 text-base font-semibold">Admin</p>
-                  <p className="text-xs text-white/70">{session.email}</p>
-                </div>
-              </div>
-            </div>
-
-            <nav className="flex snap-x gap-2 overflow-x-auto px-3 py-3 xl:grid xl:grid-cols-1 xl:overflow-visible">
-              {navItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = view === item.id;
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/admin?view=${item.id}`}
-                    scroll={false}
-                    className={cn(
-                      "min-w-[9.5rem] snap-start flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm transition xl:min-w-0",
-                      isActive
-                        ? "bg-white text-[#0f3555] shadow-[0_12px_28px_rgba(255,255,255,0.12)]"
-                        : "bg-white/6 text-white/84 hover:bg-white/12"
-                    )}
-                  >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="truncate">{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="border-t border-white/10 px-4 py-4">
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <p className="text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-[#8ee8d0]">
-                  Dagens drift
-                </p>
-                <span className="rounded-full border border-white/12 bg-white/8 px-2.5 py-1 text-[0.68rem] text-white/72">
-                  Live
-                </span>
-              </div>
-              <div className="grid grid-cols-3 gap-2 text-sm text-white/84">
-                <div className="rounded-xl border border-white/8 bg-white/6 px-3 py-2.5">
-                  <span className="block text-xs text-white/56">I dag</span>
-                  <strong>{dashboard.stats.todayBookings}</strong>
-                </div>
-                <div className="rounded-xl border border-white/8 bg-white/6 px-3 py-2.5">
-                  <span className="block text-xs text-white/56">Afventer</span>
-                  <strong>{dashboard.stats.pendingBookings}</strong>
-                </div>
-                <div className="rounded-xl border border-white/8 bg-white/6 px-3 py-2.5">
-                  <span className="block text-xs text-white/56">Udestår</span>
-                  <strong>{formatShortPrice(dashboard.stats.outstandingRevenue)}</strong>
-                </div>
-              </div>
-            </div>
-          </aside>
+          <AdminSidebarLayout dashboard={dashboard} sessionEmail={session.email} view={view} />
 
           <div className="space-y-5">
-            <section className="rounded-2xl border border-[#dfe8ee] bg-white px-4 py-5 shadow-[0_18px_48px_rgba(7,38,63,0.06)] sm:px-6">
+            <AdminTopbarLayout searchQuery={searchQuery} sessionEmail={session.email}>
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b20fce]">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
                     {navItems.find((item) => item.id === view)?.label}
                   </p>
-                  <h1 className="mt-2 font-display text-2xl font-semibold text-[#071322] sm:text-3xl">
+                  <h1 className="mt-2 text-[30px] font-bold leading-tight text-[#1F2340]">
                     {viewMeta[view].title}
                   </h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-[#617382]">
+                  <p className="mt-2 max-w-2xl text-[13px] font-medium leading-6 text-[#4B5563]">
                     {viewMeta[view].description}
                   </p>
                 </div>
@@ -285,20 +282,20 @@ export default async function AdminPage({
                 <div className="flex flex-wrap gap-3">
                   <Link
                     href="/booking"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-[#d4e3ed] bg-white px-3.5 text-sm font-semibold text-[var(--ink)] transition hover:border-[#16b88f] hover:text-[#0b7f65]"
+                    className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-[#6366F1] bg-[#6366F1] px-3.5 text-[13px] font-semibold text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)] transition duration-[250ms] hover:-translate-y-0.5 hover:bg-[#5B5BF7]"
                   >
-                    <CalendarPlus className="h-4 w-4" />
+                    <CalendarPlus className="h-5 w-5" />
                     Ny booking
                   </Link>
                   <form action="/api/admin/logout" method="POST">
-                    <Button type="submit" variant="outline">
-                      <LogOut className="h-4 w-4" />
+                    <Button type="submit" variant="outline" className="rounded-2xl border-[#E1E6F7] bg-white/60 text-[13px] font-semibold text-[#4B5563] hover:bg-white">
+                      <LogOut className="h-5 w-5" />
                       Log ud
                     </Button>
                   </form>
                 </div>
               </div>
-            </section>
+            </AdminTopbarLayout>
 
             {!hasDatabase ? (
               <div className="rounded-[1.6rem] border border-[#ffe2af] bg-[#fff8ea] px-5 py-4 text-sm text-[#8d5d08] shadow-[0_12px_32px_rgba(141,93,8,0.08)]">
@@ -333,14 +330,18 @@ export default async function AdminPage({
                 todayBookings={todayBookings}
                 upcomingBookings={upcomingBookings}
                 unpaidBookings={unpaidBookings}
+                searchQuery={searchQuery}
+                timeSlots={timeSlots}
+                today={today}
               />
             ) : null}
 
             {view === "calendar" ? (
               <CalendarView
-                calendarDays={calendarDays}
-                upcomingBookings={upcomingBookings}
-                pendingBookings={pendingBookings}
+                dashboard={dashboard}
+                searchQuery={searchQuery}
+                timeSlots={timeSlots}
+                today={today}
               />
             ) : null}
 
@@ -348,6 +349,7 @@ export default async function AdminPage({
               <BookingsView
                 dashboard={dashboard}
                 bookings={dashboard.bookings}
+                invoiceDataByBookingId={bookingInvoiceDataById}
                 pendingBookings={pendingBookings}
                 upcomingBookings={upcomingBookings}
                 timeSlots={timeSlots}
@@ -359,6 +361,14 @@ export default async function AdminPage({
                 customers={dashboard.customers}
                 bookingsByCustomer={bookingsByCustomer}
               />
+            ) : null}
+
+            {view === "agents" && agentsData ? (
+              <AdminAgentsView data={agentsData} saved={saved} error={error} />
+            ) : null}
+
+            {view === "booking-setup" && bookingSetupData ? (
+              <BookingSetupView data={bookingSetupData} saved={saved} error={error} />
             ) : null}
 
             {view === "services" ? <ServicesView dashboard={dashboard} /> : null}
@@ -383,379 +393,1065 @@ export default async function AdminPage({
           </div>
         </div>
       </section>
-    </main>
+    </AdminShellLayout>
+  );
+}
+
+function GlassCard({
+  children,
+  className,
+}: {
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      className={cn(
+        "rounded-3xl border border-white/55 bg-white/[0.65] text-[#1F2340] shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl transition duration-[250ms] hover:-translate-y-0.5",
+        className
+      )}
+    >
+      {children}
+    </section>
+  );
+}
+
+function KpiCard({
+  label,
+  value,
+  detail,
+  icon: Icon,
+  tone = "violet",
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: LucideIcon;
+  tone?: "violet" | "blue" | "green" | "orange";
+}) {
+  const toneClass = {
+    violet: "bg-[#EEF0FF] text-[#6366F1] ring-[#A5B4FC]/30",
+    blue: "bg-[#EEF0FF] text-[#5B5BF7] ring-[#A5B4FC]/30",
+    green: "bg-[#10B981]/10 text-[#047857] ring-[#10B981]/20",
+    orange: "bg-[#F59E0B]/10 text-[#92400E] ring-[#F59E0B]/20",
+  }[tone];
+
+  return (
+    <GlassCard className="p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[12px] font-medium text-[#8E95B5]">{label}</p>
+          <p className="mt-2 truncate text-[22px] font-bold leading-none text-[#1F2340]">{value}</p>
+          <p className="mt-2 truncate text-[12px] font-medium text-[#4B5563]">{detail}</p>
+        </div>
+        <span className={cn("flex h-10 w-10 items-center justify-center rounded-2xl ring-1", toneClass)}>
+          <Icon className="h-5 w-5" />
+        </span>
+      </div>
+    </GlassCard>
+  );
+}
+
+function StatusBadge({ status }: { status: BookingStatus }) {
+  const styles: Record<BookingStatus, string> = {
+    pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
+    approved: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
+    completed: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    cancelled: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
+  };
+
+  return (
+    <span className={cn("inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold", styles[status])}>
+      {getStatusLabel(status)}
+    </span>
   );
 }
 
 function OverviewView({
   dashboard,
-  pendingBookings,
-  todayBookings,
-  upcomingBookings,
-  unpaidBookings,
+  searchQuery,
+  timeSlots,
+  today,
 }: {
   dashboard: DashboardData;
   pendingBookings: DashboardBooking[];
   todayBookings: DashboardBooking[];
   upcomingBookings: DashboardBooking[];
   unpaidBookings: DashboardBooking[];
+  searchQuery: string;
+  timeSlots: string[];
+  today: string;
 }) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <MetricCard
-          label="Ventende godkendelser"
-          value={dashboard.stats.pendingBookings.toString()}
-          detail={`${dashboard.stats.upcomingBookings} kommende bookinger`}
-          icon={Clock3}
-        />
-        <MetricCard
-          label="Dagens jobs"
+    <AdminCommandCenter
+      dashboard={dashboard}
+      searchQuery={searchQuery}
+      timeSlots={timeSlots}
+      today={today}
+    />
+  );
+}
+function PremiumAdminOverviewDashboard({
+  dashboard,
+  pendingBookings,
+  todayBookings,
+  upcomingBookings,
+  unpaidBookings,
+  searchQuery,
+}: {
+  dashboard: DashboardData;
+  pendingBookings: DashboardBooking[];
+  todayBookings: DashboardBooking[];
+  upcomingBookings: DashboardBooking[];
+  unpaidBookings: DashboardBooking[];
+  searchQuery: string;
+}) {
+  const activeCustomers = dashboard.customers.filter((customer) => customer.upcomingBookings > 0);
+  const paidRevenue = dashboard.bookings
+    .filter((booking) => booking.status !== "cancelled" && booking.paymentStatus === "paid")
+    .reduce((sum, booking) => sum + booking.total, 0);
+  const recentBookings = getFilteredRecentBookings(dashboard.bookings, searchQuery, 8);
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiCard
+          label="Today's bookings"
           value={dashboard.stats.todayBookings.toString()}
-          detail={`${dashboard.stats.completedBookings} afsluttede samlet`}
+          detail={`${upcomingBookings.length} upcoming total`}
           icon={CalendarClock}
+          tone="blue"
         />
-        <MetricCard
-          label="Omsætning"
+        <KpiCard
+          label="Total bookings"
+          value={dashboard.stats.totalBookings.toString()}
+          detail={`${dashboard.stats.completedBookings} completed`}
+          icon={ReceiptText}
+        />
+        <KpiCard
+          label="Pending"
+          value={pendingBookings.length.toString()}
+          detail="Needs admin action"
+          icon={Clock3}
+          tone="orange"
+        />
+        <KpiCard
+          label="Revenue"
           value={formatShortPrice(dashboard.stats.totalRevenue)}
-          detail={`${formatShortPrice(dashboard.stats.outstandingRevenue)} mangler betaling`}
+          detail={`${formatShortPrice(paidRevenue)} paid`}
           icon={BarChart3}
-        />
-        <MetricCard
-          label="Kunder"
-          value={dashboard.stats.totalCustomers.toString()}
-          detail={`${dashboard.customers.filter((item) => item.upcomingBookings > 0).length} aktive`}
-          icon={Users}
-        />
-        <MetricCard
-          label="E-mails"
-          value={dashboard.emailLogs.length.toString()}
-          detail={`${dashboard.emailLogs.filter((item) => item.status === "failed").length} fejl i loggen`}
-          icon={Mail}
+          tone="green"
         />
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
-        <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Næste handlinger"
-            title="Ventende bookinger"
-            description="De bookinger der typisk skal ses først af admin."
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)]">
+        <RevenueTrendCard bookings={dashboard.bookings} />
+        <TodayBookings bookings={todayBookings} />
+      </div>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(20rem,0.65fr)]">
+        <RecentBookingsTable bookings={recentBookings} searchQuery={searchQuery} />
+        <div className="grid gap-5">
+          <StatusDistributionCard bookings={dashboard.bookings} />
+          <QuickActionsCard
+            activeCustomers={activeCustomers.length}
+            outstandingRevenue={dashboard.stats.outstandingRevenue}
+            unpaidBookings={unpaidBookings.length}
           />
-          <div className="grid gap-4">
-            {pendingBookings.length > 0 ? (
-              pendingBookings.slice(0, 6).map((booking) => (
-                <article
-                  key={booking.id}
-                  className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
-                >
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h3 className="text-lg font-semibold text-[var(--ink)]">
-                          {booking.customerName || booking.customerEmail}
-                        </h3>
-                        <StatusPill status={booking.status} />
-                      </div>
-                      <p className="mt-2 text-sm text-[var(--muted)]">
-                        {booking.appointmentLabel} | {booking.packageLabel} - {booking.category}
-                      </p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">
-                        {booking.address}, {booking.postalCode} {booking.city}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-2xl bg-[#f5fafc] px-4 py-3 text-right">
-                        <p className="text-xs uppercase tracking-[0.12em] text-[#2388d1]">
-                          Total
-                        </p>
-                        <p className="mt-1 font-semibold text-[var(--ink)]">
-                          {formatPrice(booking.total)}
-                        </p>
-                      </div>
-                      <Link
-                        href={`/admin?view=bookings#booking-${booking.id}`}
-                        className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-white px-4 text-sm font-semibold text-[var(--ink)] transition hover:border-[#55b9df]"
-                      >
-                        Åbn
-                        <ArrowRight className="h-4 w-4" />
-                      </Link>
-                    </div>
-                  </div>
-                </article>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TodayBookings({ bookings }: { bookings: DashboardBooking[] }) {
+  return (
+    <GlassCard className="p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-white">Today schedule</p>
+          <p className="mt-1 text-xs text-slate-400">Real appointments for today</p>
+        </div>
+        <Calendar className="h-4 w-4 text-slate-400" />
+      </div>
+
+      <div className="mt-4 grid gap-2">
+        {bookings.length > 0 ? (
+          bookings.slice(0, 6).map((booking) => (
+            <Link
+              key={booking.id}
+              href={`/admin?view=bookings#booking-${booking.id}`}
+              className="grid gap-1 rounded-xl border border-white/10 bg-white/[0.055] px-3 py-3 text-sm transition hover:bg-white/[0.09]"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-semibold text-white">
+                  {booking.appointmentTime} - {booking.customerName || booking.customerEmail}
+                </span>
+                <StatusBadge status={booking.status} />
+              </div>
+              <p className="truncate text-xs text-slate-400">
+                {booking.packageLabel} | {booking.areaName || booking.city || booking.registrationNumber}
+              </p>
+            </Link>
+          ))
+        ) : (
+          <AdminEmptyState title="No bookings today" detail="Today's schedule is clear." />
+        )}
+      </div>
+    </GlassCard>
+  );
+}
+
+function RecentBookingsTable({
+  bookings,
+  searchQuery,
+}: {
+  bookings: DashboardBooking[];
+  searchQuery: string;
+}) {
+  return (
+    <GlassCard className="overflow-hidden">
+      <div className="flex items-center justify-between gap-3 border-b border-white/10 px-4 py-4">
+        <div>
+          <p className="text-sm font-semibold text-white">Recent bookings</p>
+          <p className="mt-1 text-xs text-slate-400">
+            {searchQuery ? `Filtered by "${searchQuery}"` : "Latest database records"}
+          </p>
+        </div>
+        <Link
+          href="/admin?view=bookings"
+          className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-200 hover:text-white"
+        >
+          View all
+          <ArrowRight className="h-3.5 w-3.5" />
+        </Link>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[680px] text-left text-sm">
+          <thead className="text-[0.68rem] uppercase tracking-[0.12em] text-slate-500">
+            <tr className="border-b border-white/10">
+              <th className="px-4 py-3 font-semibold">Customer</th>
+              <th className="px-4 py-3 font-semibold">Appointment</th>
+              <th className="px-4 py-3 font-semibold">Service</th>
+              <th className="px-4 py-3 font-semibold">Status</th>
+              <th className="px-4 py-3 text-right font-semibold">Total</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/8">
+            {bookings.length > 0 ? (
+              bookings.map((booking) => (
+                <tr key={booking.id} className="transition hover:bg-white/[0.04]">
+                  <td className="px-4 py-3">
+                    <Link
+                      href={`/admin?view=bookings#booking-${booking.id}`}
+                      className="font-semibold text-white hover:text-indigo-200"
+                    >
+                      {booking.customerName || booking.customerEmail}
+                    </Link>
+                    <p className="mt-0.5 text-xs text-slate-500">{booking.registrationNumber}</p>
+                  </td>
+                  <td className="px-4 py-3 text-slate-300">{booking.appointmentLabel}</td>
+                  <td className="px-4 py-3 text-slate-300">{booking.packageLabel}</td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={booking.status} />
+                  </td>
+                  <td className="px-4 py-3 text-right font-semibold text-white">
+                    {formatPrice(booking.total)}
+                  </td>
+                </tr>
               ))
             ) : (
-              <EmptyState text="Ingen ventende bookinger lige nu." />
+              <tr>
+                <td colSpan={5} className="px-4 py-8">
+                  <AdminEmptyState
+                    title="No matching bookings"
+                    detail="Try a different search or create a new booking."
+                  />
+                </td>
+              </tr>
             )}
-          </div>
-        </section>
-
-        <section className="space-y-6">
-          <div>
-            <SectionHeading
-              eyebrow="I dag"
-              title="Dagens plan"
-              description="Et kompakt overblik der fungerer godt på mobilen i felten."
-            />
-            <div className="mt-4 grid gap-3">
-              {todayBookings.length > 0 ? (
-                todayBookings.map((booking) => (
-                  <article
-                    key={booking.id}
-                    className="rounded-[1.4rem] border border-[#d9e7f0] bg-white px-4 py-4 shadow-[0_12px_32px_rgba(8,27,21,0.05)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-[var(--ink)]">
-                          {booking.appointmentTime} - {booking.customerName || booking.customerEmail}
-                        </p>
-                        <p className="mt-1 text-sm text-[var(--muted)]">
-                          {booking.packageLabel} | {booking.areaName || booking.city}
-                        </p>
-                      </div>
-                      <StatusPill status={booking.status} />
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <EmptyState text="Ingen jobs planlagt i dag." />
-              )}
-            </div>
-          </div>
-
-          <div>
-            <SectionHeading
-              eyebrow="Næste ruter"
-              title="Områdeplan"
-              description="Grupperet efter dag og zone, så ruten er lettere at planlægge."
-            />
-            <div className="mt-4 grid gap-4">
-              {dashboard.routePlan.slice(0, 3).map((day) => (
-                <article
-                  key={day.date}
-                  className="rounded-[1.4rem] border border-[#d9e7f0] bg-white px-4 py-4 shadow-[0_12px_32px_rgba(8,27,21,0.05)]"
-                >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="font-semibold text-[var(--ink)]">{day.label}</p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">
-                        {day.areas.length} områder planlagt
-                      </p>
-                    </div>
-                    <Route className="h-5 w-5 text-[#2388d1]" />
-                  </div>
-                  <div className="mt-3 grid gap-2">
-                    {day.areas.map((area) => (
-                      <div
-                        key={area.key}
-                        className="flex items-center justify-between rounded-2xl bg-[#f6fafc] px-3 py-3 text-sm"
-                      >
-                        <span className="font-medium text-[var(--ink)]">
-                          {area.label} ({area.count})
-                        </span>
-                        <span className="text-[var(--muted)]">
-                          {formatPrice(area.totalRevenue)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <SectionHeading
-              eyebrow="Betaling"
-              title="Udestående betalinger"
-              description="Bookinger der mangler betaling eller fakturaopfølgning."
-            />
-            <div className="mt-4 grid gap-3">
-              {unpaidBookings.length > 0 ? (
-                unpaidBookings.slice(0, 5).map((booking) => (
-                  <article
-                    key={booking.id}
-                    className="rounded-[1.4rem] border border-[#d9e7f0] bg-white px-4 py-4 shadow-[0_12px_32px_rgba(8,27,21,0.05)]"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="font-semibold text-[var(--ink)]">
-                          {booking.customerName || booking.customerEmail}
-                        </p>
-                        <p className="mt-1 text-sm text-[var(--muted)]">
-                          {booking.appointmentLabel}
-                        </p>
-                      </div>
-                      <PaymentPill status={booking.paymentStatus} />
-                    </div>
-                    <div className="mt-3 flex items-center justify-between text-sm">
-                      <span className="text-[var(--muted)]">Fakturastatus</span>
-                      <InvoicePill status={booking.invoiceStatus} />
-                    </div>
-                  </article>
-                ))
-              ) : (
-                <EmptyState text="Ingen ubetalte bookinger lige nu." />
-              )}
-            </div>
-          </div>
-        </section>
+          </tbody>
+        </table>
       </div>
+    </GlassCard>
+  );
+}
 
-      <section className="space-y-4">
-        <SectionHeading
-          eyebrow="Kommende"
-          title="Næste bookinger"
-          description="Kommende jobs i kalenderen."
-        />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {upcomingBookings.slice(0, 6).map((booking) => (
-            <article
-              key={booking.id}
-              className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
-            >
-              <div className="flex items-center justify-between gap-4">
-                <StatusPill status={booking.status} />
-                <PaymentPill status={booking.paymentStatus} />
+function StatusDistributionCard({ bookings }: { bookings: DashboardBooking[] }) {
+  const activeBookings = bookings.filter((booking) => booking.status !== "cancelled");
+  const statuses: BookingStatus[] = ["pending", "approved", "completed", "cancelled"];
+  const total = Math.max(1, bookings.length);
+
+  return (
+    <GlassCard className="p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-white">Status distribution</p>
+          <p className="mt-1 text-xs text-slate-400">{activeBookings.length} active bookings</p>
+        </div>
+        <ShieldCheck className="h-4 w-4 text-slate-400" />
+      </div>
+      <div className="mt-4 grid gap-3">
+        {statuses.map((status) => {
+          const count = bookings.filter((booking) => booking.status === status).length;
+          const width = Math.max(4, Math.round((count / total) * 100));
+          return (
+            <div key={status}>
+              <div className="mb-1.5 flex items-center justify-between text-xs">
+                <StatusBadge status={status} />
+                <span className="font-semibold text-slate-300">{count}</span>
               </div>
-              <p className="mt-4 text-lg font-semibold text-[var(--ink)]">
-                {booking.packageLabel} - {booking.category}
-              </p>
-              <p className="mt-2 text-sm text-[var(--muted)]">
-                {booking.customerName || booking.customerEmail}
-              </p>
-              <p className="mt-1 text-sm text-[var(--muted)]">{booking.appointmentLabel}</p>
-              <p className="mt-1 text-sm text-[var(--muted)]">
-                {booking.areaName || booking.city}
-              </p>
-              <Link
-                href={`/admin?view=bookings#booking-${booking.id}`}
-                className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-[#2388d1]"
-              >
-                Åbn booking
-                <ArrowRight className="h-4 w-4" />
-              </Link>
-            </article>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
+                <div
+                  className={cn(
+                    "h-full rounded-full",
+                    status === "pending"
+                      ? "bg-orange-300"
+                      : status === "approved"
+                        ? "bg-emerald-300"
+                        : status === "completed"
+                          ? "bg-sky-300"
+                          : "bg-red-300"
+                  )}
+                  style={{ width: `${width}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </GlassCard>
+  );
+}
+
+function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
+  const monthly = buildDashboardMonths(bookings, 6);
+  const maxRevenue = Math.max(1, ...monthly.map((point) => point.revenue));
+  const points = getSparklinePoints(
+    monthly.map((point) => point.revenue),
+    360,
+    130,
+    18
+  );
+
+  return (
+    <GlassCard className="p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-white">Revenue / booking trend</p>
+          <p className="mt-1 text-xs text-slate-400">Monthly totals from booking records</p>
+        </div>
+        <span className="rounded-full border border-white/10 bg-white/8 px-3 py-1 text-xs font-semibold text-slate-300">
+          {monthly.length} months
+        </span>
+      </div>
+      <div className="mt-5 grid gap-5 lg:grid-cols-[1.1fr_0.9fr] lg:items-end">
+        <svg viewBox="0 0 360 140" className="h-40 w-full" role="img" aria-label="Revenue trend">
+          <path
+            d={getSparklinePath(points)}
+            fill="none"
+            stroke="#a5b4fc"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="3"
+          />
+          {points.map((point, index) => (
+            <circle
+              key={monthly[index]?.key || index}
+              cx={point.x}
+              cy={point.y}
+              r="3.5"
+              fill="#c4b5fd"
+              stroke="#111827"
+              strokeWidth="2"
+            />
+          ))}
+        </svg>
+        <div className="flex h-36 items-end gap-3">
+          {monthly.map((point) => (
+            <div key={point.key} className="flex flex-1 flex-col items-center gap-2">
+              <span
+                className="w-full rounded-t-lg bg-indigo-300/80"
+                title={formatPrice(point.revenue)}
+                style={{ height: `${Math.max(8, (point.revenue / maxRevenue) * 100)}%` }}
+              />
+              <span className="text-[0.65rem] font-semibold uppercase tracking-[0.08em] text-slate-500">
+                {point.label}
+              </span>
+            </div>
           ))}
         </div>
-      </section>
+      </div>
+    </GlassCard>
+  );
+}
+
+function QuickActionsCard({
+  activeCustomers,
+  outstandingRevenue,
+  unpaidBookings,
+}: {
+  activeCustomers: number;
+  outstandingRevenue: number;
+  unpaidBookings: number;
+}) {
+  return (
+    <GlassCard className="p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-white">Quick actions</p>
+          <p className="mt-1 text-xs text-slate-400">Common admin tasks</p>
+        </div>
+        <Cog className="h-4 w-4 text-slate-400" />
+      </div>
+      <div className="mt-4 grid gap-2">
+        {([
+          { href: "/booking", label: "Create booking", detail: "Manual or customer flow", icon: CalendarPlus },
+          { href: "/admin?view=bookings", label: "Review bookings", detail: `${unpaidBookings} unpaid`, icon: ListFilter },
+          { href: "/admin?view=customers", label: "Open customers", detail: `${activeCustomers} active`, icon: Users },
+          { href: "/admin?view=settings", label: "Settings", detail: formatShortPrice(outstandingRevenue), icon: Settings2 },
+        ] as const).map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.055] px-3 py-3 transition hover:bg-white/[0.09]"
+            >
+              <span className="rounded-lg bg-white/10 p-2 text-indigo-200">
+                <Icon className="h-4 w-4" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-sm font-semibold text-white">{item.label}</span>
+                <span className="block truncate text-xs text-slate-400">{item.detail}</span>
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+    </GlassCard>
+  );
+}
+
+function AdminEmptyState({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-white/12 bg-white/[0.035] px-4 py-5 text-center">
+      <p className="text-sm font-semibold text-slate-200">{title}</p>
+      <p className="mt-1 text-xs text-slate-500">{detail}</p>
+    </div>
+  );
+}
+
+function AdminOverviewDashboard({
+  dashboard,
+  pendingBookings,
+  upcomingBookings,
+  unpaidBookings,
+}: {
+  dashboard: DashboardData;
+  pendingBookings: DashboardBooking[];
+  upcomingBookings: DashboardBooking[];
+  unpaidBookings: DashboardBooking[];
+}) {
+  const monthly = buildDashboardMonths(dashboard.bookings, 5);
+  const trendPoints = getSparklinePoints(
+    monthly.map((point) => point.bookings),
+    320,
+    122,
+    18
+  );
+  const trendPath = getSparklinePath(trendPoints);
+  const maxRevenue = Math.max(
+    1,
+    ...monthly.map((point) => Math.max(point.revenue, point.outstanding))
+  );
+  const paidRevenue = dashboard.bookings
+    .filter((booking) => booking.status !== "cancelled" && booking.paymentStatus === "paid")
+    .reduce((sum, booking) => sum + booking.total, 0);
+  const collectionRate =
+    dashboard.stats.totalRevenue > 0
+      ? Math.round((paidRevenue / dashboard.stats.totalRevenue) * 100)
+      : 0;
+  const ringRadius = 54;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const ringOffset = ringCircumference * (1 - Math.min(collectionRate, 100) / 100);
+  const activeCustomers = dashboard.customers.filter((customer) => customer.upcomingBookings > 0);
+  const topPackage = getTopPackageLabel(dashboard.bookings);
+  const recentBookings = [...upcomingBookings, ...dashboard.bookings.filter((booking) => booking.status === "completed")]
+    .sort(sortBookings)
+    .slice(0, 5);
+
+  return (
+    <section className="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="space-y-5">
+        <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+          <article className="overflow-hidden rounded-[2rem] bg-[linear-gradient(135deg,#6257e8_0%,#5045db_58%,#756cf0_100%)] p-6 text-white shadow-[0_26px_70px_rgba(98,87,232,0.25)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/62">
+                  Omsaetning
+                </p>
+                <p className="mt-3 font-display text-4xl font-semibold">
+                  {formatShortPrice(dashboard.stats.totalRevenue)}
+                </p>
+              </div>
+              <span className="rounded-2xl bg-white/16 px-3 py-2 text-sm font-semibold">
+                {dashboard.stats.totalBookings.toString().padStart(2, "0")}
+              </span>
+            </div>
+            <div className="mt-8 grid gap-3 text-sm sm:grid-cols-2">
+              <div>
+                <p className="text-white/58">Betalt</p>
+                <p className="mt-1 font-semibold">{formatPrice(paidRevenue)}</p>
+              </div>
+              <div>
+                <p className="text-white/58">Udestaar</p>
+                <p className="mt-1 font-semibold">
+                  {formatPrice(dashboard.stats.outstandingRevenue)}
+                </p>
+              </div>
+              <div>
+                <p className="text-white/58">Kunder</p>
+                <p className="mt-1 font-semibold">{dashboard.stats.totalCustomers}</p>
+              </div>
+              <div>
+                <p className="text-white/58">Top service</p>
+                <p className="mt-1 truncate font-semibold">{topPackage}</p>
+              </div>
+            </div>
+          </article>
+
+          <article className="rounded-[2rem] border border-[#ece9fb] bg-white p-6 shadow-[0_24px_70px_rgba(84,78,162,0.1)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-[#211955]">Booking trend</p>
+                <p className="mt-1 text-xs text-[#8b85aa]">Sidste {monthly.length} maaneder</p>
+              </div>
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#6257e8]">
+                <span className="h-2 w-2 rounded-full bg-[#6257e8]" />
+                Live data
+              </div>
+            </div>
+            <div className="mt-5 h-[150px]">
+              <svg viewBox="0 0 320 132" className="h-full w-full" role="img" aria-label="Booking trend">
+                <path
+                  d="M18 106 C74 38 118 34 160 70 S246 90 302 28"
+                  fill="none"
+                  stroke="#ece9fb"
+                  strokeLinecap="round"
+                  strokeWidth="3"
+                />
+                <path
+                  d={trendPath}
+                  fill="none"
+                  stroke="#6257e8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="4"
+                />
+                {trendPoints.map((point, index) => (
+                  <circle
+                    key={monthly[index]?.key || index}
+                    cx={point.x}
+                    cy={point.y}
+                    r={index === trendPoints.length - 1 ? 5 : 3.5}
+                    fill={index === trendPoints.length - 1 ? "#ff8fb8" : "#6257e8"}
+                    stroke="#fff"
+                    strokeWidth="3"
+                  />
+                ))}
+              </svg>
+            </div>
+            <div className="grid grid-cols-5 gap-2 text-center text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#aaa4c3]">
+              {monthly.map((point) => (
+                <span key={point.key}>{point.label}</span>
+              ))}
+            </div>
+          </article>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_17rem]">
+          <article className="rounded-[2rem] border border-[#ece9fb] bg-white p-6 shadow-[0_24px_70px_rgba(84,78,162,0.1)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-[#211955]">Historik</p>
+                <p className="mt-1 text-xs text-[#8b85aa]">Omsaetning og udestaaende pr. maaned</p>
+              </div>
+              <BarChart3 className="h-5 w-5 text-[#6257e8]" />
+            </div>
+            <div className="mt-6 flex h-48 items-end gap-4 overflow-hidden">
+              {monthly.map((point) => {
+                const revenueHeight = Math.max(8, Math.round((point.revenue / maxRevenue) * 100));
+                const outstandingHeight = Math.max(
+                  point.outstanding > 0 ? 8 : 0,
+                  Math.round((point.outstanding / maxRevenue) * 100)
+                );
+
+                return (
+                  <div key={point.key} className="flex min-w-0 flex-1 flex-col items-center gap-3">
+                    <div className="flex h-36 w-full items-end justify-center gap-2">
+                      <span
+                        title={`Omsaetning ${formatPrice(point.revenue)}`}
+                        className="w-4 rounded-t-full bg-[#6257e8] shadow-[0_10px_24px_rgba(98,87,232,0.2)]"
+                        style={{ height: `${revenueHeight}%` }}
+                      />
+                      <span
+                        title={`Udestaar ${formatPrice(point.outstanding)}`}
+                        className="w-4 rounded-t-full bg-[#ffb5cf] shadow-[0_10px_24px_rgba(255,143,184,0.16)]"
+                        style={{ height: `${outstandingHeight}%` }}
+                      />
+                    </div>
+                    <span className="text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#aaa4c3]">
+                      {point.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-[#817b9f]">
+              <span className="inline-flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#6257e8]" />
+                Omsaetning
+              </span>
+              <span className="inline-flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-[#ffb5cf]" />
+                Udestaar
+              </span>
+            </div>
+          </article>
+
+          <article className="rounded-[2rem] border border-[#ece9fb] bg-white p-6 text-center shadow-[0_24px_70px_rgba(84,78,162,0.1)]">
+            <div className="flex items-start justify-between gap-4 text-left">
+              <div>
+                <p className="text-sm font-semibold text-[#211955]">Effektivitet</p>
+                <p className="mt-1 text-xs text-[#8b85aa]">Indbetalinger</p>
+              </div>
+              <CreditCard className="h-5 w-5 text-[#6257e8]" />
+            </div>
+            <div className="relative mx-auto mt-5 h-40 w-40">
+              <svg viewBox="0 0 140 140" className="h-full w-full -rotate-90">
+                <circle
+                  cx="70"
+                  cy="70"
+                  r={ringRadius}
+                  fill="none"
+                  stroke="#f0edf9"
+                  strokeWidth="12"
+                />
+                <circle
+                  cx="70"
+                  cy="70"
+                  r={ringRadius}
+                  fill="none"
+                  stroke="#6257e8"
+                  strokeLinecap="round"
+                  strokeWidth="12"
+                  strokeDasharray={ringCircumference}
+                  strokeDashoffset={ringOffset}
+                />
+                <circle
+                  cx="70"
+                  cy="70"
+                  r={ringRadius}
+                  fill="none"
+                  stroke="#ffb5cf"
+                  strokeLinecap="round"
+                  strokeWidth="12"
+                  strokeDasharray={`${ringCircumference * 0.18} ${ringCircumference}`}
+                  strokeDashoffset={ringCircumference * -0.66}
+                />
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <p className="text-2xl font-semibold text-[#211955]">{collectionRate}%</p>
+                <p className="mt-1 rounded-full bg-[#6257e8] px-2.5 py-1 text-[0.68rem] font-semibold text-white">
+                  betalt
+                </p>
+              </div>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3 text-xs text-[#817b9f]">
+              <span>{dashboard.stats.completedBookings} afsluttet</span>
+              <span>{pendingBookings.length} afventer</span>
+            </div>
+          </article>
+        </div>
+      </div>
+
+      <aside className="rounded-[2rem] border border-[#ece9fb] bg-white p-5 shadow-[0_24px_70px_rgba(84,78,162,0.1)]">
+        <div className="text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e9e6ff] text-lg font-semibold text-[#6257e8]">
+            WM
+          </div>
+          <p className="mt-3 font-semibold text-[#211955]">WashMax Admin</p>
+          <p className="mt-1 text-xs text-[#8b85aa]">{dashboard.settings.supportEmail}</p>
+        </div>
+
+        <div className="mt-5 grid grid-cols-4 gap-2">
+          {([
+            { href: "/booking", label: "Ny", icon: CalendarPlus },
+            { href: "/admin?view=bookings", label: "Jobs", icon: ListFilter },
+            { href: "/admin?view=customers", label: "Kunder", icon: Users },
+            { href: "/admin?view=payments", label: "Betal", icon: CreditCard },
+          ] as const).map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link
+                key={action.label}
+                href={action.href}
+                className="grid place-items-center gap-2 rounded-2xl bg-[#f5f3ff] px-2 py-3 text-[0.68rem] font-semibold text-[#6257e8] transition hover:bg-[#ebe7ff]"
+              >
+                <Icon className="h-4 w-4" />
+                {action.label}
+              </Link>
+            );
+          })}
+        </div>
+
+        <div className="mt-7">
+          <div className="flex items-center justify-between">
+            <p className="font-semibold text-[#211955]">Seneste aktivitet</p>
+            <span className="text-xs font-semibold text-[#6257e8]">
+              {activeCustomers.length} aktive
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3">
+            {recentBookings.length > 0 ? (
+              recentBookings.map((booking) => (
+                <Link
+                  key={booking.id}
+                  href={`/admin?view=bookings#booking-${booking.id}`}
+                  className="flex items-center gap-3 rounded-2xl px-2 py-2 transition hover:bg-[#f7f5ff]"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#f0edff] text-xs font-semibold text-[#6257e8]">
+                    {(booking.customerName || booking.customerEmail || "K").slice(0, 2).toUpperCase()}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-semibold text-[#211955]">
+                      {booking.customerName || booking.customerEmail}
+                    </span>
+                    <span className="block truncate text-xs text-[#8b85aa]">
+                      {booking.packageLabel} | {booking.appointmentTime}
+                    </span>
+                  </span>
+                  <span
+                    className={cn(
+                      "text-xs font-semibold",
+                      unpaidBookings.some((item) => item.id === booking.id)
+                        ? "text-[#ff8f5a]"
+                        : "text-[#6257e8]"
+                    )}
+                  >
+                    {formatShortPrice(booking.total)}
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <EmptyState text="Ingen aktivitet endnu." />
+            )}
+          </div>
+        </div>
+      </aside>
+    </section>
+  );
+}
+
+function GlassCalendarPanel({
+  calendarDays,
+  settings,
+  upcomingBookings,
+  pendingBookings,
+  expanded = false,
+}: {
+  calendarDays: DashboardData["calendar"];
+  settings: DashboardData["settings"];
+  upcomingBookings: DashboardBooking[];
+  pendingBookings: DashboardBooking[];
+  expanded?: boolean;
+}) {
+  const weekDays = buildGlassWeekDays(calendarDays);
+  const todayDay = weekDays.find((day) => day.isToday) || weekDays[0];
+  const todayBookings = todayDay.bookings.filter((booking) => booking.status !== "cancelled");
+  const startMinutes = Math.max(0, Math.min(23, Number(settings.startHour || 8))) * 60;
+  const endHour = Math.max(settings.startHour + 1, Math.min(24, Number(settings.endHour || 18)));
+  const endMinutes = endHour * 60;
+  const hourMarks = buildHourMarks(startMinutes, endMinutes);
+  const calendarHeight = ((endMinutes - startMinutes) / 60) * calendarHourHeight;
+  const weekBookingsCount = weekDays.reduce(
+    (count, day) => count + day.bookings.filter((booking) => booking.status !== "cancelled").length,
+    0
+  );
+  const blockedDays = weekDays.filter((day) => day.blocks.length > 0).length;
+  const nextBooking = upcomingBookings[0];
+  const monthDate = dateFromText(todayDay.date || weekDays[0].date);
+  const monthName = formatCalendarMonth(monthDate);
+  const year = monthDate.getFullYear();
+
+  return (
+    <section className="overflow-hidden rounded-[2.35rem] border border-[#ece9fb] bg-white text-[#211955] shadow-[0_24px_70px_rgba(84,78,162,0.1)]">
+      <div className="grid lg:grid-cols-[4.75rem_minmax(0,1fr)]">
+        <div className="hidden border-r border-[#ece9fb] bg-[#f5f3ff] px-3 py-5 lg:flex lg:flex-col lg:items-center lg:gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-[#e5e0fb] bg-white text-[#6257e8] shadow-[0_14px_32px_rgba(98,87,232,0.12)]">
+            <UserRound className="h-5 w-5" />
+          </div>
+          {[
+            { icon: Cog, label: "Indstillinger" },
+            { icon: Calendar, label: "Kalender", active: true },
+            { icon: ReceiptText, label: "Bookinger" },
+            { icon: Route, label: "Ruter" },
+            { icon: CreditCard, label: "Betalinger" },
+          ].map((item) => {
+            const Icon = item.icon;
+            return (
+              <span
+                key={item.label}
+                title={item.label}
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-2xl border transition",
+                  item.active
+                    ? "border-[#6257e8] bg-[#6257e8] text-white shadow-[0_16px_34px_rgba(98,87,232,0.22)]"
+                    : "border-[#ece9fb] bg-white text-[#817b9f]"
+                )}
+              >
+                <Icon className="h-5 w-5" />
+              </span>
+            );
+          })}
+        </div>
+
+        <div className="px-4 py-5 sm:px-7 sm:py-7">
+          <div className="flex flex-col gap-6 xl:flex-row xl:items-start xl:justify-between">
+            <div className="min-w-0">
+              <p className="font-display text-3xl font-semibold leading-tight sm:text-4xl">
+                <span className="block text-2xl font-normal text-[#8b85aa]">{year}</span>
+                {monthName}
+              </p>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-[#817b9f]">
+                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra WashMax.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+              <div className="flex items-start gap-3">
+                <span className="font-display text-6xl font-semibold leading-none sm:text-7xl">
+                  {todayBookings.length}
+                </span>
+                <span className="mt-2 text-3xl font-light text-[#817b9f]">jobs</span>
+              </div>
+              <div className="grid gap-2 text-sm text-[#817b9f]">
+                <div className="flex items-center gap-2">
+                  <CalendarClock className="h-5 w-5 text-[#6257e8]" />
+                  <span>I dag: {todayDay.label}</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-[#e5e0fb] bg-[#f5f3ff] px-3 py-1 text-xs font-semibold text-[#6257e8]">
+                    {upcomingBookings.length} kommende
+                  </span>
+                  <span className="rounded-full border border-[#e5e0fb] bg-[#f5f3ff] px-3 py-1 text-xs font-semibold text-[#6257e8]">
+                    {pendingBookings.length} afventer
+                  </span>
+                  <span className="rounded-full border border-[#e5e0fb] bg-[#f5f3ff] px-3 py-1 text-xs font-semibold text-[#6257e8]">
+                    {blockedDays} blokerede dage
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-7 overflow-hidden rounded-[1.8rem] border border-[#ece9fb] bg-[#fbfaff] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+            <div className="overflow-x-auto">
+              <div className="min-w-[980px]">
+                <div className="grid grid-cols-[4.75rem_repeat(7,minmax(7rem,1fr))] border-b border-[#ece9fb]">
+                  <div className="border-r border-[#ece9fb] px-3 py-4 text-xs font-semibold uppercase tracking-[0.16em] text-[#aaa4c3]">
+                    Tid
+                  </div>
+                  {weekDays.map((day) => (
+                    <div
+                      key={day.date}
+                      className={cn(
+                        "border-r border-[#ece9fb] px-4 py-4 text-center last:border-r-0",
+                        day.isToday ? "bg-[#f2f0fc]" : ""
+                      )}
+                    >
+                      <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#817b9f]">
+                        {day.weekdayLabel}
+                      </p>
+                      <p
+                        className={cn(
+                          "mx-auto mt-3 flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold",
+                          day.isToday ? "bg-[#6257e8] text-white" : "text-[#211955]"
+                        )}
+                      >
+                        {day.dayNumber}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className={cn("overflow-y-auto", expanded ? "max-h-[720px]" : "max-h-[560px]")}>
+                  <div className="grid grid-cols-[4.75rem_repeat(7,minmax(7rem,1fr))]">
+                    <div className="relative border-r border-[#ece9fb]" style={{ height: calendarHeight }}>
+                      {hourMarks.map((minutes) => (
+                        <span
+                          key={minutes}
+                          className="absolute right-3 -translate-y-1/2 text-xs font-semibold text-[#aaa4c3]"
+                          style={{ top: `${((minutes - startMinutes) / 60) * calendarHourHeight}px` }}
+                        >
+                          {minutesToLabel(minutes)}
+                        </span>
+                      ))}
+                    </div>
+
+                    {weekDays.map((day) => {
+                      const bookingLayouts = layoutCalendarBookings(
+                        day.bookings,
+                        startMinutes,
+                        endMinutes
+                      );
+                      const blockLayouts = layoutCalendarBlocks(day.blocks, startMinutes, endMinutes);
+
+                      return (
+                        <div
+                          key={day.date}
+                          className={cn(
+                            "relative border-r border-[#ece9fb] last:border-r-0",
+                            day.isToday ? "bg-[#f7f5ff]" : ""
+                          )}
+                          style={{
+                            height: calendarHeight,
+                            backgroundImage:
+                              "linear-gradient(to bottom, rgba(236,233,251,0.9) 1px, transparent 1px)",
+                            backgroundSize: `100% ${calendarHourHeight}px`,
+                          }}
+                        >
+                          {blockLayouts.map((item) => (
+                            <div
+                              key={item.block.id}
+                              className="absolute z-10 overflow-hidden rounded-[1rem] border border-[#ffd18a] bg-[#fff4dc] px-3 py-2 text-xs text-[#7a4b10]"
+                              style={{
+                                top: item.top,
+                                height: item.height,
+                                left: "0.45rem",
+                                right: "0.45rem",
+                              }}
+                            >
+                              <p className="truncate font-semibold">{item.block.reason}</p>
+                              <p className="mt-1 text-[#9b6a19]">
+                                {item.block.startTime} - {item.block.endTime}
+                              </p>
+                            </div>
+                          ))}
+
+                          {bookingLayouts.map((item) => (
+                            <Link
+                              key={item.booking.id}
+                              href={`/admin?view=bookings#booking-${item.booking.id}`}
+                              className={cn(
+                                "absolute z-20 flex flex-col overflow-hidden rounded-[1.05rem] border px-3 py-2 text-left text-xs shadow-[0_18px_36px_rgba(5,18,32,0.2)] transition hover:translate-y-[-1px] hover:brightness-105",
+                                getCalendarEventClass(item.booking.status)
+                              )}
+                              style={{
+                                top: item.top,
+                                height: item.height,
+                                left: `calc(${(item.lane / item.laneCount) * 100}% + 0.35rem)`,
+                                width: `calc(${100 / item.laneCount}% - 0.7rem)`,
+                              }}
+                            >
+                              <span className="line-clamp-2 font-semibold leading-snug">
+                                {item.booking.customerName || item.booking.customerEmail}
+                              </span>
+                              <span className="mt-1 truncate text-white/72">
+                                {item.booking.packageLabel}
+                              </span>
+                              <span className="mt-auto pt-2 text-[0.68rem] font-semibold text-white/82">
+                                {item.booking.appointmentTime} - {item.booking.appointmentEndTime}
+                              </span>
+                            </Link>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-3">
+            <GlassCalendarFact
+              label="Næste booking"
+              value={nextBooking ? nextBooking.appointmentLabel : "Ingen kommende booking"}
+              detail={nextBooking ? nextBooking.customerName || nextBooking.customerEmail : "Kalenderen er fri"}
+            />
+            <GlassCalendarFact
+              label="Denne uge"
+              value={`${weekBookingsCount} aktive jobs`}
+              detail={`${blockedDays} dage med blokeringer`}
+            />
+            <GlassCalendarFact
+              label="Arbejdstid"
+              value={`${minutesToLabel(startMinutes)} - ${minutesToLabel(endMinutes)}`}
+              detail={`${settings.slotMinutes} min. slots + ${settings.travelBufferMinutes} min. buffer`}
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function GlassCalendarFact({
+  label,
+  value,
+  detail,
+}: {
+  label: string;
+  value: string;
+  detail: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#ece9fb] bg-[#fbfaff] px-4 py-3 text-sm">
+      <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-[#6257e8]">
+        {label}
+      </p>
+      <p className="mt-2 font-semibold text-[#211955]">{value}</p>
+      <p className="mt-1 truncate text-[#8b85aa]">{detail}</p>
     </div>
   );
 }
 
 function CalendarView({
-  calendarDays,
-  upcomingBookings,
-  pendingBookings,
+  dashboard,
+  searchQuery,
+  timeSlots,
+  today,
 }: {
-  calendarDays: DashboardData["calendar"];
-  upcomingBookings: DashboardBooking[];
-  pendingBookings: DashboardBooking[];
+  dashboard: DashboardData;
+  searchQuery: string;
+  timeSlots: string[];
+  today: string;
 }) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-3">
-        <MetricCard
-          label="Dage"
-          value={calendarDays.length.toString()}
-          detail="Næste arbejdsdage og blokeringer"
-          icon={Calendar}
-        />
-        <MetricCard
-          label="Kommende jobs"
-          value={upcomingBookings.length.toString()}
-          detail={`${pendingBookings.length} af dem afventer`}
-          icon={CalendarClock}
-        />
-        <MetricCard
-          label="Blokerede dage"
-          value={calendarDays.filter((item) => item.blocks.length > 0).length.toString()}
-          detail="Heldage og delvise blokeringer samlet"
-          icon={XCircle}
-        />
-      </div>
-
-      <section className="space-y-4">
-        <SectionHeading
-          eyebrow="Næste 12 dage"
-          title="Kalenderoversigt"
-          description="Bookinger og blokeringer pr. dag."
-        />
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {calendarDays.length > 0 ? (
-            calendarDays.map((day) => (
-              <article
-                key={day.date}
-                className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
-              >
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-lg font-semibold text-[var(--ink)]">{day.label}</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">
-                      {day.bookings.length} bookinger
-                    </p>
-                  </div>
-                  <Calendar className="h-5 w-5 text-[#2388d1]" />
-                </div>
-
-                {day.blocks.length > 0 ? (
-                  <div className="mt-4 space-y-2">
-                    {day.blocks.map((block) => (
-                      <div
-                        key={block.id}
-                        className="rounded-2xl border border-[#ffe3b5] bg-[#fff7e8] px-3 py-3 text-sm text-[#8d5d08]"
-                      >
-                        <p className="font-semibold">{block.reason}</p>
-                        <p className="mt-1">
-                          {block.startTime} - {block.endTime}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="mt-4 grid gap-3">
-                  {day.bookings.length > 0 ? (
-                    day.bookings.map((booking) => (
-                      <div
-                        key={booking.id}
-                        className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-3 py-3"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="font-medium text-[var(--ink)]">
-                            {booking.appointmentTime} - {booking.customerName || booking.customerEmail}
-                          </p>
-                          <StatusPill status={booking.status} />
-                        </div>
-                        <p className="mt-2 text-sm text-[var(--muted)]">
-                          {booking.packageLabel} | {booking.areaName || booking.city}
-                        </p>
-                      </div>
-                    ))
-                  ) : (
-                    <EmptyState text="Ingen bookinger på denne dag." />
-                  )}
-                </div>
-              </article>
-            ))
-          ) : (
-            <EmptyState text="Ingen kalenderdata at vise endnu." />
-          )}
-        </div>
-      </section>
-    </div>
+    <AdminCalendarPanel
+      bookings={dashboard.bookings}
+      calendar={dashboard.calendar}
+      searchQuery={searchQuery}
+      timeSlots={timeSlots}
+      today={today}
+    />
   );
 }
 
 function BookingsView({
   dashboard,
   bookings,
+  invoiceDataByBookingId,
   pendingBookings,
   upcomingBookings,
   timeSlots,
 }: {
   dashboard: DashboardData;
   bookings: DashboardBooking[];
+  invoiceDataByBookingId: Record<string, BookingInvoiceData>;
   pendingBookings: DashboardBooking[];
   upcomingBookings: DashboardBooking[];
   timeSlots: string[];
@@ -931,6 +1627,7 @@ function BookingsView({
                 <BookingActionCard
                   key={booking.id}
                   booking={booking}
+                  invoiceData={invoiceDataByBookingId[booking.id]}
                   returnView="bookings"
                   timeSlots={timeSlots}
                 />
@@ -1898,10 +2595,12 @@ function SettingsView({
 
 function BookingActionCard({
   booking,
+  invoiceData,
   timeSlots,
   returnView,
 }: {
   booking: DashboardBooking;
+  invoiceData?: BookingInvoiceData;
   timeSlots: string[];
   returnView: string;
 }) {
@@ -1952,6 +2651,8 @@ function BookingActionCard({
               <DetailRow label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
               <DetailRow label="Område" value={booking.areaName || booking.city || "Ikke sat"} />
               <DetailRow label="Varighed" value={`${booking.estimatedMinutes} min.`} />
+              <DetailRow label="Agent" value={booking.assignedAgentId ? booking.agentStatus || "Assigned" : "Ikke tildelt"} />
+              <DetailRow label="Agent-note" value={booking.agentNote || "-"} />
             </div>
             {booking.addons.length > 0 ? (
               <div className="mt-4 rounded-2xl bg-[#f7fafb] px-4 py-4 text-sm text-[var(--muted)]">
@@ -2146,6 +2847,8 @@ function BookingActionCard({
             </form>
           </InfoPanel>
 
+          <AdminInvoicePanel booking={booking} invoiceData={invoiceData} />
+
           <InfoPanel title="Emailhandlinger">
             <div className="grid gap-3">
               <form action={`/api/admin/bookings/${booking.id}`} method="POST">
@@ -2317,6 +3020,185 @@ function AreaCard({ area }: { area: DashboardData["settings"]["serviceAreas"][nu
   );
 }
 
+function AdminInvoicePanel({
+  booking,
+  invoiceData,
+}: {
+  booking: DashboardBooking;
+  invoiceData?: BookingInvoiceData;
+}) {
+  const invoice = invoiceData?.invoice;
+  const summary = invoiceData?.summary ?? {
+    originalBookingPriceDkk: booking.total,
+    existingExtraServicesDkk: 0,
+    manualExtraChargesDkk: 0,
+    totalInclMomsDkk: booking.total,
+    momsAmountDkk: Math.round(booking.total * 0.2),
+    subtotalExMomsDkk: booking.total - Math.round(booking.total * 0.2),
+  };
+  const lineItems = invoiceData?.lineItems ?? [];
+
+  return (
+    <InfoPanel title="Agent extras og faktura">
+      <div className="grid gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-[var(--ink)]">Prislinjer</p>
+            <p className="mt-1 text-xs text-[var(--muted)]">
+              Alle priser er DKK inkl. moms.
+            </p>
+          </div>
+          <span className="rounded-full border border-[#DDE3F5] bg-white/70 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
+            {invoice ? invoice.status : "No invoice"}
+          </span>
+        </div>
+
+        {lineItems.length > 0 ? (
+          <div className="grid gap-2">
+            {lineItems.map((item) => (
+              <AdminLineItemRow key={item.id} bookingId={booking.id} item={item} />
+            ))}
+          </div>
+        ) : (
+          <EmptyState text="Ingen prislinjer er indlæst endnu." />
+        )}
+
+        <form
+          action={`/api/admin/bookings/${booking.id}/line-items`}
+          method="POST"
+          className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-3"
+        >
+          <p className="text-sm font-semibold text-[var(--ink)]">Tilføj ekstra linje</p>
+          <div className="grid gap-2 sm:grid-cols-[1fr_5rem_8rem]">
+            <Input name="description" placeholder="Beskrivelse" required />
+            <Input type="number" name="quantity" min="1" defaultValue="1" />
+            <Input type="number" name="unit_price_dkk" min="0" placeholder="Pris" required />
+          </div>
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <select name="item_type" defaultValue="manual_extra_charge" className={selectClassName}>
+              <option value="existing_extra_service">Existing extra service</option>
+              <option value="manual_extra_charge">Manual extra charge</option>
+            </select>
+            <Button type="submit">Tilføj linje</Button>
+          </div>
+        </form>
+
+        <AdminPriceSummary summary={summary} />
+
+        <div className="flex flex-wrap gap-2">
+          <form action={`/api/admin/bookings/${booking.id}/generate-invoice`} method="POST">
+            <Button type="submit" variant="outline">Generer faktura</Button>
+          </form>
+          {invoice?.pdfUrl ? (
+            <a
+              href={invoice.pdfUrl}
+              target="_blank"
+              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+            >
+              Preview faktura
+            </a>
+          ) : null}
+          <form action={`/api/admin/bookings/${booking.id}/send-invoice`} method="POST">
+            <Button type="submit">Send faktura</Button>
+          </form>
+        </div>
+
+        {invoice ? (
+          <form
+            action={`/api/admin/invoices/${invoice.id}`}
+            method="POST"
+            className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-3 sm:grid-cols-[1fr_auto]"
+          >
+            <select name="status" defaultValue={invoice.status} className={selectClassName}>
+              <option value="draft">Draft</option>
+              <option value="sent">Sent</option>
+              <option value="paid">Paid</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+            <Button type="submit" variant="outline">Opdater fakturastatus</Button>
+          </form>
+        ) : null}
+      </div>
+    </InfoPanel>
+  );
+}
+
+function AdminLineItemRow({
+  bookingId,
+  item,
+}: {
+  bookingId: string;
+  item: BookingLineItem;
+}) {
+  if (item.itemType === "original_service") {
+    return (
+      <div className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-center">
+        <div>
+          <p className="text-sm font-semibold text-[var(--ink)]">{item.description}</p>
+          <p className="text-xs text-[var(--muted)]">
+            Original service | Qty {item.quantity} | {item.agentName || "System"}
+          </p>
+        </div>
+        <strong>{formatPrice(item.totalPriceDkk)}</strong>
+      </div>
+    );
+  }
+
+  return (
+    <form
+      action={`/api/admin/bookings/${bookingId}/line-items/${item.id}`}
+      method="POST"
+      className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-3 lg:grid-cols-[minmax(0,1fr)_5rem_8rem_auto]"
+    >
+      <div className="grid gap-1">
+        <Input name="description" defaultValue={item.description} />
+        <p className="text-xs text-[var(--muted)]">
+          {item.itemType.replaceAll("_", " ")} | Added by {item.agentName || item.createdByType} | {item.createdAt}
+          {item.lockedAt ? " | Locked" : ""}
+        </p>
+      </div>
+      <Input type="number" name="quantity" min="1" defaultValue={item.quantity} />
+      <Input type="number" name="unit_price_dkk" min="0" defaultValue={item.unitPriceDkk} />
+      <div className="flex gap-2">
+        <Button type="submit" className="h-10">Gem</Button>
+        <Button type="submit" name="action" value="delete" variant="outline" className="h-10">
+          Fjern
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+function AdminPriceSummary({ summary }: { summary: BookingInvoiceData["summary"] }) {
+  return (
+    <div className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-3 text-sm text-[var(--muted)]">
+      <AdminSummaryRow label="Original booking price" value={summary.originalBookingPriceDkk} />
+      <AdminSummaryRow label="Extra services" value={summary.existingExtraServicesDkk} />
+      <AdminSummaryRow label="Manual extra charges" value={summary.manualExtraChargesDkk} />
+      <AdminSummaryRow label="Subtotal ex. moms" value={summary.subtotalExMomsDkk} />
+      <AdminSummaryRow label="Moms 25% included" value={summary.momsAmountDkk} />
+      <AdminSummaryRow label="Total customer pays" value={summary.totalInclMomsDkk} strong />
+    </div>
+  );
+}
+
+function AdminSummaryRow({
+  label,
+  value,
+  strong = false,
+}: {
+  label: string;
+  value: number;
+  strong?: boolean;
+}) {
+  return (
+    <div className={cn("flex justify-between gap-3", strong ? "text-[var(--ink)]" : "")}>
+      <span>{label}</span>
+      <strong>{formatPrice(value)}</strong>
+    </div>
+  );
+}
+
 function PaymentCard({ booking }: { booking: DashboardBooking }) {
   return (
     <article className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
@@ -2442,15 +3324,15 @@ function MetricCard({
   icon: LucideIcon;
 }) {
   return (
-    <article className="rounded-xl border border-[#e0e8ed] bg-white px-4 py-4 shadow-[0_12px_30px_rgba(7,38,63,0.055)]">
+    <article className="rounded-3xl border border-white/55 bg-white/[0.65] px-4 py-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl transition duration-[250ms] hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-medium text-[#617382]">{label}</p>
-          <p className="mt-2 break-words text-2xl font-semibold text-[#071322]">{value}</p>
-          <p className="mt-2 text-xs leading-5 text-[#617382]">{detail}</p>
+          <p className="text-[12px] font-medium text-[#8E95B5]">{label}</p>
+          <p className="mt-2 break-words text-[22px] font-bold leading-none text-[#1F2340]">{value}</p>
+          <p className="mt-2 text-[12px] font-medium leading-5 text-[#4B5563]">{detail}</p>
         </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9fbf5] text-[#12a47c] shadow-[inset_0_0_0_1px_rgba(18,164,124,0.1)]">
-          <Icon className="h-4 w-4" />
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1] shadow-[inset_0_0_0_1px_rgba(99,102,241,0.12)]">
+          <Icon className="h-5 w-5" />
         </span>
       </div>
     </article>
@@ -2468,10 +3350,10 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#b20fce]">{eyebrow}</p>
-      <h2 className="mt-1.5 text-xl font-semibold text-[#071322] sm:text-2xl">{title}</h2>
+      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">{eyebrow}</p>
+      <h2 className="mt-1.5 text-xl font-bold text-[#1F2340] sm:text-2xl">{title}</h2>
       {description ? (
-        <p className="mt-1.5 max-w-2xl text-sm leading-6 text-[#617382]">{description}</p>
+        <p className="mt-1.5 max-w-2xl text-[13px] font-medium leading-6 text-[#4B5563]">{description}</p>
       ) : null}
     </div>
   );
@@ -2487,7 +3369,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className={cn("grid gap-1.5 text-sm text-[var(--ink)]", className)}>
+    <label className={cn("grid gap-1.5 text-[13px] font-medium text-[#1F2340]", className)}>
       <span className="font-medium">{label}</span>
       {children}
     </label>
@@ -2496,8 +3378,8 @@ function Field({
 
 function InfoPanel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-xl border border-[#e1ebf2] bg-[#fbfdff] px-4 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)]">
-      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#b20fce]">{title}</p>
+    <section className="rounded-3xl border border-white/55 bg-white/[0.65] px-4 py-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">{title}</p>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -2505,19 +3387,26 @@ function InfoPanel({ title, children }: { title: string; children: ReactNode }) 
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[#e4edf3] bg-white px-3 py-2.5 shadow-[0_8px_20px_rgba(7,38,63,0.035)]">
-      <p className="text-[0.68rem] uppercase tracking-[0.14em] text-[#8aa0ae]">{label}</p>
-      <p className="mt-1 text-sm text-[#0c2132]">{value || "-"}</p>
+    <div className="rounded-2xl border border-white/55 bg-white/60 px-3 py-2.5 shadow-[0_8px_24px_rgba(99,102,241,0.06)]">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#8E95B5]">{label}</p>
+      <p className="mt-1 text-[13px] font-medium text-[#1F2340]">{value || "-"}</p>
     </div>
   );
 }
 
 function StatusPill({ status }: { status: BookingStatus }) {
+  const styles: Record<BookingStatus, string> = {
+    pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
+    approved: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
+    completed: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    cancelled: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
+  };
+
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-        getStatusTone(status)
+        "inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold",
+        styles[status]
       )}
     >
       {getStatusLabel(status)}
@@ -2526,11 +3415,18 @@ function StatusPill({ status }: { status: BookingStatus }) {
 }
 
 function PaymentPill({ status }: { status: (typeof paymentStatuses)[number] }) {
+  const styles: Record<(typeof paymentStatuses)[number], string> = {
+    unpaid: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
+    pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
+    paid: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
+    refunded: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+  };
+
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-        getPaymentStatusTone(status)
+        "inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold",
+        styles[status]
       )}
     >
       {getPaymentStatusLabel(status)}
@@ -2539,11 +3435,18 @@ function PaymentPill({ status }: { status: (typeof paymentStatuses)[number] }) {
 }
 
 function InvoicePill({ status }: { status: (typeof invoiceStatuses)[number] }) {
+  const styles: Record<(typeof invoiceStatuses)[number], string> = {
+    not_requested: "border-[#DDE3F5] bg-white/60 text-[#4B5563]",
+    ready: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
+    sent: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    paid: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
+  };
+
   return (
     <span
       className={cn(
-        "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-        getInvoiceStatusTone(status)
+        "inline-flex rounded-full border px-3 py-1 text-[12px] font-semibold",
+        styles[status]
       )}
     >
       {getInvoiceStatusLabel(status)}
@@ -2568,7 +3471,7 @@ function getEmailRecipientLabel(role: string) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-xl border border-dashed border-[#cfe0ea] bg-[rgba(255,255,255,0.78)] px-4 py-4 text-sm text-[#617382]">
+    <div className="rounded-3xl border border-dashed border-[#DDE3F5] bg-white/55 px-4 py-4 text-[13px] font-medium text-[#8E95B5]">
       {text}
     </div>
   );
@@ -2593,8 +3496,300 @@ function getBookingActions(status: BookingStatus) {
   }
 }
 
+function buildDashboardMonths(bookings: DashboardBooking[], count: number) {
+  const today = new Date();
+  const start = new Date(today.getFullYear(), today.getMonth() - count + 1, 1);
+  const months = Array.from({ length: count }, (_, index) => {
+    const date = new Date(start.getFullYear(), start.getMonth() + index, 1);
+    return {
+      key: getMonthKey(date),
+      label: formatShortMonth(date),
+      bookings: 0,
+      revenue: 0,
+      outstanding: 0,
+      completed: 0,
+      pending: 0,
+    };
+  });
+  const monthMap = new Map(months.map((month) => [month.key, month]));
+
+  for (const booking of bookings) {
+    const date = dateFromText(booking.appointmentDate);
+    const month = monthMap.get(getMonthKey(date));
+    if (!month || booking.status === "cancelled") {
+      continue;
+    }
+
+    month.bookings += 1;
+    month.revenue += booking.total;
+    if (booking.paymentStatus !== "paid") {
+      month.outstanding += booking.total;
+    }
+    if (booking.status === "completed") {
+      month.completed += 1;
+    }
+    if (booking.status === "pending") {
+      month.pending += 1;
+    }
+  }
+
+  return months;
+}
+
+function getFilteredRecentBookings(
+  bookings: DashboardBooking[],
+  searchQuery: string,
+  limit: number
+) {
+  const query = searchQuery.trim().toLowerCase();
+  const sorted = [...bookings].sort((left, right) =>
+    `${right.createdAt || right.appointmentDate}T${right.appointmentTime}`.localeCompare(
+      `${left.createdAt || left.appointmentDate}T${left.appointmentTime}`
+    )
+  );
+
+  if (!query) {
+    return sorted.slice(0, limit);
+  }
+
+  return sorted
+    .filter((booking) =>
+      [
+        booking.customerName,
+        booking.customerEmail,
+        booking.customerPhone,
+        booking.registrationNumber,
+        booking.plate,
+        booking.packageLabel,
+        booking.category,
+        booking.city,
+        booking.status,
+      ]
+        .join(" ")
+        .toLowerCase()
+        .includes(query)
+    )
+    .slice(0, limit);
+}
+
+function getMonthKey(date: Date) {
+  return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, "0")}`;
+}
+
+function formatShortMonth(date: Date) {
+  try {
+    return new Intl.DateTimeFormat("da-DK", { month: "short" })
+      .format(date)
+      .replace(".", "")
+      .toUpperCase();
+  } catch {
+    return (date.getMonth() + 1).toString().padStart(2, "0");
+  }
+}
+
+function getTopPackageLabel(bookings: DashboardBooking[]) {
+  const counts = new Map<string, number>();
+  for (const booking of bookings) {
+    if (booking.status === "cancelled") {
+      continue;
+    }
+
+    const label = booking.packageLabel || "Booking";
+    counts.set(label, (counts.get(label) || 0) + 1);
+  }
+
+  return (
+    Array.from(counts.entries()).sort((left, right) => right[1] - left[1])[0]?.[0] ||
+    "Ingen bookinger"
+  );
+}
+
+function getSparklinePoints(values: number[], width: number, height: number, padding: number) {
+  const maxValue = Math.max(1, ...values);
+  const minValue = Math.min(0, ...values);
+  const range = Math.max(1, maxValue - minValue);
+  const step = values.length > 1 ? (width - padding * 2) / (values.length - 1) : 0;
+
+  return values.map((value, index) => ({
+    x: padding + step * index,
+    y: height - padding - ((value - minValue) / range) * (height - padding * 2),
+  }));
+}
+
+function getSparklinePath(points: Array<{ x: number; y: number }>) {
+  if (points.length === 0) {
+    return "";
+  }
+
+  return points
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x.toFixed(1)} ${point.y.toFixed(1)}`)
+    .join(" ");
+}
+
+function buildGlassWeekDays(calendarDays: DashboardData["calendar"]): GlassCalendarDay[] {
+  const today = getTodayDateText();
+  const calendarMap = new Map(calendarDays.map((day) => [day.date, day]));
+  const anchorDate = calendarDays.find((day) => day.date >= today)?.date || today;
+  const weekStart = getWeekStart(dateFromText(anchorDate));
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    const dateText = dateToText(date);
+    const existing = calendarMap.get(dateText);
+
+    return {
+      date: dateText,
+      label: existing?.label || formatCalendarDayLabel(date),
+      bookings: existing?.bookings || [],
+      blocks: existing?.blocks || [],
+      dayNumber: date.getDate().toString().padStart(2, "0"),
+      weekdayLabel: glassWeekdayLabels[index] || "",
+      isToday: dateText === today,
+    };
+  });
+}
+
+function layoutCalendarBookings(
+  bookings: DashboardBooking[],
+  startMinutes: number,
+  endMinutes: number
+): CalendarBookingLayout[] {
+  const rawEvents = bookings
+    .filter((booking) => booking.status !== "cancelled")
+    .map((booking) => {
+      const startsAt = timeStringToMinutes(booking.appointmentTime);
+      const estimatedEnd = startsAt + Math.max(booking.estimatedMinutes || 0, 45);
+      const endsAt = Math.max(timeStringToMinutes(booking.appointmentEndTime), estimatedEnd);
+      return {
+        booking,
+        startsAt,
+        endsAt,
+      };
+    })
+    .filter((event) => event.endsAt > startMinutes && event.startsAt < endMinutes)
+    .sort((left, right) => left.startsAt - right.startsAt || left.endsAt - right.endsAt);
+
+  const laneEnds: number[] = [];
+  const layouts = rawEvents.map((event) => {
+    const laneIndex = laneEnds.findIndex((laneEnd) => laneEnd <= event.startsAt);
+    const lane = laneIndex >= 0 ? laneIndex : laneEnds.length;
+    laneEnds[lane] = event.endsAt;
+
+    const clampedStart = Math.max(event.startsAt, startMinutes);
+    const clampedEnd = Math.min(event.endsAt, endMinutes);
+
+    return {
+      booking: event.booking,
+      top: ((clampedStart - startMinutes) / 60) * calendarHourHeight + 8,
+      height: Math.max(((clampedEnd - clampedStart) / 60) * calendarHourHeight - 12, 58),
+      lane,
+      laneCount: 1,
+    };
+  });
+
+  const laneCount = Math.max(1, ...layouts.map((layout) => layout.lane + 1));
+  return layouts.map((layout) => ({ ...layout, laneCount }));
+}
+
+function layoutCalendarBlocks(
+  blocks: DashboardData["availabilityBlocks"],
+  startMinutes: number,
+  endMinutes: number
+): CalendarBlockLayout[] {
+  return blocks
+    .map((block) => {
+      const startsAt = timeStringToMinutes(block.startTime || "00:00");
+      const endsAt = timeStringToMinutes(block.endTime || "23:59");
+      if (endsAt <= startMinutes || startsAt >= endMinutes) {
+        return null;
+      }
+
+      const clampedStart = Math.max(startsAt, startMinutes);
+      const clampedEnd = Math.min(endsAt, endMinutes);
+
+      return {
+        block,
+        top: ((clampedStart - startMinutes) / 60) * calendarHourHeight + 6,
+        height: Math.max(((clampedEnd - clampedStart) / 60) * calendarHourHeight - 10, 44),
+      };
+    })
+    .filter((layout): layout is CalendarBlockLayout => Boolean(layout));
+}
+
+function getCalendarEventClass(status: BookingStatus) {
+  switch (status) {
+    case "approved":
+      return "border-[#baf3dd]/38 bg-[#0f766e]/62 text-white";
+    case "completed":
+      return "border-[#bae6fd]/38 bg-[#2563eb]/56 text-white";
+    case "cancelled":
+      return "border-[#fecaca]/38 bg-[#b91c1c]/56 text-white";
+    default:
+      return "border-[#6257e8]/25 bg-[#6257e8]/86 text-white";
+  }
+}
+
+function buildHourMarks(startMinutes: number, endMinutes: number) {
+  const marks: number[] = [];
+  for (let minutes = startMinutes; minutes <= endMinutes; minutes += 60) {
+    marks.push(minutes);
+  }
+  return marks;
+}
+
+function minutesToLabel(minutes: number) {
+  const hours = Math.floor(minutes / 60)
+    .toString()
+    .padStart(2, "0");
+  const mins = (minutes % 60).toString().padStart(2, "0");
+  return `${hours}:${mins}`;
+}
+
+function getWeekStart(date: Date) {
+  const start = new Date(date);
+  const day = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - day);
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function dateFromText(dateText: string) {
+  const date = new Date(`${dateText}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+function dateToText(date: Date) {
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatCalendarMonth(date: Date) {
+  try {
+    const value = new Intl.DateTimeFormat("da-DK", { month: "long" }).format(date);
+    return value.charAt(0).toUpperCase() + value.slice(1);
+  } catch {
+    return "Kalender";
+  }
+}
+
+function formatCalendarDayLabel(date: Date) {
+  try {
+    return new Intl.DateTimeFormat("da-DK", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    }).format(date);
+  } catch {
+    return dateToText(date);
+  }
+}
+
 function sortBookings(left: DashboardBooking, right: DashboardBooking) {
   return `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
     `${right.appointmentDate}T${right.appointmentTime}`
   );
 }
+

@@ -152,7 +152,8 @@ export function BookingFlow({
     : null;
   const activePackageData = getCatalogPackage(settings.catalog, activePackage);
   const vehicleName = buildVehicleName(vehicle);
-  const basePrice = category?.price ?? 0;
+  const activePackagePrice = Number(activePackageData?.price || 0);
+  const basePrice = activePackagePrice > 0 ? activePackagePrice : category?.price ?? 0;
   const postalCodeValue = useWatch({
     control: form.control,
     name: "postalCode",
@@ -186,6 +187,11 @@ export function BookingFlow({
     settings.defaultBookingStatus === "approved"
       ? "Din booking bliver godkendt med det samme, og du faar en endelig bekraeftelse pa email."
       : "Din booking starter som afventer. Du faar en mail med det samme og en ny mail, naar vi har godkendt tiden.";
+  const maxBookableDate = useMemo(() => {
+    const date = toCalendarDate(minDate);
+    date.setDate(date.getDate() + Number(settings.maximumDaysAhead || 90));
+    return date;
+  }, [minDate, settings.maximumDaysAhead]);
   const areaCoverageHint = !postalCodeValue?.trim()
     ? "Indtast dit postnummer for at se, om der er en koerselszone eller et tillaeg."
     : matchedArea
@@ -339,6 +345,24 @@ export function BookingFlow({
     });
   });
 
+  if (settings.bookingEnabled === false) {
+    return (
+      <main className="px-4 pb-10 sm:px-6">
+        <section className="mx-auto mt-8 max-w-3xl">
+          <Card className="p-6">
+            <p className="text-sm font-semibold uppercase text-[#6b7780]">Booking</p>
+            <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)]">
+              Online booking er lukket
+            </h1>
+            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+              {settings.disabledMessage || "Online booking er midlertidigt lukket."}
+            </p>
+          </Card>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="px-4 pb-10 sm:px-6">
       <section className="mx-auto mt-8 max-w-6xl">
@@ -462,6 +486,7 @@ export function BookingFlow({
                     <div className="mt-5 grid gap-4 md:grid-cols-3">
                       {settings.catalog.packages.map((item) => {
                         const isActive = item.id === activePackage;
+                        const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : category.price;
                         return (
                           <button
                             key={item.id}
@@ -474,12 +499,21 @@ export function BookingFlow({
                                 : "border-[var(--line)] bg-white hover:border-[#8bd4ef]"
                             )}
                           >
+                            {item.imageUrl ? (
+                              <Image
+                                src={item.imageUrl}
+                                alt=""
+                                width={420}
+                                height={220}
+                                className="mb-4 h-28 w-full rounded-2xl object-cover"
+                              />
+                            ) : null}
                             <div className="flex items-start justify-between gap-3">
                               <span className="text-2xl font-semibold text-[var(--ink)]">
                                 {item.title}
                               </span>
                               <span className="text-xl font-semibold text-[#55b9df]">
-                                {formatShortPrice(basePrice)}
+                                {formatShortPrice(itemPrice)}
                               </span>
                             </div>
                             <span
@@ -554,6 +588,15 @@ export function BookingFlow({
                                 )}
                               >
                                 <span className="flex items-center gap-3">
+                                  {addon.imageUrl ? (
+                                    <Image
+                                      src={addon.imageUrl}
+                                      alt=""
+                                      width={56}
+                                      height={56}
+                                      className="h-12 w-12 rounded-xl object-cover"
+                                    />
+                                  ) : null}
                                   <span
                                     className={cn(
                                       "flex h-5 w-5 items-center justify-center rounded-md border",
@@ -613,6 +656,15 @@ export function BookingFlow({
                                 )}
                               >
                                 <span className="flex items-center gap-3">
+                                  {addon.imageUrl ? (
+                                    <Image
+                                      src={addon.imageUrl}
+                                      alt=""
+                                      width={56}
+                                      height={56}
+                                      className="h-12 w-12 rounded-xl object-cover"
+                                    />
+                                  ) : null}
                                   <span
                                     className={cn(
                                       "flex h-5 w-5 items-center justify-center rounded-md border",
@@ -675,6 +727,7 @@ export function BookingFlow({
                             const dateValue = format(date, "yyyy-MM-dd");
                             return (
                               date < toCalendarDate(minDate) ||
+                              date > maxBookableDate ||
                               !isWorkingDay(date, settings.workingDays) ||
                               isDateBlocked(dateValue, availabilityBlocks)
                             );

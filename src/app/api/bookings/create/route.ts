@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
-import { createBooking, getBookingSettings } from "@/lib/server/bookings";
+import { createBooking } from "@/lib/server/bookings";
+import {
+  calculateBookingPriceFromSetup,
+  getBookingSettingsFromSetup,
+} from "@/lib/server/booking-setup";
 import { isDatabaseConfigured } from "@/lib/server/db";
 import {
   sendAdminNewBookingAlert,
@@ -39,11 +43,25 @@ export async function POST(request: Request) {
       );
     }
 
-    const settings = await getBookingSettings();
-    const { customer, total: _quotedTotal, ...bookingInput } = parsed.data;
+    const settings = await getBookingSettingsFromSetup();
+    const { customer, total: _quotedTotal, subtotal: _quotedSubtotal, addons: quotedAddons, ...bookingInput } = parsed.data;
+    const pricing = await calculateBookingPriceFromSetup({
+      packageId: bookingInput.packageId,
+      addonIds: quotedAddons.map((addon) => addon.id),
+      categoryLabel: bookingInput.category,
+      postalCode: customer.postalCode,
+    });
     const bookingResult = await createBooking({
       ...bookingInput,
       plate: sanitizePlate(bookingInput.plate),
+      category: pricing.category,
+      packageId: pricing.packageId,
+      packageLabel: pricing.packageLabel,
+      addons: pricing.addons,
+      subtotal: pricing.subtotal,
+      manualTotal: pricing.total,
+      travelSurcharge: pricing.travelSurcharge,
+      estimatedMinutes: pricing.estimatedMinutes,
       status: settings.defaultBookingStatus,
       customer: {
         firstName: customer.firstName,

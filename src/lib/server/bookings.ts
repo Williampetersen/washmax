@@ -69,6 +69,13 @@ type RawBooking = {
   invoice_status: InvoiceStatus;
   invoice_number: string | null;
   admin_notes: string | null;
+  assigned_agent_id: string | null;
+  agent_status: string | null;
+  agent_note: string | null;
+  assigned_at: string | Date | null;
+  accepted_at: string | Date | null;
+  completed_at: string | Date | null;
+  cancelled_at: string | Date | null;
   source: string;
   created_at: string | Date;
   updated_at: string | Date;
@@ -196,6 +203,13 @@ export type BookingItem = {
   invoiceStatus: InvoiceStatus;
   invoiceNumber: string;
   adminNotes: string;
+  assignedAgentId: string;
+  agentStatus: string;
+  agentNote: string;
+  assignedAt: string;
+  acceptedAt: string;
+  completedAt: string;
+  cancelledAt: string;
   source: string;
   createdAt: string;
   updatedAt: string;
@@ -569,6 +583,13 @@ const bookingFromRow = (
     invoiceStatus: row.invoice_status ?? "not_requested",
     invoiceNumber: String(row.invoice_number ?? ""),
     adminNotes: String(row.admin_notes ?? ""),
+    assignedAgentId: String(row.assigned_agent_id ?? ""),
+    agentStatus: String(row.agent_status ?? ""),
+    agentNote: String(row.agent_note ?? ""),
+    assignedAt: toDateTimeText(row.assigned_at),
+    acceptedAt: toDateTimeText(row.accepted_at),
+    completedAt: toDateTimeText(row.completed_at),
+    cancelledAt: toDateTimeText(row.cancelled_at),
     source: String(row.source ?? ""),
     createdAt: toDateTimeText(row.created_at),
     updatedAt: toDateTimeText(row.updated_at),

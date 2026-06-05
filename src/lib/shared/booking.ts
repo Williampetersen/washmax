@@ -5,12 +5,18 @@ export type CleaningPackage = {
   duration: string;
   estimatedMinutes: number;
   badge: string;
+  price?: number;
+  imageUrl?: string;
+  isFeatured?: boolean;
 };
 
 export type AddOn = {
   id: string;
   label: string;
   price?: number;
+  description?: string;
+  durationMinutes?: number;
+  imageUrl?: string;
 };
 
 export type VehicleCategory = {
@@ -85,6 +91,13 @@ export type BookingSettings = {
   catalog: ServiceCatalog;
   serviceAreas: ServiceArea[];
   emailAutomation: EmailAutomationSettings;
+  bookingEnabled?: boolean;
+  disabledMessage?: string;
+  maximumDaysAhead?: number;
+  minimumNoticeHours?: number;
+  maxBookingsPerSlot?: number;
+  maxBookingsPerDay?: number;
+  vatRate?: number;
 };
 
 export const cleaningPackages: CleaningPackage[] = [
