@@ -118,12 +118,13 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
         <AdminPriceSummary summary={summary} />
 
         <div className="flex flex-wrap gap-2">
-          <form action={`/api/admin/bookings/${booking.id}/generate-invoice`} method="POST">
-            <input type="hidden" name="return_tab" value="details" />
-            <Button type="submit" variant="outline">
-              Generer faktura
-            </Button>
-          </form>
+          <InvoiceWorkflowButton
+            endpoint={`/api/admin/bookings/${booking.id}/generate-invoice`}
+            label="Generer faktura"
+            pendingLabel="Genererer PDF..."
+            successMessage="Invoice PDF generated successfully."
+            buttonVariant="outline"
+          />
           {invoice?.pdfUrl ? (
             <>
               <a

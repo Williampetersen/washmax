@@ -371,15 +371,26 @@ export const ensureSchema = async () => {
 
       await sql`
         ALTER TABLE invoices
+          ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'draft',
+          ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'DKK',
+          ADD COLUMN IF NOT EXISTS subtotal_ex_moms_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS moms_amount_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS pdf_url TEXT,
           ADD COLUMN IF NOT EXISTS pdf_file_name TEXT,
           ADD COLUMN IF NOT EXISTS pdf_content BYTEA,
           ADD COLUMN IF NOT EXISTS pdf_content_type TEXT,
           ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER NOT NULL DEFAULT 0,
           ADD COLUMN IF NOT EXISTS customer_email TEXT,
+          ADD COLUMN IF NOT EXISTS sent_to_email TEXT,
           ADD COLUMN IF NOT EXISTS email_sent BOOLEAN NOT NULL DEFAULT false,
           ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS sent_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ,
           ADD COLUMN IF NOT EXISTS created_by_user_id TEXT,
-          ADD COLUMN IF NOT EXISTS created_by_role TEXT NOT NULL DEFAULT 'system';
+          ADD COLUMN IF NOT EXISTS created_by_role TEXT NOT NULL DEFAULT 'system',
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
       `;
 
       await sql`

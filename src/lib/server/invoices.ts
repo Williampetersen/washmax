@@ -282,6 +282,9 @@ const getStoredPdfBuffer = (row: RawInvoice) => {
   return Buffer.isBuffer(row.pdf_content) ? row.pdf_content : Buffer.from(row.pdf_content);
 };
 
+const isValidPdfBuffer = (buffer: Buffer) =>
+  buffer.byteLength > 8 && buffer.subarray(0, 5).toString("ascii") === "%PDF-";
+
 export const calculatePriceSummary = (lineItems: BookingLineItem[]): PriceSummary => {
   const originalBookingPriceDkk = lineItems
     .filter((item) => item.itemType === "original_service")
@@ -802,13 +805,34 @@ const renderAndStoreInvoicePdf = async (
   invoice: Invoice,
   settings: BookingSettings
 ) => {
-  const pdfBuffer = await renderInvoicePdf(data, invoice, settings);
-  const updated = await persistInvoicePdf(invoice.id, invoice.invoiceNumber, pdfBuffer);
-  return {
-    row: updated,
-    buffer: pdfBuffer,
-    invoice: invoiceFromRow(updated, invoice.items),
-  };
+  try {
+    const pdfBuffer = await renderInvoicePdf(data, invoice, settings);
+    if (!isValidPdfBuffer(pdfBuffer)) {
+      throw new Error("PDFKit returned an invalid PDF buffer.");
+    }
+
+    const updated = await persistInvoicePdf(invoice.id, invoice.invoiceNumber, pdfBuffer);
+    if (!updated) {
+      throw new Error("Invoice PDF storage update did not return an invoice.");
+    }
+
+    return {
+      row: updated,
+      buffer: pdfBuffer,
+      invoice: invoiceFromRow(updated, invoice.items),
+    };
+  } catch (error) {
+    console.error("Invoice PDF generation or storage failed", {
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new InvoiceWorkflowError(
+      "Invoice PDF could not be generated or stored.",
+      500,
+      "invoice_pdf_failed"
+    );
+  }
 };
 
 export const getBookingInvoiceData = async (bookingId: string): Promise<BookingInvoiceData | null> => {
@@ -862,7 +886,20 @@ export const generateInvoiceForBooking = async (input: {
   agentId?: string;
   createdByUserId?: string;
 }) => {
-  await ensureSchema();
+  try {
+    await ensureSchema();
+  } catch (error) {
+    console.error("Invoice storage schema preparation failed", {
+      bookingId: input.bookingId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new InvoiceWorkflowError(
+      "Invoice storage could not be prepared.",
+      500,
+      "invoice_storage_failed"
+    );
+  }
+
   if (input.actorType === "agent") {
     await assertAgentOwnsBooking(input.bookingId, input.agentId || "");
   }
@@ -1011,20 +1048,34 @@ const sendInvoiceMail = async (input: {
     [input.data.customer.firstName, input.data.customer.lastName].filter(Boolean).join(" ") ||
     input.data.customer.email;
   const invoiceUrl = getAbsoluteInvoiceDownloadUrl(input.invoice.id, input.data.customer.portalToken);
-  const sendStatus = await sendCustomerInvoiceEmail({
-    bookingId: input.data.booking.id,
-    customerId: input.data.customer.id,
-    customerName,
-    customerEmail: input.data.customer.email,
-    invoiceNumber: input.invoice.invoiceNumber,
-    totalInclMomsDkk: input.invoice.totalInclMomsDkk,
-    appointmentLabel:
-      input.data.booking.appointmentLabel ||
-      formatDateTimeLabel(input.data.booking.appointmentDate, input.data.booking.appointmentTime),
-    invoiceUrl,
-    pdfBuffer: input.pdfBuffer,
-    settings,
-  });
+  let sendStatus: Awaited<ReturnType<typeof sendCustomerInvoiceEmail>>;
+  try {
+    sendStatus = await sendCustomerInvoiceEmail({
+      bookingId: input.data.booking.id,
+      customerId: input.data.customer.id,
+      customerName,
+      customerEmail: input.data.customer.email,
+      invoiceNumber: input.invoice.invoiceNumber,
+      totalInclMomsDkk: input.invoice.totalInclMomsDkk,
+      appointmentLabel:
+        input.data.booking.appointmentLabel ||
+        formatDateTimeLabel(input.data.booking.appointmentDate, input.data.booking.appointmentTime),
+      invoiceUrl,
+      pdfBuffer: input.pdfBuffer,
+      settings,
+    });
+  } catch (error) {
+    console.error("Customer invoice email delivery failed", {
+      invoiceId: input.invoice.id,
+      recipient: input.data.customer.email,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw new InvoiceWorkflowError(
+      "The PDF was generated, but the invoice email could not be sent. Check the SMTP settings.",
+      502,
+      "invoice_email_failed"
+    );
+  }
 
   if (sendStatus !== "sent") {
     throw new InvoiceWorkflowError(

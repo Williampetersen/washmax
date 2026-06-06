@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
-import { generateInvoiceForBooking } from "@/lib/server/invoices";
+import { generateInvoiceForBooking, InvoiceWorkflowError } from "@/lib/server/invoices";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(
   request: Request,
@@ -28,7 +31,12 @@ export async function POST(
       portalToken: result.data.customer.portalToken,
     });
     return isJson
-      ? NextResponse.json(result)
+      ? NextResponse.json({
+          success: true,
+          invoiceId: result.invoice.id,
+          invoiceUrl: result.invoice.pdfUrl,
+          message: "Invoice PDF generated successfully.",
+        })
       : NextResponse.redirect(
           new URL(
             `/admin?view=bookings${
@@ -40,8 +48,20 @@ export async function POST(
         );
   } catch (error) {
     console.error("Could not generate admin invoice", error);
+    const message =
+      error instanceof InvoiceWorkflowError
+        ? error.message
+        : "Invoice PDF could not be generated.";
+    const status = error instanceof InvoiceWorkflowError ? error.statusCode : 500;
     return isJson
-      ? NextResponse.json({ error: "Could not generate invoice" }, { status: 400 })
+      ? NextResponse.json(
+          {
+            success: false,
+            message,
+            code: error instanceof InvoiceWorkflowError ? error.code : "invoice_generation_failed",
+          },
+          { status }
+        )
       : NextResponse.redirect(new URL(`/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`, request.url), 303);
   }
 }

@@ -6,14 +6,21 @@ import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { isDatabaseConfigured } from "@/lib/server/db";
 import { InvoiceWorkflowError, sendInvoiceForBooking } from "@/lib/server/invoices";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const getErrorResponse = (error: unknown) => {
   if (error instanceof InvoiceWorkflowError) {
     return NextResponse.json(
       {
         success: false,
         message: error.message,
+        code: error.code,
       },
-      { status: error.statusCode }
+      {
+        status: error.statusCode,
+        headers: { "Cache-Control": "no-store" },
+      }
     );
   }
 
@@ -23,7 +30,10 @@ const getErrorResponse = (error: unknown) => {
       success: false,
       message: "Invoice could not be generated and sent.",
     },
-    { status: 500 }
+    {
+      status: 500,
+      headers: { "Cache-Control": "no-store" },
+    }
   );
 };
 
@@ -98,13 +108,18 @@ export async function POST(request: Request) {
       portalToken: result.data.customer.portalToken,
     });
 
-    return NextResponse.json({
-      success: true,
-      invoiceId: result.invoice.id,
-      invoiceUrl: result.invoice.pdfUrl,
-      emailSent: true,
-      message: "Invoice generated and sent successfully.",
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        invoiceId: result.invoice.id,
+        invoiceUrl: result.invoice.pdfUrl,
+        emailSent: true,
+        message: "Invoice generated and sent successfully.",
+      },
+      {
+        headers: { "Cache-Control": "no-store" },
+      }
+    );
   } catch (error) {
     return getErrorResponse(error);
   }
