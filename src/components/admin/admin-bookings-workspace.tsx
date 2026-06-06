@@ -59,11 +59,11 @@ export function AdminBookingsWorkspace({
             >
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#2563eb]">
-                  Bookinger
+                  Koe
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-[#10243b]">Bookingdetaljer</h2>
+                <h2 className="mt-1 text-lg font-bold text-[#10243b]">Bookinger</h2>
                 <p className="mt-1 text-sm text-[#5b6b7c]">
-                  Godkend, flyt og håndter kunder hurtigt.
+                  Venter og faerdig i et kort flow.
                 </p>
               </div>
               <span className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#2563eb] shadow-[0_8px_20px_rgba(37,99,235,0.1)]">
@@ -85,9 +85,9 @@ export function AdminBookingsWorkspace({
                 <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#2563eb]">
                   Opret
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-[#10243b]">Opret booking manuelt</h2>
+                <h2 className="mt-1 text-lg font-bold text-[#10243b]">Ny booking</h2>
                 <p className="mt-1 text-sm text-[#5b6b7c]">
-                  Til telefonbookinger og hurtige manuelle aftaler.
+                  Til telefon og hurtige manuelle bookinger.
                 </p>
               </div>
               <span className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#2563eb] shadow-[0_8px_20px_rgba(37,99,235,0.1)]">
@@ -97,8 +97,13 @@ export function AdminBookingsWorkspace({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <WorkspacePill icon={ListFilter} label="Klar nu" value={detailsCount.toString()} />
-            <WorkspacePill icon={CalendarPlus} label="Ventende" value={pendingCount.toString()} tone="blue" />
+            <WorkspacePill icon={ListFilter} label="Vises" value={detailsCount.toString()} />
+            <WorkspacePill
+              icon={CalendarPlus}
+              label="Venter"
+              value={pendingCount.toString()}
+              tone="blue"
+            />
           </div>
         </div>
       </div>

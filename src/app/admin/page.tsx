@@ -78,9 +78,9 @@ import {
   AdminBookingsWorkspace,
   type AdminBookingsTab,
 } from "@/components/admin/admin-bookings-workspace";
+import { AdminBookingQueue } from "@/components/admin/admin-booking-queue";
 import { BookingSetupView } from "@/components/admin/booking-setup-view";
 import { AdminCommandCenter } from "@/components/admin/admin-command-center";
-import { AdminInvoicePanel } from "@/components/admin/admin-invoice-panel";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
 import { AdminSidebar as AdminSidebarLayout } from "@/components/admin/admin-sidebar";
 import { AdminTopbar as AdminTopbarLayout } from "@/components/admin/admin-topbar";
@@ -374,7 +374,6 @@ export default async function AdminPage({
                 bookings={dashboard.bookings}
                 initialTab={bookingsTab}
                 pendingBookings={pendingBookings}
-                upcomingBookings={upcomingBookings}
                 timeSlots={timeSlots}
               />
             ) : null}
@@ -1474,23 +1473,21 @@ function BookingsView({
   bookings,
   initialTab,
   pendingBookings,
-  upcomingBookings,
   timeSlots,
 }: {
   dashboard: DashboardData;
   bookings: DashboardBooking[];
   initialTab: AdminBookingsTab;
   pendingBookings: DashboardBooking[];
-  upcomingBookings: DashboardBooking[];
   timeSlots: string[];
 }) {
   const visibleBookings = [...bookings].sort(sortBookings).slice(0, INITIAL_BOOKING_LIMIT);
   const manualContent = (
     <section className="space-y-4">
       <SectionHeading
-        eyebrow="Admin oprettelse"
-        title="Opret booking manuelt"
-        description="Til telefonbookinger og manuelle aftaler."
+        eyebrow="Ny booking"
+        title="Opret manuelt"
+        description="Kort formular til telefon og hurtige bookinger."
       />
       <form
         action="/api/admin/bookings/create"
@@ -1617,70 +1614,21 @@ function BookingsView({
 
   const detailsContent = (
     <section className="space-y-4">
-      <SectionHeading
-        eyebrow="Kø"
-        title="Bookingdetaljer"
-        description={`Viser ${visibleBookings.length} af ${bookings.length}.`}
-      />
-      <MobileBookingApprovalLane bookings={pendingBookings.slice(0, 8)} />
-      <div className="grid gap-4">
-        {bookings.length > 0 ? (
-          visibleBookings.map((booking) => (
-            <BookingActionCard
-              key={booking.id}
-              booking={booking}
-              returnView="bookings"
-              returnTab="details"
-              timeSlots={timeSlots}
-            />
-          ))
-        ) : (
-          <EmptyState text="Ingen bookinger endnu." />
-        )}
-        {bookings.length > visibleBookings.length ? (
-          <EmptyState text={`Viser de første ${visibleBookings.length} for hurtig indlæsning.`} />
-        ) : null}
-      </div>
+      <AdminBookingQueue bookings={visibleBookings} timeSlots={timeSlots} />
+      {bookings.length > visibleBookings.length ? (
+        <EmptyState text={`Viser de foerste ${visibleBookings.length} bookinger for hurtigere visning.`} />
+      ) : null}
     </section>
   );
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
-        <MetricCard
-          label="Alle bookinger"
-          value={dashboard.stats.totalBookings.toString()}
-          detail={`${dashboard.stats.cancelledBookings} annullerede`}
-          icon={ListFilter}
-        />
-        <MetricCard
-          label="Ventende"
-          value={pendingBookings.length.toString()}
-          detail="Kræver hurtig handling"
-          icon={Clock3}
-        />
-        <MetricCard
-          label="Kommende"
-          value={upcomingBookings.length.toString()}
-          detail={`${dashboard.stats.todayBookings} i dag`}
-          icon={CalendarClock}
-        />
-        <MetricCard
-          label="Afsluttede"
-          value={dashboard.stats.completedBookings.toString()}
-          detail="Bevares i historikken"
-          icon={CheckCircle2}
-        />
-      </div>
-
-      <AdminBookingsWorkspace
-        initialTab={initialTab}
-        detailsCount={visibleBookings.length}
-        pendingCount={pendingBookings.length}
-        manualContent={manualContent}
-        detailsContent={detailsContent}
-      />
-    </div>
+    <AdminBookingsWorkspace
+      initialTab={initialTab}
+      detailsCount={visibleBookings.length}
+      pendingCount={pendingBookings.length}
+      manualContent={manualContent}
+      detailsContent={detailsContent}
+    />
   );
 }
 
@@ -2667,293 +2615,6 @@ function SettingsView({
   );
 }
 
-function BookingActionCard({
-  booking,
-  timeSlots,
-  returnView,
-  returnTab,
-}: {
-  booking: DashboardBooking;
-  timeSlots: string[];
-  returnView: string;
-  returnTab: AdminBookingsTab;
-}) {
-  const actions = getBookingActions(booking.status);
-  return (
-    <details
-      id={`booking-${booking.id}`}
-      className="group rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
-    >
-      <summary className="cursor-pointer list-none">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h3 className="text-xl font-semibold text-[var(--ink)]">
-                {booking.packageLabel} - {booking.category}
-              </h3>
-              <StatusPill status={booking.status} />
-              <PaymentPill status={booking.paymentStatus} />
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {booking.customerName || booking.customerEmail} | {booking.vehicleName} |{" "}
-              {booking.registrationNumber}
-            </p>
-            <div className="mt-3 flex flex-wrap gap-3 text-sm text-[var(--muted)]">
-              <span>{booking.appointmentLabel}</span>
-              <span>{booking.address}</span>
-              <span>{formatPrice(booking.total)}</span>
-            </div>
-          </div>
-          <div className="rounded-2xl bg-[#f6fafc] px-4 py-3 text-right">
-            <p className="text-xs uppercase tracking-[0.12em] text-[#2388d1]">Detaljer</p>
-            <p className="mt-1 text-sm font-semibold text-[var(--ink)]">
-              Klik for at styre booking
-            </p>
-          </div>
-        </div>
-      </summary>
-
-      <div className="mt-6 grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
-        <div className="space-y-4">
-          <InfoPanel title="Kunde og booking">
-            <div className="grid gap-3 sm:grid-cols-2 text-sm">
-              <DetailRow label="Kunde" value={booking.customerName || booking.customerEmail} />
-              <DetailRow label="E-mail" value={booking.customerEmail} />
-              <DetailRow label="Telefon" value={booking.customerPhone} />
-              <DetailRow label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
-              <DetailRow label="Pakke" value={`${booking.packageLabel} - ${booking.category}`} />
-              <DetailRow label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-              <DetailRow label="Område" value={booking.areaName || booking.city || "Ikke sat"} />
-              <DetailRow label="Varighed" value={`${booking.estimatedMinutes} min.`} />
-              <DetailRow label="Agent" value={booking.assignedAgentId ? booking.agentStatus || "Assigned" : "Ikke tildelt"} />
-              <DetailRow label="Agent-note" value={booking.agentNote || "-"} />
-            </div>
-            {booking.addons.length > 0 ? (
-              <div className="mt-4 rounded-2xl bg-[#f7fafb] px-4 py-4 text-sm text-[var(--muted)]">
-                {booking.addons.map((addon) => (
-                  <div key={addon.id} className="flex items-center justify-between gap-4 py-1">
-                    <span>{addon.label}</span>
-                    <strong className="text-[var(--ink)]">{formatPrice(addon.price)}</strong>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </InfoPanel>
-
-          <InfoPanel title="Emailhistorik">
-            {booking.emailLogs.length > 0 ? (
-              <div className="grid gap-3">
-                {booking.emailLogs.slice(0, 5).map((email) => (
-                  <div
-                    key={email.id}
-                    className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4 text-sm"
-                  >
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="font-semibold text-[var(--ink)]">{email.subject}</span>
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-                          email.status === "sent"
-                            ? "bg-[#ebf8f1] text-[#1f7a4b]"
-                            : email.status === "failed"
-                              ? "bg-[#fff0f0] text-[#c43d3d]"
-                              : "bg-[#eef8ff] text-[#1f6aa4]"
-                        )}
-                      >
-                        {getEmailStatusLabel(email.status)}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-[var(--muted)]">
-                      {getEmailRecipientLabel(email.recipientRole)} | {email.recipient}
-                    </p>
-                    <p className="mt-1 text-[var(--muted)]">
-                      {email.sentAt || email.createdAt}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState text="Ingen registrerede e-mails på denne booking endnu." />
-            )}
-          </InfoPanel>
-
-          <InfoPanel title="Aktivitet">
-            {booking.activity.length > 0 ? (
-              <div className="grid gap-3">
-                {booking.activity.slice(0, 6).map((item) => (
-                  <div
-                    key={item.id}
-                    className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4 text-sm"
-                  >
-                    <p className="font-semibold text-[var(--ink)]">{item.summary}</p>
-                    <p className="mt-1 text-[var(--muted)]">
-                      {item.actor} | {item.createdAt}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <EmptyState text="Ingen aktivitet registreret endnu." />
-            )}
-          </InfoPanel>
-        </div>
-
-        <div className="space-y-4">
-          <InfoPanel title="Statushandlinger">
-            <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="grid gap-3">
-              <input type="hidden" name="return_view" value={returnView} />
-              <input type="hidden" name="return_tab" value={returnTab} />
-              <Textarea
-                name="admin_notes"
-                defaultValue={booking.adminNotes}
-                className="min-h-24"
-                placeholder="Interne noter eller besked til kunden..."
-              />
-              {actions.length > 0 ? (
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {actions.map((action) => (
-                    <Button
-                      key={action.value}
-                      type="submit"
-                      name="action"
-                      value={action.value}
-                      variant={action.variant}
-                    >
-                      {action.label}
-                    </Button>
-                  ))}
-                </div>
-              ) : (
-                <EmptyState text="Ingen flere handlinger er nødvendige." />
-              )}
-              <Button
-                type="submit"
-                name="action"
-                value="delete"
-                variant="outline"
-                className="border-red-200 text-red-700 hover:border-red-300 hover:bg-red-50 hover:text-red-700"
-              >
-                Slet booking
-              </Button>
-            </form>
-          </InfoPanel>
-
-          <InfoPanel title="Ombooking">
-            <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="grid gap-3">
-              <input type="hidden" name="action" value="reschedule" />
-              <input type="hidden" name="return_view" value={returnView} />
-              <input type="hidden" name="return_tab" value={returnTab} />
-              <Field label="Ny dato">
-                <Input name="appointment_date" type="date" defaultValue={booking.appointmentDate} />
-              </Field>
-              <Field label="Ny tid">
-                <select name="appointment_time" defaultValue={booking.appointmentTime} className={selectClassName}>
-                  {timeSlots.map((slot) => (
-                    <option key={slot} value={slot}>
-                      {slot}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Admin-noter">
-                <Textarea
-                  name="admin_notes"
-                  defaultValue={booking.adminNotes}
-                  className="min-h-24"
-                />
-              </Field>
-              <label className="flex items-start gap-3 text-sm text-[var(--ink)]">
-                <input
-                  type="checkbox"
-                  name="notify_customer"
-                  defaultChecked
-                  className="mt-1 h-4 w-4 rounded border-[#9cb0bd]"
-                />
-                <span>Send opdateret statusmail til kunden efter ombooking</span>
-              </label>
-              <Button type="submit" variant="secondary">
-                Gem ny tid
-              </Button>
-            </form>
-          </InfoPanel>
-
-          <InfoPanel title="Betaling og faktura">
-            <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="grid gap-3">
-              <input type="hidden" name="action" value="financial" />
-              <input type="hidden" name="return_view" value={returnView} />
-              <input type="hidden" name="return_tab" value={returnTab} />
-              <Field label="Betalingsstatus">
-                <select name="payment_status" defaultValue={booking.paymentStatus} className={selectClassName}>
-                  {paymentStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {getPaymentStatusLabel(status)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Betalingsmetode">
-                <Input name="payment_method" defaultValue={booking.paymentMethod} placeholder="Fx MobilePay, kort, faktura" />
-              </Field>
-              <label className="flex items-start gap-3 text-sm text-[var(--ink)]">
-                <input
-                  type="checkbox"
-                  name="invoice_requested"
-                  defaultChecked={booking.invoiceRequested}
-                  className="mt-1 h-4 w-4 rounded border-[#9cb0bd]"
-                />
-                <span>Faktura ønskes eller er påkrævet</span>
-              </label>
-              <Field label="Fakturastatus">
-                <select name="invoice_status" defaultValue={booking.invoiceStatus} className={selectClassName}>
-                  {invoiceStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {getInvoiceStatusLabel(status)}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Fakturanummer">
-                <Input name="invoice_number" defaultValue={booking.invoiceNumber} />
-              </Field>
-              <Field label="Admin-noter">
-                <Textarea name="admin_notes" defaultValue={booking.adminNotes} className="min-h-24" />
-              </Field>
-              <Button type="submit" variant="secondary">
-                Gem betaling
-              </Button>
-            </form>
-          </InfoPanel>
-
-          <AdminInvoicePanel booking={booking} />
-
-          <InfoPanel title="Emailhandlinger">
-            <div className="grid gap-3">
-              <form action={`/api/admin/bookings/${booking.id}`} method="POST">
-                <input type="hidden" name="action" value="resend_customer" />
-                <input type="hidden" name="return_view" value={returnView} />
-                <input type="hidden" name="return_tab" value={returnTab} />
-                <input type="hidden" name="admin_notes" value={booking.adminNotes} />
-                <Button type="submit" variant="outline" className="w-full">
-                  Send nuværende kundemail igen
-                </Button>
-              </form>
-              <form action={`/api/admin/bookings/${booking.id}`} method="POST">
-                <input type="hidden" name="action" value="resend_admin" />
-                <input type="hidden" name="return_view" value={returnView} />
-                <input type="hidden" name="return_tab" value={returnTab} />
-                <input type="hidden" name="admin_notes" value={booking.adminNotes} />
-                <Button type="submit" variant="outline" className="w-full">
-                  Send adminnotifikation igen
-                </Button>
-              </form>
-            </div>
-          </InfoPanel>
-        </div>
-      </div>
-    </details>
-  );
-}
-
 function CustomerCard({
   customer,
   bookings,
@@ -3429,120 +3090,6 @@ function EmptyState({ text }: { text: string }) {
     <div className="rounded-3xl border border-dashed border-[#DDE3F5] bg-white/55 px-4 py-4 text-[13px] font-medium text-[#8E95B5]">
       {text}
     </div>
-  );
-}
-
-function getBookingActions(status: BookingStatus) {
-  switch (status) {
-    case "approved":
-      return [
-        { value: "complete", label: "Marker som afsluttet", variant: "success" as const },
-        { value: "cancel", label: "Annuller", variant: "outline" as const },
-      ];
-    case "cancelled":
-      return [{ value: "approve", label: "Godkend igen", variant: "secondary" as const }];
-    case "completed":
-      return [];
-    default:
-      return [
-        { value: "approve", label: "Godkend", variant: "secondary" as const },
-        { value: "cancel", label: "Annuller", variant: "outline" as const },
-      ];
-  }
-}
-
-function MobileBookingApprovalLane({
-  bookings,
-}: {
-  bookings: DashboardBooking[];
-}) {
-  if (bookings.length === 0) {
-    return null;
-  }
-
-  return (
-    <section className="md:hidden">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#2563eb]">
-            Swipe på telefon
-          </p>
-          <h3 className="mt-1 text-lg font-bold text-[#10243b]">Hurtig godkendelse</h3>
-        </div>
-        <span className="rounded-full bg-[#eff6ff] px-3 py-1 text-[12px] font-semibold text-[#2563eb]">
-          {bookings.length}
-        </span>
-      </div>
-
-      <div className="-mx-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2">
-        {bookings.map((booking) => (
-          <article
-            key={booking.id}
-            className="min-w-[18.5rem] snap-center rounded-[1.6rem] border border-[#bfdbfe] bg-[linear-gradient(155deg,#eff6ff,#ffffff)] px-4 py-4 shadow-[0_18px_45px_rgba(37,99,235,0.12)]"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#2563eb]">
-                  {booking.appointmentTime}
-                </p>
-                <h4 className="mt-1 text-lg font-bold text-[#10243b]">
-                  {booking.customerName || booking.customerEmail}
-                </h4>
-                <p className="mt-1 text-sm text-[#5b6b7c]">
-                  {booking.packageLabel} - {booking.category}
-                </p>
-              </div>
-              <StatusPill status={booking.status} />
-            </div>
-
-            <div className="mt-4 grid gap-2 text-sm text-[#334155]">
-              <p>{booking.appointmentLabel}</p>
-              <p>{booking.vehicleName} | {booking.registrationNumber}</p>
-              <p>{formatPrice(booking.total)}</p>
-            </div>
-
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              <QuickBookingActionForm booking={booking} action="approve" label="Godkend" />
-              <QuickBookingActionForm booking={booking} action="complete" label="Afslut" />
-              <QuickBookingActionForm booking={booking} action="cancel" label="Stop" danger />
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function QuickBookingActionForm({
-  booking,
-  action,
-  label,
-  danger = false,
-}: {
-  booking: DashboardBooking;
-  action: "approve" | "complete" | "cancel";
-  label: string;
-  danger?: boolean;
-}) {
-  return (
-    <form action={`/api/admin/bookings/${booking.id}`} method="POST">
-      <input type="hidden" name="action" value={action} />
-      <input type="hidden" name="return_view" value="bookings" />
-      <input type="hidden" name="return_tab" value="details" />
-      <input type="hidden" name="admin_notes" value={booking.adminNotes} />
-      <button
-        type="submit"
-        data-progress-label={`${label} booking...`}
-        className={cn(
-          "h-11 w-full rounded-2xl border px-2 text-[12px] font-semibold transition active:scale-[0.98]",
-          danger
-            ? "border-red-200 bg-red-50 text-red-700"
-            : "border-[#bfdbfe] bg-white text-[#1d4ed8]"
-        )}
-      >
-        {label}
-      </button>
-    </form>
   );
 }
 
