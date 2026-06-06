@@ -50,15 +50,16 @@ export async function POST(
             emailSent: success,
             invoiceId: result.invoice.id,
             invoiceNumber: result.invoice.invoiceNumber,
-            invoiceUrl: result.invoice.pdfUrl,
+            invoiceUrl: result.invoice.publicUrl,
+            invoiceHtmlUrl: result.invoice.publicUrl,
             invoiceData: result.data,
             code:
               !success && "deliveryError" in result
                 ? result.deliveryError.code
                 : undefined,
             message: success
-              ? "Invoice generated and sent successfully."
-              : "Invoice was generated and saved, but email could not be sent.",
+              ? "Invoice email sent successfully."
+              : "Invoice was saved, but email could not be sent.",
           },
           {
             status:

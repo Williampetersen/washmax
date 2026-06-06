@@ -2802,20 +2802,27 @@ function CustomerCard({
                           <p className="mt-1 text-xs text-[var(--muted)]">
                             {formatPrice(invoice.totalInclMomsDkk)} | {invoice.status}
                           </p>
+                          <p className="mt-1 text-xs text-[var(--muted)]">
+                            Created by {invoice.createdByRole}
+                            {invoice.createdByUserId ? ` (${invoice.createdByUserId})` : ""}
+                            {invoice.createdAt ? ` | ${invoice.createdAt.slice(0, 10)}` : ""}
+                            {invoice.sentAt ? ` | Sent ${invoice.sentAt.slice(0, 10)}` : ""}
+                          </p>
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <a
-                            href={invoice.pdfUrl}
+                            href={invoice.publicUrl || invoice.pdfUrl}
                             target="_blank"
                             className="inline-flex h-9 items-center justify-center rounded-xl border border-[#DDE3F5] bg-white px-3 text-xs font-semibold text-[#1F2340]"
                           >
                             View invoice
                           </a>
                           <a
-                            href={`${invoice.pdfUrl}?download=1`}
+                            href={invoice.publicUrl || invoice.pdfUrl}
+                            target="_blank"
                             className="inline-flex h-9 items-center justify-center rounded-xl border border-[#DDE3F5] bg-white px-3 text-xs font-semibold text-[#1F2340]"
                           >
-                            Download PDF
+                            Print / Save as PDF
                           </a>
                           <InvoiceWorkflowButton
                             endpoint={`/api/invoices/${invoice.id}/resend`}

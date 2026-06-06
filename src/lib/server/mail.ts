@@ -1000,6 +1000,78 @@ export const sendCustomerInvoiceEmail = async (input: {
   });
 };
 
+export const sendCustomerHtmlInvoiceEmail = async (input: {
+  bookingId: string;
+  customerId: string;
+  customerName: string;
+  customerEmail: string;
+  invoiceNumber: string;
+  subject?: string;
+  totalInclMomsDkk: number;
+  appointmentLabel?: string;
+  invoiceUrl: string;
+  settings: MailSettings;
+}) => {
+  const subject =
+    input.subject || `${input.settings.companyName}: faktura ${input.invoiceNumber}`;
+  const total = formatPrice(input.totalInclMomsDkk);
+  const greeting = input.customerName ? `Hej ${input.customerName}` : "Hej";
+
+  return sendLoggedMail({
+    bookingId: input.bookingId,
+    customerId: input.customerId,
+    recipient: input.customerEmail,
+    recipientRole: "customer",
+    templateKey: "customer_html_invoice",
+    subject,
+    replyTo: input.settings.supportEmail,
+    html: `
+      <div style="margin:0;background:#edf4f5;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#102d38;line-height:1.6;">
+        <div style="max-width:640px;margin:0 auto;overflow:hidden;border-radius:22px;background:#ffffff;box-shadow:0 20px 60px rgba(18,61,82,.12);">
+          <div style="padding:30px;background:linear-gradient(135deg,#102d38,#174f61);color:#ffffff;">
+            <p style="margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9e8d8;">Faktura klar</p>
+            <h1 style="margin:0;font-size:29px;line-height:1.2;">${escapeHtml(subject)}</h1>
+          </div>
+          <div style="padding:30px;">
+            <p style="margin:0 0 18px;color:#36505d;">${escapeHtml(
+              `${greeting}. Din faktura er klar og kan aabnes sikkert i browseren.`
+            )}</p>
+            ${renderRows([
+              ["Fakturanummer", input.invoiceNumber],
+              ["Booking", input.bookingId],
+              ["Tid", input.appointmentLabel || "-"],
+              ["Belob inkl. moms", total],
+            ])}
+            <p style="margin:24px 0 0;">
+              <a href="${escapeHtml(
+                input.invoiceUrl
+              )}" style="display:inline-block;border-radius:999px;background:#21a77b;color:#ffffff;padding:13px 22px;text-decoration:none;font-weight:800;">Se og print faktura</a>
+            </p>
+            <p style="margin:22px 0 0;color:#5b6b75;font-size:13px;">
+              Fra fakturasiden kan du bruge Print / Save as PDF. Der er ingen vedhaeftning, saa linket virker ogsaa paa mobil.
+            </p>
+            <p style="margin:14px 0 0;color:#5b6b75;font-size:13px;">
+              Hvis knappen ikke virker, aabn dette link: ${escapeHtml(input.invoiceUrl)}
+            </p>
+          </div>
+        </div>
+      </div>
+    `,
+    text: [
+      subject,
+      "",
+      `${greeting}. Din faktura er klar.`,
+      `Fakturanummer: ${input.invoiceNumber}`,
+      `Booking: ${input.bookingId}`,
+      `Tid: ${input.appointmentLabel || "-"}`,
+      `Belob inkl. moms: ${total}`,
+      `Se og print faktura: ${input.invoiceUrl}`,
+      "",
+      `Support: ${input.settings.supportEmail}`,
+    ].join("\n"),
+  });
+};
+
 export const sendAdminInvoiceNotice = async (input: {
   bookingId: string;
   agentName: string;

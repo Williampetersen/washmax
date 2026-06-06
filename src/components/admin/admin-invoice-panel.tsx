@@ -6,6 +6,7 @@ import {
   InvoiceWorkflowButton,
   type InvoiceWorkflowResponse,
 } from "@/components/invoices/invoice-workflow-button";
+import { HtmlInvoiceEditor } from "@/components/invoices/html-invoice-editor";
 import { Input } from "@/components/ui/input";
 import type { DashboardBooking } from "@/lib/server/bookings";
 import type { BookingInvoiceData, BookingLineItem } from "@/lib/server/invoices";
@@ -129,65 +130,48 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
 
         <div className="flex flex-wrap gap-2">
           <InvoiceWorkflowButton
-            endpoint={`/api/admin/bookings/${booking.id}/generate-invoice`}
-            label="Generer faktura"
-            pendingLabel="Genererer PDF..."
-            successMessage="Invoice PDF generated successfully."
+            endpoint="/api/invoices/create-draft"
+            body={{ bookingId: booking.id }}
+            label="Create invoice draft"
+            pendingLabel="Creating invoice..."
+            successMessage="Invoice draft created."
             buttonVariant="outline"
             onComplete={applyInvoiceResponse}
           />
-          {invoice?.pdfUrl ? (
-            <>
-              <a
-                href={invoice.pdfUrl}
-                target="_blank"
-                className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-              >
-                View invoice
-              </a>
-              <a
-                href={`${invoice.pdfUrl}?download=1`}
-                className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-              >
-                Download PDF
-              </a>
-            </>
+          {invoice?.publicUrl ? (
+            <a
+              href={invoice.publicUrl}
+              target="_blank"
+              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+            >
+              Preview / print
+            </a>
           ) : null}
-          <InvoiceWorkflowButton
-            endpoint="/api/invoices/generate-send"
-            body={{ bookingId: booking.id }}
-            label="Generate and send invoice"
-            pendingLabel="Generating and sending..."
-            onComplete={applyInvoiceResponse}
-          />
           {invoice ? (
             <InvoiceWorkflowButton
-              endpoint={`/api/invoices/${invoice.id}/resend`}
-              label="Send again"
+              endpoint={`/api/invoices/${invoice.id}/send`}
+              label={invoice.emailSent ? "Send again" : "Send invoice email"}
               pendingLabel="Sending..."
-              buttonVariant="outline"
               onComplete={applyInvoiceResponse}
             />
-          ) : null}
+          ) : (
+            <InvoiceWorkflowButton
+              endpoint="/api/invoices/generate-send"
+              body={{ bookingId: booking.id }}
+              label="Create and send invoice"
+              pendingLabel="Creating and sending..."
+              onComplete={applyInvoiceResponse}
+            />
+          )}
         </div>
 
         {invoiceData && invoice ? (
-          <form
-            action={`/api/admin/invoices/${invoice.id}`}
-            method="POST"
-            className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-3 sm:grid-cols-[1fr_auto]"
-          >
-            <select name="status" defaultValue={invoice.status} className={selectClassName}>
-              <option value="draft">Draft</option>
-              <option value="generated">Generated</option>
-              <option value="sent">Sent</option>
-              <option value="paid">Paid</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <Button type="submit" variant="outline">
-              Opdater fakturastatus
-            </Button>
-          </form>
+          <HtmlInvoiceEditor
+            key={invoice.updatedAt}
+            invoice={invoice}
+            onComplete={applyInvoiceResponse}
+            allowPaid
+          />
         ) : null}
       </div>
     </section>

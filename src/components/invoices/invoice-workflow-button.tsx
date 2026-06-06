@@ -73,7 +73,7 @@ export function InvoiceWorkflowButton({
             tone: "warning",
             message:
               payload.message ||
-              "Invoice was generated and saved, but email could not be sent.",
+              "Invoice was saved, but email could not be sent.",
           });
           return;
         }

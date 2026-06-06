@@ -351,6 +351,14 @@ export const ensureSchema = async () => {
           subtotal_ex_moms_dkk INTEGER NOT NULL DEFAULT 0,
           moms_amount_dkk INTEGER NOT NULL DEFAULT 0,
           total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
+          subtotal_amount INTEGER NOT NULL DEFAULT 0,
+          vat_amount INTEGER NOT NULL DEFAULT 0,
+          total_amount INTEGER NOT NULL DEFAULT 0,
+          invoice_html TEXT,
+          html_snapshot TEXT,
+          invoice_subject TEXT,
+          invoice_notes TEXT,
+          public_token TEXT,
           pdf_url TEXT,
           pdf_file_name TEXT,
           pdf_data BYTEA,
@@ -364,6 +372,7 @@ export const ensureSchema = async () => {
           sent_at TIMESTAMPTZ,
           paid_at TIMESTAMPTZ,
           created_by_user_id TEXT,
+          created_by_id TEXT,
           created_by_role TEXT NOT NULL DEFAULT 'system',
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -382,6 +391,14 @@ export const ensureSchema = async () => {
           ADD COLUMN IF NOT EXISTS subtotal_ex_moms_dkk INTEGER NOT NULL DEFAULT 0,
           ADD COLUMN IF NOT EXISTS moms_amount_dkk INTEGER NOT NULL DEFAULT 0,
           ADD COLUMN IF NOT EXISTS total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS subtotal_amount INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS vat_amount INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS total_amount INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS invoice_html TEXT,
+          ADD COLUMN IF NOT EXISTS html_snapshot TEXT,
+          ADD COLUMN IF NOT EXISTS invoice_subject TEXT,
+          ADD COLUMN IF NOT EXISTS invoice_notes TEXT,
+          ADD COLUMN IF NOT EXISTS public_token TEXT,
           ADD COLUMN IF NOT EXISTS pdf_url TEXT,
           ADD COLUMN IF NOT EXISTS pdf_file_name TEXT,
           ADD COLUMN IF NOT EXISTS pdf_data BYTEA,
@@ -395,6 +412,7 @@ export const ensureSchema = async () => {
           ADD COLUMN IF NOT EXISTS sent_at TIMESTAMPTZ,
           ADD COLUMN IF NOT EXISTS paid_at TIMESTAMPTZ,
           ADD COLUMN IF NOT EXISTS created_by_user_id TEXT,
+          ADD COLUMN IF NOT EXISTS created_by_id TEXT,
           ADD COLUMN IF NOT EXISTS created_by_role TEXT NOT NULL DEFAULT 'system',
           ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
@@ -421,6 +439,27 @@ export const ensureSchema = async () => {
       await sql`
         CREATE UNIQUE INDEX IF NOT EXISTS invoices_number_unique_idx
         ON invoices (invoice_number);
+      `;
+
+      await sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS invoices_public_token_unique_idx
+        ON invoices (public_token);
+      `;
+
+      await sql`
+        UPDATE invoices
+        SET
+          status = CASE WHEN status = 'generated' THEN 'ready' ELSE status END,
+          public_token = COALESCE(
+            NULLIF(public_token, ''),
+            MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT || id) ||
+            MD5(id || CLOCK_TIMESTAMP()::TEXT || RANDOM()::TEXT)
+          ),
+          invoice_html = COALESCE(invoice_html, html_snapshot),
+          created_by_id = COALESCE(created_by_id, created_by_user_id),
+          subtotal_amount = COALESCE(NULLIF(subtotal_amount, 0), subtotal_ex_moms_dkk, 0),
+          vat_amount = COALESCE(NULLIF(vat_amount, 0), moms_amount_dkk, 0),
+          total_amount = COALESCE(NULLIF(total_amount, 0), total_incl_moms_dkk, 0);
       `;
 
       await sql`

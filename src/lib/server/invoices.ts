@@ -23,7 +23,7 @@ export type BookingLineItemType = (typeof bookingLineItemTypes)[number];
 
 export const invoiceStatuses = [
   "draft",
-  "generated",
+  "ready",
   "sent",
   "paid",
   "cancelled",
@@ -55,11 +55,18 @@ type RawInvoice = {
   booking_id: string;
   customer_id: string | null;
   agent_id: string | null;
-  status: InvoiceStatus;
+  status: string;
   currency: string;
   subtotal_ex_moms_dkk: number;
   moms_amount_dkk: number;
   total_incl_moms_dkk: number;
+  subtotal_amount?: number | null;
+  vat_amount?: number | null;
+  total_amount?: number | null;
+  invoice_html?: string | null;
+  invoice_subject?: string | null;
+  invoice_notes?: string | null;
+  public_token?: string | null;
   pdf_url: string | null;
   pdf_file_name: string | null;
   pdf_data: Buffer | Uint8Array | string | null;
@@ -73,9 +80,11 @@ type RawInvoice = {
   sent_at: string | Date | null;
   paid_at: string | Date | null;
   created_by_user_id: string | null;
+  created_by_id?: string | null;
   created_by_role: InvoiceActorType | null;
   created_at: string | Date;
   updated_at: string | Date;
+  appointment_date?: string | Date | null;
 };
 
 type RawInvoiceItem = {
@@ -132,6 +141,11 @@ export type Invoice = {
   pdfUrl: string;
   pdfFileName: string;
   pdfSizeBytes: number;
+  publicToken: string;
+  publicUrl: string;
+  invoiceHtml: string;
+  invoiceSubject: string;
+  invoiceNotes: string;
   customerEmail: string;
   sentToEmail: string;
   emailSent: boolean;
@@ -142,6 +156,7 @@ export type Invoice = {
   createdByRole: InvoiceActorType;
   createdAt: string;
   updatedAt: string;
+  appointmentDate: string;
   items: InvoiceItem[];
 };
 
@@ -255,21 +270,34 @@ const invoiceFromRow = (row: RawInvoice, items: InvoiceItem[] = []): Invoice => 
   bookingId: String(row.booking_id ?? ""),
   customerId: String(row.customer_id ?? ""),
   agentId: String(row.agent_id ?? ""),
-  status: invoiceStatuses.includes(row.status) ? row.status : "draft",
+  status: (
+    row.status === "generated"
+      ? "ready"
+      : invoiceStatuses.includes(row.status as InvoiceStatus)
+        ? row.status
+        : "draft"
+  ) as InvoiceStatus,
   currency: String(row.currency ?? "DKK"),
-  subtotalExMomsDkk: Number(row.subtotal_ex_moms_dkk || 0),
-  momsAmountDkk: Number(row.moms_amount_dkk || 0),
-  totalInclMomsDkk: Number(row.total_incl_moms_dkk || 0),
-  pdfUrl: String(row.pdf_url ?? ""),
+  subtotalExMomsDkk: Number(row.subtotal_amount ?? row.subtotal_ex_moms_dkk ?? 0),
+  momsAmountDkk: Number(row.vat_amount ?? row.moms_amount_dkk ?? 0),
+  totalInclMomsDkk: Number(row.total_amount ?? row.total_incl_moms_dkk ?? 0),
+  pdfUrl: row.public_token
+    ? `/invoices/${String(row.public_token)}`
+    : String(row.pdf_url ?? ""),
   pdfFileName: String(row.pdf_file_name ?? ""),
   pdfSizeBytes: Number(row.pdf_size_bytes || 0),
+  publicToken: String(row.public_token ?? ""),
+  publicUrl: row.public_token ? `/invoices/${String(row.public_token)}` : "",
+  invoiceHtml: String(row.invoice_html ?? ""),
+  invoiceSubject: String(row.invoice_subject ?? ""),
+  invoiceNotes: String(row.invoice_notes ?? ""),
   customerEmail: String(row.customer_email ?? ""),
   sentToEmail: String(row.sent_to_email ?? ""),
   emailSent: Boolean(row.email_sent),
   emailSentAt: toDateTimeText(row.email_sent_at),
   sentAt: toDateTimeText(row.sent_at),
   paidAt: toDateTimeText(row.paid_at),
-  createdByUserId: String(row.created_by_user_id ?? ""),
+  createdByUserId: String(row.created_by_id ?? row.created_by_user_id ?? ""),
   createdByRole:
     row.created_by_role === "agent"
       ? "agent"
@@ -278,6 +306,7 @@ const invoiceFromRow = (row: RawInvoice, items: InvoiceItem[] = []): Invoice => 
         : "system",
   createdAt: toDateTimeText(row.created_at),
   updatedAt: toDateTimeText(row.updated_at),
+  appointmentDate: toDateTimeText(row.appointment_date),
   items,
 });
 
@@ -1313,9 +1342,10 @@ export const listInvoices = async () => {
   await ensureSchema();
   const sql = getSql();
   const rows = await sql<RawInvoice[]>`
-    SELECT *
+    SELECT invoices.*, bookings.appointment_date
     FROM invoices
-    ORDER BY created_at DESC;
+    LEFT JOIN bookings ON bookings.id = invoices.booking_id
+    ORDER BY invoices.created_at DESC;
   `;
   return rows.map((row) => invoiceFromRow(row));
 };
@@ -1325,10 +1355,11 @@ export const listInvoicesForCustomer = async (customerId: string) => {
   await ensureSchema();
   const sql = getSql();
   const rows = await sql<RawInvoice[]>`
-    SELECT *
+    SELECT invoices.*, bookings.appointment_date
     FROM invoices
-    WHERE customer_id = ${customerId}
-    ORDER BY created_at DESC;
+    LEFT JOIN bookings ON bookings.id = invoices.booking_id
+    WHERE invoices.customer_id = ${customerId}
+    ORDER BY invoices.created_at DESC;
   `;
   return rows.map((row) => invoiceFromRow(row));
 };

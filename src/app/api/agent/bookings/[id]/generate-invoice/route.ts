@@ -51,10 +51,11 @@ export async function POST(
             invoiceStored: true,
             invoiceId: result.invoice.id,
             invoiceNumber: result.invoice.invoiceNumber,
-            invoiceUrl: result.invoice.pdfUrl,
+            invoiceUrl: result.invoice.publicUrl,
             invoiceData: result.data,
             emailSent: false,
-            message: "Invoice PDF generated and saved successfully.",
+            invoiceHtmlUrl: result.invoice.publicUrl,
+            message: "Invoice draft created and ready to review.",
           },
           { headers: { "Cache-Control": "no-store" } }
         )
@@ -93,7 +94,7 @@ export async function POST(
             message:
               error instanceof SimpleInvoiceWorkflowError
                 ? error.message
-                : "Invoice PDF could not be generated.",
+                : "Invoice draft could not be created.",
             code:
               error instanceof SimpleInvoiceWorkflowError
                 ? error.code

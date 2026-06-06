@@ -27,8 +27,8 @@ export async function GET() {
   const success =
     database.databaseConnected &&
     database.invoicesTableExists &&
-    database.pdfDataColumnExists &&
-    database.pdfDataColumnType === "bytea";
+    database.htmlColumnExists &&
+    database.publicTokenColumnExists;
 
   return NextResponse.json(
     {
@@ -36,8 +36,8 @@ export async function GET() {
       hasDatabaseUrl: database.hasDatabaseUrl,
       databaseConnected: database.databaseConnected,
       invoicesTableExists: database.invoicesTableExists,
-      pdfDataColumnExists: database.pdfDataColumnExists,
-      pdfDataColumnType: database.pdfDataColumnType,
+      htmlColumnExists: database.htmlColumnExists,
+      publicTokenColumnExists: database.publicTokenColumnExists,
       smtpConfigured: isMailConfigured(),
       appUrlConfigured: environment.appUrlConfigured,
       errorCode: database.errorCode || undefined,

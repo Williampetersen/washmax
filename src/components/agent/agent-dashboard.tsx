@@ -20,6 +20,7 @@ import {
   InvoiceWorkflowButton,
   type InvoiceWorkflowResponse,
 } from "@/components/invoices/invoice-workflow-button";
+import { HtmlInvoiceEditor } from "@/components/invoices/html-invoice-editor";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { DashboardLocale } from "@/lib/shared/dashboard-locale";
@@ -728,46 +729,48 @@ function InvoiceWorkbench({
 
       <div className="mt-4 flex flex-wrap gap-2">
         <InvoiceWorkflowButton
-          endpoint={`/api/agent/bookings/${booking.id}/generate-invoice`}
-          label="Generate invoice"
-          pendingLabel="Generating PDF..."
+          endpoint="/api/invoices/create-draft"
+          body={{ bookingId: booking.id }}
+          label="Create invoice draft"
+          pendingLabel="Creating invoice..."
           buttonVariant="outline"
           onComplete={applyInvoiceResponse}
         />
-        {invoice?.pdfUrl ? (
-          <>
-            <a
-              href={invoice.pdfUrl}
-              target="_blank"
-              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-            >
-              View invoice
-            </a>
-            <a
-              href={`${invoice.pdfUrl}?download=1`}
-              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-            >
-              Download PDF
-            </a>
-          </>
+        {invoice?.publicUrl ? (
+          <a
+            href={invoice.publicUrl}
+            target="_blank"
+            className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
+          >
+            Preview / print
+          </a>
         ) : null}
-        <InvoiceWorkflowButton
-          endpoint="/api/invoices/generate-send"
-          body={{ bookingId: booking.id }}
-          label="Generate and send invoice"
-          pendingLabel="Generating and sending..."
-          onComplete={applyInvoiceResponse}
-        />
         {invoice ? (
           <InvoiceWorkflowButton
-            endpoint={`/api/invoices/${invoice.id}/resend`}
-            label="Send again"
+            endpoint={`/api/invoices/${invoice.id}/send`}
+            label={invoice.emailSent ? "Send again" : "Send invoice email"}
             pendingLabel="Sending..."
-            buttonVariant="outline"
             onComplete={applyInvoiceResponse}
           />
-        ) : null}
+        ) : (
+          <InvoiceWorkflowButton
+            endpoint="/api/invoices/generate-send"
+            body={{ bookingId: booking.id }}
+            label="Create and send invoice"
+            pendingLabel="Creating and sending..."
+            onComplete={applyInvoiceResponse}
+          />
+        )}
       </div>
+      {invoice ? (
+        <div className="mt-4">
+          <HtmlInvoiceEditor
+            key={invoice.updatedAt}
+            invoice={invoice}
+            onComplete={applyInvoiceResponse}
+          />
+        </div>
+      ) : null}
     </section>
   );
 }

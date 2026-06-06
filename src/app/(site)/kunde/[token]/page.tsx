@@ -73,10 +73,10 @@ export default async function CustomerPortalPage({
           saved: "Your details were saved.",
           completed: "Completed",
           invoices: "Invoices",
-          invoicesText: "View or download your Clean Wash invoices.",
+          invoicesText: "View, print or save your Clean Wash invoices as PDF.",
           noInvoices: "No invoices yet.",
           viewInvoice: "View invoice",
-          downloadPdf: "Download PDF",
+          downloadPdf: "Print / Save as PDF",
           addons: "Extras",
           saveChanges: "Save changes",
           noPaymentMethods: "No saved payment methods",
@@ -114,10 +114,10 @@ export default async function CustomerPortalPage({
           saved: "Dine oplysninger er gemt.",
           completed: "Afsluttede",
           invoices: "Fakturaer",
-          invoicesText: "Se eller hent dine Clean Wash fakturaer.",
+          invoicesText: "Se, print eller gem dine Clean Wash fakturaer som PDF.",
           noInvoices: "Ingen fakturaer endnu.",
           viewInvoice: "Se faktura",
-          downloadPdf: "Hent PDF",
+          downloadPdf: "Print / Gem som PDF",
           addons: "Tilvalg",
           saveChanges: "Gem aendringer",
           noPaymentMethods: "Ingen gemte betalingsmetoder",
@@ -330,17 +330,24 @@ export default async function CustomerPortalPage({
                               <p className="mt-1 text-sm text-[var(--muted)]">
                                 {formatPrice(invoice.totalInclMomsDkk)} | {invoice.status}
                               </p>
+                              <p className="mt-1 text-xs text-[var(--muted)]">
+                                Booking: {invoice.appointmentDate.slice(0, 10) || invoice.bookingId}
+                                {invoice.sentAt
+                                  ? ` | Sent: ${invoice.sentAt.slice(0, 10)}`
+                                  : ""}
+                              </p>
                             </div>
                             <div className="flex flex-wrap gap-2">
                               <a
-                                href={`${invoice.pdfUrl}?token=${token}`}
+                                href={invoice.publicUrl || invoice.pdfUrl}
                                 target="_blank"
                                 className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9e7f0] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
                               >
                                 {copy.viewInvoice}
                               </a>
                               <a
-                                href={`${invoice.pdfUrl}?token=${token}&download=1`}
+                                href={invoice.publicUrl || invoice.pdfUrl}
+                                target="_blank"
                                 className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9e7f0] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
                               >
                                 {copy.downloadPdf}

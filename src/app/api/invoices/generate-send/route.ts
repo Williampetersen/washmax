@@ -97,7 +97,7 @@ export async function POST(request: Request) {
         "deliveryError" in result
           ? result.deliveryError
           : new SimpleInvoiceWorkflowError(
-              "Invoice was generated and saved, but email could not be sent.",
+              "Invoice was saved, but email could not be sent.",
               "EMAIL_SEND_FAILED",
               502,
               {
@@ -105,7 +105,8 @@ export async function POST(request: Request) {
                 invoiceStored: true,
                 invoiceId: result.invoice.id,
                 invoiceNumber: result.invoice.invoiceNumber,
-                invoiceUrl: result.invoice.pdfUrl,
+                invoiceUrl: result.invoice.publicUrl,
+                invoiceHtmlUrl: result.invoice.publicUrl,
               }
             );
       return NextResponse.json(
@@ -116,10 +117,11 @@ export async function POST(request: Request) {
           emailSent: false,
           invoiceId: result.invoice.id,
           invoiceNumber: result.invoice.invoiceNumber,
-          invoiceUrl: result.invoice.pdfUrl,
+          invoiceUrl: result.invoice.publicUrl,
           invoiceData: result.data,
           code: deliveryError.code,
-          message: "Invoice was generated and saved, but email could not be sent.",
+          invoiceHtmlUrl: result.invoice.publicUrl,
+          message: "Invoice was saved, but email could not be sent.",
         },
         { status: deliveryError.statusCode, headers: noStore }
       );
@@ -133,9 +135,10 @@ export async function POST(request: Request) {
         emailSent: true,
         invoiceId: result.invoice.id,
         invoiceNumber: result.invoice.invoiceNumber,
-        invoiceUrl: result.invoice.pdfUrl,
+        invoiceUrl: result.invoice.publicUrl,
         invoiceData: result.data,
-        message: "Invoice generated and sent successfully.",
+        invoiceHtmlUrl: result.invoice.publicUrl,
+        message: "Invoice email sent successfully.",
       },
       { headers: noStore }
     );
