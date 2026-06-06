@@ -810,11 +810,21 @@ const renderAndStoreInvoicePdf = async (
     if (!isValidPdfBuffer(pdfBuffer)) {
       throw new Error("PDFKit returned an invalid PDF buffer.");
     }
+    console.info("[invoice.generate] PDF rendered", {
+      bookingId: data.booking.id,
+      invoiceId: invoice.id,
+      bytes: pdfBuffer.byteLength,
+    });
 
     const updated = await persistInvoicePdf(invoice.id, invoice.invoiceNumber, pdfBuffer);
     if (!updated) {
       throw new Error("Invoice PDF storage update did not return an invoice.");
     }
+    console.info("[invoice.generate] PDF stored", {
+      bookingId: data.booking.id,
+      invoiceId: invoice.id,
+      bytes: pdfBuffer.byteLength,
+    });
 
     return {
       row: updated,
@@ -823,9 +833,12 @@ const renderAndStoreInvoicePdf = async (
     };
   } catch (error) {
     console.error("Invoice PDF generation or storage failed", {
+      bookingId: data.booking.id,
       invoiceId: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
-      error: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
     });
     throw new InvoiceWorkflowError(
       "Invoice PDF could not be generated or stored.",
@@ -886,6 +899,11 @@ export const generateInvoiceForBooking = async (input: {
   agentId?: string;
   createdByUserId?: string;
 }) => {
+  console.info("[invoice.generate] starting", {
+    bookingId: input.bookingId,
+    actorType: input.actorType,
+  });
+
   try {
     await ensureSchema();
   } catch (error) {
@@ -908,6 +926,11 @@ export const generateInvoiceForBooking = async (input: {
   if (!data) {
     throw new InvoiceWorkflowError("Booking was not found.", 404, "booking_not_found");
   }
+  console.info("[invoice.generate] booking loaded", {
+    bookingId: input.bookingId,
+    lineItemCount: data.lineItems.length,
+    hasCustomerEmail: Boolean(data.customer.email),
+  });
 
   const sql = getSql();
   const summary = data.summary;
@@ -922,6 +945,10 @@ export const generateInvoiceForBooking = async (input: {
   if (invoice && invoice.status !== "draft") {
     const ensured = await ensureInvoicePdfStored(data, invoice);
     await syncBookingInvoiceFields(ensured.invoice);
+    console.info("[invoice.generate] existing invoice ready", {
+      bookingId: input.bookingId,
+      invoiceId: ensured.invoice.id,
+    });
     return { invoice: ensured.invoice, data: { ...data, invoice: ensured.invoice } };
   }
 
@@ -1018,6 +1045,15 @@ export const generateInvoiceForBooking = async (input: {
 
   return { invoice: rendered.invoice, data: { ...data, invoice: rendered.invoice } };
 };
+
+const isEmailDeliveryError = (error: unknown): error is InvoiceWorkflowError =>
+  error instanceof InvoiceWorkflowError &&
+  [
+    "customer_email_missing",
+    "smtp_not_configured",
+    "invoice_email_failed",
+    "invoice_email_not_sent",
+  ].includes(error.code);
 
 const sendInvoiceMail = async (input: {
   invoice: Invoice;
@@ -1134,19 +1170,43 @@ export const sendInvoiceForBooking = async (input: {
 }) => {
   const generated = await generateInvoiceForBooking(input);
   const ensured = await ensureInvoicePdfStored(generated.data, generated.invoice);
-  const sentInvoice = await sendInvoiceMail({
-    invoice: ensured.invoice,
-    data: generated.data,
-    pdfBuffer: ensured.buffer,
-    actorName: generated.data.agent?.fullName || (input.actorType === "agent" ? "Agent" : "Admin"),
-    notifyAdmin: true,
-  });
+  try {
+    const sentInvoice = await sendInvoiceMail({
+      invoice: ensured.invoice,
+      data: generated.data,
+      pdfBuffer: ensured.buffer,
+      actorName:
+        generated.data.agent?.fullName || (input.actorType === "agent" ? "Agent" : "Admin"),
+      notifyAdmin: true,
+    });
 
-  return {
-    invoice: sentInvoice,
-    sent: true,
-    data: { ...generated.data, invoice: sentInvoice },
-  };
+    console.info("[invoice.email] sent", {
+      bookingId: input.bookingId,
+      invoiceId: sentInvoice.id,
+    });
+    return {
+      invoice: sentInvoice,
+      sent: true as const,
+      data: { ...generated.data, invoice: sentInvoice },
+    };
+  } catch (error) {
+    if (!isEmailDeliveryError(error)) {
+      throw error;
+    }
+
+    console.error("[invoice.email] failed after PDF storage", {
+      bookingId: input.bookingId,
+      invoiceId: ensured.invoice.id,
+      code: error.code,
+      message: error.message,
+    });
+    return {
+      invoice: ensured.invoice,
+      sent: false as const,
+      deliveryError: error,
+      data: { ...generated.data, invoice: ensured.invoice },
+    };
+  }
 };
 
 export const resendInvoiceById = async (input: {
@@ -1170,19 +1230,38 @@ export const resendInvoiceById = async (input: {
   }
 
   const ensured = await ensureInvoicePdfStored(data, invoice);
-  const resentInvoice = await sendInvoiceMail({
-    invoice: ensured.invoice,
-    data,
-    pdfBuffer: ensured.buffer,
-    actorName: data.agent?.fullName || (input.actorType === "agent" ? "Agent" : "Admin"),
-    notifyAdmin: false,
-  });
+  try {
+    const resentInvoice = await sendInvoiceMail({
+      invoice: ensured.invoice,
+      data,
+      pdfBuffer: ensured.buffer,
+      actorName: data.agent?.fullName || (input.actorType === "agent" ? "Agent" : "Admin"),
+      notifyAdmin: false,
+    });
 
-  return {
-    invoice: resentInvoice,
-    sent: true,
-    data: { ...data, invoice: resentInvoice },
-  };
+    return {
+      invoice: resentInvoice,
+      sent: true as const,
+      data: { ...data, invoice: resentInvoice },
+    };
+  } catch (error) {
+    if (!isEmailDeliveryError(error)) {
+      throw error;
+    }
+
+    console.error("[invoice.email] resend failed", {
+      bookingId: invoice.bookingId,
+      invoiceId: ensured.invoice.id,
+      code: error.code,
+      message: error.message,
+    });
+    return {
+      invoice: ensured.invoice,
+      sent: false as const,
+      deliveryError: error,
+      data: { ...data, invoice: ensured.invoice },
+    };
+  }
 };
 
 export const listInvoices = async () => {

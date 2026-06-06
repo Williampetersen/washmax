@@ -10,6 +10,9 @@ import {
   getInvoicePdfForDownload,
 } from "@/lib/server/invoices";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const errorResponse = (message: string, status: number) =>
   NextResponse.json(
     {

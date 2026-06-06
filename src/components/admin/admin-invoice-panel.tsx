@@ -2,7 +2,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { InvoiceWorkflowButton } from "@/components/invoices/invoice-workflow-button";
+import {
+  InvoiceWorkflowButton,
+  type InvoiceWorkflowResponse,
+} from "@/components/invoices/invoice-workflow-button";
 import { Input } from "@/components/ui/input";
 import type { DashboardBooking } from "@/lib/server/bookings";
 import type { BookingInvoiceData, BookingLineItem } from "@/lib/server/invoices";
@@ -40,6 +43,13 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
       setStatus("idle");
     } catch {
       setStatus("error");
+    }
+  };
+
+  const applyInvoiceResponse = (payload: InvoiceWorkflowResponse) => {
+    if (payload.invoiceData) {
+      setInvoiceData(payload.invoiceData as BookingInvoiceData);
+      setStatus("idle");
     }
   };
 
@@ -124,6 +134,7 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
             pendingLabel="Genererer PDF..."
             successMessage="Invoice PDF generated successfully."
             buttonVariant="outline"
+            onComplete={applyInvoiceResponse}
           />
           {invoice?.pdfUrl ? (
             <>
@@ -147,6 +158,7 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
             body={{ bookingId: booking.id }}
             label="Generate and send invoice"
             pendingLabel="Generating and sending..."
+            onComplete={applyInvoiceResponse}
           />
           {invoice ? (
             <InvoiceWorkflowButton
@@ -154,6 +166,7 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
               label="Send again"
               pendingLabel="Sending..."
               buttonVariant="outline"
+              onComplete={applyInvoiceResponse}
             />
           ) : null}
         </div>

@@ -24,7 +24,11 @@ const getErrorResponse = (error: unknown) => {
     );
   }
 
-  console.error("Invoice generate/send failed", error);
+  console.error("[invoice.generate-send] failed", {
+    name: error instanceof Error ? error.name : "UnknownError",
+    message: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
+  });
   return NextResponse.json(
     {
       success: false,
@@ -65,7 +69,17 @@ export async function POST(request: Request) {
 
   let bookingId = "";
   try {
-    const body = (await request.json()) as { bookingId?: string };
+    const rawBody = await request.text();
+    if (!rawBody.trim()) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Booking ID is required.",
+        },
+        { status: 400, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+    const body = JSON.parse(rawBody) as { bookingId?: string };
     bookingId = String(body.bookingId || "").trim();
   } catch {
     return NextResponse.json(
@@ -73,7 +87,7 @@ export async function POST(request: Request) {
         success: false,
         message: "Invalid request body.",
       },
-      { status: 400 }
+      { status: 400, headers: { "Cache-Control": "no-store" } }
     );
   }
 
@@ -83,7 +97,7 @@ export async function POST(request: Request) {
         success: false,
         message: "Booking ID is required.",
       },
-      { status: 400 }
+      { status: 400, headers: { "Cache-Control": "no-store" } }
     );
   }
 
@@ -108,11 +122,34 @@ export async function POST(request: Request) {
       portalToken: result.data.customer.portalToken,
     });
 
+    if (!result.sent) {
+      return NextResponse.json(
+        {
+          success: false,
+          invoiceGenerated: true,
+          invoiceId: result.invoice.id,
+          invoiceNumber: result.invoice.invoiceNumber,
+          invoiceUrl: result.invoice.pdfUrl,
+          invoiceData: result.data,
+          emailSent: false,
+          code: result.deliveryError.code,
+          message: "Invoice was generated and saved, but email could not be sent.",
+        },
+        {
+          status: result.deliveryError.statusCode,
+          headers: { "Cache-Control": "no-store" },
+        }
+      );
+    }
+
     return NextResponse.json(
       {
         success: true,
+        invoiceGenerated: true,
         invoiceId: result.invoice.id,
+        invoiceNumber: result.invoice.invoiceNumber,
         invoiceUrl: result.invoice.pdfUrl,
+        invoiceData: result.data,
         emailSent: true,
         message: "Invoice generated and sent successfully.",
       },

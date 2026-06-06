@@ -11,14 +11,21 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
+  const isJson =
+    (request.headers.get("content-type") || "").includes("application/json") ||
+    (request.headers.get("accept") || "").includes("application/json");
   const cookieStore = await cookies();
   const session = getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
   if (!session) {
-    return NextResponse.redirect(new URL("/admin/login", request.url), 303);
+    return isJson
+      ? NextResponse.json(
+          { success: false, message: "Unauthorized." },
+          { status: 401, headers: { "Cache-Control": "no-store" } }
+        )
+      : NextResponse.redirect(new URL("/admin/login", request.url), 303);
   }
 
   const { id } = await context.params;
-  const isJson = (request.headers.get("content-type") || "").includes("application/json");
   const returnTab = isJson ? "" : String((await request.formData()).get("return_tab") || "").trim();
   try {
     const result = await generateInvoiceForBooking({
@@ -33,10 +40,14 @@ export async function POST(
     return isJson
       ? NextResponse.json({
           success: true,
+          invoiceGenerated: true,
           invoiceId: result.invoice.id,
+          invoiceNumber: result.invoice.invoiceNumber,
           invoiceUrl: result.invoice.pdfUrl,
+          invoiceData: result.data,
+          emailSent: false,
           message: "Invoice PDF generated successfully.",
-        })
+        }, { headers: { "Cache-Control": "no-store" } })
       : NextResponse.redirect(
           new URL(
             `/admin?view=bookings${
@@ -47,7 +58,12 @@ export async function POST(
           303
         );
   } catch (error) {
-    console.error("Could not generate admin invoice", error);
+    console.error("[invoice.generate] failed", {
+      bookingId: id,
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     const message =
       error instanceof InvoiceWorkflowError
         ? error.message
@@ -60,7 +76,7 @@ export async function POST(
             message,
             code: error instanceof InvoiceWorkflowError ? error.code : "invoice_generation_failed",
           },
-          { status }
+          { status, headers: { "Cache-Control": "no-store" } }
         )
       : NextResponse.redirect(new URL(`/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`, request.url), 303);
   }
