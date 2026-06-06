@@ -19,7 +19,7 @@ export async function POST(
   if (!session) {
     return isJson
       ? NextResponse.json(
-          { success: false, message: "Unauthorized." },
+          { success: false, message: "Unauthorized.", code: "UNAUTHORIZED" },
           { status: 401, headers: { "Cache-Control": "no-store" } }
         )
       : NextResponse.redirect(new URL("/admin/login", request.url), 303);
@@ -41,6 +41,7 @@ export async function POST(
       ? NextResponse.json({
           success: true,
           invoiceGenerated: true,
+          invoiceStored: true,
           invoiceId: result.invoice.id,
           invoiceNumber: result.invoice.invoiceNumber,
           invoiceUrl: result.invoice.pdfUrl,
@@ -74,7 +75,7 @@ export async function POST(
           {
             success: false,
             message,
-            code: error instanceof InvoiceWorkflowError ? error.code : "invoice_generation_failed",
+            code: error instanceof InvoiceWorkflowError ? error.code : "UNKNOWN_INVOICE_ERROR",
           },
           { status, headers: { "Cache-Control": "no-store" } }
         )

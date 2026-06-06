@@ -19,6 +19,7 @@ export type InvoiceWorkflowResponse = {
   success?: boolean;
   message?: string;
   invoiceGenerated?: boolean;
+  invoiceStored?: boolean;
   emailSent?: boolean;
   invoiceId?: string;
   invoiceNumber?: string;

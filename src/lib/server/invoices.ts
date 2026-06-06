@@ -56,7 +56,8 @@ type RawInvoice = {
   total_incl_moms_dkk: number;
   pdf_url: string | null;
   pdf_file_name: string | null;
-  pdf_content: Buffer | Uint8Array | null;
+  pdf_data: Buffer | Uint8Array | string | null;
+  pdf_content: Buffer | Uint8Array | string | null;
   pdf_content_type: string | null;
   pdf_size_bytes: number | null;
   customer_email: string | null;
@@ -275,11 +276,28 @@ const invoiceFromRow = (row: RawInvoice, items: InvoiceItem[] = []): Invoice => 
 });
 
 const getStoredPdfBuffer = (row: RawInvoice) => {
-  if (!row.pdf_content) {
+  const storedPdf = row.pdf_data || row.pdf_content;
+  if (!storedPdf) {
     return null;
   }
 
-  return Buffer.isBuffer(row.pdf_content) ? row.pdf_content : Buffer.from(row.pdf_content);
+  if (Buffer.isBuffer(storedPdf)) {
+    return storedPdf;
+  }
+
+  if (storedPdf instanceof Uint8Array) {
+    return Buffer.from(storedPdf);
+  }
+
+  const text = String(storedPdf).trim();
+  if (text.startsWith("\\x")) {
+    return Buffer.from(text.slice(2), "hex");
+  }
+  if (text.startsWith("%PDF-")) {
+    return Buffer.from(text, "binary");
+  }
+
+  return Buffer.from(text, "base64");
 };
 
 const isValidPdfBuffer = (buffer: Buffer) =>
@@ -789,7 +807,7 @@ const persistInvoicePdf = async (
     SET
       pdf_url = ${getInvoiceDownloadUrl(invoiceId)},
       pdf_file_name = ${fileName},
-      pdf_content = ${pdfBuffer},
+      pdf_data = ${pdfBuffer},
       pdf_content_type = 'application/pdf',
       pdf_size_bytes = ${pdfBuffer.byteLength},
       updated_at = NOW()
@@ -805,8 +823,9 @@ const renderAndStoreInvoicePdf = async (
   invoice: Invoice,
   settings: BookingSettings
 ) => {
+  let pdfBuffer: Buffer;
   try {
-    const pdfBuffer = await renderInvoicePdf(data, invoice, settings);
+    pdfBuffer = await renderInvoicePdf(data, invoice, settings);
     if (!isValidPdfBuffer(pdfBuffer)) {
       throw new Error("PDFKit returned an invalid PDF buffer.");
     }
@@ -815,7 +834,23 @@ const renderAndStoreInvoicePdf = async (
       invoiceId: invoice.id,
       bytes: pdfBuffer.byteLength,
     });
+  } catch (error) {
+    console.error("[invoice.generate] PDF rendering failed", {
+      bookingId: data.booking.id,
+      invoiceId: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+    throw new InvoiceWorkflowError(
+      "Invoice PDF could not be generated.",
+      500,
+      "PDF_GENERATION_FAILED"
+    );
+  }
 
+  try {
     const updated = await persistInvoicePdf(invoice.id, invoice.invoiceNumber, pdfBuffer);
     if (!updated) {
       throw new Error("Invoice PDF storage update did not return an invoice.");
@@ -832,7 +867,7 @@ const renderAndStoreInvoicePdf = async (
       invoice: invoiceFromRow(updated, invoice.items),
     };
   } catch (error) {
-    console.error("Invoice PDF generation or storage failed", {
+    console.error("[invoice.generate] PDF database storage failed", {
       bookingId: data.booking.id,
       invoiceId: invoice.id,
       invoiceNumber: invoice.invoiceNumber,
@@ -841,9 +876,9 @@ const renderAndStoreInvoicePdf = async (
       stack: error instanceof Error ? error.stack : undefined,
     });
     throw new InvoiceWorkflowError(
-      "Invoice PDF could not be generated or stored.",
+      "Invoice PDF could not be stored in the database.",
       500,
-      "invoice_pdf_failed"
+      "INVOICE_STORAGE_FAILED"
     );
   }
 };
@@ -914,7 +949,7 @@ export const generateInvoiceForBooking = async (input: {
     throw new InvoiceWorkflowError(
       "Invoice storage could not be prepared.",
       500,
-      "invoice_storage_failed"
+      "DATABASE_SCHEMA_FAILED"
     );
   }
 
@@ -924,7 +959,7 @@ export const generateInvoiceForBooking = async (input: {
 
   const data = await getBookingInvoiceData(input.bookingId);
   if (!data) {
-    throw new InvoiceWorkflowError("Booking was not found.", 404, "booking_not_found");
+    throw new InvoiceWorkflowError("Booking was not found.", 404, "BOOKING_NOT_FOUND");
   }
   console.info("[invoice.generate] booking loaded", {
     bookingId: input.bookingId,
@@ -1049,10 +1084,9 @@ export const generateInvoiceForBooking = async (input: {
 const isEmailDeliveryError = (error: unknown): error is InvoiceWorkflowError =>
   error instanceof InvoiceWorkflowError &&
   [
-    "customer_email_missing",
-    "smtp_not_configured",
-    "invoice_email_failed",
-    "invoice_email_not_sent",
+    "CUSTOMER_EMAIL_MISSING",
+    "SMTP_CONFIG_MISSING",
+    "EMAIL_SEND_FAILED",
   ].includes(error.code);
 
 const sendInvoiceMail = async (input: {
@@ -1063,7 +1097,11 @@ const sendInvoiceMail = async (input: {
   notifyAdmin: boolean;
 }) => {
   if (!input.data.customer.email) {
-    throw new InvoiceWorkflowError("Customer email is missing.", 400, "customer_email_missing");
+    throw new InvoiceWorkflowError(
+      "Customer email is missing.",
+      400,
+      "CUSTOMER_EMAIL_MISSING"
+    );
   }
 
   if (!isMailConfigured()) {
@@ -1071,7 +1109,7 @@ const sendInvoiceMail = async (input: {
     throw new InvoiceWorkflowError(
       "Invoice email is not configured on the server.",
       500,
-      "smtp_not_configured"
+      "SMTP_CONFIG_MISSING"
     );
   }
 
@@ -1109,7 +1147,7 @@ const sendInvoiceMail = async (input: {
     throw new InvoiceWorkflowError(
       "The PDF was generated, but the invoice email could not be sent. Check the SMTP settings.",
       502,
-      "invoice_email_failed"
+      "EMAIL_SEND_FAILED"
     );
   }
 
@@ -1117,7 +1155,7 @@ const sendInvoiceMail = async (input: {
     throw new InvoiceWorkflowError(
       "Invoice email could not be sent.",
       500,
-      "invoice_email_not_sent"
+      "EMAIL_SEND_FAILED"
     );
   }
 

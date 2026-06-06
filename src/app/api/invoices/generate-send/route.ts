@@ -33,6 +33,7 @@ const getErrorResponse = (error: unknown) => {
     {
       success: false,
       message: "Invoice could not be generated and sent.",
+      code: "UNKNOWN_INVOICE_ERROR",
     },
     {
       status: 500,
@@ -48,8 +49,9 @@ export async function POST(request: Request) {
       {
         success: false,
         message: "Invoice storage is not configured on the server.",
+        code: "DATABASE_CONNECTION_FAILED",
       },
-      { status: 500 }
+      { status: 500, headers: { "Cache-Control": "no-store" } }
     );
   }
 
@@ -62,6 +64,7 @@ export async function POST(request: Request) {
       {
         success: false,
         message: "Unauthorized.",
+        code: "UNAUTHORIZED",
       },
       { status: 401 }
     );
@@ -75,6 +78,7 @@ export async function POST(request: Request) {
         {
           success: false,
           message: "Booking ID is required.",
+          code: "MISSING_BOOKING_ID",
         },
         { status: 400, headers: { "Cache-Control": "no-store" } }
       );
@@ -86,6 +90,7 @@ export async function POST(request: Request) {
       {
         success: false,
         message: "Invalid request body.",
+        code: "INVALID_REQUEST_BODY",
       },
       { status: 400, headers: { "Cache-Control": "no-store" } }
     );
@@ -96,6 +101,7 @@ export async function POST(request: Request) {
       {
         success: false,
         message: "Booking ID is required.",
+        code: "MISSING_BOOKING_ID",
       },
       { status: 400, headers: { "Cache-Control": "no-store" } }
     );
@@ -127,6 +133,7 @@ export async function POST(request: Request) {
         {
           success: false,
           invoiceGenerated: true,
+          invoiceStored: true,
           invoiceId: result.invoice.id,
           invoiceNumber: result.invoice.invoiceNumber,
           invoiceUrl: result.invoice.pdfUrl,
@@ -146,6 +153,7 @@ export async function POST(request: Request) {
       {
         success: true,
         invoiceGenerated: true,
+        invoiceStored: true,
         invoiceId: result.invoice.id,
         invoiceNumber: result.invoice.invoiceNumber,
         invoiceUrl: result.invoice.pdfUrl,

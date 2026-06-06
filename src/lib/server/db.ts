@@ -353,6 +353,7 @@ export const ensureSchema = async () => {
           total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
           pdf_url TEXT,
           pdf_file_name TEXT,
+          pdf_data BYTEA,
           pdf_content BYTEA,
           pdf_content_type TEXT,
           pdf_size_bytes INTEGER NOT NULL DEFAULT 0,
@@ -371,6 +372,11 @@ export const ensureSchema = async () => {
 
       await sql`
         ALTER TABLE invoices
+          ADD COLUMN IF NOT EXISTS id TEXT,
+          ADD COLUMN IF NOT EXISTS invoice_number TEXT,
+          ADD COLUMN IF NOT EXISTS booking_id TEXT,
+          ADD COLUMN IF NOT EXISTS customer_id TEXT,
+          ADD COLUMN IF NOT EXISTS agent_id TEXT,
           ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'draft',
           ADD COLUMN IF NOT EXISTS currency TEXT NOT NULL DEFAULT 'DKK',
           ADD COLUMN IF NOT EXISTS subtotal_ex_moms_dkk INTEGER NOT NULL DEFAULT 0,
@@ -378,6 +384,7 @@ export const ensureSchema = async () => {
           ADD COLUMN IF NOT EXISTS total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
           ADD COLUMN IF NOT EXISTS pdf_url TEXT,
           ADD COLUMN IF NOT EXISTS pdf_file_name TEXT,
+          ADD COLUMN IF NOT EXISTS pdf_data BYTEA,
           ADD COLUMN IF NOT EXISTS pdf_content BYTEA,
           ADD COLUMN IF NOT EXISTS pdf_content_type TEXT,
           ADD COLUMN IF NOT EXISTS pdf_size_bytes INTEGER NOT NULL DEFAULT 0,
@@ -391,6 +398,29 @@ export const ensureSchema = async () => {
           ADD COLUMN IF NOT EXISTS created_by_role TEXT NOT NULL DEFAULT 'system',
           ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+      `;
+
+      await sql`
+        UPDATE invoices
+        SET
+          id = COALESCE(NULLIF(id, ''), 'inv_legacy_' || MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT || CTID::TEXT)),
+          invoice_number = COALESCE(
+            NULLIF(invoice_number, ''),
+            'CW-LEGACY-' || UPPER(SUBSTRING(MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT || CTID::TEXT), 1, 12))
+          ),
+          currency = COALESCE(NULLIF(currency, ''), 'DKK'),
+          created_at = COALESCE(created_at, NOW()),
+          updated_at = COALESCE(updated_at, NOW());
+      `;
+
+      await sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS invoices_id_unique_idx
+        ON invoices (id);
+      `;
+
+      await sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS invoices_number_unique_idx
+        ON invoices (invoice_number);
       `;
 
       await sql`
@@ -409,6 +439,36 @@ export const ensureSchema = async () => {
           line_total_dkk INTEGER NOT NULL DEFAULT 0,
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
+      `;
+
+      await sql`
+        ALTER TABLE invoice_items
+          ADD COLUMN IF NOT EXISTS id TEXT,
+          ADD COLUMN IF NOT EXISTS invoice_id TEXT,
+          ADD COLUMN IF NOT EXISTS booking_line_item_id TEXT,
+          ADD COLUMN IF NOT EXISTS description TEXT,
+          ADD COLUMN IF NOT EXISTS quantity INTEGER NOT NULL DEFAULT 1,
+          ADD COLUMN IF NOT EXISTS unit_price_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS line_total_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+      `;
+
+      await sql`
+        UPDATE invoice_items
+        SET
+          id = COALESCE(NULLIF(id, ''), 'ini_legacy_' || MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT || CTID::TEXT)),
+          description = COALESCE(description, 'Invoice line'),
+          created_at = COALESCE(created_at, NOW());
+      `;
+
+      await sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS invoice_items_id_unique_idx
+        ON invoice_items (id);
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS invoice_items_invoice_idx
+        ON invoice_items (invoice_id, created_at ASC);
       `;
 
       await sql`
@@ -729,4 +789,100 @@ export const ensureSchema = async () => {
     schemaPromise = null;
     throw error;
   }
+};
+
+type InvoiceColumnDiagnosticRow = {
+  column_name: string;
+  data_type: string;
+  udt_name: string;
+};
+
+const invoiceDiagnosticColumns = [
+  "id",
+  "invoice_number",
+  "booking_id",
+  "customer_id",
+  "pdf_data",
+  "pdf_content_type",
+  "email_sent",
+  "email_sent_at",
+  "customer_email",
+  "total_incl_moms_dkk",
+  "currency",
+  "created_at",
+  "updated_at",
+] as const;
+
+export const getInvoiceDatabaseDiagnostics = async () => {
+  const hasDatabaseUrl = isDatabaseConfigured();
+  const emptyRequiredColumns = Object.fromEntries(
+    invoiceDiagnosticColumns.map((column) => [column, false])
+  );
+
+  if (!hasDatabaseUrl) {
+    return {
+      hasDatabaseUrl,
+      databaseConnected: false,
+      schemaReady: false,
+      invoicesTableExists: false,
+      requiredColumns: emptyRequiredColumns,
+      columnTypes: {},
+      errorCode: "DATABASE_CONNECTION_FAILED",
+    };
+  }
+
+  const sql = getSql();
+  let databaseConnected = false;
+  let schemaReady = false;
+  let errorCode = "";
+
+  try {
+    await sql`SELECT 1;`;
+    databaseConnected = true;
+    await ensureSchema();
+    schemaReady = true;
+  } catch (error) {
+    errorCode = String(
+      (error as { code?: unknown })?.code || "DATABASE_SCHEMA_FAILED"
+    );
+    console.error("[invoice.diagnostics] database/schema check failed", {
+      name: error instanceof Error ? error.name : "UnknownError",
+      message: error instanceof Error ? error.message : String(error),
+      code: errorCode,
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+  }
+
+  let rows: InvoiceColumnDiagnosticRow[] = [];
+  if (databaseConnected) {
+    try {
+      rows = await sql<InvoiceColumnDiagnosticRow[]>`
+        SELECT column_name, data_type, udt_name
+        FROM information_schema.columns
+        WHERE table_schema = 'public' AND table_name = 'invoices';
+      `;
+    } catch (error) {
+      console.error("[invoice.diagnostics] column inspection failed", {
+        name: error instanceof Error ? error.name : "UnknownError",
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  const columnTypes = Object.fromEntries(
+    rows.map((row) => [row.column_name, row.udt_name || row.data_type])
+  );
+  const requiredColumns = Object.fromEntries(
+    invoiceDiagnosticColumns.map((column) => [column, Boolean(columnTypes[column])])
+  );
+
+  return {
+    hasDatabaseUrl,
+    databaseConnected,
+    schemaReady,
+    invoicesTableExists: rows.length > 0,
+    requiredColumns,
+    columnTypes,
+    errorCode,
+  };
 };
