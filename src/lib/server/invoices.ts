@@ -1059,13 +1059,17 @@ const sendInvoiceMail = async (input: {
   await syncBookingInvoiceFields(sentInvoice);
 
   if (input.notifyAdmin) {
-    await sendAdminInvoiceNotice({
-      bookingId: input.data.booking.id,
-      agentName: input.actorName,
-      invoiceNumber: sentInvoice.invoiceNumber,
-      totalInclMomsDkk: sentInvoice.totalInclMomsDkk,
-      settings,
-    });
+    try {
+      await sendAdminInvoiceNotice({
+        bookingId: input.data.booking.id,
+        agentName: input.actorName,
+        invoiceNumber: sentInvoice.invoiceNumber,
+        totalInclMomsDkk: sentInvoice.totalInclMomsDkk,
+        settings,
+      });
+    } catch (error) {
+      console.error("Admin invoice notice failed", error);
+    }
   }
 
   return sentInvoice;
