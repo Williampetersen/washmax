@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import {
   BarChart3,
   Calendar,
@@ -14,10 +14,12 @@ import {
   Wrench,
   XCircle,
 } from "lucide-react";
+import { DashboardLanguageSwitch } from "@/components/ui/dashboard-language-switch";
 import { Button } from "@/components/ui/button";
 import { InvoiceWorkflowButton } from "@/components/invoices/invoice-workflow-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import type { DashboardLocale } from "@/lib/shared/dashboard-locale";
 import type {
   AgentAvailability,
   AgentBooking,
@@ -28,33 +30,97 @@ import type { BookingInvoiceData, BookingLineItem } from "@/lib/server/invoices"
 import { formatPrice } from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 
-const tabs = [
-  { id: "overview", label: "Overview", icon: BarChart3 },
-  { id: "calendar", label: "Calendar", icon: Calendar },
-  { id: "tasks", label: "Tasks", icon: CheckCircle2 },
-  { id: "availability", label: "Availability", icon: Clock3 },
-  { id: "services", label: "Services", icon: Wrench },
-  { id: "chat", label: "Chat", icon: MessageCircle },
-  { id: "profile", label: "Profile", icon: UserRound },
+const tabIds = [
+  "overview",
+  "calendar",
+  "tasks",
+  "availability",
+  "services",
+  "chat",
+  "profile",
 ] as const;
 
-export type AgentView = (typeof tabs)[number]["id"];
+export type AgentView = (typeof tabIds)[number];
 
-const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const allowedImageTypes = ["image/jpeg", "image/png", "image/webp"];
 const maxAvatarSizeBytes = 2 * 1024 * 1024;
+
+const getAgentCopy = (locale: DashboardLocale) => ({
+  locale,
+  tabs:
+    locale === "en"
+      ? {
+          overview: "Overview",
+          calendar: "Calendar",
+          tasks: "Tasks",
+          availability: "Availability",
+          services: "Services",
+          chat: "Chat",
+          profile: "Profile",
+        }
+      : {
+          overview: "Overblik",
+          calendar: "Kalender",
+          tasks: "Opgaver",
+          availability: "Tilgaengelighed",
+          services: "Services",
+          chat: "Chat",
+          profile: "Profil",
+        },
+  weekdays:
+    locale === "en"
+      ? ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+      : ["Mandag", "Tirsdag", "Onsdag", "Torsdag", "Fredag", "Loerdag", "Soendag"],
+  savedMessage: locale === "en" ? "The update was saved." : "Aendringen blev gemt.",
+  errorMessage:
+    locale === "en"
+      ? "The action could not be completed."
+      : "Handlingen kunne ikke gennemfoeres.",
+  roleLabel: locale === "en" ? "Agent" : "Agent",
+  pending: locale === "en" ? "Pending" : "Venter",
+  done: locale === "en" ? "Done" : "Faerdig",
+  unread: locale === "en" ? "Unread" : "Ulæst",
+  logout: locale === "en" ? "Logout" : "Log ud",
+  dashboardTitle: locale === "en" ? "Agent dashboard" : "Agent dashboard",
+  dashboardDescription:
+    locale === "en"
+      ? "Only your assigned bookings, working hours, services and messages are shown here."
+      : "Kun dine tildelte bookinger, arbejdstider, services og beskeder vises her.",
+});
+
+type AgentCopy = ReturnType<typeof getAgentCopy>;
+const AgentCopyContext = createContext<AgentCopy | null>(null);
+const useAgentCopy = () => {
+  const copy = useContext(AgentCopyContext);
+  if (!copy) {
+    throw new Error("Agent copy context missing");
+  }
+  return copy;
+};
 
 export function AgentDashboard({
   data,
   initialView,
+  locale,
   saved,
   error,
 }: {
   data: AgentDashboardData;
   initialView: AgentView;
+  locale: DashboardLocale;
   saved?: string;
   error?: string;
 }) {
+  const copy = getAgentCopy(locale);
+  const tabs = [
+    { id: "overview" as const, label: copy.tabs.overview, icon: BarChart3 },
+    { id: "calendar" as const, label: copy.tabs.calendar, icon: Calendar },
+    { id: "tasks" as const, label: copy.tabs.tasks, icon: CheckCircle2 },
+    { id: "availability" as const, label: copy.tabs.availability, icon: Clock3 },
+    { id: "services" as const, label: copy.tabs.services, icon: Wrench },
+    { id: "chat" as const, label: copy.tabs.chat, icon: MessageCircle },
+    { id: "profile" as const, label: copy.tabs.profile, icon: UserRound },
+  ];
   const [dashboardData, setDashboardData] = useState(data);
   const [view, setView] = useState(initialView);
   const [feedback, setFeedback] = useState<{
@@ -62,9 +128,9 @@ export function AgentDashboard({
     message: string;
   } | null>(
     saved
-      ? { tone: "success", message: "The update was saved." }
+      ? { tone: "success", message: copy.savedMessage }
       : error
-        ? { tone: "error", message: "The action could not be completed." }
+        ? { tone: "error", message: copy.errorMessage }
         : null
   );
   const unread = dashboardData.notifications.filter((item) => !item.isRead).length;
@@ -81,8 +147,9 @@ export function AgentDashboard({
   };
 
   return (
-    <main className="min-h-screen bg-[#F6F8FE] px-4 py-5 text-[#1F2340] sm:px-6">
-      <section className="mx-auto max-w-7xl">
+    <AgentCopyContext.Provider value={copy}>
+      <main className="min-h-screen bg-[#F6F8FE] px-4 py-5 text-[#1F2340] sm:px-6">
+        <section className="mx-auto max-w-7xl">
         <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
           <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.72] shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl xl:sticky xl:top-5 xl:self-start">
             <div className="border-b border-white/55 px-4 py-5">
@@ -90,7 +157,7 @@ export function AgentDashboard({
                 <AgentAvatar name={dashboardData.agent.fullName} avatarUrl={dashboardData.agent.avatarUrl} />
                 <div className="min-w-0">
                   <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
-                    Agent
+                    {copy.roleLabel}
                   </p>
                   <p className="mt-1 truncate text-[13px] font-semibold">{dashboardData.agent.fullName}</p>
                   <p className="truncate text-[12px] font-medium text-[#8E95B5]">{dashboardData.agent.email}</p>
@@ -123,16 +190,19 @@ export function AgentDashboard({
 
             <div className="border-t border-white/55 px-4 py-4">
               <div className="grid grid-cols-3 gap-2">
-                <SmallStat label="Pending" value={dashboardData.stats.pending.toString()} />
-                <SmallStat label="Done" value={dashboardData.stats.done.toString()} />
-                <SmallStat label="Unread" value={unread.toString()} />
+                <SmallStat label={copy.pending} value={dashboardData.stats.pending.toString()} />
+                <SmallStat label={copy.done} value={dashboardData.stats.done.toString()} />
+                <SmallStat label={copy.unread} value={unread.toString()} />
               </div>
-              <form action="/api/agent/logout" method="POST" className="mt-4">
-                <Button type="submit" variant="ghost" className="w-full justify-start rounded-2xl">
+              <div className="mt-4 flex items-center justify-between gap-2">
+                <DashboardLanguageSwitch currentLocale={locale} />
+                <form action="/api/agent/logout" method="POST" className="flex-1">
+                  <Button type="submit" variant="ghost" className="w-full justify-start rounded-2xl">
                   <LogOut className="h-5 w-5" />
-                  Logout
-                </Button>
-              </form>
+                    {copy.logout}
+                  </Button>
+                </form>
+              </div>
             </div>
           </aside>
 
@@ -141,9 +211,9 @@ export function AgentDashboard({
               <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
                 {tabs.find((tab) => tab.id === view)?.label}
               </p>
-              <h1 className="mt-2 text-3xl font-bold">Agent dashboard</h1>
+              <h1 className="mt-2 text-3xl font-bold">{copy.dashboardTitle}</h1>
               <p className="mt-2 max-w-2xl text-[13px] font-medium leading-6 text-[#4B5563]">
-                Kun dine tildelte bookinger, arbejdstider, services og beskeder vises her.
+                {copy.dashboardDescription}
               </p>
             </header>
 
@@ -173,7 +243,13 @@ export function AgentDashboard({
                 availability={dashboardData.availability}
                 onSaved={(availability) => {
                   setDashboardData((current) => ({ ...current, availability }));
-                  setFeedback({ tone: "success", message: "Availability saved successfully." });
+                  setFeedback({
+                    tone: "success",
+                    message:
+                      locale === "en"
+                        ? "Availability saved successfully."
+                        : "Tilgaengelighed blev gemt.",
+                  });
                 }}
                 onError={(message) => setFeedback({ tone: "error", message })}
               />
@@ -183,7 +259,11 @@ export function AgentDashboard({
                 services={dashboardData.services}
                 onSaved={(services) => {
                   setDashboardData((current) => ({ ...current, services }));
-                  setFeedback({ tone: "success", message: "Services saved successfully." });
+                  setFeedback({
+                    tone: "success",
+                    message:
+                      locale === "en" ? "Services saved successfully." : "Services blev gemt.",
+                  });
                 }}
                 onError={(message) => setFeedback({ tone: "error", message })}
               />
@@ -194,24 +274,53 @@ export function AgentDashboard({
                 agent={dashboardData.agent}
                 onSaved={(agent) => {
                   setDashboardData((current) => ({ ...current, agent }));
-                  setFeedback({ tone: "success", message: "Profile saved successfully." });
+                  setFeedback({
+                    tone: "success",
+                    message:
+                      locale === "en" ? "Profile saved successfully." : "Profilen blev gemt.",
+                  });
                 }}
                 onError={(message) => setFeedback({ tone: "error", message })}
               />
             ) : null}
           </div>
         </div>
-      </section>
-    </main>
+        </section>
+      </main>
+    </AgentCopyContext.Provider>
   );
 }
 
 function Overview({ data }: { data: AgentDashboardData }) {
+  const copy = useAgentCopy();
   const cards = [
-    { label: "Assigned", value: data.stats.totalAssigned, detail: "All bookings", icon: Calendar },
-    { label: "Pending", value: data.stats.pending, detail: "Awaiting your answer", icon: Clock3 },
-    { label: "Accepted", value: data.stats.accepted, detail: "Ready to work", icon: CheckCircle2 },
-    { label: "Done", value: data.stats.done, detail: `${data.stats.currentMonthDone} this month`, icon: BarChart3 },
+    {
+      label: copy.locale === "en" ? "Assigned" : "Tildelt",
+      value: data.stats.totalAssigned,
+      detail: copy.locale === "en" ? "All bookings" : "Alle bookinger",
+      icon: Calendar,
+    },
+    {
+      label: copy.locale === "en" ? "Pending" : "Venter",
+      value: data.stats.pending,
+      detail: copy.locale === "en" ? "Awaiting your answer" : "Afventer dit svar",
+      icon: Clock3,
+    },
+    {
+      label: copy.locale === "en" ? "Accepted" : "Accepteret",
+      value: data.stats.accepted,
+      detail: copy.locale === "en" ? "Ready to work" : "Klar til opgaven",
+      icon: CheckCircle2,
+    },
+    {
+      label: copy.locale === "en" ? "Done" : "Faerdig",
+      value: data.stats.done,
+      detail:
+        copy.locale === "en"
+          ? `${data.stats.currentMonthDone} this month`
+          : `${data.stats.currentMonthDone} denne maaned`,
+      icon: BarChart3,
+    },
   ];
 
   return (
@@ -234,7 +343,9 @@ function Overview({ data }: { data: AgentDashboardData }) {
         })}
       </div>
       <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
-        <p className="text-[14px] font-semibold">Status chart</p>
+        <p className="text-[14px] font-semibold">
+          {copy.locale === "en" ? "Status chart" : "Statusoversigt"}
+        </p>
         <div className="mt-4 grid gap-3">
           {data.stats.byStatus.map((item) => (
             <div key={item.status} className="grid gap-1">
@@ -260,6 +371,7 @@ function Overview({ data }: { data: AgentDashboardData }) {
 }
 
 function CalendarView({ bookings }: { bookings: AgentBooking[] }) {
+  const copy = useAgentCopy();
   const days = Array.from(
     bookings.reduce((map, booking) => {
       const list = map.get(booking.appointmentDate) || [];
@@ -294,7 +406,13 @@ function CalendarView({ bookings }: { bookings: AgentBooking[] }) {
             </div>
           ))
         ) : (
-          <EmptyState text="No assigned bookings in your calendar." />
+          <EmptyState
+            text={
+              copy.locale === "en"
+                ? "No assigned bookings in your calendar."
+                : "Ingen tildelte bookinger i din kalender."
+            }
+          />
         )}
       </div>
     </section>
@@ -308,6 +426,7 @@ function TasksView({
   bookings: AgentBooking[];
   services: AgentService[];
 }) {
+  const copy = useAgentCopy();
   return (
     <div className="grid gap-4">
       {bookings.length > 0 ? (
@@ -319,7 +438,13 @@ function TasksView({
           />
         ))
       ) : (
-        <EmptyState text="No bookings assigned to you yet." />
+        <EmptyState
+          text={
+            copy.locale === "en"
+              ? "No bookings assigned to you yet."
+              : "Ingen bookinger er tildelt dig endnu."
+          }
+        />
       )}
     </div>
   );
@@ -332,6 +457,7 @@ function TaskCard({
   booking: AgentBooking;
   services: AgentService[];
 }) {
+  const copy = useAgentCopy();
   return (
     <article id={`booking-${booking.id}`} className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -347,14 +473,14 @@ function TaskCard({
       </div>
 
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <Info label="Phone" value={booking.customerPhone} />
+        <Info label={copy.locale === "en" ? "Phone" : "Telefon"} value={booking.customerPhone} />
         <Info label="Email" value={booking.customerEmail} />
-        <Info label="Address" value={booking.customerAddress} />
-        <Info label="Vehicle" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-        <Info label="Service" value={`${booking.packageLabel} - ${booking.category}`} />
-        <Info label="Customer notes" value={booking.customerNotes || "-"} />
-        <Info label="Admin notes" value={booking.adminNotes || "-"} />
-        <Info label="Agent note" value={booking.agentNote || "-"} />
+        <Info label={copy.locale === "en" ? "Address" : "Adresse"} value={booking.customerAddress} />
+        <Info label={copy.locale === "en" ? "Vehicle" : "Bil"} value={`${booking.vehicleName} (${booking.registrationNumber})`} />
+        <Info label={copy.locale === "en" ? "Service" : "Service"} value={`${booking.packageLabel} - ${booking.category}`} />
+        <Info label={copy.locale === "en" ? "Customer notes" : "Kundenoter"} value={booking.customerNotes || "-"} />
+        <Info label={copy.locale === "en" ? "Admin notes" : "Adminnoter"} value={booking.adminNotes || "-"} />
+        <Info label={copy.locale === "en" ? "Agent note" : "Agentnote"} value={booking.agentNote || "-"} />
       </div>
 
       {booking.addons.length > 0 ? (
@@ -369,24 +495,42 @@ function TaskCard({
 
       <div className="mt-4 grid gap-3 lg:grid-cols-2">
         <form action={`/api/agent/bookings/${booking.id}/accept`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
-          <Textarea name="note" placeholder="Optional note for admin" className="min-h-16" />
-          <Button type="submit">Accept booking</Button>
+          <Textarea
+            name="note"
+            placeholder={copy.locale === "en" ? "Optional note for admin" : "Valgfri note til admin"}
+            className="min-h-16"
+          />
+          <Button type="submit">{copy.locale === "en" ? "Accept booking" : "Accepter booking"}</Button>
         </form>
         <form action={`/api/agent/bookings/${booking.id}/reject`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
-          <Textarea name="note" placeholder="Optional rejection reason" className="min-h-16" />
-          <Button type="submit" variant="outline">Reject booking</Button>
+          <Textarea
+            name="note"
+            placeholder={copy.locale === "en" ? "Optional rejection reason" : "Valgfri aarsag til afvisning"}
+            className="min-h-16"
+          />
+          <Button type="submit" variant="outline">
+            {copy.locale === "en" ? "Reject booking" : "Afvis booking"}
+          </Button>
         </form>
       </div>
 
       <form action={`/api/agent/bookings/${booking.id}/status`} method="POST" className="mt-3 grid gap-3 rounded-2xl border border-white/55 bg-white/50 p-3 md:grid-cols-[12rem_minmax(0,1fr)_auto]">
         <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
-          <option value="accepted">Accepted</option>
-          <option value="in_progress">In progress</option>
-          <option value="done">Done</option>
-          <option value="cancelled_by_agent">Cancel</option>
+          <option value="accepted">{copy.locale === "en" ? "Accepted" : "Accepteret"}</option>
+          <option value="in_progress">{copy.locale === "en" ? "In progress" : "I gang"}</option>
+          <option value="done">{copy.locale === "en" ? "Done" : "Faerdig"}</option>
+          <option value="cancelled_by_agent">{copy.locale === "en" ? "Cancel" : "Annuller"}</option>
         </select>
-        <Input name="note" placeholder="Internal note or cancellation reason" defaultValue={booking.agentNote} />
-        <Button type="submit">Update status</Button>
+        <Input
+          name="note"
+          placeholder={
+            copy.locale === "en"
+              ? "Internal note or cancellation reason"
+              : "Intern note eller aarsag til annullering"
+          }
+          defaultValue={booking.agentNote}
+        />
+        <Button type="submit">{copy.locale === "en" ? "Update status" : "Opdater status"}</Button>
       </form>
 
       <InvoiceWorkbench
@@ -404,6 +548,7 @@ function InvoiceWorkbench({
   booking: AgentBooking;
   services: AgentService[];
 }) {
+  const copy = useAgentCopy();
   const [invoiceData, setInvoiceData] = useState<BookingInvoiceData | null>(null);
   const [invoiceStatus, setInvoiceStatus] = useState<"idle" | "loading" | "error">("idle");
   const invoiceLocked = invoiceData?.invoice
@@ -443,9 +588,13 @@ function InvoiceWorkbench({
     <section className="mt-4 rounded-3xl border border-white/55 bg-white/50 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[14px] font-semibold">Extra Services / Additional Charges</p>
+          <p className="text-[14px] font-semibold">
+            {copy.locale === "en" ? "Extra services / charges" : "Ekstra services / tillaeg"}
+          </p>
           <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">
-            All prices are DKK incl. Danish moms.
+            {copy.locale === "en"
+              ? "All prices are DKK incl. Danish VAT."
+              : "Alle priser er DKK inkl. dansk moms."}
           </p>
         </div>
         <InvoiceBadge status={invoice?.status || "No invoice"} />
@@ -463,18 +612,36 @@ function InvoiceWorkbench({
               />
             ))
           ) : (
-            <EmptyState text="Line items will appear after the first invoice refresh." />
+            <EmptyState
+              text={
+                copy.locale === "en"
+                  ? "Line items will appear after the first invoice refresh."
+                  : "Prislinjer vises efter foerste fakturaopdatering."
+              }
+            />
           )
         ) : (
           <div className="rounded-2xl border border-dashed border-[#DDE3F5] bg-white/60 px-4 py-4 text-[13px] font-medium text-[#4B5563]">
-            <p>Invoice details now load on demand so the tasks tab opens faster.</p>
+            <p>
+              {copy.locale === "en"
+                ? "Invoice details now load on demand so the tasks tab opens faster."
+                : "Fakturadetaljer hentes nu efter behov, saa opgavefanen aabner hurtigere."}
+            </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button onClick={loadInvoiceData} disabled={invoiceStatus === "loading"} variant="outline">
-                {invoiceStatus === "loading" ? "Loading..." : "Load invoice details"}
+                {invoiceStatus === "loading"
+                  ? copy.locale === "en"
+                    ? "Loading..."
+                    : "Henter..."
+                  : copy.locale === "en"
+                    ? "Load invoice details"
+                    : "Hent fakturadetaljer"}
               </Button>
               {invoiceStatus === "error" ? (
                 <span className="text-xs font-medium text-red-600">
-                  Invoice details could not be loaded.
+                  {copy.locale === "en"
+                    ? "Invoice details could not be loaded."
+                    : "Fakturadetaljer kunne ikke hentes."}
                 </span>
               ) : null}
             </div>
@@ -662,6 +829,7 @@ function AvailabilityView({
   onSaved: (availability: AgentAvailability[]) => void;
   onError: (message: string) => void;
 }) {
+  const copy = useAgentCopy();
   const [entries, setEntries] = useState(
     Array.from({ length: 7 }, (_, weekday) => {
       const item = availability.find((value) => value.weekday === weekday);
@@ -736,7 +904,7 @@ function AvailabilityView({
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
       <div className="grid gap-3">
-        {weekdays.map((day, index) => {
+        {copy.weekdays.map((day, index) => {
           const item = entries[index];
           return (
             <div key={day} className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3 md:grid-cols-[10rem_1fr_1fr_1fr_1fr] md:items-center">
@@ -761,13 +929,29 @@ function AvailabilityView({
             </div>
           );
         })}
-        <Button onClick={saveAvailability} disabled={pending}>{pending ? "Saving..." : "Save availability"}</Button>
+        <Button onClick={saveAvailability} disabled={pending}>
+          {pending
+            ? copy.locale === "en"
+              ? "Saving..."
+              : "Gemmer..."
+            : copy.locale === "en"
+              ? "Save availability"
+              : "Gem tilgaengelighed"}
+        </Button>
       </div>
       <div className="mt-4 grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3 sm:grid-cols-[1fr_1fr_1fr_auto]">
         <Input type="date" value={unavailableForm.startDate} onChange={(event) => setUnavailableForm((current) => ({ ...current, startDate: event.target.value }))} required />
         <Input type="date" value={unavailableForm.endDate} onChange={(event) => setUnavailableForm((current) => ({ ...current, endDate: event.target.value }))} />
-        <Input value={unavailableForm.reason} onChange={(event) => setUnavailableForm((current) => ({ ...current, reason: event.target.value }))} placeholder="Vacation / blocked reason" />
-        <Button onClick={addUnavailable} disabled={blocking || !unavailableForm.startDate} variant="outline">{blocking ? "Saving..." : "Block dates"}</Button>
+        <Input value={unavailableForm.reason} onChange={(event) => setUnavailableForm((current) => ({ ...current, reason: event.target.value }))} placeholder={copy.locale === "en" ? "Vacation / blocked reason" : "Ferie / aarsag"} />
+        <Button onClick={addUnavailable} disabled={blocking || !unavailableForm.startDate} variant="outline">
+          {blocking
+            ? copy.locale === "en"
+              ? "Saving..."
+              : "Gemmer..."
+            : copy.locale === "en"
+              ? "Block dates"
+              : "Bloker datoer"}
+        </Button>
       </div>
     </section>
   );
@@ -782,6 +966,7 @@ function ServicesView({
   onSaved: (services: AgentService[]) => void;
   onError: (message: string) => void;
 }) {
+  const copy = useAgentCopy();
   const [items, setItems] = useState(services);
   const [newService, setNewService] = useState("");
   const [pending, setPending] = useState(false);
@@ -857,8 +1042,16 @@ function ServicesView({
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
       <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-        <Input value={newService} onChange={(event) => setNewService(event.target.value)} placeholder="Add service name" required />
-        <Button onClick={addService} disabled={pending || !newService.trim()}>{pending ? "Saving..." : "Add service"}</Button>
+        <Input value={newService} onChange={(event) => setNewService(event.target.value)} placeholder={copy.locale === "en" ? "Add service name" : "Tilfoej service"} required />
+        <Button onClick={addService} disabled={pending || !newService.trim()}>
+          {pending
+            ? copy.locale === "en"
+              ? "Saving..."
+              : "Gemmer..."
+            : copy.locale === "en"
+              ? "Add service"
+              : "Tilfoej service"}
+        </Button>
       </div>
       <div className="mt-4 grid gap-3">
         {items.length > 0 ? (
@@ -886,18 +1079,18 @@ function ServicesView({
                     )
                   }
                 />
-                Enabled
+                {copy.locale === "en" ? "Enabled" : "Aktiv"}
               </label>
               <div className="flex gap-2">
-                <Button onClick={() => updateService(service.id, service)} className="h-10">Save</Button>
+                <Button onClick={() => updateService(service.id, service)} className="h-10">{copy.locale === "en" ? "Save" : "Gem"}</Button>
                 <Button onClick={() => removeService(service.id)} variant="outline" className="h-10">
-                  Delete
+                  {copy.locale === "en" ? "Delete" : "Slet"}
                 </Button>
               </div>
             </div>
           ))
         ) : (
-          <EmptyState text="No services on your profile yet." />
+          <EmptyState text={copy.locale === "en" ? "No services on your profile yet." : "Ingen services paa din profil endnu."} />
         )}
       </div>
     </section>
@@ -905,6 +1098,7 @@ function ServicesView({
 }
 
 function ChatView({ data }: { data: AgentDashboardData }) {
+  const copy = useAgentCopy();
   return (
     <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
       <div className="grid gap-3">
@@ -924,22 +1118,22 @@ function ChatView({ data }: { data: AgentDashboardData }) {
             </div>
           ))
         ) : (
-          <EmptyState text="No chat messages yet." />
+          <EmptyState text={copy.locale === "en" ? "No chat messages yet." : "Ingen chatbeskeder endnu."} />
         )}
       </div>
       <form action="/api/agent/chat" method="POST" className="mt-4 grid gap-3">
         <select name="booking_id" className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
-          <option value="">General message</option>
+          <option value="">{copy.locale === "en" ? "General message" : "Generel besked"}</option>
           {data.bookings.map((booking) => (
             <option key={booking.id} value={booking.id}>
               {booking.appointmentDate} | {booking.customerName}
             </option>
           ))}
         </select>
-        <Textarea name="message" className="min-h-24" placeholder="Write to admin" required />
+        <Textarea name="message" className="min-h-24" placeholder={copy.locale === "en" ? "Write to admin" : "Skriv til admin"} required />
         <Button type="submit">
           <MessageCircle className="h-5 w-5" />
-          Send message
+          {copy.locale === "en" ? "Send message" : "Send besked"}
         </Button>
       </form>
     </section>
@@ -955,6 +1149,7 @@ function ProfileView({
   onSaved: (agent: AgentDashboardData["agent"]) => void;
   onError: (message: string) => void;
 }) {
+  const copy = useAgentCopy();
   const [form, setForm] = useState({
     fullName: agent.fullName,
     email: agent.email,
@@ -1048,10 +1243,10 @@ function ProfileView({
         </div>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <Info label="Phone" value={form.phone || "-"} />
-        <Info label="Status" value={agent.status} />
-        <Info label="Working area" value={form.workingArea || "-"} />
-        <Info label="Last login" value={agent.lastLoginAt || "-"} />
+        <Info label={copy.locale === "en" ? "Phone" : "Telefon"} value={form.phone || "-"} />
+        <Info label={copy.locale === "en" ? "Status" : "Status"} value={agent.status} />
+        <Info label={copy.locale === "en" ? "Working area" : "Arbejdsomraade"} value={form.workingArea || "-"} />
+        <Info label={copy.locale === "en" ? "Last login" : "Sidste login"} value={agent.lastLoginAt || "-"} />
       </div>
       <div className="mt-4 grid gap-3 rounded-2xl border border-white/55 bg-white/55 p-3">
         <div className="grid gap-3 sm:grid-cols-2">

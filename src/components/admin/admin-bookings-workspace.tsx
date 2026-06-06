@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react";
 import { CalendarPlus, ListFilter } from "lucide-react";
+import type { DashboardLocale } from "@/lib/shared/dashboard-locale";
 import { cn } from "@/lib/utils";
 
 export type AdminBookingsTab = "details" | "manual";
@@ -14,13 +15,38 @@ export function AdminBookingsWorkspace({
   pendingCount,
   manualContent,
   detailsContent,
+  locale,
 }: {
   initialTab: AdminBookingsTab;
   detailsCount: number;
   pendingCount: number;
   manualContent: ReactNode;
   detailsContent: ReactNode;
+  locale: DashboardLocale;
 }) {
+  const copy =
+    locale === "en"
+      ? {
+          queue: "Queue",
+          bookings: "Bookings",
+          bookingsDetail: "Waiting and complete in one short flow.",
+          create: "Create",
+          newBooking: "New booking",
+          newBookingDetail: "For phone calls and quick manual bookings.",
+          shown: "Shown",
+          waiting: "Waiting",
+        }
+      : {
+          queue: "Koe",
+          bookings: "Bookinger",
+          bookingsDetail: "Venter og faerdig i et kort flow.",
+          create: "Opret",
+          newBooking: "Ny booking",
+          newBookingDetail: "Til telefon og hurtige manuelle bookinger.",
+          shown: "Vises",
+          waiting: "Venter",
+        };
+
   const [activeTab, setActiveTab] = useState<AdminBookingsTab>(() => {
     if (typeof window === "undefined") {
       return initialTab;
@@ -59,11 +85,11 @@ export function AdminBookingsWorkspace({
             >
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#2563eb]">
-                  Koe
+                  {copy.queue}
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-[#10243b]">Bookinger</h2>
+                <h2 className="mt-1 text-lg font-bold text-[#10243b]">{copy.bookings}</h2>
                 <p className="mt-1 text-sm text-[#5b6b7c]">
-                  Venter og faerdig i et kort flow.
+                  {copy.bookingsDetail}
                 </p>
               </div>
               <span className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#2563eb] shadow-[0_8px_20px_rgba(37,99,235,0.1)]">
@@ -83,11 +109,11 @@ export function AdminBookingsWorkspace({
             >
               <div>
                 <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-[#2563eb]">
-                  Opret
+                  {copy.create}
                 </p>
-                <h2 className="mt-1 text-lg font-bold text-[#10243b]">Ny booking</h2>
+                <h2 className="mt-1 text-lg font-bold text-[#10243b]">{copy.newBooking}</h2>
                 <p className="mt-1 text-sm text-[#5b6b7c]">
-                  Til telefon og hurtige manuelle bookinger.
+                  {copy.newBookingDetail}
                 </p>
               </div>
               <span className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-[#2563eb] shadow-[0_8px_20px_rgba(37,99,235,0.1)]">
@@ -97,10 +123,10 @@ export function AdminBookingsWorkspace({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <WorkspacePill icon={ListFilter} label="Vises" value={detailsCount.toString()} />
+            <WorkspacePill icon={ListFilter} label={copy.shown} value={detailsCount.toString()} />
             <WorkspacePill
               icon={CalendarPlus}
-              label="Venter"
+              label={copy.waiting}
               value={pendingCount.toString()}
               tone="blue"
             />

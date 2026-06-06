@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import "./globals.css";
 import { siteConfig } from "@/lib/site";
 import { GlobalProgressOverlay } from "@/components/ui/global-progress-overlay";
+import {
+  DASHBOARD_LOCALE_COOKIE_NAME,
+  getDashboardHtmlLang,
+  normalizeDashboardLocale,
+} from "@/lib/shared/dashboard-locale";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -35,9 +41,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({
+  children,
+}: Readonly<{ children: React.ReactNode }>) {
+  const cookieStore = await cookies();
+  const locale = normalizeDashboardLocale(
+    cookieStore.get(DASHBOARD_LOCALE_COOKIE_NAME)?.value
+  );
+
   return (
-    <html lang="da">
+    <html lang={getDashboardHtmlLang(locale)}>
       <body>
         {children}
         <GlobalProgressOverlay />

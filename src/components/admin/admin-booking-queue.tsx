@@ -16,6 +16,7 @@ import {
   paymentStatuses,
   type BookingStatus,
 } from "@/lib/shared/booking";
+import type { DashboardLocale } from "@/lib/shared/dashboard-locale";
 import { cn } from "@/lib/utils";
 
 type QueueTab = "waiting" | "complete";
@@ -32,10 +33,33 @@ const detailTabs = [
 export function AdminBookingQueue({
   bookings,
   timeSlots,
+  locale,
 }: {
   bookings: DashboardBooking[];
   timeSlots: string[];
+  locale: DashboardLocale;
 }) {
+  const copy =
+    locale === "en"
+      ? {
+          waiting: "Waiting",
+          complete: "Complete",
+          waitingHelp: "Open the customer and handle the booking quickly.",
+          completeHelp: "Completed and stopped bookings.",
+          noWaiting: "No waiting bookings",
+          noComplete: "No completed bookings",
+          listAuto: "This list updates automatically.",
+        }
+      : {
+          waiting: "Venter",
+          complete: "Faerdig",
+          waitingHelp: "Aabn kunden og handter bookingen hurtigt.",
+          completeHelp: "Faerdige og stoppede bookinger.",
+          noWaiting: "Ingen ventende bookinger",
+          noComplete: "Ingen afsluttede bookinger",
+          listAuto: "Listen opdateres automatisk.",
+        };
+
   const [activeQueue, setActiveQueue] = useState<QueueTab>(() => {
     if (typeof window === "undefined") {
       return "waiting";
@@ -77,26 +101,26 @@ export function AdminBookingQueue({
             active={activeQueue === "waiting"}
             count={waitingBookings.length}
             icon={CalendarClock}
-            label="Waiting"
+            label={copy.waiting}
             onClick={() => switchQueue("waiting")}
           />
           <QueueToggle
             active={activeQueue === "complete"}
             count={completedBookings.length}
             icon={CircleCheckBig}
-            label="Complete"
+            label={copy.complete}
             onClick={() => switchQueue("complete")}
           />
         </div>
         <p className="text-sm font-medium text-[#5b6b7c]">
           {activeQueue === "waiting"
-            ? "Aabn kunden og handter bookingen hurtigt."
-            : "Faerdige og stoppede bookinger."}
+            ? copy.waitingHelp
+            : copy.completeHelp}
         </p>
       </div>
 
       {activeQueue === "waiting" ? (
-        <MobileWaitingLane bookings={waitingBookings.slice(0, 8)} />
+        <MobileWaitingLane bookings={waitingBookings.slice(0, 8)} locale={locale} />
       ) : null}
 
       <div className="grid gap-4">
@@ -105,16 +129,15 @@ export function AdminBookingQueue({
             <CompactBookingCard
               key={booking.id}
               booking={booking}
+              locale={locale}
               timeSlots={timeSlots}
               showQuickActions={activeQueue === "waiting"}
             />
           ))
         ) : (
           <SmallEmptyState
-            title={
-              activeQueue === "waiting" ? "Ingen ventende bookinger" : "Ingen afsluttede bookinger"
-            }
-            detail="Listen opdateres automatisk."
+            title={activeQueue === "waiting" ? copy.noWaiting : copy.noComplete}
+            detail={copy.listAuto}
           />
         )}
       </div>
@@ -164,7 +187,13 @@ function QueueToggle({
   );
 }
 
-function MobileWaitingLane({ bookings }: { bookings: DashboardBooking[] }) {
+function MobileWaitingLane({
+  bookings,
+  locale,
+}: {
+  bookings: DashboardBooking[];
+  locale: DashboardLocale;
+}) {
   if (bookings.length === 0) {
     return null;
   }
@@ -202,7 +231,7 @@ function MobileWaitingLane({ bookings }: { bookings: DashboardBooking[] }) {
                     key={action.value}
                     booking={booking}
                     action={action.value}
-                    label={shortActionLabel(action.value)}
+                    label={shortActionLabel(action.value, locale)}
                     danger={action.value === "cancel"}
                   />
                 ))}
@@ -217,10 +246,12 @@ function MobileWaitingLane({ bookings }: { bookings: DashboardBooking[] }) {
 
 function CompactBookingCard({
   booking,
+  locale,
   timeSlots,
   showQuickActions,
 }: {
   booking: DashboardBooking;
+  locale: DashboardLocale;
   timeSlots: string[];
   showQuickActions: boolean;
 }) {
@@ -239,8 +270,8 @@ function CompactBookingCard({
               <h3 className="truncate text-lg font-bold text-[#10243b]">
                 {booking.customerName || booking.customerEmail}
               </h3>
-              <StatusBadge status={booking.status} />
-              <PaymentBadge status={booking.paymentStatus} />
+              <StatusBadge status={booking.status} locale={locale} />
+              <PaymentBadge status={booking.paymentStatus} locale={locale} />
             </div>
             <p className="mt-1 text-sm text-[#5b6b7c]">
               {booking.packageLabel} - {booking.category}
@@ -260,7 +291,7 @@ function CompactBookingCard({
                     key={action.value}
                     booking={booking}
                     action={action.value}
-                    label={shortActionLabel(action.value)}
+                    label={shortActionLabel(action.value, locale)}
                     danger={action.value === "cancel"}
                   />
                 ))}
@@ -268,7 +299,7 @@ function CompactBookingCard({
             ) : null}
             <span className="inline-flex items-center gap-2 rounded-2xl bg-[#f8fbff] px-3 py-2 text-[12px] font-semibold text-[#2563eb]">
               <Eye className="h-4 w-4" />
-              Aabn
+              {locale === "en" ? "Open" : "Aabn"}
               <ChevronDown className="h-4 w-4 transition group-open:rotate-180" />
             </span>
           </div>
@@ -289,7 +320,13 @@ function CompactBookingCard({
                   : "border-[#dbe3f2] bg-white text-[#475569] hover:bg-[#f8fbff]"
               )}
             >
-              {tab.label}
+              {locale === "en"
+                ? tab.id === "customer"
+                  ? "Customer"
+                  : tab.id === "payment"
+                    ? "Payment"
+                    : "Invoice"
+                : tab.label}
             </button>
           ))}
         </div>
@@ -430,7 +467,7 @@ function CompactBookingCard({
                               ? "secondary"
                               : "outline"
                         }
-                        data-progress-label={`${shortActionLabel(action.value)} booking...`}
+                        data-progress-label={`${shortActionLabel(action.value, locale)} booking...`}
                       >
                         {action.label}
                       </Button>
@@ -634,14 +671,14 @@ function getBookingActions(status: BookingStatus) {
   }
 }
 
-function shortActionLabel(action: BookingAction) {
+function shortActionLabel(action: BookingAction, locale: DashboardLocale) {
   switch (action) {
     case "approve":
-      return "Godkend";
+      return locale === "en" ? "Approve" : "Godkend";
     case "complete":
-      return "Afslut";
+      return locale === "en" ? "Complete" : "Afslut";
     default:
-      return "Stop";
+      return locale === "en" ? "Stop" : "Stop";
   }
 }
 

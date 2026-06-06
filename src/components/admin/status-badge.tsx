@@ -1,7 +1,19 @@
-import { getPaymentStatusLabel, getStatusLabel, type BookingStatus, type PaymentStatus } from "@/lib/shared/booking";
+import {
+  getPaymentStatusLabel,
+  getStatusLabel,
+  type BookingStatus,
+  type DashboardLocale,
+  type PaymentStatus,
+} from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 
-export function StatusBadge({ status }: { status: BookingStatus }) {
+export function StatusBadge({
+  status,
+  locale = "da",
+}: {
+  status: BookingStatus;
+  locale?: DashboardLocale;
+}) {
   const styles: Record<BookingStatus, string> = {
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
     approved: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
@@ -16,12 +28,18 @@ export function StatusBadge({ status }: { status: BookingStatus }) {
         styles[status]
       )}
     >
-      {getStatusLabel(status)}
+      {getStatusLabel(status, locale)}
     </span>
   );
 }
 
-export function PaymentBadge({ status }: { status: PaymentStatus }) {
+export function PaymentBadge({
+  status,
+  locale = "da",
+}: {
+  status: PaymentStatus;
+  locale?: DashboardLocale;
+}) {
   const styles: Record<PaymentStatus, string> = {
     unpaid: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
@@ -36,7 +54,7 @@ export function PaymentBadge({ status }: { status: PaymentStatus }) {
         styles[status]
       )}
     >
-      {getPaymentStatusLabel(status)}
+      {getPaymentStatusLabel(status, locale)}
     </span>
   );
 }

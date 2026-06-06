@@ -58,6 +58,7 @@ export type AutoBookingStatus = "pending" | "approved";
 export type CustomerType = "private" | "business";
 export type PaymentStatus = "unpaid" | "pending" | "paid" | "refunded";
 export type InvoiceStatus = "not_requested" | "ready" | "sent" | "paid";
+export type DashboardLocale = "da" | "en";
 
 export type EmailAutomationSettings = {
   customerOnCreate: boolean;
@@ -415,16 +416,16 @@ export const getAvailableTimeSlots = (
   );
 };
 
-export const getStatusLabel = (status: BookingStatus) => {
+export const getStatusLabel = (status: BookingStatus, locale: DashboardLocale = "da") => {
   switch (status) {
     case "approved":
-      return "Godkendt";
+      return locale === "en" ? "Approved" : "Godkendt";
     case "completed":
-      return "Afsluttet";
+      return locale === "en" ? "Completed" : "Afsluttet";
     case "cancelled":
-      return "Annulleret";
+      return locale === "en" ? "Cancelled" : "Annulleret";
     default:
-      return "Afventer";
+      return locale === "en" ? "Pending" : "Afventer";
   }
 };
 
@@ -441,12 +442,15 @@ export const getStatusTone = (status: BookingStatus) => {
   }
 };
 
-export const getAutoBookingStatusLabel = (status: AutoBookingStatus) => {
+export const getAutoBookingStatusLabel = (
+  status: AutoBookingStatus,
+  locale: DashboardLocale = "da"
+) => {
   switch (status) {
     case "approved":
-      return "Godkend automatisk";
+      return locale === "en" ? "Approve automatically" : "Godkend automatisk";
     default:
-      return "Afventer godkendelse";
+      return locale === "en" ? "Awaiting approval" : "Afventer godkendelse";
   }
 };
 
@@ -459,16 +463,19 @@ export const getAutoBookingStatusDescription = (status: AutoBookingStatus) => {
   }
 };
 
-export const getPaymentStatusLabel = (status: PaymentStatus) => {
+export const getPaymentStatusLabel = (
+  status: PaymentStatus,
+  locale: DashboardLocale = "da"
+) => {
   switch (status) {
     case "pending":
-      return "Afventer betaling";
+      return locale === "en" ? "Payment pending" : "Afventer betaling";
     case "paid":
-      return "Betalt";
+      return locale === "en" ? "Paid" : "Betalt";
     case "refunded":
-      return "Refunderet";
+      return locale === "en" ? "Refunded" : "Refunderet";
     default:
-      return "Ubetalt";
+      return locale === "en" ? "Unpaid" : "Ubetalt";
   }
 };
 
@@ -485,16 +492,19 @@ export const getPaymentStatusTone = (status: PaymentStatus) => {
   }
 };
 
-export const getInvoiceStatusLabel = (status: InvoiceStatus) => {
+export const getInvoiceStatusLabel = (
+  status: InvoiceStatus,
+  locale: DashboardLocale = "da"
+) => {
   switch (status) {
     case "ready":
-      return "Klar til faktura";
+      return locale === "en" ? "Ready for invoice" : "Klar til faktura";
     case "sent":
-      return "Faktura sendt";
+      return locale === "en" ? "Invoice sent" : "Faktura sendt";
     case "paid":
-      return "Faktura betalt";
+      return locale === "en" ? "Invoice paid" : "Faktura betalt";
     default:
-      return "Ingen faktura";
+      return locale === "en" ? "No invoice" : "Ingen faktura";
   }
 };
 

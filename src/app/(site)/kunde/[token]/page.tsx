@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { cookies } from "next/headers";
 import {
   Calendar,
   CalendarPlus,
@@ -12,9 +13,14 @@ import {
   Sparkles,
   UserRound,
 } from "lucide-react";
+import { DashboardLanguageSwitch } from "@/components/ui/dashboard-language-switch";
 import { getCachedPortalData } from "@/lib/server/cache-tags";
 import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
 import { listInvoicesForCustomer } from "@/lib/server/invoices";
+import {
+  DASHBOARD_LOCALE_COOKIE_NAME,
+  normalizeDashboardLocale,
+} from "@/lib/shared/dashboard-locale";
 import {
   formatPrice,
   formatShortPrice,
@@ -39,6 +45,94 @@ export default async function CustomerPortalPage({
   params: Promise<{ token: string }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const cookieStore = await cookies();
+  const locale = normalizeDashboardLocale(
+    cookieStore.get(DASHBOARD_LOCALE_COOKIE_NAME)?.value
+  );
+  const copy =
+    locale === "en"
+      ? {
+          invalidTitle: "This link is expired or invalid",
+          invalidText:
+            "Please use the latest link from your booking email or create a new booking.",
+          goBooking: "Go to booking",
+          history: "Booking history",
+          profile: "Personal details",
+          payments: "Payment methods",
+          quickStats: "Quick stats",
+          bookings: "Bookings",
+          totalValue: "Total value",
+          upcoming: "Upcoming",
+          portal: "Customer portal",
+          historyTitle: "Booking history",
+          profileTitle: "Personal details",
+          paymentsTitle: "Payment methods",
+          heroText:
+            "See your upcoming appointments, update contact details and keep track of your bookings.",
+          newBooking: "New booking",
+          saved: "Your details were saved.",
+          completed: "Completed",
+          invoices: "Invoices",
+          invoicesText: "View or download your Clean Wash invoices.",
+          noInvoices: "No invoices yet.",
+          viewInvoice: "View invoice",
+          downloadPdf: "Download PDF",
+          addons: "Extras",
+          saveChanges: "Save changes",
+          noPaymentMethods: "No saved payment methods",
+          paymentText:
+            "The payment section is kept as a separate customer view and can be connected to Stripe or another payment gateway later.",
+          safePayment: "100% secure payment",
+          safeOne: "A PCI-DSS compatible integration can be added later",
+          safeTwo: "No hidden fees in the customer portal",
+          safeThree: "Ready for card payment or invoice flow",
+          nextAppointment: "Next appointment",
+          noUpcoming: "No upcoming booking",
+          noUpcomingText:
+            "Your portal is ready, and new bookings will appear here automatically when they are created.",
+          bookTime: "Book time",
+        }
+      : {
+          invalidTitle: "Linket er udloeber eller ugyldigt",
+          invalidText:
+            "Bed kunden bruge det seneste link fra bookingmailen eller oprette en ny booking.",
+          goBooking: "Gaa til booking",
+          history: "Booking historik",
+          profile: "Personlige oplysninger",
+          payments: "Betalingsmetoder",
+          quickStats: "Hurtige stats",
+          bookings: "Bookinger",
+          totalValue: "Total vaerdi",
+          upcoming: "Kommende",
+          portal: "Kundeportal",
+          historyTitle: "Booking historik",
+          profileTitle: "Personlige oplysninger",
+          paymentsTitle: "Betalingsmetoder",
+          heroText:
+            "Se dine kommende tider, opdater kontaktoplysninger og behold overblikket over dine bookinger.",
+          newBooking: "Ny booking",
+          saved: "Dine oplysninger er gemt.",
+          completed: "Afsluttede",
+          invoices: "Fakturaer",
+          invoicesText: "Se eller hent dine Clean Wash fakturaer.",
+          noInvoices: "Ingen fakturaer endnu.",
+          viewInvoice: "Se faktura",
+          downloadPdf: "Hent PDF",
+          addons: "Tilvalg",
+          saveChanges: "Gem aendringer",
+          noPaymentMethods: "Ingen gemte betalingsmetoder",
+          paymentText:
+            "Betalingsdelen er bevaret som separat kundevisning og kan kobles til Stripe eller anden betalingsgateway senere.",
+          safePayment: "100% sikker betaling",
+          safeOne: "PCI-DSS kompatibel integration kan tilfoejes senere",
+          safeTwo: "Ingen skjulte gebyrer i kundeportalen",
+          safeThree: "Klar til kortbetaling eller faktura-flow",
+          nextAppointment: "Naeste aftale",
+          noUpcoming: "Ingen kommende booking",
+          noUpcomingText:
+            "Din portal er klar, og nye bookinger vises automatisk her, naar de er oprettet.",
+          bookTime: "Book tid",
+        };
   const { token } = await params;
   const query = await searchParams;
   const view = Array.isArray(query.view) ? query.view[0] : query.view || "history";
@@ -54,17 +148,16 @@ export default async function CustomerPortalPage({
         />
         <section className="relative mx-auto max-w-3xl rounded-[2rem] border border-white/22 bg-white/16 p-8 text-center text-white shadow-[0_30px_90px_rgba(5,18,32,0.28)] backdrop-blur-2xl">
           <h1 className="font-display text-4xl font-semibold text-white">
-            Linket er udloeber eller ugyldigt
+            {copy.invalidTitle}
           </h1>
           <p className="mt-4 text-white/76">
-            Bed kunden bruge det seneste link fra bookingmailen eller oprette en ny
-            booking.
+            {copy.invalidText}
           </p>
           <Link
             href="/booking"
             className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
           >
-            Gaa til booking
+            {copy.goBooking}
           </Link>
         </section>
       </main>
@@ -113,9 +206,9 @@ export default async function CustomerPortalPage({
 
             <nav className="mt-5 grid gap-2 text-sm">
               {[
-                { id: "history", label: "Booking historik", icon: Calendar },
-                { id: "profile", label: "Personlige oplysninger", icon: UserRound },
-                { id: "payments", label: "Betalingsmetoder", icon: CreditCard },
+                { id: "history", label: copy.history, icon: Calendar },
+                { id: "profile", label: copy.profile, icon: UserRound },
+                { id: "payments", label: copy.payments, icon: CreditCard },
               ].map((item) => {
                 const Icon = item.icon;
                 const isActive = view === item.id;
@@ -139,19 +232,19 @@ export default async function CustomerPortalPage({
 
             <div className="mt-5 rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
               <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a7e7ff]">
-                Hurtige stats
+                {copy.quickStats}
               </p>
               <div className="mt-4 grid gap-3 text-sm text-white/82">
                 <div className="flex items-center justify-between">
-                  <span>Bookinger</span>
+                  <span>{copy.bookings}</span>
                   <strong>{bookings.length}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Total vaerdi</span>
+                  <span>{copy.totalValue}</span>
                   <strong>{formatPrice(totalValue)}</strong>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span>Kommende</span>
+                  <span>{copy.upcoming}</span>
                   <strong>{upcomingBookings.length}</strong>
                 </div>
               </div>
@@ -163,35 +256,37 @@ export default async function CustomerPortalPage({
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
-                    Kundeportal
+                    {copy.portal}
                   </p>
                   <h1 className="mt-3 font-display text-4xl font-semibold text-white">
                     {view === "profile"
-                      ? "Personlige oplysninger"
+                      ? copy.profileTitle
                       : view === "payments"
-                        ? "Betalingsmetoder"
-                        : "Booking historik"}
+                        ? copy.paymentsTitle
+                        : copy.historyTitle}
                   </h1>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-white/76">
-                    Se dine kommende tider, opdater kontaktoplysninger og behold
-                    overblikket over dine bookinger.
+                    {copy.heroText}
                   </p>
                 </div>
-                <Link
-                  href="/booking"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
-                >
-                  <CalendarPlus className="h-5 w-5" />
-                  Ny booking
-                </Link>
+                <div className="flex flex-wrap items-center gap-3">
+                  <DashboardLanguageSwitch currentLocale={locale} />
+                  <Link
+                    href="/booking"
+                    className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
+                  >
+                    <CalendarPlus className="h-5 w-5" />
+                    {copy.newBooking}
+                  </Link>
+                </div>
               </div>
             </section>
 
-            <CustomerNextBooking booking={nextBooking} customerEmail={customer.email} />
+            <CustomerNextBooking booking={nextBooking} customerEmail={customer.email} locale={locale} />
 
             {saved ? (
-              <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm text-[#1a506d]">
-                Dine oplysninger er gemt.
+                <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm text-[#1a506d]">
+                {copy.saved}
               </div>
             ) : null}
 
@@ -199,10 +294,10 @@ export default async function CustomerPortalPage({
               <>
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   {[
-                    ["Bookinger", bookings.length],
-                    ["Kommende", upcomingBookings.length],
-                    ["Afsluttede", completedBookings.length],
-                    ["Total vaerdi", formatShortPrice(totalValue)],
+                    [copy.bookings, bookings.length],
+                    [copy.upcoming, upcomingBookings.length],
+                    [copy.completed, completedBookings.length],
+                    [copy.totalValue, formatShortPrice(totalValue)],
                   ].map(([label, value]) => (
                     <Card key={label as string} className="!border-white/20 !bg-white/82 p-5 backdrop-blur-xl">
                       <p className="text-sm text-[var(--muted)]">{label}</p>
@@ -215,9 +310,9 @@ export default async function CustomerPortalPage({
                   <div className="mb-6 rounded-[1.5rem] border border-white/60 bg-white/70 p-5 shadow-[0_14px_34px_rgba(5,18,32,0.07)]">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                       <div>
-                        <h3 className="text-xl font-semibold text-[var(--ink)]">Invoices</h3>
+                        <h3 className="text-xl font-semibold text-[var(--ink)]">{copy.invoices}</h3>
                         <p className="mt-1 text-sm text-[var(--muted)]">
-                          View or download your Clean Wash invoices.
+                          {copy.invoicesText}
                         </p>
                       </div>
                     </div>
@@ -242,19 +337,19 @@ export default async function CustomerPortalPage({
                                 target="_blank"
                                 className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9e7f0] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
                               >
-                                View invoice
+                                {copy.viewInvoice}
                               </a>
                               <a
                                 href={`${invoice.pdfUrl}?token=${token}&download=1`}
                                 className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d9e7f0] bg-white px-4 text-sm font-semibold text-[var(--ink)]"
                               >
-                                Download PDF
+                                {copy.downloadPdf}
                               </a>
                             </div>
                           </div>
                         ))
                       ) : (
-                        <p className="text-sm text-[var(--muted)]">No invoices yet.</p>
+                        <p className="text-sm text-[var(--muted)]">{copy.noInvoices}</p>
                       )}
                     </div>
                   </div>
@@ -286,7 +381,7 @@ export default async function CustomerPortalPage({
                             </div>
                             {booking.addons.length > 0 ? (
                               <p className="mt-3 text-sm text-[var(--muted)]">
-                                Tilvalg: {booking.addons.map((item) => item.label).join(", ")}
+                                {copy.addons}: {booking.addons.map((item) => item.label).join(", ")}
                               </p>
                             ) : null}
                           </div>
@@ -327,7 +422,7 @@ export default async function CustomerPortalPage({
                       <Textarea name="notes" defaultValue={customer.notes} />
                     </Field>
                   </div>
-                  <Button type="submit">Gem aendringer</Button>
+                  <Button type="submit">{copy.saveChanges}</Button>
                 </form>
               </Card>
             ) : null}
@@ -339,22 +434,21 @@ export default async function CustomerPortalPage({
                     <CreditCard className="h-10 w-10" />
                   </div>
                   <h2 className="mt-5 font-display text-3xl font-semibold text-[var(--ink)]">
-                    Ingen gemte betalingsmetoder
+                    {copy.noPaymentMethods}
                   </h2>
                   <p className="mt-3 text-[var(--muted)]">
-                    Betalingsdelen er bevaret som separat kundevisning og kan kobles til
-                    Stripe eller anden betalingsgateway senere.
+                    {copy.paymentText}
                   </p>
                 </Card>
 
                 <Card className="!border-white/20 !bg-white/82 p-6 backdrop-blur-xl">
                   <h3 className="text-2xl font-semibold text-[var(--ink)]">
-                    100% sikker betaling
+                    {copy.safePayment}
                   </h3>
                   <ul className="mt-4 grid gap-2 text-sm text-[var(--muted)]">
-                    <li>PCI-DSS kompatibel integration kan tilfoejes senere</li>
-                    <li>Ingen skjulte gebyrer i kundeportalen</li>
-                    <li>Klar til kortbetaling eller faktura-flow</li>
+                    <li>{copy.safeOne}</li>
+                    <li>{copy.safeTwo}</li>
+                    <li>{copy.safeThree}</li>
                   </ul>
                 </Card>
               </div>
@@ -369,21 +463,40 @@ export default async function CustomerPortalPage({
 function CustomerNextBooking({
   booking,
   customerEmail,
+  locale,
 }: {
   booking?: DashboardBooking;
   customerEmail: string;
+  locale: "da" | "en";
 }) {
+  const copy =
+    locale === "en"
+      ? {
+          nextAppointment: "Next appointment",
+          noUpcoming: "No upcoming booking",
+          noUpcomingText:
+            "Your portal is ready, and new bookings will appear here automatically when they are created.",
+          bookTime: "Book time",
+        }
+      : {
+          nextAppointment: "Naeste aftale",
+          noUpcoming: "Ingen kommende booking",
+          noUpcomingText:
+            "Din portal er klar, og nye bookinger vises automatisk her, naar de er oprettet.",
+          bookTime: "Book tid",
+        };
+
   if (!booking) {
     return (
       <section className="rounded-[2rem] border border-white/18 bg-white/12 p-6 text-white shadow-[0_24px_70px_rgba(5,18,32,0.18)] backdrop-blur-2xl">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
-              Naeste aftale
+              {copy.nextAppointment}
             </p>
-            <h2 className="mt-3 font-display text-3xl font-semibold">Ingen kommende booking</h2>
+            <h2 className="mt-3 font-display text-3xl font-semibold">{copy.noUpcoming}</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72">
-              Din portal er klar, og nye bookinger vises automatisk her, naar de er oprettet.
+              {copy.noUpcomingText}
             </p>
           </div>
           <Link
@@ -391,7 +504,7 @@ function CustomerNextBooking({
             className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-[#10243b] shadow-[0_18px_42px_rgba(5,18,32,0.18)] transition hover:brightness-105"
           >
             <CalendarPlus className="h-5 w-5" />
-            Book tid
+            {copy.bookTime}
           </Link>
         </div>
       </section>
@@ -407,7 +520,7 @@ function CustomerNextBooking({
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
-              Naeste aftale
+              {copy.nextAppointment}
             </p>
             <h2 className="mt-1 font-display text-3xl font-semibold">
               {booking.appointmentLabel}

@@ -15,7 +15,6 @@ import {
   Cog,
   CreditCard,
   ListFilter,
-  LogOut,
   Mail,
   MapPinned,
   ReceiptText,
@@ -84,6 +83,11 @@ import { AdminCommandCenter } from "@/components/admin/admin-command-center";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
 import { AdminSidebar as AdminSidebarLayout } from "@/components/admin/admin-sidebar";
 import { AdminTopbar as AdminTopbarLayout } from "@/components/admin/admin-topbar";
+import {
+  DASHBOARD_LOCALE_COOKIE_NAME,
+  normalizeDashboardLocale,
+  type DashboardLocale,
+} from "@/lib/shared/dashboard-locale";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -95,18 +99,18 @@ export const metadata: Metadata = {
 };
 
 const navItems = [
-  { id: "overview", label: "Overblik", icon: BarChart3 },
-  { id: "calendar", label: "Kalender", icon: Calendar },
-  { id: "bookings", label: "Bookinger", icon: ListFilter },
-  { id: "customers", label: "Kunder", icon: Users },
-  { id: "agents", label: "Agents", icon: UserRound },
-  { id: "booking-setup", label: "Booking Setup", icon: Wrench },
-  { id: "services", label: "Ydelser", icon: Sparkles },
-  { id: "availability", label: "Tilgængelighed", icon: CalendarClock },
-  { id: "emails", label: "E-mails", icon: Mail },
-  { id: "areas", label: "Områder", icon: MapPinned },
-  { id: "payments", label: "Betalinger", icon: CreditCard },
-  { id: "settings", label: "Indstillinger", icon: Settings2 },
+  { id: "overview", icon: BarChart3 },
+  { id: "calendar", icon: Calendar },
+  { id: "bookings", icon: ListFilter },
+  { id: "customers", icon: Users },
+  { id: "agents", icon: UserRound },
+  { id: "booking-setup", icon: Wrench },
+  { id: "services", icon: Sparkles },
+  { id: "availability", icon: CalendarClock },
+  { id: "emails", icon: Mail },
+  { id: "areas", icon: MapPinned },
+  { id: "payments", icon: CreditCard },
+  { id: "settings", icon: Settings2 },
 ] as const;
 
 const INITIAL_BOOKING_LIMIT = 30;
@@ -123,56 +127,110 @@ const getTodayDateText = () => {
 
 type AdminView = (typeof navItems)[number]["id"];
 
-const viewMeta: Record<AdminView, { title: string; description: string }> = {
-  overview: {
-    title: "Dashboard",
-    description: "KPI'er, dagens plan og bookingudvikling samlet ét sted.",
-  },
-  calendar: {
-    title: "Kalender",
-    description: "Dage, bookinger og blokeringer i et hurtigt arbejdsview.",
-  },
-  bookings: {
-    title: "Bookinger",
-    description: "Opret, flyt og afslut bookinger uden unødige trin.",
-  },
-  customers: {
-    title: "Kunder",
-    description: "Kundedata, noter og historik i korte kort.",
-  },
-  agents: {
-    title: "Agents",
-    description: "Opret medarbejdere, fordel bookinger og foelg agentstatus.",
-  },
-  "booking-setup": {
-    title: "Booking Setup",
-    description: "Styr services, tilvalg, åbningstider, felter og bookingregler.",
-  },
-  services: {
-    title: "Ydelser og priser",
-    description: "Pakker, priser og tilvalg til bookingflowet.",
-  },
-  availability: {
-    title: "Tilgængelighed",
-    description: "Arbejdstider, slots og blokeringer.",
-  },
-  emails: {
-    title: "E-mailcenter",
-    description: "Automatik, log og gensendelser.",
-  },
-  areas: {
-    title: "Områder og ruter",
-    description: "Zoner, tillæg og kommende ruter.",
-  },
-  payments: {
-    title: "Betalinger",
-    description: "Udeståender, fakturaer og betalingsstatus.",
-  },
-  settings: {
-    title: "Indstillinger",
-    description: "Standardstatus, kontakt og mailmiljø.",
-  },
-};
+const getAdminViewMeta = (
+  locale: DashboardLocale
+): Record<AdminView, { title: string; description: string }> =>
+  locale === "en"
+    ? {
+        overview: {
+          title: "Dashboard",
+          description: "KPIs, today plan and booking progress in one place.",
+        },
+        calendar: {
+          title: "Calendar",
+          description: "Days, bookings and blocks in one fast work view.",
+        },
+        bookings: {
+          title: "Bookings",
+          description: "Create, move and finish bookings with fewer steps.",
+        },
+        customers: {
+          title: "Customers",
+          description: "Customer data, notes and history in a shorter flow.",
+        },
+        agents: {
+          title: "Agents",
+          description: "Create staff, assign bookings and follow agent status.",
+        },
+        "booking-setup": {
+          title: "Booking setup",
+          description: "Control services, add-ons, hours, fields and rules.",
+        },
+        services: {
+          title: "Services and prices",
+          description: "Packages, pricing and extras for the booking flow.",
+        },
+        availability: {
+          title: "Availability",
+          description: "Working hours, slots and booking blocks.",
+        },
+        emails: {
+          title: "Email center",
+          description: "Automation, logs and resend controls.",
+        },
+        areas: {
+          title: "Areas and routes",
+          description: "Zones, surcharges and route planning.",
+        },
+        payments: {
+          title: "Payments",
+          description: "Outstanding balances, invoices and payment status.",
+        },
+        settings: {
+          title: "Settings",
+          description: "Default status, contact data and mail environment.",
+        },
+      }
+    : {
+        overview: {
+          title: "Dashboard",
+          description: "KPI'er, dagens plan og bookingudvikling samlet et sted.",
+        },
+        calendar: {
+          title: "Kalender",
+          description: "Dage, bookinger og blokeringer i et hurtigt arbejdsview.",
+        },
+        bookings: {
+          title: "Bookinger",
+          description: "Opret, flyt og afslut bookinger uden unoedige trin.",
+        },
+        customers: {
+          title: "Kunder",
+          description: "Kundedata, noter og historik i et kortere flow.",
+        },
+        agents: {
+          title: "Agents",
+          description: "Opret medarbejdere, fordel bookinger og foelg agentstatus.",
+        },
+        "booking-setup": {
+          title: "Booking setup",
+          description: "Styr services, tilvalg, aabningstider, felter og bookingregler.",
+        },
+        services: {
+          title: "Ydelser og priser",
+          description: "Pakker, priser og tilvalg til bookingflowet.",
+        },
+        availability: {
+          title: "Tilgaengelighed",
+          description: "Arbejdstider, slots og blokeringer.",
+        },
+        emails: {
+          title: "E-mailcenter",
+          description: "Automatik, log og gensendelser.",
+        },
+        areas: {
+          title: "Omraader og ruter",
+          description: "Zoner, tillaeg og kommende ruter.",
+        },
+        payments: {
+          title: "Betalinger",
+          description: "Udestaaender, fakturaer og betalingsstatus.",
+        },
+        settings: {
+          title: "Indstillinger",
+          description: "Standardstatus, kontakt og mailmiljoe.",
+        },
+      };
 
 const selectClassName =
   "h-10 w-full rounded-2xl border border-[#E1E6F7] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#6366F1]/10";
@@ -220,6 +278,9 @@ export default async function AdminPage({
   if (!session) {
     redirect("/admin/login");
   }
+  const locale = normalizeDashboardLocale(
+    cookieStore.get(DASHBOARD_LOCALE_COOKIE_NAME)?.value
+  );
 
   const params = await searchParams;
   const rawView = Array.isArray(params.view) ? params.view[0] : params.view || "overview";
@@ -237,6 +298,7 @@ export default async function AdminPage({
       ? rawBookingsTab
       : "details";
   const envSummary = getServerEnvironmentSummary();
+  const viewMeta = getAdminViewMeta(locale);
   const dashboard = await getCachedAdminDashboardData();
   const agentsData = view === "agents" ? await getCachedAdminAgentsData() : undefined;
   const bookingSetupData =
@@ -273,63 +335,70 @@ export default async function AdminPage({
   for (const list of bookingsByCustomer.values()) {
     list.sort(sortBookings);
   }
+  const statusMessages: Record<string, string> =
+    locale === "en"
+      ? {
+          created: "The booking was created.",
+          updated: "Changes were saved.",
+          deleted: "The booking was deleted.",
+          settings: "Settings were saved.",
+          customer: "Customer details were updated.",
+          availability: "The calendar block was updated.",
+          email: "The email was sent again.",
+        }
+      : {
+          created: "Bookingen er oprettet.",
+          updated: "Aendringerne er gemt.",
+          deleted: "Bookingen er slettet.",
+          settings: "Indstillingerne er gemt.",
+          customer: "Kunden er opdateret.",
+          availability: "Kalenderblokken er opdateret.",
+          email: "E-mailen er sendt igen.",
+        };
   const statusMessage = statusMessages[saved] || "";
   const errorMessage =
     error === "action"
-      ? "Handlingen kunne ikke gennemfoeres."
+      ? locale === "en"
+        ? "The action could not be completed."
+        : "Handlingen kunne ikke gennemfoeres."
       : error === "mail"
-        ? "Mailen kunne ikke sendes. Tjek SMTP-opsaetningen."
+        ? locale === "en"
+          ? "The email could not be sent. Check the SMTP setup."
+          : "Mailen kunne ikke sendes. Tjek SMTP-opsaetningen."
         : "";
 
   return (
     <AdminShellLayout>
       <section>
         <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-          <AdminSidebarLayout dashboard={dashboard} sessionEmail={session.email} view={view} />
+          <AdminSidebarLayout
+            dashboard={dashboard}
+            sessionEmail={session.email}
+            view={view}
+            locale={locale}
+          />
 
           <div className="space-y-5">
-            <AdminTopbarLayout searchQuery={searchQuery} sessionEmail={session.email}>
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                <div>
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
-                    {navItems.find((item) => item.id === view)?.label}
-                  </p>
-                  <h1 className="mt-2 text-[30px] font-bold leading-tight text-[#1F2340]">
-                    {viewMeta[view].title}
-                  </h1>
-                  <p className="mt-2 max-w-2xl text-[13px] font-medium leading-6 text-[#4B5563]">
-                    {viewMeta[view].description}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap gap-3">
-                  <Link
-                    href="/booking"
-                    className="inline-flex h-10 items-center justify-center gap-2 rounded-2xl border border-[#6366F1] bg-[#6366F1] px-3.5 text-[13px] font-semibold text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)] transition duration-[250ms] hover:-translate-y-0.5 hover:bg-[#5B5BF7]"
-                  >
-                    <CalendarPlus className="h-5 w-5" />
-                    Ny booking
-                  </Link>
-                  <form action="/api/admin/logout" method="POST">
-                    <Button type="submit" variant="outline" className="rounded-2xl border-[#E1E6F7] bg-white/60 text-[13px] font-semibold text-[#4B5563] hover:bg-white">
-                      <LogOut className="h-5 w-5" />
-                      Log ud
-                    </Button>
-                  </form>
-                </div>
-              </div>
-            </AdminTopbarLayout>
+            <AdminTopbarLayout
+              searchQuery={searchQuery}
+              sessionEmail={session.email}
+              view={view}
+              viewTitle={viewMeta[view].title}
+              locale={locale}
+            />
 
             {!hasDatabase ? (
               <div className="rounded-[1.6rem] border border-[#ffe2af] bg-[#fff8ea] px-5 py-4 text-sm text-[#8d5d08] shadow-[0_12px_32px_rgba(141,93,8,0.08)]">
-                Databaseforbindelsen mangler. Panelet kan vises, men bookinger og aendringer bliver
-                ikke gemt, foer databasen er sat op i Vercel.
+                {locale === "en"
+                  ? "Database connection is missing. The dashboard can render, but bookings and changes will not save until the database is configured in Vercel."
+                  : "Databaseforbindelsen mangler. Panelet kan vises, men bookinger og aendringer bliver ikke gemt, foer databasen er sat op i Vercel."}
               </div>
             ) : null}
 
             {dashboard.databaseError ? (
               <div className="rounded-[1.6rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-[0_12px_32px_rgba(176,38,38,0.08)]">
-                Databasen kunne ikke indlæses: {dashboard.databaseError}
+                {locale === "en" ? "Database could not be loaded" : "Databasen kunne ikke indlaeses"}:{" "}
+                {dashboard.databaseError}
               </div>
             ) : null}
 
@@ -373,6 +442,7 @@ export default async function AdminPage({
                 dashboard={dashboard}
                 bookings={dashboard.bookings}
                 initialTab={bookingsTab}
+                locale={locale}
                 pendingBookings={pendingBookings}
                 timeSlots={timeSlots}
               />
@@ -1472,12 +1542,14 @@ function BookingsView({
   dashboard,
   bookings,
   initialTab,
+  locale,
   pendingBookings,
   timeSlots,
 }: {
   dashboard: DashboardData;
   bookings: DashboardBooking[];
   initialTab: AdminBookingsTab;
+  locale: DashboardLocale;
   pendingBookings: DashboardBooking[];
   timeSlots: string[];
 }) {
@@ -1485,9 +1557,13 @@ function BookingsView({
   const manualContent = (
     <section className="space-y-4">
       <SectionHeading
-        eyebrow="Ny booking"
-        title="Opret manuelt"
-        description="Kort formular til telefon og hurtige bookinger."
+        eyebrow={locale === "en" ? "New booking" : "Ny booking"}
+        title={locale === "en" ? "Create manually" : "Opret manuelt"}
+        description={
+          locale === "en"
+            ? "Short form for phone and quick manual bookings."
+            : "Kort formular til telefon og hurtige bookinger."
+        }
       />
       <form
         action="/api/admin/bookings/create"
@@ -1586,8 +1662,8 @@ function BookingsView({
 
         <div className="rounded-[1.4rem] border border-[#cde6f6] bg-[#f6fbff] px-4 py-4 text-sm text-[#1a506d]">
           <p className="font-semibold text-[var(--ink)]">
-            Standardstatus:{" "}
-            {getAutoBookingStatusLabel(dashboard.settings.defaultBookingStatus)}
+            {locale === "en" ? "Default status" : "Standardstatus"}:{" "}
+            {getAutoBookingStatusLabel(dashboard.settings.defaultBookingStatus, locale)}
           </p>
           <p className="mt-2 leading-6">
             {getAutoBookingStatusDescription(dashboard.settings.defaultBookingStatus)}
@@ -1601,12 +1677,15 @@ function BookingsView({
             defaultChecked
             className="mt-1 h-4 w-4 rounded border-[#9cb0bd]"
           />
-          <span>Send bookingmail til kunden</span>
+          <span>{locale === "en" ? "Send booking email to the customer" : "Send bookingmail til kunden"}</span>
         </label>
 
-        <Button type="submit" data-progress-label="Opretter booking...">
+        <Button
+          type="submit"
+          data-progress-label={locale === "en" ? "Creating booking..." : "Opretter booking..."}
+        >
           <CalendarPlus className="h-4 w-4" />
-          Opret booking
+          {locale === "en" ? "Create booking" : "Opret booking"}
         </Button>
       </form>
     </section>
@@ -1614,9 +1693,15 @@ function BookingsView({
 
   const detailsContent = (
     <section className="space-y-4">
-      <AdminBookingQueue bookings={visibleBookings} timeSlots={timeSlots} />
+      <AdminBookingQueue bookings={visibleBookings} timeSlots={timeSlots} locale={locale} />
       {bookings.length > visibleBookings.length ? (
-        <EmptyState text={`Viser de foerste ${visibleBookings.length} bookinger for hurtigere visning.`} />
+        <EmptyState
+          text={
+            locale === "en"
+              ? `Showing the first ${visibleBookings.length} bookings for faster loading.`
+              : `Viser de foerste ${visibleBookings.length} bookinger for hurtigere visning.`
+          }
+        />
       ) : null}
     </section>
   );
@@ -1626,6 +1711,7 @@ function BookingsView({
       initialTab={initialTab}
       detailsCount={visibleBookings.length}
       pendingCount={pendingBookings.length}
+      locale={locale}
       manualContent={manualContent}
       detailsContent={detailsContent}
     />

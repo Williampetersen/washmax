@@ -5,6 +5,10 @@ import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
 import { isDatabaseConfigured } from "@/lib/server/db";
 import { getCachedAgentDashboardData } from "@/lib/server/cache-tags";
 import { AgentDashboard, type AgentView } from "@/components/agent/agent-dashboard";
+import {
+  DASHBOARD_LOCALE_COOKIE_NAME,
+  normalizeDashboardLocale,
+} from "@/lib/shared/dashboard-locale";
 
 export const metadata: Metadata = {
   title: "Agent dashboard",
@@ -31,6 +35,9 @@ export default async function AgentPage({
 }) {
   const cookieStore = await cookies();
   const session = getAgentSession(cookieStore.get(AGENT_COOKIE_NAME)?.value);
+  const locale = normalizeDashboardLocale(
+    cookieStore.get(DASHBOARD_LOCALE_COOKIE_NAME)?.value
+  );
   if (!session) {
     redirect("/agent/login");
   }
@@ -54,6 +61,7 @@ export default async function AgentPage({
     <AgentDashboard
       data={data}
       initialView={view}
+      locale={locale}
       saved={saved}
       error={error}
     />
