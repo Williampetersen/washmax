@@ -459,85 +459,102 @@ function TaskCard({
 }) {
   const copy = useAgentCopy();
   return (
-    <article id={`booking-${booking.id}`} className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-bold">{booking.customerName || booking.customerEmail}</h2>
-            <AgentStatusPill status={booking.agentStatus} />
+    <details
+      id={`booking-${booking.id}`}
+      className={cn(
+        "overflow-hidden rounded-[1.75rem] border shadow-[0_8px_32px_rgba(99,102,241,0.08)]",
+        getAgentTaskRowTone(booking.agentStatus)
+      )}
+    >
+      <summary className="cursor-pointer list-none px-4 py-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="truncate text-lg font-bold text-[#10243b]">
+                {booking.customerName || booking.customerEmail}
+              </h2>
+              <AgentStatusPill status={booking.agentStatus} />
+            </div>
+            <p className="mt-1 text-[13px] font-medium text-[#475569]">
+              {booking.appointmentLabel} | {booking.packageLabel} | {formatPrice(booking.total)}
+            </p>
           </div>
-          <p className="mt-1 text-[13px] font-medium text-[#8E95B5]">
-            {booking.appointmentLabel} | {booking.packageLabel} | {formatPrice(booking.total)}
-          </p>
+          <div className="flex flex-wrap items-center gap-3 text-[12px] font-semibold text-[#334155]">
+            <span>{booking.appointmentTime}</span>
+            <span>{booking.vehicleName}</span>
+            <span>{copy.locale === "en" ? "Open" : "Aabn"}</span>
+          </div>
         </div>
-      </div>
+      </summary>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <Info label={copy.locale === "en" ? "Phone" : "Telefon"} value={booking.customerPhone} />
-        <Info label="Email" value={booking.customerEmail} />
-        <Info label={copy.locale === "en" ? "Address" : "Adresse"} value={booking.customerAddress} />
-        <Info label={copy.locale === "en" ? "Vehicle" : "Bil"} value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-        <Info label={copy.locale === "en" ? "Service" : "Service"} value={`${booking.packageLabel} - ${booking.category}`} />
-        <Info label={copy.locale === "en" ? "Customer notes" : "Kundenoter"} value={booking.customerNotes || "-"} />
-        <Info label={copy.locale === "en" ? "Admin notes" : "Adminnoter"} value={booking.adminNotes || "-"} />
-        <Info label={copy.locale === "en" ? "Agent note" : "Agentnote"} value={booking.agentNote || "-"} />
-      </div>
-
-      {booking.addons.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {booking.addons.map((addon) => (
-            <span key={addon.id} className="rounded-full border border-[#DDE3F5] bg-white/60 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
-              {addon.label}
-            </span>
-          ))}
+      <div className="border-t border-white/70 bg-white/80 px-4 py-4 backdrop-blur-xl">
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          <Info label={copy.locale === "en" ? "Phone" : "Telefon"} value={booking.customerPhone} />
+          <Info label="Email" value={booking.customerEmail} />
+          <Info label={copy.locale === "en" ? "Address" : "Adresse"} value={booking.customerAddress} />
+          <Info label={copy.locale === "en" ? "Vehicle" : "Bil"} value={`${booking.vehicleName} (${booking.registrationNumber})`} />
+          <Info label={copy.locale === "en" ? "Service" : "Service"} value={`${booking.packageLabel} - ${booking.category}`} />
+          <Info label={copy.locale === "en" ? "Customer notes" : "Kundenoter"} value={booking.customerNotes || "-"} />
+          <Info label={copy.locale === "en" ? "Admin notes" : "Adminnoter"} value={booking.adminNotes || "-"} />
+          <Info label={copy.locale === "en" ? "Agent note" : "Agentnote"} value={booking.agentNote || "-"} />
         </div>
-      ) : null}
 
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <form action={`/api/agent/bookings/${booking.id}/accept`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
-          <Textarea
-            name="note"
-            placeholder={copy.locale === "en" ? "Optional note for admin" : "Valgfri note til admin"}
-            className="min-h-16"
-          />
-          <Button type="submit">{copy.locale === "en" ? "Accept booking" : "Accepter booking"}</Button>
-        </form>
-        <form action={`/api/agent/bookings/${booking.id}/reject`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
-          <Textarea
-            name="note"
-            placeholder={copy.locale === "en" ? "Optional rejection reason" : "Valgfri aarsag til afvisning"}
-            className="min-h-16"
-          />
-          <Button type="submit" variant="outline">
-            {copy.locale === "en" ? "Reject booking" : "Afvis booking"}
-          </Button>
-        </form>
-      </div>
+        {booking.addons.length > 0 ? (
+          <div className="mt-4 flex flex-wrap gap-2">
+            {booking.addons.map((addon) => (
+              <span key={addon.id} className="rounded-full border border-[#DDE3F5] bg-white/80 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
+                {addon.label}
+              </span>
+            ))}
+          </div>
+        ) : null}
 
-      <form action={`/api/agent/bookings/${booking.id}/status`} method="POST" className="mt-3 grid gap-3 rounded-2xl border border-white/55 bg-white/50 p-3 md:grid-cols-[12rem_minmax(0,1fr)_auto]">
-        <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
-          <option value="accepted">{copy.locale === "en" ? "Accepted" : "Accepteret"}</option>
-          <option value="in_progress">{copy.locale === "en" ? "In progress" : "I gang"}</option>
-          <option value="done">{copy.locale === "en" ? "Done" : "Faerdig"}</option>
-          <option value="cancelled_by_agent">{copy.locale === "en" ? "Cancel" : "Annuller"}</option>
-        </select>
-        <Input
-          name="note"
-          placeholder={
-            copy.locale === "en"
-              ? "Internal note or cancellation reason"
-              : "Intern note eller aarsag til annullering"
-          }
-          defaultValue={booking.agentNote}
+        <div className="mt-4 grid gap-3 lg:grid-cols-2">
+          <form action={`/api/agent/bookings/${booking.id}/accept`} method="POST" className="grid gap-2 rounded-2xl border border-white/70 bg-white/72 p-3">
+            <Textarea
+              name="note"
+              placeholder={copy.locale === "en" ? "Optional note for admin" : "Valgfri note til admin"}
+              className="min-h-16"
+            />
+            <Button type="submit">{copy.locale === "en" ? "Accept booking" : "Accepter booking"}</Button>
+          </form>
+          <form action={`/api/agent/bookings/${booking.id}/reject`} method="POST" className="grid gap-2 rounded-2xl border border-white/70 bg-white/72 p-3">
+            <Textarea
+              name="note"
+              placeholder={copy.locale === "en" ? "Optional rejection reason" : "Valgfri aarsag til afvisning"}
+              className="min-h-16"
+            />
+            <Button type="submit" variant="outline">
+              {copy.locale === "en" ? "Reject booking" : "Afvis booking"}
+            </Button>
+          </form>
+        </div>
+
+        <form action={`/api/agent/bookings/${booking.id}/status`} method="POST" className="mt-3 grid gap-3 rounded-2xl border border-white/70 bg-white/72 p-3 md:grid-cols-[12rem_minmax(0,1fr)_auto]">
+          <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/90 px-3 text-[13px] font-medium outline-none">
+            <option value="accepted">{copy.locale === "en" ? "Accepted" : "Accepteret"}</option>
+            <option value="in_progress">{copy.locale === "en" ? "In progress" : "I gang"}</option>
+            <option value="done">{copy.locale === "en" ? "Done" : "Faerdig"}</option>
+            <option value="cancelled_by_agent">{copy.locale === "en" ? "Cancel" : "Annuller"}</option>
+          </select>
+          <Input
+            name="note"
+            placeholder={
+              copy.locale === "en"
+                ? "Internal note or cancellation reason"
+                : "Intern note eller aarsag til annullering"
+            }
+            defaultValue={booking.agentNote}
+          />
+          <Button type="submit">{copy.locale === "en" ? "Update status" : "Opdater status"}</Button>
+        </form>
+
+        <InvoiceWorkbench
+          booking={booking}
+          services={services}
         />
-        <Button type="submit">{copy.locale === "en" ? "Update status" : "Opdater status"}</Button>
-      </form>
-
-      <InvoiceWorkbench
-        booking={booking}
-        services={services}
-      />
-    </article>
+      </div>
+    </details>
   );
 }
 
@@ -1351,6 +1368,21 @@ function getAgentStatusTone(status: string) {
       return "border-[#F97316]/20 bg-[#F97316]/10 text-[#C2410C]";
     default:
       return "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]";
+  }
+}
+
+function getAgentTaskRowTone(status: string) {
+  switch (status) {
+    case "accepted":
+    case "done":
+      return "border-[#10B981]/25 bg-[linear-gradient(135deg,rgba(16,185,129,0.18),rgba(255,255,255,0.92))]";
+    case "cancelled_by_agent":
+    case "rejected":
+      return "border-[#EF4444]/25 bg-[linear-gradient(135deg,rgba(239,68,68,0.18),rgba(255,255,255,0.92))]";
+    case "in_progress":
+      return "border-[#6366F1]/25 bg-[linear-gradient(135deg,rgba(99,102,241,0.16),rgba(255,255,255,0.92))]";
+    default:
+      return "border-[#F59E0B]/25 bg-[linear-gradient(135deg,rgba(245,158,11,0.2),rgba(255,255,255,0.92))]";
   }
 }
 

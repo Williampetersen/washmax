@@ -29,3 +29,18 @@ export async function GET(request: Request) {
   });
   return response;
 }
+
+export async function POST(request: Request) {
+  const url = new URL(request.url);
+  const locale = normalizeDashboardLocale(url.searchParams.get("locale"));
+
+  const response = NextResponse.json({ ok: true, locale });
+  response.cookies.set(DASHBOARD_LOCALE_COOKIE_NAME, locale, {
+    path: "/",
+    httpOnly: false,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: COOKIE_MAX_AGE,
+  });
+  return response;
+}
