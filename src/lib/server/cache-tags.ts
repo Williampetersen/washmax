@@ -11,34 +11,36 @@ export const cacheTags = {
   customerPortal: (token: string) => `customer-portal:${token}`,
 } as const;
 
+const CACHE_REVALIDATE_SECONDS = 300;
+
 export const getCachedAdminDashboardData = async () =>
   unstable_cache(getAdminDashboardData, ["admin-dashboard"], {
     tags: [cacheTags.adminDashboard],
-    revalidate: 30,
+    revalidate: CACHE_REVALIDATE_SECONDS,
   })();
 
 export const getCachedAdminAgentsData = async () =>
   unstable_cache(getAdminAgentsData, ["admin-agents"], {
     tags: [cacheTags.adminAgents],
-    revalidate: 30,
+    revalidate: CACHE_REVALIDATE_SECONDS,
   })();
 
 export const getCachedBookingSetupData = async () =>
   unstable_cache(getBookingSetupData, ["booking-setup"], {
     tags: [cacheTags.bookingSetup],
-    revalidate: 30,
+    revalidate: CACHE_REVALIDATE_SECONDS,
   })();
 
 export const getCachedAgentDashboardData = async (agentId: string) =>
   unstable_cache(() => getAgentDashboardData(agentId), ["agent-dashboard", agentId], {
     tags: [cacheTags.agentDashboard(agentId)],
-    revalidate: 30,
+    revalidate: CACHE_REVALIDATE_SECONDS,
   })();
 
 export const getCachedPortalData = async (token: string) =>
   unstable_cache(() => getPortalData(token), ["customer-portal", token], {
     tags: [cacheTags.customerPortal(token)],
-    revalidate: 30,
+    revalidate: CACHE_REVALIDATE_SECONDS,
   })();
 
 export const revalidateAdminDashboardCache = () => {
@@ -62,5 +64,21 @@ export const revalidateAgentDashboardCache = (agentId: string) => {
 export const revalidateCustomerPortalCache = (token: string) => {
   if (token) {
     revalidateTag(cacheTags.customerPortal(token), "max");
+  }
+};
+
+export const revalidateBookingRelatedCaches = (input?: {
+  agentId?: string;
+  portalToken?: string;
+}) => {
+  revalidateAdminDashboardCache();
+  revalidateAdminAgentsCache();
+
+  if (input?.agentId) {
+    revalidateAgentDashboardCache(input.agentId);
+  }
+
+  if (input?.portalToken) {
+    revalidateCustomerPortalCache(input.portalToken);
   }
 };

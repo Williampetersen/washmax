@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { addBookingLineItem, getBookingInvoiceData } from "@/lib/server/invoices";
 
 const ensureAdmin = async () => {
@@ -49,10 +50,18 @@ export async function POST(
         quantity: Number(body.quantity || 1),
         unitPriceDkk: Number(body.unitPriceDkk || 0),
       });
+      const data = await getBookingInvoiceData(id);
+      if (data) {
+        revalidateBookingRelatedCaches({
+          agentId: data.booking.assignedAgentId,
+          portalToken: data.customer.portalToken,
+        });
+      }
       return NextResponse.json({ lineItem });
     }
 
     const formData = await request.formData();
+    const returnTab = String(formData.get("return_tab") || "").trim();
     await addBookingLineItem({
       bookingId: id,
       actorType: "admin",
@@ -65,11 +74,26 @@ export async function POST(
       quantity: Number(formData.get("quantity") || 1),
       unitPriceDkk: Number(formData.get("unit_price_dkk") || 0),
     });
-    return NextResponse.redirect(new URL(`/admin?view=bookings&saved=updated#booking-${id}`, request.url), 303);
+    const data = await getBookingInvoiceData(id);
+    if (data) {
+      revalidateBookingRelatedCaches({
+        agentId: data.booking.assignedAgentId,
+        portalToken: data.customer.portalToken,
+      });
+    }
+    return NextResponse.redirect(
+      new URL(
+        `/admin?view=bookings${
+          returnTab ? `&bookings_tab=${encodeURIComponent(returnTab)}` : ""
+        }&saved=updated#booking-${id}`,
+        request.url
+      ),
+      303
+    );
   } catch (error) {
     console.error("Could not add admin line item", error);
     return contentType.includes("application/json")
       ? NextResponse.json({ error: "Could not add line item" }, { status: 400 })
-      : NextResponse.redirect(new URL(`/admin?view=bookings&error=action#booking-${id}`, request.url), 303);
+      : NextResponse.redirect(new URL(`/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`, request.url), 303);
   }
 }

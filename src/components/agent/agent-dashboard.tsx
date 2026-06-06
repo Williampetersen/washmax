@@ -46,13 +46,11 @@ const maxAvatarSizeBytes = 2 * 1024 * 1024;
 
 export function AgentDashboard({
   data,
-  invoiceDataByBookingId,
   initialView,
   saved,
   error,
 }: {
   data: AgentDashboardData;
-  invoiceDataByBookingId: Record<string, BookingInvoiceData>;
   initialView: AgentView;
   saved?: string;
   error?: string;
@@ -167,7 +165,6 @@ export function AgentDashboard({
             {view === "tasks" ? (
               <TasksView
                 bookings={dashboardData.bookings}
-                invoiceDataByBookingId={invoiceDataByBookingId}
                 services={dashboardData.services}
               />
             ) : null}
@@ -306,11 +303,9 @@ function CalendarView({ bookings }: { bookings: AgentBooking[] }) {
 
 function TasksView({
   bookings,
-  invoiceDataByBookingId,
   services,
 }: {
   bookings: AgentBooking[];
-  invoiceDataByBookingId: Record<string, BookingInvoiceData>;
   services: AgentService[];
 }) {
   return (
@@ -320,7 +315,6 @@ function TasksView({
           <TaskCard
             key={booking.id}
             booking={booking}
-            invoiceData={invoiceDataByBookingId[booking.id]}
             services={services}
           />
         ))
@@ -333,17 +327,11 @@ function TasksView({
 
 function TaskCard({
   booking,
-  invoiceData,
   services,
 }: {
   booking: AgentBooking;
-  invoiceData?: BookingInvoiceData;
   services: AgentService[];
 }) {
-  const invoiceLocked = invoiceData?.invoice
-    ? ["sent", "paid"].includes(invoiceData.invoice.status)
-    : false;
-
   return (
     <article id={`booking-${booking.id}`} className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -403,8 +391,6 @@ function TaskCard({
 
       <InvoiceWorkbench
         booking={booking}
-        invoiceData={invoiceData}
-        invoiceLocked={invoiceLocked}
         services={services}
       />
     </article>
@@ -413,15 +399,16 @@ function TaskCard({
 
 function InvoiceWorkbench({
   booking,
-  invoiceData,
-  invoiceLocked,
   services,
 }: {
   booking: AgentBooking;
-  invoiceData?: BookingInvoiceData;
-  invoiceLocked: boolean;
   services: AgentService[];
 }) {
+  const [invoiceData, setInvoiceData] = useState<BookingInvoiceData | null>(null);
+  const [invoiceStatus, setInvoiceStatus] = useState<"idle" | "loading" | "error">("idle");
+  const invoiceLocked = invoiceData?.invoice
+    ? ["sent", "paid"].includes(invoiceData.invoice.status)
+    : false;
   const summary = invoiceData?.summary ?? {
     originalBookingPriceDkk: booking.total,
     existingExtraServicesDkk: 0,
@@ -432,6 +419,25 @@ function InvoiceWorkbench({
   };
   const lineItems = invoiceData?.lineItems ?? [];
   const invoice = invoiceData?.invoice;
+
+  const loadInvoiceData = async () => {
+    setInvoiceStatus("loading");
+    try {
+      const response = await fetch(`/api/agent/bookings/${booking.id}/invoice`, {
+        cache: "no-store",
+      });
+      if (!response.ok) {
+        setInvoiceStatus("error");
+        return;
+      }
+
+      const payload = (await response.json()) as BookingInvoiceData;
+      setInvoiceData(payload);
+      setInvoiceStatus("idle");
+    } catch {
+      setInvoiceStatus("error");
+    }
+  };
 
   return (
     <section className="mt-4 rounded-3xl border border-white/55 bg-white/50 p-4">
@@ -446,21 +452,37 @@ function InvoiceWorkbench({
       </div>
 
       <div className="mt-4 grid gap-3">
-        {lineItems.length > 0 ? (
-          lineItems.map((item) => (
-            <LineItemRow
-              key={item.id}
-              bookingId={booking.id}
-              invoiceLocked={invoiceLocked}
-              item={item}
-            />
-          ))
+        {invoiceData ? (
+          lineItems.length > 0 ? (
+            lineItems.map((item) => (
+              <LineItemRow
+                key={item.id}
+                bookingId={booking.id}
+                invoiceLocked={invoiceLocked}
+                item={item}
+              />
+            ))
+          ) : (
+            <EmptyState text="Line items will appear after the first invoice refresh." />
+          )
         ) : (
-          <EmptyState text="Line items will appear after the first invoice refresh." />
+          <div className="rounded-2xl border border-dashed border-[#DDE3F5] bg-white/60 px-4 py-4 text-[13px] font-medium text-[#4B5563]">
+            <p>Invoice details now load on demand so the tasks tab opens faster.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button onClick={loadInvoiceData} disabled={invoiceStatus === "loading"} variant="outline">
+                {invoiceStatus === "loading" ? "Loading..." : "Load invoice details"}
+              </Button>
+              {invoiceStatus === "error" ? (
+                <span className="text-xs font-medium text-red-600">
+                  Invoice details could not be loaded.
+                </span>
+              ) : null}
+            </div>
+          </div>
         )}
       </div>
 
-      {!invoiceLocked ? (
+      {invoiceData && !invoiceLocked ? (
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
           <form
             action={`/api/agent/bookings/${booking.id}/line-items`}
@@ -502,11 +524,11 @@ function InvoiceWorkbench({
             <Button type="submit" variant="outline">Add manual charge</Button>
           </form>
         </div>
-      ) : (
+      ) : invoiceData ? (
         <div className="mt-4 rounded-2xl border border-[#DDE3F5] bg-white/60 px-3 py-3 text-[13px] font-medium text-[#4B5563]">
           Invoice has been sent or paid, so extra charge lines are locked.
         </div>
-      )}
+      ) : null}
 
       <PriceSummaryCard summary={summary} />
 

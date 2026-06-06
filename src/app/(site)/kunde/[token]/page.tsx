@@ -72,7 +72,7 @@ export default async function CustomerPortalPage({
   }
 
   const { customer, bookings } = portalData;
-  const invoices = await listInvoicesForCustomer(customer.id);
+  const invoices = view === "history" ? await listInvoicesForCustomer(customer.id) : [];
   const initials =
     `${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "K";
   const completedBookings = bookings.filter((item) => item.status === "completed");

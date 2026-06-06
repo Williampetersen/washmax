@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { siteConfig } from "@/lib/site";
+import { GlobalProgressOverlay } from "@/components/ui/global-progress-overlay";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -37,7 +38,10 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="da">
-      <body>{children}</body>
+      <body>
+        {children}
+        <GlobalProgressOverlay />
+      </body>
     </html>
   );
 }

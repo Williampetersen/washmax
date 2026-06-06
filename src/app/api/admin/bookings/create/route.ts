@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { createBooking, getBookingSettings } from "@/lib/server/bookings";
 import { getAppUrl } from "@/lib/server/env";
 import { sendCustomerBookingCreatedEmail } from "@/lib/server/mail";
@@ -16,9 +17,15 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const returnView = asText(formData.get("return_view")) || "bookings";
+  const returnTab = asText(formData.get("return_tab"));
   const redirectWith = (query: string) =>
     NextResponse.redirect(
-      new URL(`/admin?view=${encodeURIComponent(returnView)}&${query}`, request.url),
+      new URL(
+        `/admin?view=${encodeURIComponent(returnView)}${
+          returnView === "bookings" && returnTab ? `&bookings_tab=${encodeURIComponent(returnTab)}` : ""
+        }&${query}`,
+        request.url
+      ),
       303
     );
 
@@ -82,6 +89,10 @@ export async function POST(request: Request) {
       }
     }
 
+    revalidateBookingRelatedCaches({
+      agentId: bookingResult.booking.assignedAgentId,
+      portalToken: bookingResult.customer.portalToken,
+    });
     return redirectWith("saved=created");
   } catch (error) {
     console.error("Could not create manual booking", error);

@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
-import { deleteBookingLineItem, updateBookingLineItem } from "@/lib/server/invoices";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
+import {
+  deleteBookingLineItem,
+  getBookingInvoiceData,
+  updateBookingLineItem,
+} from "@/lib/server/invoices";
 
 const ensureAdmin = async () => {
   const cookieStore = await cookies();
@@ -24,6 +29,13 @@ export async function PATCH(
     quantity: Number(body.quantity || 1),
     unitPriceDkk: Number(body.unitPriceDkk || 0),
   });
+  const data = await getBookingInvoiceData(id);
+  if (data) {
+    revalidateBookingRelatedCaches({
+      agentId: data.booking.assignedAgentId,
+      portalToken: data.customer.portalToken,
+    });
+  }
   return NextResponse.json({ lineItem });
 }
 
@@ -38,6 +50,7 @@ export async function POST(
   const { id, itemId } = await context.params;
   const formData = await request.formData();
   const action = String(formData.get("action") || "update");
+  const returnTab = String(formData.get("return_tab") || "").trim();
 
   try {
     if (action === "delete") {
@@ -50,10 +63,25 @@ export async function POST(
         unitPriceDkk: Number(formData.get("unit_price_dkk") || 0),
       });
     }
-    return NextResponse.redirect(new URL(`/admin?view=bookings&saved=updated#booking-${id}`, request.url), 303);
+    const data = await getBookingInvoiceData(id);
+    if (data) {
+      revalidateBookingRelatedCaches({
+        agentId: data.booking.assignedAgentId,
+        portalToken: data.customer.portalToken,
+      });
+    }
+    return NextResponse.redirect(
+      new URL(
+        `/admin?view=bookings${
+          returnTab ? `&bookings_tab=${encodeURIComponent(returnTab)}` : ""
+        }&saved=updated#booking-${id}`,
+        request.url
+      ),
+      303
+    );
   } catch (error) {
     console.error("Could not update admin line item", error);
-    return NextResponse.redirect(new URL(`/admin?view=bookings&error=action#booking-${id}`, request.url), 303);
+    return NextResponse.redirect(new URL(`/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`, request.url), 303);
   }
 }
 
@@ -67,5 +95,12 @@ export async function DELETE(
 
   const { id, itemId } = await context.params;
   await deleteBookingLineItem(id, itemId, { actorType: "admin" });
+  const data = await getBookingInvoiceData(id);
+  if (data) {
+    revalidateBookingRelatedCaches({
+      agentId: data.booking.assignedAgentId,
+      portalToken: data.customer.portalToken,
+    });
+  }
   return NextResponse.json({ ok: true });
 }

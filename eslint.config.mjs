@@ -5,7 +5,6 @@ const config = [
     ignores: [
       "legacy/**",
       ".next/**",
-      ".astro/**",
       ".vercel/**",
       "dist/**",
       "node_modules/**",

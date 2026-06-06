@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { InvoiceWorkflowError, resendInvoiceById } from "@/lib/server/invoices";
 
 const getErrorResponse = (error: unknown) => {
@@ -58,6 +59,11 @@ export async function POST(
             agentId: agentSession?.agentId,
           }
     );
+
+    revalidateBookingRelatedCaches({
+      agentId: result.data.booking.assignedAgentId,
+      portalToken: result.data.customer.portalToken,
+    });
 
     return NextResponse.json({
       success: true,

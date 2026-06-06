@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { sendInvoiceForBooking } from "@/lib/server/invoices";
 
 export async function POST(
@@ -21,6 +22,10 @@ export async function POST(
       actorType: "agent",
       agentId: session.agentId,
       createdByUserId: session.agentId,
+    });
+    revalidateBookingRelatedCaches({
+      agentId: session.agentId,
+      portalToken: result.data.customer.portalToken,
     });
     const query = result.sent ? "saved=invoice-sent" : "error=mail";
     return isJson

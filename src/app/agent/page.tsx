@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
 import { isDatabaseConfigured } from "@/lib/server/db";
 import { getCachedAgentDashboardData } from "@/lib/server/cache-tags";
-import { getBookingInvoiceData, type BookingInvoiceData } from "@/lib/server/invoices";
 import { AgentDashboard, type AgentView } from "@/components/agent/agent-dashboard";
 
 export const metadata: Metadata = {
@@ -50,20 +49,10 @@ export default async function AgentPage({
   const view = views.includes(rawView as AgentView) ? (rawView as AgentView) : "overview";
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
-  const invoiceDataEntries = await Promise.all(
-    data.bookings.map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
-  );
-  const invoiceDataByBookingId: Record<string, BookingInvoiceData> = {};
-  for (const [bookingId, invoiceData] of invoiceDataEntries) {
-    if (invoiceData) {
-      invoiceDataByBookingId[bookingId] = invoiceData;
-    }
-  }
 
   return (
     <AgentDashboard
       data={data}
-      invoiceDataByBookingId={invoiceDataByBookingId}
       initialView={view}
       saved={saved}
       error={error}

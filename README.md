@@ -137,16 +137,6 @@ Public assets remain in `public/`, including:
 - `public/bilbrands/*`
 - `public/robots.txt`
 
-## Legacy Astro Source
-
-The previous Astro implementation was preserved under:
-
-```text
-legacy/astro-src
-```
-
-This keeps the original pages, layouts, components, content files, and Astro APIs available for reference during the migration.
-
 ## Verification Done
 
 The migration was verified with:
@@ -154,4 +144,3 @@ The migration was verified with:
 - `npm install`
 - `npm run build`
 - Local HTTP checks against `/`, `/booking`, and `/admin/login`
-

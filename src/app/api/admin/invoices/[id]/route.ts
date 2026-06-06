@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import {
+  getBookingInvoiceData,
   getInvoiceById,
   invoiceStatuses,
   updateInvoiceStatus,
@@ -48,6 +50,15 @@ export async function PATCH(
   }
 
   const invoice = await updateInvoiceStatus(id, status);
+  if (invoice) {
+    const data = await getBookingInvoiceData(invoice.bookingId);
+    if (data) {
+      revalidateBookingRelatedCaches({
+        agentId: data.booking.assignedAgentId,
+        portalToken: data.customer.portalToken,
+      });
+    }
+  }
   return NextResponse.json({ invoice });
 }
 
@@ -69,6 +80,15 @@ export async function POST(
     return NextResponse.redirect(new URL("/admin?view=payments&error=action", request.url), 303);
   }
 
-  await updateInvoiceStatus(id, status);
+  const invoice = await updateInvoiceStatus(id, status);
+  if (invoice) {
+    const data = await getBookingInvoiceData(invoice.bookingId);
+    if (data) {
+      revalidateBookingRelatedCaches({
+        agentId: data.booking.assignedAgentId,
+        portalToken: data.customer.portalToken,
+      });
+    }
+  }
   return NextResponse.redirect(new URL("/admin?view=payments&saved=updated", request.url), 303);
 }

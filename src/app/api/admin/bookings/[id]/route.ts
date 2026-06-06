@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { getAppUrl } from "@/lib/server/env";
 import {
   deleteBooking,
@@ -37,13 +38,29 @@ export async function POST(
   const action = String(formData.get("action") || "");
   const adminNotes = String(formData.get("admin_notes") || "").trim();
   const returnView = String(formData.get("return_view") || "bookings");
+  const returnTab = String(formData.get("return_tab") || "").trim();
 
   const redirectWith = (query: string) =>
-    NextResponse.redirect(new URL(`/admin?view=${encodeURIComponent(returnView)}&${query}`, request.url), 303);
+    NextResponse.redirect(
+      new URL(
+        `/admin?view=${encodeURIComponent(returnView)}${
+          returnView === "bookings" && returnTab ? `&bookings_tab=${encodeURIComponent(returnTab)}` : ""
+        }&${query}`,
+        request.url
+      ),
+      303
+    );
 
   try {
   if (action === "delete") {
+    const current = await getBookingById(id);
     await deleteBooking(id);
+    if (current) {
+      revalidateBookingRelatedCaches({
+        agentId: current.booking.assignedAgentId,
+        portalToken: current.customer.portalToken,
+      });
+    }
     return redirectWith("saved=deleted");
   }
 
@@ -70,6 +87,12 @@ export async function POST(
       }
     }
 
+    if (result) {
+      revalidateBookingRelatedCaches({
+        agentId: result.booking.assignedAgentId,
+        portalToken: result.customer.portalToken,
+      });
+    }
     return redirectWith("saved=updated");
   }
 
@@ -93,6 +116,10 @@ export async function POST(
       return redirectWith("error=action");
     }
 
+    revalidateBookingRelatedCaches({
+      agentId: result.booking.assignedAgentId,
+      portalToken: result.customer.portalToken,
+    });
     return redirectWith("saved=updated");
   }
 
@@ -170,6 +197,11 @@ export async function POST(
         console.error("Could not send booking status email", error);
       }
     }
+
+    revalidateBookingRelatedCaches({
+      agentId: result.booking.assignedAgentId,
+      portalToken: result.customer.portalToken,
+    });
   }
 
   return redirectWith("saved=updated");

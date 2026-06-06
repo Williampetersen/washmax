@@ -1,7 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
-import { deleteBookingLineItem, updateBookingLineItem } from "@/lib/server/invoices";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
+import {
+  deleteBookingLineItem,
+  getBookingInvoiceData,
+  updateBookingLineItem,
+} from "@/lib/server/invoices";
 
 const getSession = async () => {
   const cookieStore = await cookies();
@@ -26,6 +31,13 @@ export async function PATCH(
     quantity: Number(body.quantity || 1),
     unitPriceDkk: Number(body.unitPriceDkk || 0),
   });
+  const data = await getBookingInvoiceData(id);
+  if (data) {
+    revalidateBookingRelatedCaches({
+      agentId: session.agentId,
+      portalToken: data.customer.portalToken,
+    });
+  }
   return NextResponse.json({ lineItem });
 }
 
@@ -57,6 +69,13 @@ export async function POST(
         unitPriceDkk: Number(formData.get("unit_price_dkk") || 0),
       });
     }
+    const data = await getBookingInvoiceData(id);
+    if (data) {
+      revalidateBookingRelatedCaches({
+        agentId: session.agentId,
+        portalToken: data.customer.portalToken,
+      });
+    }
     return NextResponse.redirect(new URL(`/agent?view=tasks&saved=line-item#booking-${id}`, request.url), 303);
   } catch (error) {
     console.error("Could not update agent line item", error);
@@ -78,5 +97,12 @@ export async function DELETE(
     actorType: "agent",
     agentId: session.agentId,
   });
+  const data = await getBookingInvoiceData(id);
+  if (data) {
+    revalidateBookingRelatedCaches({
+      agentId: session.agentId,
+      portalToken: data.customer.portalToken,
+    });
+  }
   return NextResponse.json({ ok: true });
 }

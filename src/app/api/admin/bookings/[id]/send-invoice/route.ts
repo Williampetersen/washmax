@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
 import { sendInvoiceForBooking } from "@/lib/server/invoices";
 
 export async function POST(
@@ -15,20 +16,33 @@ export async function POST(
 
   const { id } = await context.params;
   const isJson = (request.headers.get("content-type") || "").includes("application/json");
+  const returnTab = isJson ? "" : String((await request.formData()).get("return_tab") || "").trim();
   try {
     const result = await sendInvoiceForBooking({
       bookingId: id,
       actorType: "admin",
       createdByUserId: session.email,
     });
+    revalidateBookingRelatedCaches({
+      agentId: result.data.booking.assignedAgentId,
+      portalToken: result.data.customer.portalToken,
+    });
     const query = result.sent ? "saved=updated" : "error=action";
     return isJson
       ? NextResponse.json(result, { status: result.sent ? 200 : 202 })
-      : NextResponse.redirect(new URL(`/admin?view=bookings&${query}#booking-${id}`, request.url), 303);
+      : NextResponse.redirect(
+          new URL(
+            `/admin?view=bookings${
+              returnTab ? `&bookings_tab=${encodeURIComponent(returnTab)}` : ""
+            }&${query}#booking-${id}`,
+            request.url
+          ),
+          303
+        );
   } catch (error) {
     console.error("Could not send admin invoice", error);
     return isJson
       ? NextResponse.json({ error: "Could not send invoice" }, { status: 400 })
-      : NextResponse.redirect(new URL(`/admin?view=bookings&error=action#booking-${id}`, request.url), 303);
+      : NextResponse.redirect(new URL(`/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`, request.url), 303);
   }
 }
