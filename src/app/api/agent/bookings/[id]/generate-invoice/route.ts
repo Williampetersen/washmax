@@ -2,7 +2,10 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { AGENT_COOKIE_NAME, getAgentSession } from "@/lib/server/agent-session";
 import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
-import { generateInvoiceForBooking, InvoiceWorkflowError } from "@/lib/server/invoices";
+import {
+  runSimpleInvoiceWorkflow,
+  SimpleInvoiceWorkflowError,
+} from "@/lib/server/simple-invoice-workflow";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -19,7 +22,7 @@ export async function POST(
   if (!session) {
     return isJson
       ? NextResponse.json(
-          { success: false, message: "Unauthorized." },
+          { success: false, message: "Unauthorized.", code: "UNAUTHORIZED" },
           { status: 401, headers: { "Cache-Control": "no-store" } }
         )
       : NextResponse.redirect(new URL("/agent/login", request.url), 303);
@@ -27,56 +30,86 @@ export async function POST(
 
   const { id } = await context.params;
   try {
-    const result = await generateInvoiceForBooking({
+    const result = await runSimpleInvoiceWorkflow({
       bookingId: id,
-      actorType: "agent",
-      agentId: session.agentId,
-      createdByUserId: session.agentId,
+      sendEmail: false,
+      actor: {
+        actorType: "agent",
+        actorId: session.agentId,
+        agentId: session.agentId,
+      },
     });
     revalidateBookingRelatedCaches({
-      agentId: session.agentId,
-      portalToken: result.data.customer.portalToken,
+      agentId: result.assignedAgentId,
+      portalToken: result.portalToken,
     });
     return isJson
       ? NextResponse.json(
           {
             success: true,
             invoiceGenerated: true,
+            invoiceStored: true,
             invoiceId: result.invoice.id,
             invoiceNumber: result.invoice.invoiceNumber,
             invoiceUrl: result.invoice.pdfUrl,
             invoiceData: result.data,
             emailSent: false,
-            message: "Invoice PDF generated successfully.",
+            message: "Invoice PDF generated and saved successfully.",
           },
           { headers: { "Cache-Control": "no-store" } }
         )
-      : NextResponse.redirect(new URL(`/agent?view=tasks&saved=invoice#booking-${id}`, request.url), 303);
+      : NextResponse.redirect(
+          new URL(`/agent?view=tasks&saved=invoice#booking-${id}`, request.url),
+          303
+        );
   } catch (error) {
-    console.error("[invoice.generate] agent request failed", {
+    console.error("[invoice.generate-only] agent failed", {
       bookingId: id,
-      name: error instanceof Error ? error.name : "UnknownError",
-      message: error instanceof Error ? error.message : String(error),
+      errorName: error instanceof Error ? error.name : undefined,
+      errorMessage: error instanceof Error ? error.message : String(error),
+      code:
+        error instanceof SimpleInvoiceWorkflowError
+          ? error.code
+          : "UNKNOWN_INVOICE_ERROR",
       stack: error instanceof Error ? error.stack : undefined,
     });
     return isJson
       ? NextResponse.json(
           {
             success: false,
+            invoiceGenerated:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.invoiceGenerated
+                : false,
+            invoiceStored:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.invoiceStored
+                : false,
+            emailSent: false,
+            invoiceHtmlUrl:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.invoiceHtmlUrl
+                : undefined,
             message:
-              error instanceof InvoiceWorkflowError
+              error instanceof SimpleInvoiceWorkflowError
                 ? error.message
                 : "Invoice PDF could not be generated.",
             code:
-              error instanceof InvoiceWorkflowError
+              error instanceof SimpleInvoiceWorkflowError
                 ? error.code
-                : "invoice_generation_failed",
+                : "UNKNOWN_INVOICE_ERROR",
           },
           {
-            status: error instanceof InvoiceWorkflowError ? error.statusCode : 500,
+            status:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.statusCode
+                : 500,
             headers: { "Cache-Control": "no-store" },
           }
         )
-      : NextResponse.redirect(new URL(`/agent?view=tasks&error=invoice#booking-${id}`, request.url), 303);
+      : NextResponse.redirect(
+          new URL(`/agent?view=tasks&error=invoice#booking-${id}`, request.url),
+          303
+        );
   }
 }

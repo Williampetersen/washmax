@@ -21,7 +21,13 @@ export const bookingLineItemTypes = [
 ] as const;
 export type BookingLineItemType = (typeof bookingLineItemTypes)[number];
 
-export const invoiceStatuses = ["draft", "sent", "paid", "cancelled"] as const;
+export const invoiceStatuses = [
+  "draft",
+  "generated",
+  "sent",
+  "paid",
+  "cancelled",
+] as const;
 export type InvoiceStatus = (typeof invoiceStatuses)[number];
 export type InvoiceActorType = "admin" | "agent" | "system";
 

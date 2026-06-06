@@ -179,6 +179,7 @@ export function AdminInvoicePanel({ booking }: { booking: DashboardBooking }) {
           >
             <select name="status" defaultValue={invoice.status} className={selectClassName}>
               <option value="draft">Draft</option>
+              <option value="generated">Generated</option>
               <option value="sent">Sent</option>
               <option value="paid">Paid</option>
               <option value="cancelled">Cancelled</option>

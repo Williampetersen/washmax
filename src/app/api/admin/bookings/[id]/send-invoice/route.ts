@@ -2,7 +2,13 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { revalidateBookingRelatedCaches } from "@/lib/server/cache-tags";
-import { sendInvoiceForBooking } from "@/lib/server/invoices";
+import {
+  runSimpleInvoiceWorkflow,
+  SimpleInvoiceWorkflowError,
+} from "@/lib/server/simple-invoice-workflow";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(
   request: Request,
@@ -15,34 +21,98 @@ export async function POST(
   }
 
   const { id } = await context.params;
-  const isJson = (request.headers.get("content-type") || "").includes("application/json");
-  const returnTab = isJson ? "" : String((await request.formData()).get("return_tab") || "").trim();
+  const isJson =
+    (request.headers.get("content-type") || "").includes("application/json") ||
+    (request.headers.get("accept") || "").includes("application/json");
+  const returnTab = isJson
+    ? ""
+    : String((await request.formData()).get("return_tab") || "").trim();
+
   try {
-    const result = await sendInvoiceForBooking({
+    const result = await runSimpleInvoiceWorkflow({
       bookingId: id,
-      actorType: "admin",
-      createdByUserId: session.email,
+      sendEmail: true,
+      actor: { actorType: "admin", actorId: session.email },
     });
     revalidateBookingRelatedCaches({
-      agentId: result.data.booking.assignedAgentId,
-      portalToken: result.data.customer.portalToken,
+      agentId: result.assignedAgentId,
+      portalToken: result.portalToken,
     });
-    const query = result.sent ? "saved=updated" : "error=action";
+    const success = result.sent;
+
     return isJson
-      ? NextResponse.json(result, { status: result.sent ? 200 : 202 })
+      ? NextResponse.json(
+          {
+            success,
+            invoiceGenerated: true,
+            invoiceStored: true,
+            emailSent: success,
+            invoiceId: result.invoice.id,
+            invoiceNumber: result.invoice.invoiceNumber,
+            invoiceUrl: result.invoice.pdfUrl,
+            invoiceData: result.data,
+            code:
+              !success && "deliveryError" in result
+                ? result.deliveryError.code
+                : undefined,
+            message: success
+              ? "Invoice generated and sent successfully."
+              : "Invoice was generated and saved, but email could not be sent.",
+          },
+          {
+            status:
+              !success && "deliveryError" in result
+                ? result.deliveryError.statusCode
+                : 200,
+            headers: { "Cache-Control": "no-store" },
+          }
+        )
       : NextResponse.redirect(
           new URL(
             `/admin?view=bookings${
               returnTab ? `&bookings_tab=${encodeURIComponent(returnTab)}` : ""
-            }&${query}#booking-${id}`,
+            }&${success ? "saved=updated" : "error=mail"}#booking-${id}`,
             request.url
           ),
           303
         );
   } catch (error) {
-    console.error("Could not send admin invoice", error);
+    console.error("[invoice.send] admin failed", {
+      bookingId: id,
+      code:
+        error instanceof SimpleInvoiceWorkflowError
+          ? error.code
+          : "UNKNOWN_INVOICE_ERROR",
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    });
     return isJson
-      ? NextResponse.json({ error: "Could not send invoice" }, { status: 400 })
-      : NextResponse.redirect(new URL(`/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`, request.url), 303);
+      ? NextResponse.json(
+          {
+            success: false,
+            code:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.code
+                : "UNKNOWN_INVOICE_ERROR",
+            message:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.message
+                : "Invoice workflow failed unexpectedly.",
+          },
+          {
+            status:
+              error instanceof SimpleInvoiceWorkflowError
+                ? error.statusCode
+                : 500,
+            headers: { "Cache-Control": "no-store" },
+          }
+        )
+      : NextResponse.redirect(
+          new URL(
+            `/admin?view=bookings&bookings_tab=details&error=action#booking-${id}`,
+            request.url
+          ),
+          303
+        );
   }
 }

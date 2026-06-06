@@ -1,9 +1,9 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
-import { getInvoiceDatabaseDiagnostics } from "@/lib/server/db";
 import { getServerEnvironmentSummary } from "@/lib/server/env";
 import { isMailConfigured } from "@/lib/server/mail";
+import { getSimpleInvoiceDiagnostics } from "@/lib/server/simple-invoice-workflow";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -22,23 +22,22 @@ export async function GET() {
     );
   }
 
-  const database = await getInvoiceDatabaseDiagnostics();
+  const database = await getSimpleInvoiceDiagnostics();
   const environment = getServerEnvironmentSummary();
   const success =
     database.databaseConnected &&
-    database.schemaReady &&
     database.invoicesTableExists &&
-    Object.values(database.requiredColumns).every(Boolean);
+    database.pdfDataColumnExists &&
+    database.pdfDataColumnType === "bytea";
 
   return NextResponse.json(
     {
       success,
       hasDatabaseUrl: database.hasDatabaseUrl,
       databaseConnected: database.databaseConnected,
-      schemaReady: database.schemaReady,
       invoicesTableExists: database.invoicesTableExists,
-      requiredColumns: database.requiredColumns,
-      columnTypes: database.columnTypes,
+      pdfDataColumnExists: database.pdfDataColumnExists,
+      pdfDataColumnType: database.pdfDataColumnType,
       smtpConfigured: isMailConfigured(),
       appUrlConfigured: environment.appUrlConfigured,
       errorCode: database.errorCode || undefined,

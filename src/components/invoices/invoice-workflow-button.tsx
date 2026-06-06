@@ -24,6 +24,7 @@ export type InvoiceWorkflowResponse = {
   invoiceId?: string;
   invoiceNumber?: string;
   invoiceUrl?: string;
+  invoiceHtmlUrl?: string;
   invoiceData?: unknown;
 };
 
@@ -43,6 +44,7 @@ export function InvoiceWorkflowButton({
   const [feedback, setFeedback] = useState<{
     tone: "success" | "warning" | "error";
     message: string;
+    url?: string;
   } | null>(null);
 
   const handleClick = () => {
@@ -80,6 +82,7 @@ export function InvoiceWorkflowButton({
           setFeedback({
             tone: "error",
             message: payload.message || "The invoice action failed.",
+            url: payload.invoiceHtmlUrl,
           });
           return;
         }
@@ -122,6 +125,18 @@ export function InvoiceWorkflowButton({
           }`}
         >
           {feedback.message}
+          {feedback.url ? (
+            <>
+              {" "}
+              <a
+                href={feedback.url}
+                target="_blank"
+                className="font-semibold underline underline-offset-2"
+              >
+                Open printable invoice
+              </a>
+            </>
+          ) : null}
         </p>
       ) : null}
     </div>

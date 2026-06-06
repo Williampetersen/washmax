@@ -16,7 +16,10 @@ import {
 } from "lucide-react";
 import { DashboardLanguageSwitch } from "@/components/ui/dashboard-language-switch";
 import { Button } from "@/components/ui/button";
-import { InvoiceWorkflowButton } from "@/components/invoices/invoice-workflow-button";
+import {
+  InvoiceWorkflowButton,
+  type InvoiceWorkflowResponse,
+} from "@/components/invoices/invoice-workflow-button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { DashboardLocale } from "@/lib/shared/dashboard-locale";
@@ -601,6 +604,13 @@ function InvoiceWorkbench({
     }
   };
 
+  const applyInvoiceResponse = (payload: InvoiceWorkflowResponse) => {
+    if (payload.invoiceData) {
+      setInvoiceData(payload.invoiceData as BookingInvoiceData);
+      setInvoiceStatus("idle");
+    }
+  };
+
   return (
     <section className="mt-4 rounded-3xl border border-white/55 bg-white/50 p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -717,9 +727,13 @@ function InvoiceWorkbench({
       <PriceSummaryCard summary={summary} />
 
       <div className="mt-4 flex flex-wrap gap-2">
-        <form action={`/api/agent/bookings/${booking.id}/generate-invoice`} method="POST">
-          <Button type="submit" variant="outline">Generate invoice</Button>
-        </form>
+        <InvoiceWorkflowButton
+          endpoint={`/api/agent/bookings/${booking.id}/generate-invoice`}
+          label="Generate invoice"
+          pendingLabel="Generating PDF..."
+          buttonVariant="outline"
+          onComplete={applyInvoiceResponse}
+        />
         {invoice?.pdfUrl ? (
           <>
             <a
@@ -742,6 +756,7 @@ function InvoiceWorkbench({
           body={{ bookingId: booking.id }}
           label="Generate and send invoice"
           pendingLabel="Generating and sending..."
+          onComplete={applyInvoiceResponse}
         />
         {invoice ? (
           <InvoiceWorkflowButton
@@ -749,6 +764,7 @@ function InvoiceWorkbench({
             label="Send again"
             pendingLabel="Sending..."
             buttonVariant="outline"
+            onComplete={applyInvoiceResponse}
           />
         ) : null}
       </div>
