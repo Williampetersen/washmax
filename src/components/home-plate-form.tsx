@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { sanitizePlate } from "@/lib/shared/booking";
@@ -14,6 +14,32 @@ export function HomePlateForm() {
     null
   );
   const [isPending, startTransition] = useTransition();
+  const warmLookupTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const nextPlate = sanitizePlate(plate);
+
+    if (!/^[A-Z0-9]{2,10}$/.test(nextPlate)) {
+      return undefined;
+    }
+
+    if (warmLookupTimerRef.current) {
+      window.clearTimeout(warmLookupTimerRef.current);
+    }
+
+    warmLookupTimerRef.current = window.setTimeout(() => {
+      void fetch(`/api/vehicle/${encodeURIComponent(nextPlate)}`, {
+        headers: { Accept: "application/json" },
+      }).catch(() => {});
+    }, 250);
+
+    return () => {
+      if (warmLookupTimerRef.current) {
+        window.clearTimeout(warmLookupTimerRef.current);
+        warmLookupTimerRef.current = null;
+      }
+    };
+  }, [plate]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();

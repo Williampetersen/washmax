@@ -186,10 +186,15 @@ const getInvoiceDownloadUrl = (invoiceId: string) => `/api/invoices/${invoiceId}
 
 export const buildInvoiceDownloadUrl = getInvoiceDownloadUrl;
 
-const getAbsoluteInvoiceDownloadUrl = (invoiceId: string) => {
-  const appUrl = getAppUrl();
-  const relativeUrl = getInvoiceDownloadUrl(invoiceId);
-  return appUrl ? `${appUrl}${relativeUrl}` : relativeUrl;
+const getAbsoluteInvoiceDownloadUrl = (invoiceId: string, portalToken?: string) => {
+  const baseUrl = getAppUrl(siteConfig.url) || siteConfig.url;
+  const url = new URL(getInvoiceDownloadUrl(invoiceId), baseUrl);
+
+  if (portalToken) {
+    url.searchParams.set("token", portalToken);
+  }
+
+  return url.toString();
 };
 
 const getInvoiceFileName = (invoiceNumber: string) => `clean-wash-invoice-${invoiceNumber}.pdf`;
@@ -1005,10 +1010,7 @@ const sendInvoiceMail = async (input: {
   const customerName =
     [input.data.customer.firstName, input.data.customer.lastName].filter(Boolean).join(" ") ||
     input.data.customer.email;
-  if (!getAppUrl()) {
-    console.warn("APP_URL is missing. Invoice emails will use a relative fallback invoice link.");
-  }
-  const invoiceUrl = getAbsoluteInvoiceDownloadUrl(input.invoice.id);
+  const invoiceUrl = getAbsoluteInvoiceDownloadUrl(input.invoice.id, input.data.customer.portalToken);
   const sendStatus = await sendCustomerInvoiceEmail({
     bookingId: input.data.booking.id,
     customerId: input.data.customer.id,

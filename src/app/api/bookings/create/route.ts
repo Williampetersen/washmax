@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
 import { createBooking } from "@/lib/server/bookings";
 import {
@@ -85,7 +86,7 @@ export async function POST(request: Request) {
     const portalBaseUrl = getAppUrl(requestOrigin);
     const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
 
-    const mailJobs = [];
+    const mailJobs: Array<Promise<unknown>> = [];
     if (settings.emailAutomation.customerOnCreate) {
       mailJobs.push(
         sendCustomerBookingCreatedEmail({
@@ -107,13 +108,15 @@ export async function POST(request: Request) {
       );
     }
 
-    const mailResults = await Promise.allSettled(mailJobs);
+    after(async () => {
+      const mailResults = await Promise.allSettled(mailJobs);
 
-    for (const result of mailResults) {
-      if (result.status === "rejected") {
-        console.error("Booking mail failed", result.reason);
+      for (const result of mailResults) {
+        if (result.status === "rejected") {
+          console.error("Booking mail failed", result.reason);
+        }
       }
-    }
+    });
 
     return json({
       ok: true,

@@ -107,6 +107,7 @@ export function BookingFlow({
     message: string;
     type: "error" | "success";
   } | null>(null);
+  const [portalUrl, setPortalUrl] = useState("");
   const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(null);
   const [activePackage, setActivePackage] = useState(settings.catalog.packages[0]?.id || "");
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
@@ -115,6 +116,8 @@ export function BookingFlow({
   const [isLookupPending, startLookupTransition] = useTransition();
   const [isSubmitting, startSubmitTransition] = useTransition();
   const autoLookupRef = useRef(false);
+  const lookupDebounceRef = useRef<number | null>(null);
+  const lastLookupPlateRef = useRef("");
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -239,10 +242,12 @@ export function BookingFlow({
       }
 
       setVehicle(payload as VehicleLookupResult);
+      lastLookupPlateRef.current = normalizedPlate;
       setLookupStatus(null);
       window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
     } catch (error) {
       setVehicle(null);
+      lastLookupPlateRef.current = "";
       setLookupStatus({
         message:
           error instanceof Error
@@ -260,6 +265,34 @@ export function BookingFlow({
       void lookupVehicle(initialPlate);
     });
   }, [initialPlate]);
+
+  useEffect(() => {
+    const normalizedPlate = sanitizePlate(plate);
+    if (!/^[A-Z0-9]{2,10}$/.test(normalizedPlate)) {
+      return undefined;
+    }
+
+    if (lastLookupPlateRef.current === normalizedPlate || isLookupPending) {
+      return undefined;
+    }
+
+    if (lookupDebounceRef.current) {
+      window.clearTimeout(lookupDebounceRef.current);
+    }
+
+    lookupDebounceRef.current = window.setTimeout(() => {
+      startLookupTransition(() => {
+        void lookupVehicle(normalizedPlate);
+      });
+    }, 300);
+
+    return () => {
+      if (lookupDebounceRef.current) {
+        window.clearTimeout(lookupDebounceRef.current);
+        lookupDebounceRef.current = null;
+      }
+    };
+  }, [isLookupPending, plate]);
 
   const handleAddonToggle = (addon: AddOnSelection) => {
     setSelectedAddonIds((current) =>
@@ -327,14 +360,14 @@ export function BookingFlow({
 
         const successMessage =
           payload.bookingStatus === "approved"
-            ? "Booking godkendt. Du bliver sendt videre til kundeportalen..."
-            : "Booking modtaget. Vi sender en ny email, saa snart den er godkendt.";
+            ? "Din booking er bekraeftet. Tjek din email for bekaeftelsen."
+            : "Din booking er modtaget. Tjek din email for bekaeftelsen, og du faar en ny mail, naar tiden er godkendt.";
 
+        setPortalUrl(payload.portalUrl);
         setFormStatus({
           message: successMessage,
           type: "success",
         });
-        window.location.href = payload.portalUrl;
       } catch (error) {
         setFormStatus({
           message:
@@ -903,6 +936,16 @@ export function BookingFlow({
                           )}
                         >
                           {formStatus.message}
+                          {formStatus.type === "success" && portalUrl ? (
+                            <div className="mt-3">
+                              <a
+                                href={portalUrl}
+                                className="inline-flex items-center justify-center rounded-lg bg-[#2388d1] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-105"
+                              >
+                                Gaa til kundeportalen
+                              </a>
+                            </div>
+                          ) : null}
                         </div>
                       ) : null}
 

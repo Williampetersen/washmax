@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import "./globals.css";
 import { siteConfig } from "@/lib/site";
-import { GlobalProgressOverlay } from "@/components/ui/global-progress-overlay";
 import {
   DASHBOARD_LOCALE_COOKIE_NAME,
   getDashboardHtmlLang,
@@ -51,10 +50,7 @@ export default async function RootLayout({
 
   return (
     <html lang={getDashboardHtmlLang(locale)}>
-      <body>
-        {children}
-        <GlobalProgressOverlay />
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

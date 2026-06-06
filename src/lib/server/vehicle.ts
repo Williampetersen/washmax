@@ -3,8 +3,16 @@ import { requireEnv } from "@/lib/server/env";
 
 const MOTORAPI_BASE_URL = "https://v1.motorapi.dk";
 const PLATE_PATTERN = /^[A-Z0-9]{2,10}$/;
+const VEHICLE_LOOKUP_CACHE_TTL_MS = 10 * 60 * 1000;
 
 type VehicleRecord = Record<string, unknown>;
+type VehicleCacheEntry = {
+  vehicle: VehicleLookupResult;
+  expiresAt: number;
+};
+
+const vehicleLookupCache = new Map<string, VehicleCacheEntry>();
+const vehicleLookupInFlight = new Map<string, Promise<VehicleLookupResult>>();
 
 const asText = (value: unknown) => {
   if (value === null || value === undefined) return null;
@@ -64,27 +72,49 @@ export const lookupVehicle = async (input: string): Promise<VehicleLookupResult>
     throw new Error("Invalid license plate number.");
   }
 
-  const payload = await fetchVehiclePayload(plate, apiKey);
-  const vehicleSource = Array.isArray(payload) ? payload[0] : payload;
-
-  if (!isVehicleRecord(vehicleSource)) {
-    throw new Error("No vehicle found for that license plate.");
+  const cached = vehicleLookupCache.get(plate);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.vehicle;
   }
 
-  const vehicle = {
-    registration_number: asText(vehicleSource.registration_number) ?? plate,
-    make: asText(vehicleSource.make),
-    model: asText(vehicleSource.model),
-    model_year: asNumber(vehicleSource.model_year),
-    color: asText(vehicleSource.color),
-    type: asText(vehicleSource.type),
-    total_weight: asNumber(vehicleSource.total_weight),
-    chassis_type: asText(vehicleSource.chassis_type),
-  };
-
-  if (!vehicle.make && !vehicle.model) {
-    throw new Error("No vehicle found for that license plate.");
+  const inFlight = vehicleLookupInFlight.get(plate);
+  if (inFlight) {
+    return inFlight;
   }
 
-  return vehicle;
+  const lookupPromise = (async () => {
+    const payload = await fetchVehiclePayload(plate, apiKey);
+    const vehicleSource = Array.isArray(payload) ? payload[0] : payload;
+
+    if (!isVehicleRecord(vehicleSource)) {
+      throw new Error("No vehicle found for that license plate.");
+    }
+
+    const vehicle = {
+      registration_number: asText(vehicleSource.registration_number) ?? plate,
+      make: asText(vehicleSource.make),
+      model: asText(vehicleSource.model),
+      model_year: asNumber(vehicleSource.model_year),
+      color: asText(vehicleSource.color),
+      type: asText(vehicleSource.type),
+      total_weight: asNumber(vehicleSource.total_weight),
+      chassis_type: asText(vehicleSource.chassis_type),
+    };
+
+    if (!vehicle.make && !vehicle.model) {
+      throw new Error("No vehicle found for that license plate.");
+    }
+
+    vehicleLookupCache.set(plate, {
+      vehicle,
+      expiresAt: Date.now() + VEHICLE_LOOKUP_CACHE_TTL_MS,
+    });
+
+    return vehicle;
+  })().finally(() => {
+    vehicleLookupInFlight.delete(plate);
+  });
+
+  vehicleLookupInFlight.set(plate, lookupPromise);
+  return lookupPromise;
 };
