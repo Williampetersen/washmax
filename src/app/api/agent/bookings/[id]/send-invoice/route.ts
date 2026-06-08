@@ -19,6 +19,7 @@ export async function POST(
     const result = await sendInvoiceForBooking({
       bookingId: id,
       actorType: "agent",
+      actorId: session.agentId,
       agentId: session.agentId,
     });
     const query = result.sent ? "saved=invoice-sent" : "error=mail";

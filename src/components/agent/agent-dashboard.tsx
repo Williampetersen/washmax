@@ -21,6 +21,7 @@ import type {
   AgentService,
 } from "@/lib/server/agents";
 import type { BookingInvoiceData, BookingLineItem } from "@/lib/server/invoices";
+import { HtmlInvoiceManager } from "@/components/invoices/html-invoice-manager";
 import { formatPrice } from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 
@@ -533,22 +534,12 @@ function InvoiceWorkbench({
 
       <PriceSummaryCard summary={summary} />
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <form action={`/api/agent/bookings/${booking.id}/generate-invoice`} method="POST">
-          <Button type="submit" variant="outline">Generate invoice</Button>
-        </form>
-        {invoice?.pdfUrl ? (
-          <a
-            href={invoice.pdfUrl}
-            target="_blank"
-            className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-          >
-            Preview invoice
-          </a>
-        ) : null}
-        <form action={`/api/agent/bookings/${booking.id}/send-invoice`} method="POST">
-          <Button type="submit">Generate and send invoice</Button>
-        </form>
+      <div className="mt-4">
+        <HtmlInvoiceManager
+          bookingId={booking.id}
+          initialData={invoiceData}
+          locale="en"
+        />
       </div>
     </section>
   );

@@ -18,6 +18,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
+import { listInvoicesForCustomer } from "@/lib/server/invoices";
 import {
   formatPrice,
   getPaymentStatusLabel,
@@ -67,6 +68,7 @@ export default async function CustomerPortalPage({
   }
 
   const { customer, bookings, settings } = portalData;
+  const invoices = await listInvoicesForCustomer(customer.id);
   const customerName =
     [customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email;
   const activeBookings = bookings
@@ -118,6 +120,54 @@ export default async function CustomerPortalPage({
               <SummaryCard label="Afsluttede" value={completedBookings.length.toString()} icon={CheckCircle2} />
               <SummaryCard label="Samlet vaerdi" value={formatPrice(totalValue)} icon={CreditCard} />
             </section>
+
+            <Card className="rounded-lg p-5 sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                    Fakturaer
+                  </p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
+                    Se og print dine fakturaer
+                  </h2>
+                </div>
+                <p className="text-sm text-[var(--muted)]">{invoices.length} i alt</p>
+              </div>
+              <div className="mt-5 grid gap-3">
+                {invoices.length > 0 ? (
+                  invoices.map((invoice) => (
+                    <article
+                      key={invoice.id}
+                      className="flex flex-col gap-3 rounded-lg border border-[#dbe6ee] bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="font-semibold text-[var(--ink)]">
+                          {invoice.invoiceNumber}
+                        </p>
+                        <p className="mt-1 text-sm text-[var(--muted)]">
+                          {formatPrice(invoice.totalInclMomsDkk)} · {invoice.status}
+                          {invoice.sentAt
+                            ? ` · Sendt ${invoice.sentAt.slice(0, 10)}`
+                            : ""}
+                        </p>
+                      </div>
+                      <a
+                        href={invoice.publicUrl}
+                        target="_blank"
+                        className="inline-flex h-10 items-center justify-center rounded-md border border-[#b7e6cb] bg-[#effaf4] px-4 text-sm font-semibold text-[#08745a] transition hover:bg-[#e2f7eb]"
+                      >
+                        Vis / print faktura
+                      </a>
+                    </article>
+                  ))
+                ) : (
+                  <EmptyState
+                    title="Ingen fakturaer endnu"
+                    text="Når en faktura er oprettet, vises den her."
+                  />
+                )}
+              </div>
+            </Card>
 
             <Card className="rounded-lg p-5 sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

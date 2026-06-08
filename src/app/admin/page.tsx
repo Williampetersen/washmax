@@ -33,6 +33,7 @@ import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { getAdminAgentsData } from "@/lib/server/agents";
 import { getBookingSetupData } from "@/lib/server/booking-setup";
 import { getBookingInvoiceData, type BookingInvoiceData, type BookingLineItem } from "@/lib/server/invoices";
+import { HtmlInvoiceManager } from "@/components/invoices/html-invoice-manager";
 import {
   getAdminDashboardData,
   type BookingEmailLog,
@@ -3088,39 +3089,12 @@ function AdminInvoicePanel({
 
         <AdminPriceSummary summary={summary} />
 
-        <div className="flex flex-wrap gap-2">
-          <form action={`/api/admin/bookings/${booking.id}/generate-invoice`} method="POST">
-            <Button type="submit" variant="outline">Generer faktura</Button>
-          </form>
-          {invoice?.pdfUrl ? (
-            <a
-              href={invoice.pdfUrl}
-              target="_blank"
-              className="inline-flex h-10 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-semibold text-[#1F2340]"
-            >
-              Preview faktura
-            </a>
-          ) : null}
-          <form action={`/api/admin/bookings/${booking.id}/send-invoice`} method="POST">
-            <Button type="submit">Send faktura</Button>
-          </form>
-        </div>
-
-        {invoice ? (
-          <form
-            action={`/api/admin/invoices/${invoice.id}`}
-            method="POST"
-            className="grid gap-2 rounded-2xl border border-[#e4edf3] bg-[#fbfdff] p-3 sm:grid-cols-[1fr_auto]"
-          >
-            <select name="status" defaultValue={invoice.status} className={selectClassName}>
-              <option value="draft">Draft</option>
-              <option value="sent">Sent</option>
-              <option value="paid">Paid</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <Button type="submit" variant="outline">Opdater fakturastatus</Button>
-          </form>
-        ) : null}
+        <HtmlInvoiceManager
+          bookingId={booking.id}
+          initialData={invoiceData}
+          allowPaid
+          locale="da"
+        />
       </div>
     </InfoPanel>
   );

@@ -558,12 +558,13 @@ export const sendCustomerInvoiceEmail = async (input: {
   customerEmail: string;
   invoiceNumber: string;
   totalInclMomsDkk: number;
-  pdfPath?: string;
+  appointmentLabel?: string;
+  invoiceUrl: string;
   settings: MailSettings;
 }) => {
-  const subject = `Your CleanWash invoice #${input.invoiceNumber}`;
+  const subject = `${input.settings.companyName}: faktura ${input.invoiceNumber}`;
   const total = formatPrice(input.totalInclMomsDkk);
-  const greeting = input.customerName ? `Hi ${input.customerName}` : "Hi";
+  const greeting = input.customerName ? `Hej ${input.customerName}` : "Hej";
 
   return sendLoggedMail({
     bookingId: input.bookingId,
@@ -573,52 +574,47 @@ export const sendCustomerInvoiceEmail = async (input: {
     templateKey: "customer_invoice",
     subject,
     html: `
-      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
-        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Invoice</p>
-        <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">${escapeHtml(
-          subject
-        )}</h2>
-        <p style="margin:0;color:#36505d;">${escapeHtml(
-          `${greeting}. Your invoice for booking ${input.bookingId} is ready.`
-        )}</p>
-        ${renderRows([
-          ["Invoice number", input.invoiceNumber],
-          ["Booking", input.bookingId],
-          ["Total amount", total],
-          [
-            "Payment",
-            process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-              "Please pay according to the agreement with WashMax.",
-          ],
-        ])}
-        <p style="margin-top:20px;color:#36505d;">Thank you for choosing ${escapeHtml(
-          input.settings.companyName
-        )}.</p>
+      <div style="margin:0;background:#edf4f5;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#102d38;line-height:1.6;">
+        <div style="max-width:640px;margin:0 auto;overflow:hidden;border-radius:22px;background:#ffffff;box-shadow:0 20px 60px rgba(18,61,82,.12);">
+          <div style="padding:30px;background:linear-gradient(135deg,#102d38,#174f61);color:#ffffff;">
+            <p style="margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9e8d8;">Faktura klar</p>
+            <h1 style="margin:0;font-size:29px;line-height:1.2;">${escapeHtml(subject)}</h1>
+          </div>
+          <div style="padding:30px;">
+            <p style="margin:0 0 18px;color:#36505d;">${escapeHtml(
+              `${greeting}. Din faktura er klar og kan åbnes sikkert i browseren.`
+            )}</p>
+            ${renderRows([
+              ["Fakturanummer", input.invoiceNumber],
+              ["Booking", input.bookingId],
+              ["Tid", input.appointmentLabel || "-"],
+              ["Beløb inkl. moms", total],
+            ])}
+            <p style="margin:24px 0 0;">
+              <a href="${escapeHtml(input.invoiceUrl)}" style="display:inline-block;border-radius:999px;background:#12b886;color:#ffffff;padding:13px 22px;text-decoration:none;font-weight:800;">Se og print faktura</a>
+            </p>
+            <p style="margin:22px 0 0;color:#5b6b75;font-size:13px;">
+              Fra fakturasiden kan du vælge Print / Save as PDF. Der er ingen PDF-vedhæftning.
+            </p>
+            <p style="margin:14px 0 0;color:#5b6b75;font-size:13px;">
+              Hvis knappen ikke virker, åbn dette link: ${escapeHtml(input.invoiceUrl)}
+            </p>
+          </div>
+        </div>
       </div>
     `,
     text: [
       subject,
       "",
-      `${greeting}. Your invoice for booking ${input.bookingId} is ready.`,
-      `Invoice number: ${input.invoiceNumber}`,
+      `${greeting}. Din faktura er klar.`,
+      `Fakturanummer: ${input.invoiceNumber}`,
       `Booking: ${input.bookingId}`,
-      `Total amount: ${total}`,
-      `Payment: ${
-        process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-        "Please pay according to the agreement with WashMax."
-      }`,
+      `Tid: ${input.appointmentLabel || "-"}`,
+      `Beløb inkl. moms: ${total}`,
+      `Se og print faktura: ${input.invoiceUrl}`,
       "",
       `Support: ${input.settings.supportEmail}`,
     ].join("\n"),
-    attachments: input.pdfPath
-      ? [
-          {
-            filename: `${input.invoiceNumber}.pdf`,
-            path: input.pdfPath,
-            contentType: "application/pdf",
-          },
-        ]
-      : undefined,
   });
 };
 

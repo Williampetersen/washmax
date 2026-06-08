@@ -15,7 +15,12 @@ export async function POST(
   const { id } = await context.params;
   const isJson = (request.headers.get("content-type") || "").includes("application/json");
   try {
-    const result = await generateInvoiceForBooking({ bookingId: id, actorType: "admin" });
+    const session = getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+    const result = await generateInvoiceForBooking({
+      bookingId: id,
+      actorType: "admin",
+      actorId: session?.email,
+    });
     return isJson
       ? NextResponse.json(result)
       : NextResponse.redirect(new URL(`/admin?view=bookings&saved=updated#booking-${id}`, request.url), 303);

@@ -19,6 +19,7 @@ export async function POST(
     const result = await generateInvoiceForBooking({
       bookingId: id,
       actorType: "agent",
+      actorId: session.agentId,
       agentId: session.agentId,
     });
     return isJson

@@ -9,6 +9,7 @@ const config = [
       ".vercel/**",
       "dist/**",
       "node_modules/**",
+      "washmax/**",
     ],
   },
   ...nextVitals,

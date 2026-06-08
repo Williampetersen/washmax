@@ -15,7 +15,12 @@ export async function POST(
   const { id } = await context.params;
   const isJson = (request.headers.get("content-type") || "").includes("application/json");
   try {
-    const result = await sendInvoiceForBooking({ bookingId: id, actorType: "admin" });
+    const session = getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
+    const result = await sendInvoiceForBooking({
+      bookingId: id,
+      actorType: "admin",
+      actorId: session?.email,
+    });
     const query = result.sent ? "saved=updated" : "error=action";
     return isJson
       ? NextResponse.json(result, { status: result.sent ? 200 : 202 })
