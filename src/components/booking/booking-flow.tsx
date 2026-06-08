@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { AnimatePresence, motion } from "framer-motion";
 import { da } from "date-fns/locale";
 import { format } from "date-fns";
 import {
@@ -46,12 +45,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 
-const sectionMotion = {
-  initial: { opacity: 0, y: 18 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.35, ease: "easeOut" as const },
-};
-
 const bookingFormSchema = bookingCustomerSchema.extend({
   company: z.string().default(""),
   companyId: z.string().default(""),
@@ -68,6 +61,37 @@ type BookingFormValues = z.input<typeof bookingFormSchema>;
 type AddOnSelection = { id: string; label: string; price: number };
 
 const toCalendarDate = (dateValue: string) => new Date(`${dateValue}T12:00:00`);
+const platePattern = /^[A-Z0-9]{2,10}$/;
+
+const createManualVehicle = (plate: string): VehicleLookupResult => ({
+  registration_number: plate,
+  make: null,
+  model: null,
+  model_year: null,
+  color: null,
+  type: null,
+  total_weight: null,
+  chassis_type: null,
+  lookupUnavailable: true,
+});
+
+const createIdempotencyKey = (input: {
+  plate: string;
+  email: string;
+  appointmentDate: string;
+  appointmentTime: string;
+  packageId: string;
+}) =>
+  [
+    "website",
+    sanitizePlate(input.plate),
+    input.email.trim().toLowerCase(),
+    input.appointmentDate,
+    input.appointmentTime,
+    input.packageId,
+  ]
+    .join(":")
+    .slice(0, 120);
 
 const findFirstBookableDate = (
   minDate: string,
@@ -112,8 +136,9 @@ export function BookingFlow({
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [appointmentDate, setAppointmentDate] = useState<Date | undefined>(initialBookableDate);
   const [selectedAppointmentTime, setSelectedAppointmentTime] = useState("");
-  const [isLookupPending, startLookupTransition] = useTransition();
-  const [isSubmitting, startSubmitTransition] = useTransition();
+  const [isLookupPending, setIsLookupPending] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [idempotencyKey, setIdempotencyKey] = useState("");
   const autoLookupRef = useRef(false);
 
   const form = useForm<BookingFormValues>({
@@ -147,24 +172,34 @@ export function BookingFlow({
       }));
   }, [selectedAddonIds, settings.catalog.exteriorAddOns, settings.catalog.interiorAddOns]);
 
-  const category = vehicle
-    ? getVehicleCategory(vehicle, settings.catalog.vehicleCategories)
-    : null;
-  const activePackageData = getCatalogPackage(settings.catalog, activePackage);
-  const vehicleName = buildVehicleName(vehicle);
+  const category = useMemo(
+    () => (vehicle ? getVehicleCategory(vehicle, settings.catalog.vehicleCategories) : null),
+    [settings.catalog.vehicleCategories, vehicle]
+  );
+  const activePackageData = useMemo(
+    () => getCatalogPackage(settings.catalog, activePackage),
+    [activePackage, settings.catalog]
+  );
+  const vehicleName = useMemo(() => buildVehicleName(vehicle), [vehicle]);
   const activePackagePrice = Number(activePackageData?.price || 0);
   const basePrice = activePackagePrice > 0 ? activePackagePrice : category?.price ?? 0;
   const postalCodeValue = useWatch({
     control: form.control,
     name: "postalCode",
   });
-  const addonsTotal = selectedAddons.reduce((sum, item) => sum + item.price, 0);
+  const addonsTotal = useMemo(
+    () => selectedAddons.reduce((sum, item) => sum + item.price, 0),
+    [selectedAddons]
+  );
   const matchedArea = useMemo(
     () => findMatchingServiceArea(postalCodeValue || "", settings.serviceAreas),
     [postalCodeValue, settings.serviceAreas]
   );
   const travelSurcharge = matchedArea?.surcharge ?? 0;
-  const total = basePrice + addonsTotal + travelSurcharge;
+  const total = useMemo(
+    () => basePrice + addonsTotal + travelSurcharge,
+    [addonsTotal, basePrice, travelSurcharge]
+  );
   const appointmentDateValue = appointmentDate ? format(appointmentDate, "yyyy-MM-dd") : "";
   const availableTimeSlots = useMemo(
     () =>
@@ -173,12 +208,20 @@ export function BookingFlow({
         : [],
     [appointmentDateValue, availabilityBlocks, settings]
   );
-  const appointmentTime = availableTimeSlots.includes(selectedAppointmentTime)
-    ? selectedAppointmentTime
-    : availableTimeSlots[0] || "";
-  const appointmentLabel = appointmentDateValue
-    ? formatDateTimeLabel(appointmentDateValue, appointmentTime || "00:00")
-    : "Vaelg en ledig dag";
+  const appointmentTime = useMemo(
+    () =>
+      availableTimeSlots.includes(selectedAppointmentTime)
+        ? selectedAppointmentTime
+        : availableTimeSlots[0] || "",
+    [availableTimeSlots, selectedAppointmentTime]
+  );
+  const appointmentLabel = useMemo(
+    () =>
+      appointmentDateValue
+        ? formatDateTimeLabel(appointmentDateValue, appointmentTime || "00:00")
+        : "Vaelg en ledig dag",
+    [appointmentDateValue, appointmentTime]
+  );
   const customerType = useWatch({
     control: form.control,
     name: "customerType",
@@ -208,7 +251,8 @@ export function BookingFlow({
     const normalizedPlate = sanitizePlate(nextPlateValue);
     setPlate(normalizedPlate);
 
-    if (!/^[A-Z0-9]{2,10}$/.test(normalizedPlate)) {
+    if (!platePattern.test(normalizedPlate)) {
+      setVehicle(null);
       setLookupStatus({
         message: "Indtast en gyldig dansk nummerplade, fx AB12345.",
         type: "error",
@@ -216,8 +260,10 @@ export function BookingFlow({
       return;
     }
 
+    setVehicle(createManualVehicle(normalizedPlate));
+    setIsLookupPending(true);
     setLookupStatus({
-      message: "Vi tjekker nummerpladen hos MotorAPI.dk...",
+      message: "Vi tjekker bilen...",
       type: "info",
     });
     setFormStatus(null);
@@ -238,27 +284,35 @@ export function BookingFlow({
         );
       }
 
-      setVehicle(payload as VehicleLookupResult);
-      setLookupStatus(null);
+      const nextVehicle = payload as VehicleLookupResult;
+      setVehicle(nextVehicle);
+      setLookupStatus(
+        nextVehicle.lookupUnavailable
+          ? {
+              message:
+                "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsaette manuelt.",
+              type: "error",
+            }
+          : null
+      );
       window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
-    } catch (error) {
-      setVehicle(null);
+    } catch {
+      setVehicle(createManualVehicle(normalizedPlate));
       setLookupStatus({
         message:
-          error instanceof Error
-            ? error.message
-            : "Nummerpladen kunne ikke findes. Tjek nummeret og prov igen.",
+          "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsaette manuelt.",
         type: "error",
       });
+      window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
+    } finally {
+      setIsLookupPending(false);
     }
   };
 
   useEffect(() => {
     if (!initialPlate || autoLookupRef.current) return;
     autoLookupRef.current = true;
-    startLookupTransition(() => {
-      void lookupVehicle(initialPlate);
-    });
+    void lookupVehicle(initialPlate);
   }, [initialPlate]);
 
   const handleAddonToggle = (addon: AddOnSelection) => {
@@ -287,8 +341,23 @@ export function BookingFlow({
     }
 
     setFormStatus(null);
+    const nextIdempotencyKey =
+      idempotencyKey ||
+      createIdempotencyKey({
+        plate,
+        email: values.email,
+        appointmentDate: appointmentDateValue,
+        appointmentTime,
+        packageId: activePackageData.id,
+      });
 
-    startSubmitTransition(async () => {
+    if (!idempotencyKey) {
+      setIdempotencyKey(nextIdempotencyKey);
+    }
+
+    setIsSubmitting(true);
+
+    void (async () => {
       try {
         const response = await fetch("/api/bookings/create", {
           method: "POST",
@@ -310,6 +379,7 @@ export function BookingFlow({
             total,
             appointmentDate: appointmentDateValue,
             appointmentTime,
+            idempotencyKey: nextIdempotencyKey,
             customer: values,
           }),
         });
@@ -341,8 +411,9 @@ export function BookingFlow({
             error instanceof Error ? error.message : "Kunne ikke oprette bookingen. Prov igen.",
           type: "error",
         });
+        setIsSubmitting(false);
       }
-    });
+    })();
   });
 
   if (settings.bookingEnabled === false) {
@@ -379,9 +450,7 @@ export function BookingFlow({
           <form
             onSubmit={(event) => {
               event.preventDefault();
-              startLookupTransition(() => {
-                void lookupVehicle(plate);
-              });
+              void lookupVehicle(plate);
             }}
             className="mt-6 grid max-w-xl gap-3"
           >
@@ -431,13 +500,8 @@ export function BookingFlow({
         </Card>
       </section>
 
-      <AnimatePresence mode="wait">
-        {vehicle && category ? (
-          <motion.section
-            key={vehicle.registration_number}
-            className="mx-auto mt-8 max-w-6xl space-y-6"
-            {...sectionMotion}
-          >
+      {vehicle && category ? (
+        <section className="mx-auto mt-8 max-w-6xl space-y-6">
             <Card className="p-5 sm:p-6">
               <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                 <div>
@@ -469,7 +533,7 @@ export function BookingFlow({
 
             <div className="grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
               <div className="space-y-6">
-                <motion.div {...sectionMotion}>
+                <div>
                   <Card className="p-5 sm:p-6">
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -547,9 +611,9 @@ export function BookingFlow({
                       })}
                     </div>
                   </Card>
-                </motion.div>
+                </div>
 
-                <motion.div {...sectionMotion}>
+                <div>
                   <Card className="p-5 sm:p-6">
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -698,9 +762,9 @@ export function BookingFlow({
                       </div>
                     </div>
                   </Card>
-                </motion.div>
+                </div>
 
-                <motion.div {...sectionMotion}>
+                <div>
                   <Card className="p-5 sm:p-6">
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -772,9 +836,9 @@ export function BookingFlow({
                       </div>
                     </div>
                   </Card>
-                </motion.div>
+                </div>
 
-                <motion.div {...sectionMotion}>
+                <div>
                   <Card className="p-5 sm:p-6">
                     <div className="flex items-center justify-between gap-4">
                       <div>
@@ -916,7 +980,7 @@ export function BookingFlow({
                       </Button>
                     </form>
                   </Card>
-                </motion.div>
+                </div>
               </div>
 
               <div className="xl:sticky xl:top-28">
@@ -990,9 +1054,8 @@ export function BookingFlow({
                 </Card>
               </div>
             </div>
-          </motion.section>
-        ) : null}
-      </AnimatePresence>
+        </section>
+      ) : null}
     </main>
   );
 }

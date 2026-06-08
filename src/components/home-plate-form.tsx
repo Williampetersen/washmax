@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { sanitizePlate } from "@/lib/shared/booking";
@@ -13,9 +13,9 @@ export function HomePlateForm() {
   const [status, setStatus] = useState<{ message: string; type: "error" | "info" } | null>(
     null
   );
-  const [isPending, startTransition] = useTransition();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const nextPlate = sanitizePlate(plate);
     setPlate(nextPlate);
@@ -28,35 +28,12 @@ export function HomePlateForm() {
       return;
     }
 
+    setIsSubmitting(true);
     setStatus({
-      message: "Vi tjekker nummerpladen hos MotorAPI.dk...",
+      message: "Sender dig videre til booking...",
       type: "info",
     });
-
-    try {
-      const response = await fetch(`/api/vehicle/${encodeURIComponent(nextPlate)}`, {
-        headers: { Accept: "application/json" },
-      });
-      const payload = (await response.json().catch(() => ({}))) as { error?: string };
-
-      if (!response.ok) {
-        throw new Error(
-          payload?.error || "Nummerpladen kunne ikke findes. Tjek nummeret og prov igen."
-        );
-      }
-
-      startTransition(() => {
-        router.push(`/booking?plate=${encodeURIComponent(nextPlate)}`);
-      });
-    } catch (error) {
-      setStatus({
-        message:
-          error instanceof Error
-            ? error.message
-            : "Nummerpladen kunne ikke findes. Tjek nummeret og prov igen.",
-        type: "error",
-      });
-    }
+    router.push(`/booking?plate=${encodeURIComponent(nextPlate)}`);
   };
 
   return (
@@ -90,9 +67,9 @@ export function HomePlateForm() {
           </span>
         </label>
 
-        <Button type="submit" size="lg" className="h-12 rounded-md px-7" disabled={isPending}>
+        <Button type="submit" size="lg" className="h-12 rounded-md px-7" disabled={isSubmitting}>
           <Search className="h-5 w-5" />
-          {isPending ? "Tjekker..." : "Se din pris"}
+          {isSubmitting ? "Aabner..." : "Se din pris"}
         </Button>
       </form>
 

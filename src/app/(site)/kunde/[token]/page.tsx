@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ComponentType, ReactNode } from "react";
 import Link from "next/link";
 import {
   Calendar,
@@ -7,27 +8,28 @@ import {
   Clock3,
   CreditCard,
   Mail,
-  MapPinned,
+  MapPin,
   Phone,
-  Sparkles,
+  ReceiptText,
   UserRound,
 } from "lucide-react";
-import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
-import {
-  formatPrice,
-  formatShortPrice,
-  getStatusLabel,
-  getStatusTone,
-} from "@/lib/shared/booking";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
+import {
+  formatPrice,
+  getPaymentStatusLabel,
+  getPaymentStatusTone,
+  getStatusLabel,
+  getStatusTone,
+} from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Kundeportal",
-  description: "Se dine WashMax bookinger.",
+  description: "Se dine CleanWash bookinger, kontaktoplysninger og kommende aftaler.",
 };
 
 export default async function CustomerPortalPage({
@@ -39,29 +41,24 @@ export default async function CustomerPortalPage({
 }) {
   const { token } = await params;
   const query = await searchParams;
-  const view = Array.isArray(query.view) ? query.view[0] : query.view || "history";
   const saved = (Array.isArray(query.saved) ? query.saved[0] : query.saved) === "1";
   const portalData = token ? await getPortalData(token) : null;
 
   if (!portalData) {
     return (
-      <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#10243b_0%,#3f5870_44%,#826f63_100%)] px-4 pb-12 pt-10 sm:px-6">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.04)_36%,rgba(24,184,143,0.18)_100%)]"
-        />
-        <section className="relative mx-auto max-w-3xl rounded-[2rem] border border-white/22 bg-white/16 p-8 text-center text-white shadow-[0_30px_90px_rgba(5,18,32,0.28)] backdrop-blur-2xl">
-          <h1 className="font-display text-4xl font-semibold text-white">
-            Linket er udloeber eller ugyldigt
+      <main className="min-h-screen bg-[#f5f8fb] px-4 py-10 sm:px-6">
+        <section className="mx-auto max-w-2xl rounded-lg border border-[#dbe6ee] bg-white p-6 text-center shadow-[0_16px_42px_rgba(8,27,21,0.08)] sm:p-8">
+          <h1 className="font-display text-3xl font-semibold text-[var(--ink)]">
+            Linket er udlobet eller ugyldigt
           </h1>
-          <p className="mt-4 text-white/76">
-            Bed kunden bruge det seneste link fra bookingmailen eller oprette en ny
-            booking.
+          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+            Brug det seneste link fra din bookingmail, eller opret en ny booking.
           </p>
           <Link
             href="/booking"
-            className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
+            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#12b886] px-5 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
           >
+            <CalendarPlus className="h-5 w-5" />
             Gaa til booking
           </Link>
         </section>
@@ -69,379 +66,401 @@ export default async function CustomerPortalPage({
     );
   }
 
-  const { customer, bookings } = portalData;
-  const initials =
-    `${customer.firstName?.[0] || ""}${customer.lastName?.[0] || ""}`.toUpperCase() || "K";
-  const completedBookings = bookings.filter((item) => item.status === "completed");
-  const upcomingBookings = bookings.filter(
-    (item) => item.status === "pending" || item.status === "approved"
-  );
-  const nextBooking = [...upcomingBookings].sort((left, right) =>
-    `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
-      `${right.appointmentDate}T${right.appointmentTime}`
-    )
-  )[0];
+  const { customer, bookings, settings } = portalData;
+  const customerName =
+    [customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email;
+  const activeBookings = bookings
+    .filter((booking) => booking.status === "pending" || booking.status === "approved")
+    .sort(sortBookings);
+  const completedBookings = bookings.filter((booking) => booking.status === "completed");
+  const nextBooking = activeBookings[0];
   const totalValue = bookings
-    .filter((item) => item.status !== "cancelled")
-    .reduce((sum, item) => sum + item.total, 0);
+    .filter((booking) => booking.status !== "cancelled")
+    .reduce((sum, booking) => sum + booking.total, 0);
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-[linear-gradient(135deg,#10243b_0%,#3f5870_44%,#826f63_100%)] px-4 pb-12 pt-8 sm:px-6">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 bg-[linear-gradient(115deg,rgba(255,255,255,0.2)_0%,rgba(255,255,255,0.04)_36%,rgba(24,184,143,0.18)_100%)]"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-0 opacity-50 [background-image:linear-gradient(to_right,rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.08)_1px,transparent_1px)] [background-size:6rem_6rem]"
-      />
-      <section className="relative mx-auto max-w-7xl">
-        <div className="grid gap-6 xl:grid-cols-[18rem_1fr]">
-          <aside className="rounded-[2rem] border border-white/18 bg-white/12 p-5 text-white shadow-[0_28px_90px_rgba(5,18,32,0.28)] backdrop-blur-2xl">
-            <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full border border-white/24 bg-white/90 text-3xl font-semibold text-[#083047] shadow-[0_16px_40px_rgba(5,18,32,0.18)]">
-                {initials}
-              </div>
-              <p className="mt-4 text-2xl font-semibold">
-                {[customer.firstName, customer.lastName].filter(Boolean).join(" ")}
+    <main className="min-h-screen bg-[#f5f8fb] px-4 pb-12 pt-6 sm:px-6">
+      <section className="mx-auto grid max-w-7xl gap-6">
+        <header className="rounded-lg border border-[#dbe6ee] bg-white px-5 py-5 shadow-[0_14px_36px_rgba(8,27,21,0.06)] sm:px-6">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                Kundeportal
               </p>
-              <p className="mt-1 text-sm text-white/72">{customer.email}</p>
-            </div>
-
-            <nav className="mt-5 grid gap-2 text-sm">
-              {[
-                { id: "history", label: "Booking historik", icon: Calendar },
-                { id: "profile", label: "Personlige oplysninger", icon: UserRound },
-                { id: "payments", label: "Betalingsmetoder", icon: CreditCard },
-              ].map((item) => {
-                const Icon = item.icon;
-                const isActive = view === item.id;
-                return (
-                  <Link
-                    key={item.id}
-                    href={`/kunde/${token}?view=${item.id}`}
-                    className={cn(
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 transition",
-                      isActive
-                        ? "bg-white text-[#0f3555] shadow-[0_16px_34px_rgba(255,255,255,0.16)]"
-                        : "border border-white/8 bg-white/6 text-white/82 hover:bg-white/12"
-                    )}
-                  >
-                    <Icon className="h-5 w-5" />
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-
-            <div className="mt-5 rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#a7e7ff]">
-                Hurtige stats
+              <h1 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
+                Hej {customer.firstName || customerName}
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
+                Her finder du dine tider, status, biloplysninger, pris og kontaktoplysninger.
               </p>
-              <div className="mt-4 grid gap-3 text-sm text-white/82">
-                <div className="flex items-center justify-between">
-                  <span>Bookinger</span>
-                  <strong>{bookings.length}</strong>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Total vaerdi</span>
-                  <strong>{formatPrice(totalValue)}</strong>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Kommende</span>
-                  <strong>{upcomingBookings.length}</strong>
-                </div>
-              </div>
             </div>
-          </aside>
+            <Link
+              href="/booking"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#12b886] px-5 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
+            >
+              <CalendarPlus className="h-5 w-5" />
+              Ny booking
+            </Link>
+          </div>
+        </header>
 
+        {saved ? (
+          <Alert tone="success">Dine kontaktoplysninger er gemt.</Alert>
+        ) : null}
+
+        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="space-y-6">
-            <section className="rounded-[2rem] border border-white/22 bg-white/16 p-6 text-white shadow-[0_24px_70px_rgba(5,18,32,0.22)] backdrop-blur-2xl">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                <div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
-                    Kundeportal
-                  </p>
-                  <h1 className="mt-3 font-display text-4xl font-semibold text-white">
-                    {view === "profile"
-                      ? "Personlige oplysninger"
-                      : view === "payments"
-                        ? "Betalingsmetoder"
-                        : "Booking historik"}
-                  </h1>
-                  <p className="mt-2 max-w-2xl text-sm leading-6 text-white/76">
-                    Se dine kommende tider, opdater kontaktoplysninger og behold
-                    overblikket over dine bookinger.
-                  </p>
-                </div>
-                <Link
-                  href="/booking"
-                  className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
-                >
-                  <CalendarPlus className="h-5 w-5" />
-                  Ny booking
-                </Link>
-              </div>
+            <NextBookingCard booking={nextBooking} />
+
+            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <SummaryCard label="Bookinger" value={bookings.length.toString()} icon={ReceiptText} />
+              <SummaryCard label="Kommende" value={activeBookings.length.toString()} icon={Calendar} />
+              <SummaryCard label="Afsluttede" value={completedBookings.length.toString()} icon={CheckCircle2} />
+              <SummaryCard label="Samlet vaerdi" value={formatPrice(totalValue)} icon={CreditCard} />
             </section>
 
-            <CustomerNextBooking booking={nextBooking} customerEmail={customer.email} />
-
-            {saved ? (
-              <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm text-[#1a506d]">
-                Dine oplysninger er gemt.
-              </div>
-            ) : null}
-
-            {view === "history" ? (
-              <>
-                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                  {[
-                    ["Bookinger", bookings.length],
-                    ["Kommende", upcomingBookings.length],
-                    ["Afsluttede", completedBookings.length],
-                    ["Total vaerdi", formatShortPrice(totalValue)],
-                  ].map(([label, value]) => (
-                    <Card key={label as string} className="!border-white/20 !bg-white/82 p-5 backdrop-blur-xl">
-                      <p className="text-sm text-[var(--muted)]">{label}</p>
-                      <p className="mt-3 text-4xl font-semibold text-[var(--ink)]">{value}</p>
-                    </Card>
-                  ))}
+            <Card className="rounded-lg p-5 sm:p-6">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                    Bookinghistorik
+                  </p>
+                  <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
+                    Alle bookinger
+                  </h2>
                 </div>
+                <p className="text-sm text-[var(--muted)]">{bookings.length} i alt</p>
+              </div>
 
-                <Card className="!border-white/20 !bg-white/82 p-6 backdrop-blur-xl">
-                  <div className="grid gap-4">
-                    {bookings.map((booking) => (
-                      <article key={booking.id} className="rounded-[1.5rem] border border-white/60 bg-white/70 p-5 shadow-[0_14px_34px_rgba(5,18,32,0.07)]">
-                        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                          <div>
-                            <div className="flex flex-wrap items-center gap-3">
-                              <h3 className="text-2xl font-semibold text-[var(--ink)]">
-                                {booking.packageLabel} - {booking.category}
-                              </h3>
-                              <span
-                                className={cn(
-                                  "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-                                  getStatusTone(booking.status)
-                                )}
-                              >
-                                {getStatusLabel(booking.status)}
-                              </span>
-                            </div>
-                            <p className="mt-2 text-sm text-[var(--muted)]">
-                              {booking.vehicleName} | {booking.registrationNumber}
-                            </p>
-                            <div className="mt-4 grid gap-2 text-sm text-[var(--ink)] sm:grid-cols-2">
-                              <p>{booking.appointmentLabel}</p>
-                              <p>{formatPrice(booking.total)}</p>
-                            </div>
-                            {booking.addons.length > 0 ? (
-                              <p className="mt-3 text-sm text-[var(--muted)]">
-                                Tilvalg: {booking.addons.map((item) => item.label).join(", ")}
-                              </p>
-                            ) : null}
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                </Card>
-              </>
-            ) : null}
+              <div className="mt-5 grid gap-3">
+                {bookings.length > 0 ? (
+                  bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)
+                ) : (
+                  <EmptyState
+                    title="Ingen bookinger endnu"
+                    text="Når du opretter en booking, vises den her med status, tid og pris."
+                  />
+                )}
+              </div>
+            </Card>
+          </div>
 
-            {view === "profile" ? (
-              <Card className="!border-white/20 !bg-white/86 p-6 backdrop-blur-xl">
-                <form action={`/api/customer/${token}`} method="POST" className="grid gap-4">
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Field label="Fornavn">
-                      <Input name="first_name" defaultValue={customer.firstName} />
-                    </Field>
-                    <Field label="Efternavn">
-                      <Input name="last_name" defaultValue={customer.lastName} />
-                    </Field>
-                    <Field label="Email" className="md:col-span-2">
-                      <Input value={customer.email} disabled />
-                    </Field>
-                    <Field label="Telefon">
-                      <Input name="phone" defaultValue={customer.phone} />
-                    </Field>
-                    <Field label="Adresse" className="md:col-span-2">
-                      <Input name="address" defaultValue={customer.address} />
-                    </Field>
+          <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
+            <ContactCard
+              customerName={customerName}
+              email={customer.email}
+              phone={customer.phone}
+              address={[customer.address, [customer.postalCode, customer.city].filter(Boolean).join(" ")]
+                .filter(Boolean)
+                .join(", ")}
+            />
+
+            <Card className="rounded-lg p-5 sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                Opdater profil
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
+                Kontaktoplysninger
+              </h2>
+              <form action={`/api/customer/${token}`} method="POST" className="mt-5 grid gap-4">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+                  <Field label="Fornavn">
+                    <Input name="first_name" defaultValue={customer.firstName} autoComplete="given-name" />
+                  </Field>
+                  <Field label="Efternavn">
+                    <Input name="last_name" defaultValue={customer.lastName} autoComplete="family-name" />
+                  </Field>
+                  <Field label="E-mail">
+                    <Input value={customer.email} disabled aria-describedby="email-help" />
+                    <span id="email-help" className="text-xs text-[var(--muted)]">
+                      Kontakt os, hvis e-mailen skal ændres.
+                    </span>
+                  </Field>
+                  <Field label="Telefon">
+                    <Input name="phone" defaultValue={customer.phone} autoComplete="tel" />
+                  </Field>
+                  <Field label="Adresse">
+                    <Input name="address" defaultValue={customer.address} autoComplete="street-address" />
+                  </Field>
+                  <div className="grid gap-4 sm:grid-cols-2">
                     <Field label="Postnr.">
-                      <Input name="postal_code" defaultValue={customer.postalCode} />
+                      <Input name="postal_code" defaultValue={customer.postalCode} autoComplete="postal-code" />
                     </Field>
                     <Field label="By">
-                      <Input name="city" defaultValue={customer.city} />
-                    </Field>
-                    <Field label="Noter" className="md:col-span-2">
-                      <Textarea name="notes" defaultValue={customer.notes} />
+                      <Input name="city" defaultValue={customer.city} autoComplete="address-level2" />
                     </Field>
                   </div>
-                  <Button type="submit">Gem aendringer</Button>
-                </form>
-              </Card>
-            ) : null}
+                  <Field label="Noter">
+                    <Textarea name="notes" defaultValue={customer.notes} />
+                  </Field>
+                </div>
+                <Button type="submit" className="w-full">Gem ændringer</Button>
+              </form>
+            </Card>
 
-            {view === "payments" ? (
-              <div className="space-y-6">
-                <Card className="!border-white/20 !bg-white/86 p-10 text-center backdrop-blur-xl">
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#eef8ff] text-[#2388d1]">
-                    <CreditCard className="h-10 w-10" />
-                  </div>
-                  <h2 className="mt-5 font-display text-3xl font-semibold text-[var(--ink)]">
-                    Ingen gemte betalingsmetoder
-                  </h2>
-                  <p className="mt-3 text-[var(--muted)]">
-                    Betalingsdelen er bevaret som separat kundevisning og kan kobles til
-                    Stripe eller anden betalingsgateway senere.
-                  </p>
-                </Card>
-
-                <Card className="!border-white/20 !bg-white/82 p-6 backdrop-blur-xl">
-                  <h3 className="text-2xl font-semibold text-[var(--ink)]">
-                    100% sikker betaling
-                  </h3>
-                  <ul className="mt-4 grid gap-2 text-sm text-[var(--muted)]">
-                    <li>PCI-DSS kompatibel integration kan tilfoejes senere</li>
-                    <li>Ingen skjulte gebyrer i kundeportalen</li>
-                    <li>Klar til kortbetaling eller faktura-flow</li>
-                  </ul>
-                </Card>
+            <Card className="rounded-lg p-5 sm:p-6">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                Support
+              </p>
+              <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
+                Brug for hjælp?
+              </h2>
+              <div className="mt-4 grid gap-3 text-sm">
+                <SupportLink icon={Mail} href={`mailto:${settings.supportEmail}`} text={settings.supportEmail} />
+                <SupportLink icon={Phone} href="tel:+4591671452" text="+45 91 67 14 52" />
               </div>
-            ) : null}
-          </div>
+            </Card>
+          </aside>
         </div>
       </section>
     </main>
   );
 }
 
-function CustomerNextBooking({
-  booking,
-  customerEmail,
-}: {
-  booking?: DashboardBooking;
-  customerEmail: string;
-}) {
+function NextBookingCard({ booking }: { booking?: DashboardBooking }) {
   if (!booking) {
     return (
-      <section className="rounded-[2rem] border border-white/18 bg-white/12 p-6 text-white shadow-[0_24px_70px_rgba(5,18,32,0.18)] backdrop-blur-2xl">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
-              Naeste aftale
-            </p>
-            <h2 className="mt-3 font-display text-3xl font-semibold">Ingen kommende booking</h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/72">
-              Din portal er klar, og nye bookinger vises automatisk her, naar de er oprettet.
-            </p>
-          </div>
-          <Link
-            href="/booking"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-white px-5 text-sm font-semibold text-[#10243b] shadow-[0_18px_42px_rgba(5,18,32,0.18)] transition hover:brightness-105"
-          >
-            <CalendarPlus className="h-5 w-5" />
-            Book tid
-          </Link>
-        </div>
-      </section>
+      <Card className="rounded-lg p-6">
+        <EmptyState
+          title="Ingen kommende booking"
+          text="Du har ingen aktiv aftale lige nu. Book en ny tid, når bilen trænger til en grundig rengøring."
+          actionHref="/booking"
+          actionLabel="Book ny tid"
+        />
+      </Card>
     );
   }
 
   return (
-    <section className="grid gap-4 rounded-[2rem] border border-white/18 bg-white/12 p-5 text-white shadow-[0_24px_70px_rgba(5,18,32,0.18)] backdrop-blur-2xl lg:grid-cols-[1.05fr_0.95fr]">
-      <div className="rounded-[1.5rem] border border-white/14 bg-white/10 p-5">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-[#10243b]">
-            <Calendar className="h-5 w-5" />
-          </span>
+    <Card className="overflow-hidden rounded-lg">
+      <div className="border-b border-[#dbe6ee] bg-[#eef8ff] px-5 py-5 sm:px-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#a7f3d0]">
-              Naeste aftale
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+              Næste aftale
             </p>
-            <h2 className="mt-1 font-display text-3xl font-semibold">
+            <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">
               {booking.appointmentLabel}
             </h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              {booking.packageLabel} - {booking.category}
+            </p>
           </div>
-        </div>
-
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <CustomerFact icon={Sparkles} label="Service" value={`${booking.packageLabel} - ${booking.category}`} />
-          <CustomerFact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
-          <CustomerFact icon={MapPinned} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
-          <CustomerFact icon={CheckCircle2} label="Status" value={getStatusLabel(booking.status)} />
+          <StatusBadge status={booking.status} />
         </div>
       </div>
-
-      <div className="rounded-[1.5rem] border border-white/14 bg-white/82 p-5 text-[#10243b]">
-        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
-          Kontakt og betaling
-        </p>
-        <div className="mt-4 grid gap-3 text-sm">
-          <CustomerFactDark icon={Mail} label="E-mail" value={customerEmail} />
-          <CustomerFactDark icon={Phone} label="Telefon" value={booking.customerPhone || "Ikke angivet"} />
-          <CustomerFactDark icon={CreditCard} label="Pris" value={formatPrice(booking.total)} />
-        </div>
+      <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:p-6">
+        <Fact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
+        <Fact icon={MapPin} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
+        <Fact icon={ReceiptText} label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
+        <Fact icon={CreditCard} label="Pris" value={formatPrice(booking.total)} />
       </div>
-    </section>
+    </Card>
   );
 }
 
-function CustomerFact({
+function BookingCard({ booking }: { booking: DashboardBooking }) {
+  return (
+    <article className="rounded-lg border border-[#dbe6ee] bg-white px-4 py-4">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-lg font-semibold text-[var(--ink)]">
+              {booking.packageLabel} - {booking.category}
+            </h3>
+            <StatusBadge status={booking.status} />
+            <PaymentBadge status={booking.paymentStatus} />
+          </div>
+          <p className="mt-2 text-sm text-[var(--muted)]">
+            {booking.appointmentLabel} · {booking.vehicleName} · {booking.registrationNumber}
+          </p>
+          {booking.addons.length > 0 ? (
+            <p className="mt-2 text-sm text-[var(--muted)]">
+              Tilvalg: {booking.addons.map((addon) => addon.label).join(", ")}
+            </p>
+          ) : null}
+        </div>
+        <div className="shrink-0 rounded-md bg-[#f4f8f7] px-4 py-3 lg:text-right">
+          <p className="text-xs text-[var(--muted)]">Total</p>
+          <p className="text-xl font-semibold text-[var(--ink)]">{formatPrice(booking.total)}</p>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function ContactCard({
+  customerName,
+  email,
+  phone,
+  address,
+}: {
+  customerName: string;
+  email: string;
+  phone: string;
+  address: string;
+}) {
+  return (
+    <Card className="rounded-lg p-5 sm:p-6">
+      <div className="flex items-center gap-3">
+        <span className="flex h-12 w-12 items-center justify-center rounded-md bg-[#e9fbf5] text-[#08745a]">
+          <UserRound className="h-6 w-6" />
+        </span>
+        <div className="min-w-0">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+            Kunde
+          </p>
+          <h2 className="truncate text-xl font-semibold text-[var(--ink)]">{customerName}</h2>
+        </div>
+      </div>
+      <div className="mt-5 grid gap-3">
+        <Fact icon={Mail} label="E-mail" value={email} />
+        <Fact icon={Phone} label="Telefon" value={phone || "Ikke angivet"} />
+        <Fact icon={MapPin} label="Adresse" value={address || "Ikke angivet"} />
+      </div>
+    </Card>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  icon: Icon,
+}: {
+  label: string;
+  value: string;
+  icon: ComponentType<{ className?: string }>;
+}) {
+  return (
+    <Card className="rounded-lg p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm text-[var(--muted)]">{label}</p>
+          <p className="mt-2 truncate text-2xl font-semibold text-[var(--ink)]">{value}</p>
+        </div>
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#e9fbf5] text-[#08745a]">
+          <Icon className="h-5 w-5" />
+        </span>
+      </div>
+    </Card>
+  );
+}
+
+function Fact({
   icon: Icon,
   label,
   value,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   label: string;
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-white/12 bg-white/10 px-4 py-3">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/58">
-        <Icon className="h-4 w-4 shrink-0" />
+    <div className="min-w-0 rounded-md border border-[#dbe6ee] bg-white px-3 py-3">
+      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+        <Icon className="h-4 w-4 shrink-0 text-[#0c7a61]" />
         {label}
       </div>
-      <p className="mt-2 truncate text-sm font-semibold text-white">{value}</p>
-    </div>
-  );
-}
-
-function CustomerFactDark({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-[#d9e7f0] bg-white/74 px-4 py-3">
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#e9fbf5] text-[#0c7a61]">
-        <Icon className="h-4 w-4" />
-      </span>
-      <div className="min-w-0">
-        <p className="text-xs text-[#617382]">{label}</p>
-        <p className="truncate text-sm font-semibold text-[#10243b]">{value}</p>
-      </div>
+      <p className="mt-2 break-words text-sm font-semibold text-[var(--ink)]">{value}</p>
     </div>
   );
 }
 
 function Field({
   label,
-  className,
   children,
 }: {
   label: string;
-  className?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
-    <label className={cn("grid gap-2 text-sm text-[var(--ink)]", className)}>
+    <label className="grid gap-2 text-sm text-[var(--ink)]">
       <span className="font-medium">{label}</span>
       {children}
     </label>
+  );
+}
+
+function Alert({ children, tone }: { children: ReactNode; tone: "success" | "error" }) {
+  return (
+    <div
+      className={cn(
+        "rounded-lg border px-4 py-3 text-sm",
+        tone === "success"
+          ? "border-[#b7e6cb] bg-[#effaf4] text-[#16643f]"
+          : "border-red-200 bg-red-50 text-red-700"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
+function EmptyState({
+  title,
+  text,
+  actionHref,
+  actionLabel,
+}: {
+  title: string;
+  text: string;
+  actionHref?: "/booking";
+  actionLabel?: string;
+}) {
+  return (
+    <div className="rounded-lg border border-dashed border-[#c8d7e0] bg-[#f8fbfd] px-5 py-6 text-center">
+      <p className="font-semibold text-[var(--ink)]">{title}</p>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">{text}</p>
+      {actionHref && actionLabel ? (
+        <Link
+          href={actionHref}
+          className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-[#12b886] px-4 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
+        >
+          {actionLabel}
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function SupportLink({
+  icon: Icon,
+  href,
+  text,
+}: {
+  icon: ComponentType<{ className?: string }>;
+  href: string;
+  text: string;
+}) {
+  return (
+    <a
+      href={href}
+      className="flex min-w-0 items-center gap-3 rounded-md border border-[#dbe6ee] bg-[#f8fbfd] px-3 py-3 font-semibold text-[var(--ink)] transition hover:border-[#12b886]"
+    >
+      <Icon className="h-4 w-4 shrink-0 text-[#0c7a61]" />
+      <span className="truncate">{text}</span>
+    </a>
+  );
+}
+
+function StatusBadge({ status }: { status: DashboardBooking["status"] }) {
+  return (
+    <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-semibold", getStatusTone(status))}>
+      {getStatusLabel(status)}
+    </span>
+  );
+}
+
+function PaymentBadge({ status }: { status: DashboardBooking["paymentStatus"] }) {
+  return (
+    <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-semibold", getPaymentStatusTone(status))}>
+      {getPaymentStatusLabel(status)}
+    </span>
+  );
+}
+
+function sortBookings(left: DashboardBooking, right: DashboardBooking) {
+  return `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
+    `${right.appointmentDate}T${right.appointmentTime}`
   );
 }

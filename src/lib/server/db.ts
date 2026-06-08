@@ -1,10 +1,20 @@
 import postgres, { type Sql } from "postgres";
 import { defaultBookingSettings } from "@/lib/shared/booking";
 
-let cachedSql: Sql | null | undefined;
-let schemaPromise: Promise<void> | null = null;
+declare global {
+  // Keep one postgres pool per server runtime, including Next.js dev hot reloads.
+  var washmaxSql: Sql | null | undefined;
+  var washmaxSchemaPromise: Promise<void> | null | undefined;
+}
+
+let cachedSql: Sql | null | undefined = globalThis.washmaxSql;
+let schemaPromise: Promise<void> | null = globalThis.washmaxSchemaPromise ?? null;
 
 const getConnectionString = () => process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
+export const shouldRunDatabaseSetup = () =>
+  process.env.NODE_ENV !== "production" ||
+  process.env.DATABASE_AUTO_SETUP === "true" ||
+  process.env.DATABASE_RUN_MIGRATIONS === "true";
 
 export const isDatabaseConfigured = () => Boolean(getConnectionString());
 
@@ -18,13 +28,14 @@ const createClient = () => {
   return postgres(connectionString, {
     ssl: "require",
     prepare: false,
-    max: 1,
+    max: Number(process.env.DATABASE_MAX_CONNECTIONS || 5),
   });
 };
 
 export const getSql = () => {
   if (cachedSql === undefined) {
     cachedSql = createClient();
+    globalThis.washmaxSql = cachedSql;
   }
 
   if (!cachedSql) {
@@ -34,7 +45,11 @@ export const getSql = () => {
   return cachedSql;
 };
 
-export const ensureSchema = async () => {
+export const ensureSchema = async (options: { force?: boolean } = {}) => {
+  if (!options.force && !shouldRunDatabaseSetup()) {
+    return;
+  }
+
   const sql = getSql();
 
   if (!schemaPromise) {
@@ -89,6 +104,11 @@ export const ensureSchema = async () => {
       `;
 
       await sql`
+        CREATE INDEX IF NOT EXISTS customers_phone_idx
+        ON customers (phone);
+      `;
+
+      await sql`
         CREATE UNIQUE INDEX IF NOT EXISTS customers_portal_token_idx
         ON customers (portal_token)
         WHERE portal_token IS NOT NULL;
@@ -121,6 +141,7 @@ export const ensureSchema = async () => {
           invoice_status TEXT NOT NULL DEFAULT 'not_requested',
           invoice_number TEXT,
           admin_notes TEXT,
+          idempotency_key TEXT,
           source TEXT NOT NULL DEFAULT 'website',
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -152,6 +173,7 @@ export const ensureSchema = async () => {
           ADD COLUMN IF NOT EXISTS invoice_status TEXT NOT NULL DEFAULT 'not_requested',
           ADD COLUMN IF NOT EXISTS invoice_number TEXT,
           ADD COLUMN IF NOT EXISTS admin_notes TEXT,
+          ADD COLUMN IF NOT EXISTS idempotency_key TEXT,
           ADD COLUMN IF NOT EXISTS assigned_agent_id TEXT,
           ADD COLUMN IF NOT EXISTS agent_status TEXT,
           ADD COLUMN IF NOT EXISTS agent_note TEXT,
@@ -385,6 +407,73 @@ export const ensureSchema = async () => {
       await sql`
         CREATE INDEX IF NOT EXISTS bookings_schedule_idx
         ON bookings (appointment_date, appointment_time, status);
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS bookings_created_at_idx
+        ON bookings (created_at DESC);
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS bookings_status_idx
+        ON bookings (status);
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS bookings_plate_idx
+        ON bookings (plate);
+      `;
+
+      await sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS bookings_idempotency_key_idx
+        ON bookings (idempotency_key)
+        WHERE idempotency_key IS NOT NULL;
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS vehicle_lookup_cache (
+          plate TEXT PRIMARY KEY,
+          payload JSONB NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          expires_at TIMESTAMPTZ NOT NULL
+        );
+      `;
+
+      await sql`
+        ALTER TABLE vehicle_lookup_cache
+          ADD COLUMN IF NOT EXISTS payload JSONB;
+      `;
+
+      await sql`
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = 'vehicle_lookup_cache'
+              AND column_name = 'payload_json'
+          ) THEN
+            UPDATE vehicle_lookup_cache
+            SET payload = payload_json
+            WHERE payload IS NULL;
+          END IF;
+        END $$;
+      `;
+
+      await sql`
+        DELETE FROM vehicle_lookup_cache
+        WHERE payload IS NULL;
+      `;
+
+      await sql`
+        ALTER TABLE vehicle_lookup_cache
+          ALTER COLUMN payload SET NOT NULL;
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS vehicle_lookup_cache_expires_at_idx
+        ON vehicle_lookup_cache (expires_at);
       `;
 
       await sql`
@@ -687,12 +776,16 @@ export const ensureSchema = async () => {
         ON CONFLICT (settings_key) DO NOTHING;
       `;
     })();
+    globalThis.washmaxSchemaPromise = schemaPromise;
   }
 
   try {
     await schemaPromise;
   } catch (error) {
     schemaPromise = null;
+    globalThis.washmaxSchemaPromise = null;
     throw error;
   }
 };
+
+export const runDatabaseMigrations = () => ensureSchema({ force: true });

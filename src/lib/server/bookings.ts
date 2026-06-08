@@ -76,6 +76,7 @@ type RawBooking = {
   accepted_at: string | Date | null;
   completed_at: string | Date | null;
   cancelled_at: string | Date | null;
+  idempotency_key?: string | null;
   source: string;
   created_at: string | Date;
   updated_at: string | Date;
@@ -320,6 +321,8 @@ type CreateBookingInput = {
   invoiceRequested?: boolean;
   invoiceStatus?: InvoiceStatus;
   invoiceNumber?: string;
+  idempotencyKey?: string;
+  settings?: BookingSettings;
   customer: CustomerInput;
 };
 
@@ -674,7 +677,7 @@ const getRoutePlan = (bookings: DashboardBooking[]): RoutePlanDay[] => {
     });
 };
 
-const logBookingActivity = async (
+export const logBookingActivity = async (
   bookingId: string,
   input: {
     actor: string;
@@ -982,8 +985,24 @@ export const updateCustomerAdmin = async (
 export const createBooking = async (input: CreateBookingInput) => {
   await ensureSchema();
   const sql = getSql();
+  const idempotencyKey = input.idempotencyKey?.trim() || null;
+
+  if (idempotencyKey) {
+    const [existing] = await sql<Pick<RawBooking, "id">[]>`
+      SELECT id
+      FROM bookings
+      WHERE idempotency_key = ${idempotencyKey}
+      LIMIT 1;
+    `;
+
+    if (existing) {
+      const result = await getBookingById(existing.id);
+      if (result) return result;
+    }
+  }
+
   const customer = await upsertCustomer(input.customer);
-  const settings = await getBookingSettings();
+  const settings = input.settings ?? (await getBookingSettings());
   const matchedArea = findMatchingServiceArea(customer.postalCode, settings.serviceAreas);
   const catalogPackage = getCatalogPackage(settings.catalog, input.packageId);
   const addons = (input.addons || []).map((item) => ({
@@ -1031,6 +1050,7 @@ export const createBooking = async (input: CreateBookingInput) => {
       invoice_status,
       invoice_number,
       admin_notes,
+      idempotency_key,
       source
     )
     VALUES (
@@ -1059,32 +1079,47 @@ export const createBooking = async (input: CreateBookingInput) => {
       ${invoiceStatus},
       ${input.invoiceNumber || ""},
       ${input.adminNotes || ""},
+      ${idempotencyKey},
       ${input.source}
     )
+    ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
     RETURNING *;
   `;
 
-  await logBookingActivity(created.id, {
-    actor: input.source === "admin" ? "admin" : "website",
-    activityType: "booking_created",
-    summary:
-      input.source === "admin"
-        ? "Booking oprettet manuelt fra admin."
-        : "Ny booking oprettet fra websitet.",
-    details: {
-      status: input.status || "pending",
-      appointmentDate: input.appointmentDate,
-      appointmentTime: input.appointmentTime,
-      total: Math.round(total),
-    },
-  });
-
-  const result = await getBookingById(created.id);
-  if (!result) {
-    throw new Error("Booking blev oprettet, men kunne ikke hentes bagefter.");
+  if (!created && idempotencyKey) {
+    const [existing] = await sql<Pick<RawBooking, "id">[]>`
+      SELECT id
+      FROM bookings
+      WHERE idempotency_key = ${idempotencyKey}
+      LIMIT 1;
+    `;
+    const result = existing ? await getBookingById(existing.id) : null;
+    if (result) return result;
+    throw new Error("Booking blev allerede behandlet, men kunne ikke hentes.");
   }
 
-  return result;
+  if (!created) {
+    throw new Error("Bookingen kunne ikke oprettes.");
+  }
+
+  if (input.source !== "website") {
+    await logBookingActivity(created.id, {
+      actor: "admin",
+      activityType: "booking_created",
+      summary: "Booking oprettet manuelt fra admin.",
+      details: {
+        status: input.status || "pending",
+        appointmentDate: input.appointmentDate,
+        appointmentTime: input.appointmentTime,
+        total: Math.round(total),
+      },
+    });
+  }
+
+  return {
+    booking: bookingFromRow(created, customer),
+    customer,
+  };
 };
 
 export const getPortalData = async (portalToken: string) => {

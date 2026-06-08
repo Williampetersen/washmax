@@ -5,11 +5,11 @@ import {
   CheckCircle2,
   Clock3,
   LogOut,
+  MapPin,
   MessageCircle,
-  Settings2,
+  Phone,
   UserRound,
   Wrench,
-  XCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,6 +154,13 @@ export function AgentDashboard({
 }
 
 function Overview({ data }: { data: AgentDashboardData }) {
+  const nextJob = [...data.bookings]
+    .filter((booking) => booking.agentStatus !== "done" && booking.agentStatus !== "cancelled_by_agent")
+    .sort((left, right) =>
+      `${left.appointmentDate}T${left.appointmentTime}`.localeCompare(
+        `${right.appointmentDate}T${right.appointmentTime}`
+      )
+    )[0];
   const cards = [
     { label: "Assigned", value: data.stats.totalAssigned, detail: "All bookings", icon: Calendar },
     { label: "Pending", value: data.stats.pending, detail: "Awaiting your answer", icon: Clock3 },
@@ -163,6 +170,7 @@ function Overview({ data }: { data: AgentDashboardData }) {
 
   return (
     <div className="space-y-5">
+      <NextAgentJobCard booking={nextJob} />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -203,6 +211,77 @@ function Overview({ data }: { data: AgentDashboardData }) {
         </div>
       </section>
     </div>
+  );
+}
+
+function NextAgentJobCard({ booking }: { booking?: AgentBooking }) {
+  if (!booking) {
+    return (
+      <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-5 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+          Next job
+        </p>
+        <h2 className="mt-2 text-2xl font-bold">No active jobs</h2>
+        <p className="mt-2 text-[13px] font-medium leading-6 text-[#4B5563]">
+          New assigned bookings will appear here first.
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="rounded-3xl border border-[#DDE3F5] bg-white p-5 shadow-[0_12px_36px_rgba(99,102,241,0.1)]">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+            Next job
+          </p>
+          <h2 className="mt-2 text-2xl font-bold text-[#1F2340]">
+            {booking.appointmentLabel}
+          </h2>
+          <p className="mt-1 text-[13px] font-semibold text-[#4B5563]">
+            {booking.customerName || booking.customerEmail}
+          </p>
+        </div>
+        <AgentStatusPill status={booking.agentStatus} />
+      </div>
+
+      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+        <Info label="Address" value={booking.customerAddress} />
+        <Info label="Vehicle" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
+        <Info label="Service" value={`${booking.packageLabel} - ${booking.category}`} />
+        <Info label="Price" value={formatPrice(booking.total)} />
+      </div>
+
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        {booking.customerPhone ? (
+          <a
+            href={`tel:${booking.customerPhone.replace(/\s+/g, "")}`}
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#6366F1] px-4 text-[13px] font-semibold text-white"
+          >
+            <Phone className="h-5 w-5" />
+            Call customer
+          </a>
+        ) : null}
+        {booking.customerAddress ? (
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.customerAddress)}`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#DDE3F5] bg-white px-4 text-[13px] font-semibold text-[#1F2340]"
+          >
+            <MapPin className="h-5 w-5" />
+            Open route
+          </a>
+        ) : null}
+        <Link
+          href={`/agent?view=tasks#booking-${booking.id}`}
+          className="inline-flex h-11 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white px-4 text-[13px] font-semibold text-[#1F2340]"
+        >
+          Open task
+        </Link>
+      </div>
+    </section>
   );
 }
 

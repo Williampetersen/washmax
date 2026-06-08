@@ -23,6 +23,7 @@ const views: AgentView[] = [
   "chat",
   "profile",
 ];
+const INITIAL_AGENT_INVOICE_LIMIT = 20;
 
 export default async function AgentPage({
   searchParams,
@@ -48,7 +49,9 @@ export default async function AgentPage({
   const invoiceDataEntries =
     view === "tasks"
       ? await Promise.all(
-          data.bookings.map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
+          data.bookings
+            .slice(0, INITIAL_AGENT_INVOICE_LIMIT)
+            .map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
         )
       : [];
   const invoiceDataByBookingId: Record<string, BookingInvoiceData> = {};

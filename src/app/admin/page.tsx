@@ -218,12 +218,15 @@ export default async function AdminPage({
   const agentsData = view === "agents" ? await getAdminAgentsData() : undefined;
   const bookingSetupData = view === "booking-setup" ? await getBookingSetupData() : undefined;
   const hasDatabase = isDatabaseConfigured();
+  const visibleBookingInvoiceCandidates = [...dashboard.bookings]
+    .sort(sortBookings)
+    .slice(0, INITIAL_BOOKING_LIMIT);
   const bookingInvoiceDataEntries =
     view === "bookings" && hasDatabase
       ? await Promise.all(
-          dashboard.bookings
-            .slice(0, INITIAL_BOOKING_LIMIT)
-            .map(async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const)
+          visibleBookingInvoiceCandidates.map(
+            async (booking) => [booking.id, await getBookingInvoiceData(booking.id)] as const
+          )
         )
       : [];
   const bookingInvoiceDataById: Record<string, BookingInvoiceData> = {};

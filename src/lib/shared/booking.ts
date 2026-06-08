@@ -76,6 +76,7 @@ export type VehicleLookupResult = {
   type: string | null;
   total_weight: number | null;
   chassis_type: string | null;
+  lookupUnavailable?: boolean;
 };
 
 export type BookingSettings = {
@@ -236,6 +237,7 @@ export const defaultBookingSettings: BookingSettings = {
 
 export const sanitizePlate = (plate: string) =>
   plate
+    .trim()
     .toUpperCase()
     .replace(/[^A-Z0-9]/g, "")
     .slice(0, 10);
@@ -244,7 +246,9 @@ export const normalizePostalCode = (postalCode: string) =>
   postalCode.replace(/\s+/g, "").trim();
 
 export const buildVehicleName = (vehicle?: Partial<VehicleLookupResult> | null) =>
-  [vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Din bil";
+  vehicle?.lookupUnavailable
+    ? "Ukendt bil"
+    : [vehicle?.make, vehicle?.model].filter(Boolean).join(" ") || "Din bil";
 
 export const getCatalogPackage = (catalog: ServiceCatalog, packageId: string) =>
   catalog.packages.find((item) => item.id === packageId) ?? catalog.packages[0];

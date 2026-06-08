@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
+import { ensureSchema, getSql, isDatabaseConfigured, shouldRunDatabaseSetup } from "@/lib/server/db";
 import {
   defaultBookingSettings,
   defaultEmailAutomation,
@@ -294,6 +294,7 @@ export type BookingPricingResult = {
 };
 
 const createId = (prefix: string) => `${prefix}_${randomBytes(10).toString("hex")}`;
+let bookingSetupSeedPromise: Promise<void> | null = null;
 
 const toDateText = (value: unknown) => {
   if (value instanceof Date) return value.toISOString().slice(0, 10);
@@ -470,6 +471,24 @@ const getLegacySettings = async () => {
 };
 
 export const ensureBookingSetupSeeded = async () => {
+  if (!shouldRunDatabaseSetup()) {
+    return;
+  }
+
+  if (bookingSetupSeedPromise) {
+    return bookingSetupSeedPromise;
+  }
+
+  bookingSetupSeedPromise = seedBookingSetup();
+  try {
+    await bookingSetupSeedPromise;
+  } catch (error) {
+    bookingSetupSeedPromise = null;
+    throw error;
+  }
+};
+
+const seedBookingSetup = async () => {
   await ensureSchema();
   const sql = getSql();
 
@@ -816,8 +835,9 @@ export const calculateBookingPriceFromSetup = async (input: {
   addonIds: string[];
   categoryLabel: string;
   postalCode: string;
+  settings?: BookingSettings;
 }) => {
-  const settings = await getBookingSettingsFromSetup();
+  const settings = input.settings ?? (await getBookingSettingsFromSetup());
   const pkg = getCatalogPackage(settings.catalog, input.packageId);
   const category =
     settings.catalog.vehicleCategories.find(

@@ -1,6 +1,6 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
-import { createBooking } from "@/lib/server/bookings";
+import { createBooking, logBookingActivity } from "@/lib/server/bookings";
 import {
   calculateBookingPriceFromSetup,
   getBookingSettingsFromSetup,
@@ -20,7 +20,17 @@ const json = (body: unknown, status = 200) =>
     },
   });
 
+const shouldLogTiming = () =>
+  process.env.NODE_ENV === "development" || process.env.PERFORMANCE_LOGS === "true";
+
+const logTiming = (label: string, startedAt: number) => {
+  if (!shouldLogTiming()) return;
+  console.info(`[perf] ${label} ${Math.round(performance.now() - startedAt)}ms`);
+};
+
 export async function POST(request: Request) {
+  const startedAt = performance.now();
+
   if (!isDatabaseConfigured()) {
     return json(
       {
@@ -50,9 +60,12 @@ export async function POST(request: Request) {
       addonIds: quotedAddons.map((addon) => addon.id),
       categoryLabel: bookingInput.category,
       postalCode: customer.postalCode,
+      settings,
     });
+    const dbStartedAt = performance.now();
     const bookingResult = await createBooking({
       ...bookingInput,
+      idempotencyKey: parsed.data.idempotencyKey,
       plate: sanitizePlate(bookingInput.plate),
       category: pricing.category,
       packageId: pricing.packageId,
@@ -78,41 +91,68 @@ export async function POST(request: Request) {
         marketingOptIn: customer.wantsMarketing,
       },
       source: "website",
+      settings,
     });
+    logTiming("booking.db", dbStartedAt);
 
     const requestOrigin = new URL(request.url).origin;
     const portalBaseUrl = process.env.APP_URL || requestOrigin;
     const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
 
-    const mailJobs = [];
-    if (settings.emailAutomation.customerOnCreate) {
-      mailJobs.push(
-        sendCustomerBookingCreatedEmail({
-          booking: bookingResult.booking,
-          customer: bookingResult.customer,
-          settings,
-          portalUrl,
-        })
-      );
-    }
-    if (settings.emailAutomation.adminOnCreate) {
-      mailJobs.push(
-        sendAdminNewBookingAlert({
-          booking: bookingResult.booking,
-          customer: bookingResult.customer,
-          settings,
-          portalUrl,
-        })
-      );
-    }
+    after(async () => {
+      const activityJob = logBookingActivity(bookingResult.booking.id, {
+        actor: "website",
+        activityType: "booking_created",
+        summary: "Ny booking oprettet fra websitet.",
+        details: {
+          status: bookingResult.booking.status,
+          appointmentDate: bookingResult.booking.appointmentDate,
+          appointmentTime: bookingResult.booking.appointmentTime,
+          total: bookingResult.booking.total,
+        },
+      });
 
-    const mailResults = await Promise.allSettled(mailJobs);
+      const mailStartedAt = performance.now();
+      const mailJobs: Array<Promise<unknown>> = [];
 
-    for (const result of mailResults) {
-      if (result.status === "rejected") {
-        console.error("Booking mail failed", result.reason);
+      if (settings.emailAutomation.customerOnCreate) {
+        mailJobs.push(
+          sendCustomerBookingCreatedEmail({
+            booking: bookingResult.booking,
+            customer: bookingResult.customer,
+            settings,
+            portalUrl,
+          })
+        );
       }
-    }
+
+      if (settings.emailAutomation.adminOnCreate) {
+        mailJobs.push(
+          sendAdminNewBookingAlert({
+            booking: bookingResult.booking,
+            customer: bookingResult.customer,
+            settings,
+            portalUrl,
+          })
+        );
+      }
+
+      if (mailJobs.length > 0) {
+        const mailResults = await Promise.allSettled(mailJobs);
+        logTiming("booking.email", mailStartedAt);
+        for (const result of mailResults) {
+          if (result.status === "rejected") {
+            console.error("Booking mail failed", result.reason);
+          }
+        }
+      }
+
+      try {
+        await activityJob;
+      } catch (error) {
+        console.error("Booking activity log failed", error);
+      }
+    });
 
     return json({
       ok: true,
@@ -127,5 +167,7 @@ export async function POST(request: Request) {
       },
       500
     );
+  } finally {
+    logTiming("booking.api", startedAt);
   }
 }
