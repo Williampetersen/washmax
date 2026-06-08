@@ -983,7 +983,7 @@ export const updateCustomerAdmin = async (
 };
 
 export const createBooking = async (input: CreateBookingInput) => {
-  await ensureSchema();
+  await ensureSchema({ force: true });
   const sql = getSql();
   const idempotencyKey = input.idempotencyKey?.trim() || null;
 
