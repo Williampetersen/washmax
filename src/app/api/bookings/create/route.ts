@@ -99,6 +99,17 @@ export async function POST(request: Request) {
     const portalBaseUrl = process.env.APP_URL || requestOrigin;
     const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
 
+    try {
+      await sendCustomerBookingCreatedEmail({
+        booking: bookingResult.booking,
+        customer: bookingResult.customer,
+        settings,
+        portalUrl,
+      });
+    } catch (error) {
+      console.error("Booking customer mail failed", error);
+    }
+
     after(async () => {
       const activityJob = logBookingActivity(bookingResult.booking.id, {
         actor: "website",
@@ -114,17 +125,6 @@ export async function POST(request: Request) {
 
       const mailStartedAt = performance.now();
       const mailJobs: Array<Promise<unknown>> = [];
-
-      if (settings.emailAutomation.customerOnCreate) {
-        mailJobs.push(
-          sendCustomerBookingCreatedEmail({
-            booking: bookingResult.booking,
-            customer: bookingResult.customer,
-            settings,
-            portalUrl,
-          })
-        );
-      }
 
       if (settings.emailAutomation.adminOnCreate) {
         mailJobs.push(
