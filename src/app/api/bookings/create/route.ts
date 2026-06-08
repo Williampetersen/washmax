@@ -99,13 +99,15 @@ export async function POST(request: Request) {
     const portalBaseUrl = process.env.APP_URL || requestOrigin;
     const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
 
+    let confirmationEmailSent = false;
     try {
-      await sendCustomerBookingCreatedEmail({
+      const confirmationStatus = await sendCustomerBookingCreatedEmail({
         booking: bookingResult.booking,
         customer: bookingResult.customer,
         settings,
         portalUrl,
       });
+      confirmationEmailSent = confirmationStatus === "sent";
     } catch (error) {
       console.error("Booking customer mail failed", error);
     }
@@ -159,6 +161,7 @@ export async function POST(request: Request) {
       bookingId: bookingResult.booking.id,
       bookingStatus: bookingResult.booking.status,
       portalUrl,
+      confirmationEmailSent,
     });
   } catch (error) {
     return json(

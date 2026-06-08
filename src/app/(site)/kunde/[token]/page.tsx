@@ -43,6 +43,13 @@ export default async function CustomerPortalPage({
   const { token } = await params;
   const query = await searchParams;
   const saved = (Array.isArray(query.saved) ? query.saved[0] : query.saved) === "1";
+  const bookingConfirmed =
+    (Array.isArray(query.booking) ? query.booking[0] : query.booking) === "confirmed";
+  const requestedTab = Array.isArray(query.tab) ? query.tab[0] : query.tab;
+  const portalTab =
+    requestedTab === "invoices" || requestedTab === "profile"
+      ? requestedTab
+      : "bookings";
   const portalData = token ? await getPortalData(token) : null;
 
   if (!portalData) {
@@ -83,45 +90,50 @@ export default async function CustomerPortalPage({
   return (
     <main className="min-h-screen bg-[#f5f8fb] px-4 pb-12 pt-6 sm:px-6">
       <section className="mx-auto grid max-w-7xl gap-6">
-        <header className="rounded-lg border border-[#dbe6ee] bg-white px-5 py-5 shadow-[0_14px_36px_rgba(8,27,21,0.06)] sm:px-6">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
-                Kundeportal
-              </p>
-              <h1 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
-                Hej {customer.firstName || customerName}
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--muted)]">
-                Her finder du dine tider, status, biloplysninger, pris og kontaktoplysninger.
-              </p>
-            </div>
-            <Link
-              href="/booking"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#12b886] px-5 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
-            >
-              <CalendarPlus className="h-5 w-5" />
-              Ny booking
-            </Link>
-          </div>
-        </header>
+        <nav className="flex flex-wrap items-center gap-2 rounded-lg border border-[#dbe6ee] bg-white p-2 shadow-[0_10px_30px_rgba(8,27,21,0.05)]">
+          <PortalTabLink href={`/kunde/${token}?tab=bookings`} active={portalTab === "bookings"}>
+            Bookinger
+          </PortalTabLink>
+          <PortalTabLink href={`/kunde/${token}?tab=invoices`} active={portalTab === "invoices"}>
+            Fakturaer
+          </PortalTabLink>
+          <PortalTabLink href={`/kunde/${token}?tab=profile`} active={portalTab === "profile"}>
+            Profil
+          </PortalTabLink>
+          <Link
+            href="/booking"
+            className="ml-auto inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#12b886] px-4 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
+          >
+            <CalendarPlus className="h-4 w-4" />
+            Ny booking
+          </Link>
+        </nav>
 
         {saved ? (
           <Alert tone="success">Dine kontaktoplysninger er gemt.</Alert>
         ) : null}
+        {bookingConfirmed ? (
+          <Alert tone="success">
+            Din booking er bekræftet. Tjek din e-mail for bekræftelse og bookingdetaljer.
+          </Alert>
+        ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
           <div className="space-y-6">
-            <NextBookingCard booking={nextBooking} />
+            {portalTab === "bookings" ? (
+              <>
+                <NextBookingCard booking={nextBooking} />
+                <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <SummaryCard label="Bookinger" value={bookings.length.toString()} icon={ReceiptText} />
+                  <SummaryCard label="Kommende" value={activeBookings.length.toString()} icon={Calendar} />
+                  <SummaryCard label="Afsluttede" value={completedBookings.length.toString()} icon={CheckCircle2} />
+                  <SummaryCard label="Samlet værdi" value={formatPrice(totalValue)} icon={CreditCard} />
+                </section>
+              </>
+            ) : null}
 
-            <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              <SummaryCard label="Bookinger" value={bookings.length.toString()} icon={ReceiptText} />
-              <SummaryCard label="Kommende" value={activeBookings.length.toString()} icon={Calendar} />
-              <SummaryCard label="Afsluttede" value={completedBookings.length.toString()} icon={CheckCircle2} />
-              <SummaryCard label="Samlet vaerdi" value={formatPrice(totalValue)} icon={CreditCard} />
-            </section>
-
-            <Card className="rounded-lg p-5 sm:p-6">
+            {portalTab === "invoices" ? (
+              <Card className="rounded-lg p-5 sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
@@ -167,9 +179,11 @@ export default async function CustomerPortalPage({
                   />
                 )}
               </div>
-            </Card>
+              </Card>
+            ) : null}
 
-            <Card className="rounded-lg p-5 sm:p-6">
+            {portalTab === "bookings" ? (
+              <Card className="rounded-lg p-5 sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
@@ -182,9 +196,11 @@ export default async function CustomerPortalPage({
                 <p className="text-sm text-[var(--muted)]">{bookings.length} i alt</p>
               </div>
 
-              <div className="mt-5 grid gap-3">
+              <div className="mt-5 overflow-hidden rounded-lg border border-[#dbe6ee]">
                 {bookings.length > 0 ? (
-                  bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)
+                  <div className="divide-y divide-[#dbe6ee]">
+                    {bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)}
+                  </div>
                 ) : (
                   <EmptyState
                     title="Ingen bookinger endnu"
@@ -192,7 +208,8 @@ export default async function CustomerPortalPage({
                   />
                 )}
               </div>
-            </Card>
+              </Card>
+            ) : null}
           </div>
 
           <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
@@ -205,7 +222,8 @@ export default async function CustomerPortalPage({
                 .join(", ")}
             />
 
-            <Card className="rounded-lg p-5 sm:p-6">
+            {portalTab === "profile" ? (
+              <Card className="rounded-lg p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
                 Opdater profil
               </p>
@@ -246,7 +264,8 @@ export default async function CustomerPortalPage({
                 </div>
                 <Button type="submit" className="w-full">Gem ændringer</Button>
               </form>
-            </Card>
+              </Card>
+            ) : null}
 
             <Card className="rounded-lg p-5 sm:p-6">
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
@@ -311,8 +330,9 @@ function NextBookingCard({ booking }: { booking?: DashboardBooking }) {
 
 function BookingCard({ booking }: { booking: DashboardBooking }) {
   return (
-    <article className="rounded-lg border border-[#dbe6ee] bg-white px-4 py-4">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+    <details className="group bg-white">
+      <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-[#f8fbfd]">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <h3 className="text-lg font-semibold text-[var(--ink)]">
@@ -334,8 +354,43 @@ function BookingCard({ booking }: { booking: DashboardBooking }) {
           <p className="text-xs text-[var(--muted)]">Total</p>
           <p className="text-xl font-semibold text-[var(--ink)]">{formatPrice(booking.total)}</p>
         </div>
+        </div>
+      </summary>
+      <div className="grid gap-3 border-t border-[#dbe6ee] bg-[#f8fbfd] p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Fact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
+        <Fact icon={MapPin} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
+        <Fact icon={ReceiptText} label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
+        <Fact
+          icon={CreditCard}
+          label="Tilvalg"
+          value={booking.addons.length > 0 ? booking.addons.map((addon) => addon.label).join(", ") : "Ingen"}
+        />
       </div>
-    </article>
+    </details>
+  );
+}
+
+function PortalTabLink({
+  href,
+  active,
+  children,
+}: {
+  href: string;
+  active: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <a
+      href={href}
+      className={cn(
+        "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-semibold transition",
+        active
+          ? "bg-[#102d38] text-white"
+          : "text-[#536873] hover:bg-[#f1f6f7] hover:text-[#102d38]"
+      )}
+    >
+      {children}
+    </a>
   );
 }
 

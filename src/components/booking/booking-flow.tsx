@@ -389,22 +389,26 @@ export function BookingFlow({
           error?: string;
           portalUrl?: string;
           bookingStatus?: BookingStatus;
+          confirmationEmailSent?: boolean;
         };
 
         if (!response.ok || !payload?.ok || !payload.portalUrl) {
           throw new Error(payload?.error || "Kunne ikke oprette bookingen. Prov igen.");
         }
 
-        const successMessage =
-          payload.bookingStatus === "approved"
-            ? "Booking godkendt. Du bliver sendt videre til kundeportalen..."
-            : "Booking modtaget. Vi sender en ny email, saa snart den er godkendt.";
+        const successMessage = payload.confirmationEmailSent
+          ? "Din booking er bekræftet. Tjek venligst din e-mail. Din bekræftelse og link til kundeportalen er sendt."
+          : "Din booking er bekræftet, men e-mailen kunne ikke leveres. Du bliver sendt til kundeportalen nu.";
 
         setFormStatus({
           message: successMessage,
           type: "success",
         });
-        window.location.href = payload.portalUrl;
+        window.setTimeout(() => {
+          const portalUrl = new URL(payload.portalUrl!, window.location.origin);
+          portalUrl.searchParams.set("booking", "confirmed");
+          window.location.href = portalUrl.toString();
+        }, 1800);
       } catch (error) {
         setFormStatus({
           message:

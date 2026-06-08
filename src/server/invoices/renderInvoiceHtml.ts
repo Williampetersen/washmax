@@ -63,6 +63,7 @@ export const renderInvoiceHtml = (invoice: HtmlInvoiceDocument) => `<!doctype ht
       body{margin:0;background:linear-gradient(145deg,#dcebed,#f7faf9 48%,#d8eee7);color:var(--ink);font-family:Arial,Helvetica,sans-serif;line-height:1.45}
       .toolbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;justify-content:center;gap:14px;padding:14px;background:rgba(16,45,56,.94);color:#fff}
       .toolbar button{border:0;border-radius:999px;background:#fff;color:var(--navy);padding:11px 20px;font-size:14px;font-weight:800;cursor:pointer}
+      .toolbar button.secondary{border:1px solid rgba(255,255,255,.45);background:transparent;color:#fff}
       .toolbar span{font-size:12px;color:#d9eff1}
       .invoice{width:min(920px,calc(100% - 28px));margin:28px auto 54px;background:#fff;border-radius:24px;box-shadow:0 24px 70px rgba(18,61,82,.16);overflow:hidden}
       .top{display:grid;grid-template-columns:1fr auto;gap:32px;padding:42px;background:linear-gradient(130deg,#102d38,#174f61);color:#fff}
@@ -85,7 +86,11 @@ export const renderInvoiceHtml = (invoice: HtmlInvoiceDocument) => `<!doctype ht
     </style>
   </head>
   <body>
-    <div class="toolbar"><button type="button" onclick="window.print()">Print / Save as PDF</button><span>Choose "Save as PDF" in the print dialog to download a copy.</span></div>
+    <div class="toolbar">
+      <button type="button" onclick="window.print()">Print / Save as PDF</button>
+      <button class="secondary" type="button" onclick="const blob=new Blob([document.documentElement.outerHTML],{type:'text/html;charset=utf-8'});const link=document.createElement('a');link.href=URL.createObjectURL(blob);link.download='${escapeHtml(invoice.invoiceNumber)}.html';link.click();setTimeout(()=>URL.revokeObjectURL(link.href),1000)">Download invoice</button>
+      <span>Choose "Save as PDF" in the print dialog for a PDF copy.</span>
+    </div>
     <main class="invoice">
       <header class="top">
         <div><div class="brand">${escapeHtml(invoice.companyName)}</div><div class="brand-sub">Professionel bilpleje hos kunden</div></div>

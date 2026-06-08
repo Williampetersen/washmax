@@ -18,5 +18,5 @@ export async function POST(
     notes: String(formData.get("notes") || "").trim(),
   });
 
-  return NextResponse.redirect(new URL(`/kunde/${token}?view=profile&saved=1`, request.url), 303);
+  return NextResponse.redirect(new URL(`/kunde/${token}?tab=profile&saved=1`, request.url), 303);
 }

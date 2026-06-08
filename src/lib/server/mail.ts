@@ -422,7 +422,7 @@ export const sendCustomerBookingCreatedEmail = async (input: CustomerMailInput) 
   const copy = getCustomerCreationCopy(input.booking, input.settings);
   const customerName = getCustomerName(input.customer);
 
-  await sendLoggedMail({
+  return sendLoggedMail({
     bookingId: input.booking.id,
     customerId: input.customer.id,
     recipient: input.customer.email,

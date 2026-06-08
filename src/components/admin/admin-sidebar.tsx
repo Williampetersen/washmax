@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Calendar, ListFilter, LogOut, Settings2, UserRound, Users, Wrench } from "lucide-react";
+import { BarChart3, Calendar, ListFilter, LogOut, ReceiptText, Settings2, UserRound, Users, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatShortPrice } from "@/lib/shared/booking";
 import type { DashboardData } from "@/lib/server/bookings";
@@ -10,6 +10,7 @@ const sidebarItems = [
   { id: "bookings", label: "Bookings", icon: ListFilter },
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "customers", label: "Customers", icon: Users },
+  { id: "invoices", label: "Invoices", icon: ReceiptText },
   { id: "agents", label: "Agents", icon: UserRound },
   { id: "booking-setup", label: "Booking Setup", icon: Wrench },
   { id: "settings", label: "Settings", icon: Settings2 },

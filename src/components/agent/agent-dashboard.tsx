@@ -8,6 +8,7 @@ import {
   MapPin,
   MessageCircle,
   Phone,
+  ReceiptText,
   UserRound,
   Wrench,
 } from "lucide-react";
@@ -20,8 +21,9 @@ import type {
   AgentDashboardData,
   AgentService,
 } from "@/lib/server/agents";
-import type { BookingInvoiceData, BookingLineItem } from "@/lib/server/invoices";
-import { HtmlInvoiceManager } from "@/components/invoices/html-invoice-manager";
+import type { Invoice } from "@/lib/server/invoices";
+import { BookingTabs } from "@/components/dashboard/booking-tabs";
+import { LazyBookingInvoice } from "@/components/invoices/lazy-booking-invoice";
 import { formatPrice } from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +31,7 @@ const tabs = [
   { id: "overview", label: "Overview", icon: BarChart3 },
   { id: "calendar", label: "Calendar", icon: Calendar },
   { id: "tasks", label: "Tasks", icon: CheckCircle2 },
+  { id: "invoices", label: "Invoices", icon: ReceiptText },
   { id: "availability", label: "Availability", icon: Clock3 },
   { id: "services", label: "Services", icon: Wrench },
   { id: "chat", label: "Chat", icon: MessageCircle },
@@ -41,13 +44,13 @@ const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 
 export function AgentDashboard({
   data,
-  invoiceDataByBookingId,
+  invoices,
   view,
   saved,
   error,
 }: {
   data: AgentDashboardData;
-  invoiceDataByBookingId: Record<string, BookingInvoiceData>;
+  invoices: Invoice[];
   view: AgentView;
   saved?: string;
   error?: string;
@@ -111,16 +114,6 @@ export function AgentDashboard({
           </aside>
 
           <div className="space-y-5">
-            <header className="rounded-3xl border border-white/55 bg-white/[0.72] px-5 py-5 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
-              <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
-                {tabs.find((tab) => tab.id === view)?.label}
-              </p>
-              <h1 className="mt-2 text-3xl font-bold">Agent dashboard</h1>
-              <p className="mt-2 max-w-2xl text-[13px] font-medium leading-6 text-[#4B5563]">
-                Kun dine tildelte bookinger, arbejdstider, services og beskeder vises her.
-              </p>
-            </header>
-
             {saved || error ? (
               <div
                 className={cn(
@@ -137,10 +130,10 @@ export function AgentDashboard({
             {view === "tasks" ? (
               <TasksView
                 bookings={data.bookings}
-                invoiceDataByBookingId={invoiceDataByBookingId}
                 services={data.services}
               />
             ) : null}
+            {view === "invoices" ? <AgentInvoicesView invoices={invoices} /> : null}
             {view === "availability" ? (
               <AvailabilityView availability={data.availability} />
             ) : null}
@@ -330,26 +323,23 @@ function CalendarView({ bookings }: { bookings: AgentBooking[] }) {
 
 function TasksView({
   bookings,
-  invoiceDataByBookingId,
   services,
 }: {
   bookings: AgentBooking[];
-  invoiceDataByBookingId: Record<string, BookingInvoiceData>;
   services: AgentService[];
 }) {
   return (
-    <div className="grid gap-4">
+    <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_10px_32px_rgba(31,35,64,0.06)]">
       {bookings.length > 0 ? (
-        bookings.map((booking) => (
-          <TaskCard
-            key={booking.id}
-            booking={booking}
-            invoiceData={invoiceDataByBookingId[booking.id]}
-            services={services}
-          />
-        ))
+        <div className="divide-y divide-[#e8ebf5]">
+          {bookings.map((booking) => (
+            <TaskCard key={booking.id} booking={booking} services={services} />
+          ))}
+        </div>
       ) : (
-        <EmptyState text="No bookings assigned to you yet." />
+        <div className="p-4">
+          <EmptyState text="No bookings assigned to you yet." />
+        </div>
       )}
     </div>
   );
@@ -357,264 +347,156 @@ function TasksView({
 
 function TaskCard({
   booking,
-  invoiceData,
   services,
 }: {
   booking: AgentBooking;
-  invoiceData?: BookingInvoiceData;
   services: AgentService[];
 }) {
-  const invoiceLocked = invoiceData?.invoice
-    ? ["sent", "paid"].includes(invoiceData.invoice.status)
-    : false;
-
   return (
-    <article id={`booking-${booking.id}`} className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-bold">{booking.customerName || booking.customerEmail}</h2>
-            <AgentStatusPill status={booking.agentStatus} />
+    <details id={`booking-${booking.id}`} className="group bg-white/35 open:bg-white">
+      <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-white/75">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_9rem_8rem] lg:items-center">
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-bold text-[#1f2340]">
+              {booking.customerName || booking.customerEmail}
+            </p>
+            <p className="mt-1 truncate text-[12px] font-medium text-[#7b829f]">
+              {booking.vehicleName} · {booking.registrationNumber}
+            </p>
           </div>
-          <p className="mt-1 text-[13px] font-medium text-[#8E95B5]">
-            {booking.appointmentLabel} | {booking.packageLabel} | {formatPrice(booking.total)}
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-semibold text-[#374151]">
+              {booking.appointmentLabel}
+            </p>
+            <p className="mt-1 truncate text-[12px] font-medium text-[#7b829f]">
+              {booking.packageLabel} · {booking.category}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <AgentStatusPill status={booking.agentStatus} />
+            <InvoiceBadge status={booking.invoiceStatus} />
+          </div>
+          <p className="text-[14px] font-bold text-[#1f2340] lg:text-right">
+            {formatPrice(booking.total)}
           </p>
         </div>
-      </div>
+      </summary>
 
-      <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
-        <Info label="Phone" value={booking.customerPhone} />
-        <Info label="Email" value={booking.customerEmail} />
-        <Info label="Address" value={booking.customerAddress} />
-        <Info label="Vehicle" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-        <Info label="Service" value={`${booking.packageLabel} - ${booking.category}`} />
-        <Info label="Customer notes" value={booking.customerNotes || "-"} />
-        <Info label="Admin notes" value={booking.adminNotes || "-"} />
-        <Info label="Agent note" value={booking.agentNote || "-"} />
-      </div>
-
-      {booking.addons.length > 0 ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          {booking.addons.map((addon) => (
-            <span key={addon.id} className="rounded-full border border-[#DDE3F5] bg-white/60 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
-              {addon.label}
-            </span>
-          ))}
-        </div>
-      ) : null}
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-2">
-        <form action={`/api/agent/bookings/${booking.id}/accept`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
-          <Textarea name="note" placeholder="Optional note for admin" className="min-h-16" />
-          <Button type="submit">Accept booking</Button>
-        </form>
-        <form action={`/api/agent/bookings/${booking.id}/reject`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
-          <Textarea name="note" placeholder="Optional rejection reason" className="min-h-16" />
-          <Button type="submit" variant="outline">Reject booking</Button>
-        </form>
-      </div>
-
-      <form action={`/api/agent/bookings/${booking.id}/status`} method="POST" className="mt-3 grid gap-3 rounded-2xl border border-white/55 bg-white/50 p-3 md:grid-cols-[12rem_minmax(0,1fr)_auto]">
-        <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
-          <option value="accepted">Accepted</option>
-          <option value="in_progress">In progress</option>
-          <option value="done">Done</option>
-          <option value="cancelled_by_agent">Cancel</option>
-        </select>
-        <Input name="note" placeholder="Internal note or cancellation reason" defaultValue={booking.agentNote} />
-        <Button type="submit">Update status</Button>
-      </form>
-
-      <InvoiceWorkbench
-        booking={booking}
-        invoiceData={invoiceData}
-        invoiceLocked={invoiceLocked}
-        services={services}
-      />
-    </article>
-  );
-}
-
-function InvoiceWorkbench({
-  booking,
-  invoiceData,
-  invoiceLocked,
-  services,
-}: {
-  booking: AgentBooking;
-  invoiceData?: BookingInvoiceData;
-  invoiceLocked: boolean;
-  services: AgentService[];
-}) {
-  const summary = invoiceData?.summary ?? {
-    originalBookingPriceDkk: booking.total,
-    existingExtraServicesDkk: 0,
-    manualExtraChargesDkk: 0,
-    totalInclMomsDkk: booking.total,
-    momsAmountDkk: Math.round(booking.total * 0.2),
-    subtotalExMomsDkk: booking.total - Math.round(booking.total * 0.2),
-  };
-  const lineItems = invoiceData?.lineItems ?? [];
-  const invoice = invoiceData?.invoice;
-
-  return (
-    <section className="mt-4 rounded-3xl border border-white/55 bg-white/50 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="text-[14px] font-semibold">Extra Services / Additional Charges</p>
-          <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">
-            All prices are DKK incl. Danish moms.
-          </p>
-        </div>
-        <InvoiceBadge status={invoice?.status || "No invoice"} />
-      </div>
-
-      <div className="mt-4 grid gap-3">
-        {lineItems.length > 0 ? (
-          lineItems.map((item) => (
-            <LineItemRow
-              key={item.id}
-              bookingId={booking.id}
-              invoiceLocked={invoiceLocked}
-              item={item}
-            />
-          ))
-        ) : (
-          <EmptyState text="Line items will appear after the first invoice refresh." />
-        )}
-      </div>
-
-      {!invoiceLocked ? (
-        <div className="mt-4 grid gap-3 xl:grid-cols-2">
-          <form
-            action={`/api/agent/bookings/${booking.id}/line-items`}
-            method="POST"
-            className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3"
-          >
-            <input type="hidden" name="item_type" value="existing_extra_service" />
-            <p className="text-[13px] font-semibold">Add existing service</p>
-            <select name="description" className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
-              {services.length > 0 ? (
-                services.map((service) => (
-                  <option key={service.id} value={service.serviceName}>
-                    {service.serviceName}
-                  </option>
-                ))
-              ) : (
-                <option value="Extra service">Extra service</option>
-              )}
-            </select>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Input type="number" name="quantity" min="1" defaultValue="1" />
-              <Input type="number" name="unit_price_dkk" min="0" placeholder="Unit price DKK" required />
-            </div>
-            <Button type="submit">Add service</Button>
-          </form>
-
-          <form
-            action={`/api/agent/bookings/${booking.id}/line-items`}
-            method="POST"
-            className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3"
-          >
-            <input type="hidden" name="item_type" value="manual_extra_charge" />
-            <p className="text-[13px] font-semibold">Add manual line</p>
-            <Input name="description" placeholder="Description" required />
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Input type="number" name="quantity" min="1" defaultValue="1" />
-              <Input type="number" name="unit_price_dkk" min="0" placeholder="Unit price DKK" required />
-            </div>
-            <Button type="submit" variant="outline">Add manual charge</Button>
-          </form>
-        </div>
-      ) : (
-        <div className="mt-4 rounded-2xl border border-[#DDE3F5] bg-white/60 px-3 py-3 text-[13px] font-medium text-[#4B5563]">
-          Invoice has been sent or paid, so extra charge lines are locked.
-        </div>
-      )}
-
-      <PriceSummaryCard summary={summary} />
-
-      <div className="mt-4">
-        <HtmlInvoiceManager
-          bookingId={booking.id}
-          initialData={invoiceData}
-          locale="en"
+      <div className="border-t border-[#e8ebf5] px-4 py-5">
+        <BookingTabs
+          tabs={[
+            {
+              id: "details",
+              label: "Details",
+              content: (
+                <div>
+                  <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                    <Info label="Phone" value={booking.customerPhone} />
+                    <Info label="Email" value={booking.customerEmail} />
+                    <Info label="Address" value={booking.customerAddress} />
+                    <Info label="Vehicle" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
+                    <Info label="Service" value={`${booking.packageLabel} - ${booking.category}`} />
+                    <Info label="Customer notes" value={booking.customerNotes || "-"} />
+                    <Info label="Admin notes" value={booking.adminNotes || "-"} />
+                    <Info label="Agent note" value={booking.agentNote || "-"} />
+                  </div>
+                  {booking.addons.length > 0 ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {booking.addons.map((addon) => (
+                        <span key={addon.id} className="rounded-full border border-[#DDE3F5] bg-white/60 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
+                          {addon.label}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ),
+            },
+            {
+              id: "actions",
+              label: "Job actions",
+              content: (
+                <div className="grid gap-3">
+                  <div className="grid gap-3 lg:grid-cols-2">
+                    <form action={`/api/agent/bookings/${booking.id}/accept`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
+                      <Textarea name="note" placeholder="Optional note for admin" className="min-h-16" />
+                      <Button type="submit">Accept booking</Button>
+                    </form>
+                    <form action={`/api/agent/bookings/${booking.id}/reject`} method="POST" className="grid gap-2 rounded-2xl border border-white/55 bg-white/50 p-3">
+                      <Textarea name="note" placeholder="Optional rejection reason" className="min-h-16" />
+                      <Button type="submit" variant="outline">Reject booking</Button>
+                    </form>
+                  </div>
+                  <form action={`/api/agent/bookings/${booking.id}/status`} method="POST" className="grid gap-3 rounded-2xl border border-white/55 bg-white/50 p-3 md:grid-cols-[12rem_minmax(0,1fr)_auto]">
+                    <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
+                      <option value="accepted">Accepted</option>
+                      <option value="in_progress">In progress</option>
+                      <option value="done">Done</option>
+                      <option value="cancelled_by_agent">Cancel</option>
+                    </select>
+                    <Input name="note" placeholder="Internal note or cancellation reason" defaultValue={booking.agentNote} />
+                    <Button type="submit">Update status</Button>
+                  </form>
+                </div>
+              ),
+            },
+            {
+              id: "invoice",
+              label: "Invoice",
+              content: (
+                <div className="grid gap-4">
+                  <div className="grid gap-3 xl:grid-cols-2">
+                    <form
+                      action={`/api/agent/bookings/${booking.id}/line-items`}
+                      method="POST"
+                      className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3"
+                    >
+                      <input type="hidden" name="item_type" value="existing_extra_service" />
+                      <p className="text-[13px] font-semibold">Add existing service</p>
+                      <select name="description" className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
+                        {services.length > 0 ? (
+                          services.map((service) => (
+                            <option key={service.id} value={service.serviceName}>
+                              {service.serviceName}
+                            </option>
+                          ))
+                        ) : (
+                          <option value="Extra service">Extra service</option>
+                        )}
+                      </select>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Input type="number" name="quantity" min="1" defaultValue="1" />
+                        <Input type="number" name="unit_price_dkk" min="0" placeholder="Unit price DKK" required />
+                      </div>
+                      <Button type="submit">Add service</Button>
+                    </form>
+                    <form
+                      action={`/api/agent/bookings/${booking.id}/line-items`}
+                      method="POST"
+                      className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3"
+                    >
+                      <input type="hidden" name="item_type" value="manual_extra_charge" />
+                      <p className="text-[13px] font-semibold">Add manual line</p>
+                      <Input name="description" placeholder="Description" required />
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <Input type="number" name="quantity" min="1" defaultValue="1" />
+                        <Input type="number" name="unit_price_dkk" min="0" placeholder="Unit price DKK" required />
+                      </div>
+                      <Button type="submit" variant="outline">Add manual charge</Button>
+                    </form>
+                  </div>
+                  <LazyBookingInvoice
+                    bookingId={booking.id}
+                    endpoint={`/api/agent/bookings/${booking.id}/invoice`}
+                    locale="en"
+                  />
+                </div>
+              ),
+            },
+          ]}
         />
       </div>
-    </section>
-  );
-}
-
-function LineItemRow({
-  bookingId,
-  invoiceLocked,
-  item,
-}: {
-  bookingId: string;
-  invoiceLocked: boolean;
-  item: BookingLineItem;
-}) {
-  const editable = item.itemType !== "original_service" && !invoiceLocked && !item.lockedAt;
-  if (!editable) {
-    return (
-      <div className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3 sm:grid-cols-[1fr_auto] sm:items-center">
-        <div>
-          <p className="text-[13px] font-semibold">{item.description}</p>
-          <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">
-            {item.itemType.replaceAll("_", " ")} | Qty {item.quantity} | {formatPrice(item.unitPriceDkk)}
-          </p>
-        </div>
-        <strong className="text-[13px]">{formatPrice(item.totalPriceDkk)}</strong>
-      </div>
-    );
-  }
-
-  return (
-    <form
-      action={`/api/agent/bookings/${bookingId}/line-items/${item.id}`}
-      method="POST"
-      className="grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3 lg:grid-cols-[minmax(0,1fr)_5rem_8rem_auto] lg:items-center"
-    >
-      <Input name="description" defaultValue={item.description} />
-      <Input type="number" name="quantity" min="1" defaultValue={item.quantity} />
-      <Input type="number" name="unit_price_dkk" min="0" defaultValue={item.unitPriceDkk} />
-      <div className="flex gap-2">
-        <Button type="submit" className="h-10">Save</Button>
-        <Button type="submit" name="action" value="delete" variant="outline" className="h-10">
-          Remove
-        </Button>
-      </div>
-    </form>
-  );
-}
-
-function PriceSummaryCard({ summary }: { summary: BookingInvoiceData["summary"] }) {
-  return (
-    <div className="mt-4 grid gap-2 rounded-2xl border border-white/55 bg-white/55 p-3 text-[13px] font-medium text-[#4B5563]">
-      <SummaryRow label="Original booking price" value={summary.originalBookingPriceDkk} />
-      <SummaryRow label="Extra services" value={summary.existingExtraServicesDkk} />
-      <SummaryRow label="Manual extra charges" value={summary.manualExtraChargesDkk} />
-      <SummaryRow label="Subtotal ex. moms" value={summary.subtotalExMomsDkk} />
-      <SummaryRow label="Moms 25% included" value={summary.momsAmountDkk} />
-      <SummaryRow label="Total customer pays" value={summary.totalInclMomsDkk} strong />
-    </div>
-  );
-}
-
-function SummaryRow({
-  label,
-  value,
-  strong = false,
-}: {
-  label: string;
-  value: number;
-  strong?: boolean;
-}) {
-  return (
-    <div className={cn("flex justify-between gap-3", strong ? "text-[#1F2340]" : "")}>
-      <span>{label}</span>
-      <strong>{formatPrice(value)}</strong>
-    </div>
+    </details>
   );
 }
 
@@ -623,6 +505,57 @@ function InvoiceBadge({ status }: { status: string }) {
     <span className="rounded-full border border-[#DDE3F5] bg-white/70 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
       {status}
     </span>
+  );
+}
+
+function AgentInvoicesView({ invoices }: { invoices: Invoice[] }) {
+  return (
+    <section className="overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_10px_32px_rgba(31,35,64,0.06)]">
+      {invoices.length > 0 ? (
+        <div className="divide-y divide-[#e8ebf5]">
+          {invoices.map((invoice) => (
+            <article
+              key={invoice.id}
+              className="grid gap-3 px-4 py-4 lg:grid-cols-[1fr_1fr_8rem_auto] lg:items-center"
+            >
+              <div>
+                <p className="text-[14px] font-bold text-[#1f2340]">
+                  {invoice.invoiceNumber}
+                </p>
+                <p className="mt-1 text-[12px] font-medium text-[#7b829f]">
+                  Booking {invoice.bookingId}
+                </p>
+              </div>
+              <p className="text-[13px] font-semibold text-[#374151]">
+                {invoice.customerEmail || invoice.sentToEmail}
+              </p>
+              <div>
+                <p className="text-[14px] font-bold text-[#1f2340]">
+                  {formatPrice(invoice.totalInclMomsDkk)}
+                </p>
+                <p className="mt-1 text-[12px] font-semibold uppercase text-[#7b829f]">
+                  {invoice.status}
+                </p>
+              </div>
+              {invoice.publicUrl ? (
+                <a
+                  href={invoice.publicUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d4e3ed] bg-white px-4 text-[13px] font-semibold text-[#08745a]"
+                >
+                  View / print
+                </a>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      ) : (
+        <div className="p-4">
+          <EmptyState text="No invoices are available yet." />
+        </div>
+      )}
+    </section>
   );
 }
 
