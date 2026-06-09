@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { CalendarClock, Eye, EyeOff, Image as ImageIcon, Plus, Settings2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { ImageUploadForm } from "@/components/admin/image-upload-form";
 import { Textarea } from "@/components/ui/textarea";
 import type {
   BookingSetupAddon,
@@ -401,14 +402,6 @@ function ImagePreview({ imageUrl, label }: { imageUrl: string; label: string }) 
   );
 }
 
-function ImageUploadForm({ action }: { action: string }) {
-  return (
-    <form action={action} method="POST" encType="multipart/form-data" className="grid gap-2 lg:w-44">
-      <Input type="file" name="image" accept="image/png,image/jpeg,image/webp" />
-      <Button type="submit" variant="outline" className="h-10">Upload image</Button>
-    </form>
-  );
-}
 
 function StatusPill({ visible }: { visible: boolean }) {
   return (
