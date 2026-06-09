@@ -219,10 +219,7 @@ export function HtmlInvoiceManager({
     setSendStage(locale === "en" ? "Starting" : "Starter");
     const progressPromise = advanceProgress();
     try {
-      const endpoint =
-        locale === "da"
-          ? "/api/admin/invoices/create-and-send"
-          : "/api/invoices/generate-send";
+      const endpoint = "/api/invoices/generate-send";
       const payload = await request(endpoint, "POST", { bookingId });
       await progressPromise;
       setSendProgress(100);
