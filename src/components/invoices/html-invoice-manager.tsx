@@ -16,6 +16,9 @@ type ApiResponse = {
   emailSent?: boolean;
   invoiceId?: string;
   invoiceUrl?: string;
+  invoiceNumber?: string;
+  sentAt?: string;
+  customerEmail?: string;
   invoiceData?: BookingInvoiceData;
 };
 
@@ -56,6 +59,8 @@ export function HtmlInvoiceManager({
     })) || []
   );
   const [pending, setPending] = useState<"create" | "save" | "send" | null>(null);
+  const [sendProgress, setSendProgress] = useState(0);
+  const [sendStage, setSendStage] = useState(locale === "en" ? "Idle" : "Klar");
   const [feedback, setFeedback] = useState<{
     tone: "success" | "warning" | "error";
     message: string;
@@ -71,6 +76,7 @@ export function HtmlInvoiceManager({
           send: "Send invoice",
           resend: "Send again",
           sending: "Sending...",
+          alreadySent: "Invoice already sent",
           preview: "Preview / print",
           email: "Customer email",
           status: "Status",
@@ -87,6 +93,7 @@ export function HtmlInvoiceManager({
           send: "Send faktura",
           resend: "Send igen",
           sending: "Sender...",
+          alreadySent: "Faktura er allerede sendt",
           preview: "Vis / print",
           email: "Kundens e-mail",
           status: "Status",
@@ -132,6 +139,31 @@ export function HtmlInvoiceManager({
     }
     applyPayload(payload);
     return payload;
+  };
+
+  const progressSteps =
+    locale === "en"
+      ? [
+          { percent: 15, label: "Validating booking" },
+          { percent: 30, label: "Creating invoice" },
+          { percent: 50, label: "Calculating VAT" },
+          { percent: 70, label: "Preparing email" },
+          { percent: 90, label: "Sending email" },
+        ]
+      : [
+          { percent: 15, label: "Validerer booking" },
+          { percent: 30, label: "Opretter faktura" },
+          { percent: 50, label: "Beregner moms" },
+          { percent: 70, label: "Klargor email" },
+          { percent: 90, label: "Sender email" },
+        ];
+
+  const advanceProgress = async () => {
+    for (const step of progressSteps) {
+      setSendProgress(step.percent);
+      setSendStage(step.label);
+      await new Promise((resolve) => window.setTimeout(resolve, 240));
+    }
   };
 
   const create = async () => {
@@ -183,38 +215,31 @@ export function HtmlInvoiceManager({
   const send = async () => {
     setPending("send");
     setFeedback(null);
+    setSendProgress(0);
+    setSendStage(locale === "en" ? "Starting" : "Starter");
+    const progressPromise = advanceProgress();
     try {
-      let current = invoice;
-      let createdNow = false;
-      if (!current) {
-        const created = await request("/api/invoices/create-draft", "POST", {
-          bookingId,
-        });
-        current = created.invoiceData?.invoice || null;
-        createdNow = true;
-      }
-      if (!current) throw new Error("Invoice could not be created.");
-      if (createdNow) {
-        // Creation already snapshots the current booking lines on the server.
-      } else if (current.status === "sent" || current.status === "paid") {
-        const saved = await request(`/api/invoices/${current.id}`, "PATCH", {
-          invoiceNotes: notes,
-        });
-        current = saved.invoiceData?.invoice || current;
-      } else {
-        const saved = await request(`/api/invoices/${current.id}`, "PATCH", {
-          customerEmail,
-          invoiceNotes: notes,
-          manualLines: lines,
-        });
-        current = saved.invoiceData?.invoice || current;
-      }
-      const payload = await request(`/api/invoices/${current.id}/send`, "POST");
+      const endpoint =
+        locale === "da"
+          ? "/api/admin/invoices/create-and-send"
+          : "/api/invoices/generate-send";
+      const payload = await request(endpoint, "POST", { bookingId });
+      await progressPromise;
+      setSendProgress(100);
+      setSendStage(payload.emailSent ? (locale === "en" ? "Sent" : "Sendt") : "Saved");
       setFeedback({
         tone: payload.emailSent ? "success" : "warning",
-        message: payload.message || "Invoice send action completed.",
+        message:
+          payload.message ||
+          (payload.emailSent
+            ? `${locale === "en" ? "Invoice" : "Faktura"} ${payload.invoiceNumber || ""} ${
+                locale === "en" ? "sent to" : "sendt til"
+              } ${payload.customerEmail || customerEmail}`.trim()
+            : "Invoice was saved, but email is not configured."),
       });
     } catch (error) {
+      setSendProgress(100);
+      setSendStage(locale === "en" ? "Failed" : "Fejlet");
       setFeedback({
         tone: "error",
         message: error instanceof Error ? error.message : "Invoice could not be sent.",
@@ -272,6 +297,28 @@ export function HtmlInvoiceManager({
               : t.send}
         </Button>
       </div>
+
+      {invoice?.emailSent ? (
+        <p className="rounded-lg border border-[#b7e6cb] bg-[#effaf4] px-3 py-2 text-xs font-semibold text-[#16643f]">
+          {t.alreadySent}
+          {invoice.emailSentAt || invoice.sentAt ? `: ${invoice.emailSentAt || invoice.sentAt}` : ""}
+        </p>
+      ) : null}
+
+      {pending === "send" || sendProgress > 0 ? (
+        <div className="grid gap-2 rounded-lg border border-[#dce8ec] bg-white p-3">
+          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-[#48616b]">
+            <span>{sendStage}</span>
+            <span>{sendProgress}%</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-[#e8f1f4]">
+            <div
+              className="h-full rounded-full bg-[#55b9df] transition-all duration-300"
+              style={{ width: `${sendProgress}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {invoice ? (
         <div className="grid gap-3 rounded-lg border border-[#dce8ec] bg-[#f8fbfb] p-4">

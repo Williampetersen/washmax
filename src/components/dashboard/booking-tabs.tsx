@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type BookingTab = {
@@ -9,7 +9,7 @@ export type BookingTab = {
   content: ReactNode;
 };
 
-export function BookingTabs({
+function BookingTabsComponent({
   tabs,
   defaultTab,
   className,
@@ -19,7 +19,13 @@ export function BookingTabs({
   className?: string;
 }) {
   const [activeTab, setActiveTab] = useState(defaultTab || tabs[0]?.id || "");
-  const activeContent = tabs.find((tab) => tab.id === activeTab)?.content;
+  const activeContent = useMemo(
+    () => tabs.find((tab) => tab.id === activeTab)?.content,
+    [activeTab, tabs]
+  );
+  const selectTab = useCallback((tabId: string) => {
+    setActiveTab((current) => (current === tabId ? current : tabId));
+  }, []);
 
   return (
     <div className={cn("grid gap-4", className)}>
@@ -36,7 +42,7 @@ export function BookingTabs({
               type="button"
               role="tab"
               aria-selected={active}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => selectTab(tab.id)}
               className={cn(
                 "min-w-max rounded-xl px-3.5 py-2 text-[13px] font-semibold transition",
                 active
@@ -53,3 +59,5 @@ export function BookingTabs({
     </div>
   );
 }
+
+export const BookingTabs = memo(BookingTabsComponent);

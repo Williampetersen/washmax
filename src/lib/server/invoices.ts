@@ -60,6 +60,12 @@ type RawInvoice = {
   subtotal_ex_moms_dkk: number | null;
   moms_amount_dkk: number | null;
   total_incl_moms_dkk: number | null;
+  subtotal_ex_vat_ore: number | null;
+  vat_amount_ore: number | null;
+  total_inc_vat_ore: number | null;
+  vat_rate_snapshot: number | null;
+  issue_date: string | Date | null;
+  due_date: string | Date | null;
   subtotal_amount: number | null;
   vat_amount: number | null;
   total_amount: number | null;
@@ -85,10 +91,16 @@ type RawInvoiceItem = {
   id: string;
   invoice_id: string;
   booking_line_item_id: string | null;
+  type?: string | null;
   description: string;
   quantity: number;
   unit_price_dkk: number;
   line_total_dkk: number;
+  unit_price_ex_vat_ore?: number | null;
+  vat_rate?: number | null;
+  line_subtotal_ex_vat_ore?: number | null;
+  line_vat_ore?: number | null;
+  line_total_inc_vat_ore?: number | null;
   created_at: string | Date;
 };
 
@@ -114,10 +126,16 @@ export type InvoiceItem = {
   id: string;
   invoiceId: string;
   bookingLineItemId: string;
+  type: string;
   description: string;
   quantity: number;
   unitPriceDkk: number;
   lineTotalDkk: number;
+  unitPriceExVatOre: number;
+  vatRate: number;
+  lineSubtotalExVatOre: number;
+  lineVatOre: number;
+  lineTotalIncVatOre: number;
   createdAt: string;
 };
 
@@ -207,13 +225,174 @@ const createPublicToken = () => randomBytes(32).toString("base64url");
 const text = (value: unknown) => String(value ?? "").trim();
 const dateText = (value: unknown) =>
   value instanceof Date ? value.toISOString() : text(value);
+const escapeHtml = (value: unknown) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+const formatDkk = (value: number) =>
+  new Intl.NumberFormat("da-DK", {
+    style: "currency",
+    currency: "DKK",
+  }).format(Number(value || 0));
 const normalizeQuantity = (value: unknown) =>
   Math.max(1, Math.round(Number(value || 1)));
 const normalizePrice = (value: unknown) =>
   Math.max(0, Math.round(Number(value || 0)));
+const DEFAULT_VAT_RATE = 25;
+const dkkToOre = (value: number) => Math.round(Number(value || 0) * 100);
+const oreToDkk = (value: number) => Math.round(Number(value || 0) / 100);
+const getLineVatSnapshot = (totalIncVatOre: number, vatRate = DEFAULT_VAT_RATE) => {
+  const rate = Math.max(0, Number(vatRate || 0));
+  const subtotalExVatOre =
+    rate > 0 ? Math.round((totalIncVatOre * 100) / (100 + rate)) : totalIncVatOre;
+  const vatOre = totalIncVatOre - subtotalExVatOre;
+  return {
+    vatRate: rate,
+    subtotalExVatOre,
+    vatOre,
+    totalIncVatOre,
+  };
+};
 const baseUrl = () =>
   process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://cleanwash.dk";
 const publicPath = (token: string) => (token ? `/invoices/${token}` : "");
+
+const recordInvoiceEmailLog = async (input: {
+  invoiceId: string;
+  bookingId: string;
+  recipientEmail: string;
+  subject: string;
+  status: "success" | "failed";
+  errorMessage?: string;
+  smtpMessageId?: string;
+}) => {
+  const sql = getSql();
+  await sql`
+    INSERT INTO invoice_email_logs (
+      id, invoice_id, booking_id, recipient_email, subject, status,
+      error_message, smtp_message_id
+    )
+    VALUES (
+      ${createId("iel")}, ${input.invoiceId}, ${input.bookingId},
+      ${input.recipientEmail}, ${input.subject}, ${input.status},
+      ${input.errorMessage || null}, ${input.smtpMessageId || null}
+    );
+  `;
+};
+
+const renderInvoiceEmailHtml = (input: {
+  invoice: Invoice;
+  data: BookingInvoiceData;
+  settings: Awaited<ReturnType<typeof getBookingSettings>>;
+  invoiceUrl: string;
+}) => {
+  const customerName =
+    [input.data.customer.firstName, input.data.customer.lastName].filter(Boolean).join(" ") ||
+    input.data.customer.email;
+  const customerAddress = [
+    input.data.customer.address,
+    [input.data.customer.postalCode, input.data.customer.city].filter(Boolean).join(" "),
+  ]
+    .filter(Boolean)
+    .join(", ");
+  const rows = input.invoice.items
+    .map(
+      (item) => `
+        <tr>
+          <td style="padding:12px;border-bottom:1px solid #dce8ed;">${escapeHtml(item.description)}</td>
+          <td style="padding:12px;border-bottom:1px solid #dce8ed;text-align:center;">${item.quantity}</td>
+          <td style="padding:12px;border-bottom:1px solid #dce8ed;text-align:right;white-space:nowrap;">${escapeHtml(formatDkk(item.unitPriceDkk))}</td>
+          <td style="padding:12px;border-bottom:1px solid #dce8ed;text-align:right;white-space:nowrap;">${escapeHtml(formatDkk(item.lineTotalDkk))}</td>
+        </tr>
+      `
+    )
+    .join("");
+
+  return `
+    <div style="margin:0;background:#edf4f5;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#102d38;line-height:1.55;">
+      <div style="max-width:720px;margin:0 auto;overflow:hidden;border-radius:22px;background:#ffffff;box-shadow:0 20px 60px rgba(18,61,82,.12);">
+        <div style="padding:30px;background:linear-gradient(135deg,#102d38,#174f61);color:#ffffff;">
+          <p style="margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9e8d8;">Invoice / Faktura</p>
+          <h1 style="margin:0;font-size:30px;line-height:1.2;">${escapeHtml(input.invoice.invoiceNumber)}</h1>
+          <p style="margin:10px 0 0;color:#d9eff1;">${escapeHtml(input.settings.companyName)} · ${escapeHtml(input.data.booking.appointmentLabel)}</p>
+        </div>
+        <div style="padding:28px;">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;">
+            <div style="border:1px solid #dce8ed;border-radius:16px;padding:16px;background:#fbfdfd;">
+              <p style="margin:0 0 8px;color:#12b886;font-size:11px;font-weight:800;text-transform:uppercase;">Kunde</p>
+              <p style="margin:0;font-weight:800;">${escapeHtml(customerName)}</p>
+              <p style="margin:4px 0 0;color:#526a74;">${escapeHtml(input.data.customer.email)}</p>
+              <p style="margin:4px 0 0;color:#526a74;">${escapeHtml(input.data.customer.phone)}</p>
+              <p style="margin:4px 0 0;color:#526a74;">${escapeHtml(customerAddress)}</p>
+            </div>
+            <div style="border:1px solid #dce8ed;border-radius:16px;padding:16px;background:#fbfdfd;">
+              <p style="margin:0 0 8px;color:#12b886;font-size:11px;font-weight:800;text-transform:uppercase;">Booking</p>
+              <p style="margin:0;color:#526a74;">Booking: <strong style="color:#102d38;">${escapeHtml(input.data.booking.id)}</strong></p>
+              <p style="margin:4px 0 0;color:#526a74;">Bil: <strong style="color:#102d38;">${escapeHtml(input.data.booking.vehicleName)}</strong></p>
+              <p style="margin:4px 0 0;color:#526a74;">Regnr.: <strong style="color:#102d38;">${escapeHtml(input.data.booking.registrationNumber)}</strong></p>
+              <p style="margin:4px 0 0;color:#526a74;">Tid: <strong style="color:#102d38;">${escapeHtml(input.data.booking.appointmentLabel)}</strong></p>
+            </div>
+          </div>
+          <table style="width:100%;border-collapse:collapse;">
+            <thead>
+              <tr>
+                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:left;border-radius:10px 0 0 10px;">Beskrivelse</th>
+                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:center;">Antal</th>
+                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:right;">Stk.</th>
+                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:right;border-radius:0 10px 10px 0;">Belob</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <table style="width:100%;max-width:360px;margin:22px 0 0 auto;border-collapse:collapse;">
+            <tr><td style="padding:8px;color:#526a74;">Subtotal ekskl. moms</td><td style="padding:8px;text-align:right;font-weight:800;">${escapeHtml(formatDkk(input.invoice.subtotalExMomsDkk))}</td></tr>
+            <tr><td style="padding:8px;color:#526a74;">Moms/VAT 25%</td><td style="padding:8px;text-align:right;font-weight:800;">${escapeHtml(formatDkk(input.invoice.momsAmountDkk))}</td></tr>
+            <tr><td style="padding:14px 8px;border-top:2px solid #123d52;font-size:18px;font-weight:900;">Total inkl. moms</td><td style="padding:14px 8px;border-top:2px solid #123d52;text-align:right;font-size:22px;font-weight:900;color:#55b9df;">${escapeHtml(formatDkk(input.invoice.totalInclMomsDkk))}</td></tr>
+          </table>
+          <div style="margin-top:22px;padding:16px;border-left:4px solid #12b886;border-radius:0 14px 14px 0;background:#f0faf6;">
+            <p style="margin:0 0 6px;font-weight:800;">Betaling</p>
+            <p style="margin:0;color:#526a74;">Betaling sker efter aftale med ${escapeHtml(input.settings.companyName)}. Kontakt ${escapeHtml(input.settings.supportEmail)} ved sporgsmal.</p>
+          </div>
+          <p style="margin:22px 0 0;"><a href="${escapeHtml(input.invoiceUrl)}" style="display:inline-block;border-radius:999px;background:#12b886;color:#ffffff;padding:13px 22px;text-decoration:none;font-weight:800;">Se og print faktura</a></p>
+          <p style="margin:18px 0 0;color:#647983;font-size:12px;">${escapeHtml(input.settings.companyName)} · ${escapeHtml(input.settings.supportEmail)}</p>
+        </div>
+      </div>
+    </div>
+  `;
+};
+
+const renderInvoiceEmailText = (input: {
+  invoice: Invoice;
+  data: BookingInvoiceData;
+  settings: Awaited<ReturnType<typeof getBookingSettings>>;
+  invoiceUrl: string;
+}) =>
+  [
+    `Invoice / Faktura ${input.invoice.invoiceNumber}`,
+    "",
+    `Kunde: ${[input.data.customer.firstName, input.data.customer.lastName].filter(Boolean).join(" ") || input.data.customer.email}`,
+    `Email: ${input.data.customer.email}`,
+    `Telefon: ${input.data.customer.phone}`,
+    `Booking: ${input.data.booking.id}`,
+    `Bil: ${input.data.booking.vehicleName}`,
+    `Regnr.: ${input.data.booking.registrationNumber}`,
+    `Tid: ${input.data.booking.appointmentLabel}`,
+    "",
+    ...input.invoice.items.map(
+      (item) =>
+        `${item.description} | Antal ${item.quantity} | Stk. ${formatDkk(item.unitPriceDkk)} | ${formatDkk(item.lineTotalDkk)}`
+    ),
+    "",
+    `Subtotal ekskl. moms: ${formatDkk(input.invoice.subtotalExMomsDkk)}`,
+    `Moms/VAT 25%: ${formatDkk(input.invoice.momsAmountDkk)}`,
+    `Total inkl. moms: ${formatDkk(input.invoice.totalInclMomsDkk)}`,
+    "",
+    `Se og print faktura: ${input.invoiceUrl}`,
+    `Support: ${input.settings.supportEmail}`,
+  ].join("\n");
 
 const normalizeStatus = (status: string): InvoiceStatus => {
   if (status === "generated") return "ready";
@@ -245,6 +424,12 @@ const applyInvoiceSchema = async () => {
       subtotal_ex_moms_dkk INTEGER NOT NULL DEFAULT 0,
       moms_amount_dkk INTEGER NOT NULL DEFAULT 0,
       total_incl_moms_dkk INTEGER NOT NULL DEFAULT 0,
+      subtotal_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      vat_amount_ore INTEGER NOT NULL DEFAULT 0,
+      total_inc_vat_ore INTEGER NOT NULL DEFAULT 0,
+      vat_rate_snapshot NUMERIC NOT NULL DEFAULT 25,
+      issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      due_date DATE NOT NULL DEFAULT (CURRENT_DATE + 7),
       invoice_html TEXT,
       invoice_subject TEXT,
       invoice_notes TEXT,
@@ -274,6 +459,14 @@ const applyInvoiceSchema = async () => {
       ADD COLUMN IF NOT EXISTS subtotal_amount INTEGER NOT NULL DEFAULT 0,
       ADD COLUMN IF NOT EXISTS vat_amount INTEGER NOT NULL DEFAULT 0,
       ADD COLUMN IF NOT EXISTS total_amount INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS subtotal_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS vat_amount_ore INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS total_inc_vat_ore INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS vat_rate_snapshot NUMERIC NOT NULL DEFAULT 25,
+      ADD COLUMN IF NOT EXISTS issue_date DATE NOT NULL DEFAULT CURRENT_DATE,
+      ADD COLUMN IF NOT EXISTS due_date DATE NOT NULL DEFAULT (CURRENT_DATE + 7),
+      ADD COLUMN IF NOT EXISTS sent_by TEXT,
+      ADD COLUMN IF NOT EXISTS email_message_id TEXT,
       ADD COLUMN IF NOT EXISTS email_sent BOOLEAN DEFAULT FALSE,
       ADD COLUMN IF NOT EXISTS email_sent_at TIMESTAMPTZ,
       ADD COLUMN IF NOT EXISTS last_error TEXT;
@@ -285,6 +478,9 @@ const applyInvoiceSchema = async () => {
       subtotal_amount = COALESCE(NULLIF(subtotal_amount, 0), subtotal_ex_moms_dkk, 0),
       vat_amount = COALESCE(NULLIF(vat_amount, 0), moms_amount_dkk, 0),
       total_amount = COALESCE(NULLIF(total_amount, 0), total_incl_moms_dkk, 0),
+      subtotal_ex_vat_ore = COALESCE(NULLIF(subtotal_ex_vat_ore, 0), subtotal_ex_moms_dkk * 100, 0),
+      vat_amount_ore = COALESCE(NULLIF(vat_amount_ore, 0), moms_amount_dkk * 100, 0),
+      total_inc_vat_ore = COALESCE(NULLIF(total_inc_vat_ore, 0), total_incl_moms_dkk * 100, 0),
       public_token = COALESCE(
         NULLIF(public_token, ''),
         MD5(RANDOM()::TEXT || CLOCK_TIMESTAMP()::TEXT || id) ||
@@ -300,12 +496,88 @@ const applyInvoiceSchema = async () => {
       id TEXT PRIMARY KEY,
       invoice_id TEXT NOT NULL,
       booking_line_item_id TEXT,
+      type TEXT NOT NULL DEFAULT 'custom',
       description TEXT NOT NULL,
       quantity INTEGER NOT NULL DEFAULT 1,
       unit_price_dkk INTEGER NOT NULL DEFAULT 0,
       line_total_dkk INTEGER NOT NULL DEFAULT 0,
+      unit_price_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      vat_rate NUMERIC NOT NULL DEFAULT 25,
+      line_subtotal_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      line_vat_ore INTEGER NOT NULL DEFAULT 0,
+      line_total_inc_vat_ore INTEGER NOT NULL DEFAULT 0,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+  `;
+  await sql`
+    ALTER TABLE invoice_items
+      ADD COLUMN IF NOT EXISTS type TEXT NOT NULL DEFAULT 'custom',
+      ADD COLUMN IF NOT EXISTS unit_price_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS vat_rate NUMERIC NOT NULL DEFAULT 25,
+      ADD COLUMN IF NOT EXISTS line_subtotal_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS line_vat_ore INTEGER NOT NULL DEFAULT 0,
+      ADD COLUMN IF NOT EXISTS line_total_inc_vat_ore INTEGER NOT NULL DEFAULT 0;
+  `;
+  await sql`
+    UPDATE invoice_items
+    SET
+      line_total_inc_vat_ore = COALESCE(NULLIF(line_total_inc_vat_ore, 0), line_total_dkk * 100),
+      line_subtotal_ex_vat_ore = COALESCE(NULLIF(line_subtotal_ex_vat_ore, 0), ROUND((line_total_dkk * 10000.0) / 125.0)::INTEGER),
+      line_vat_ore = COALESCE(NULLIF(line_vat_ore, 0), (line_total_dkk * 100) - ROUND((line_total_dkk * 10000.0) / 125.0)::INTEGER),
+      unit_price_ex_vat_ore = COALESCE(NULLIF(unit_price_ex_vat_ore, 0), ROUND((unit_price_dkk * 10000.0) / 125.0)::INTEGER)
+    WHERE line_total_inc_vat_ore = 0 OR line_subtotal_ex_vat_ore = 0 OR line_vat_ore = 0 OR unit_price_ex_vat_ore = 0;
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS invoice_lines (
+      id TEXT PRIMARY KEY,
+      invoice_id TEXT NOT NULL REFERENCES invoices(id) ON DELETE CASCADE,
+      type TEXT NOT NULL DEFAULT 'custom',
+      description TEXT NOT NULL,
+      quantity INTEGER NOT NULL DEFAULT 1,
+      unit_price_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      vat_rate NUMERIC NOT NULL DEFAULT 25,
+      line_subtotal_ex_vat_ore INTEGER NOT NULL DEFAULT 0,
+      line_vat_ore INTEGER NOT NULL DEFAULT 0,
+      line_total_inc_vat_ore INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS invoice_email_logs (
+      id TEXT PRIMARY KEY,
+      invoice_id TEXT REFERENCES invoices(id) ON DELETE CASCADE,
+      booking_id TEXT REFERENCES bookings(id) ON DELETE CASCADE,
+      recipient_email TEXT NOT NULL,
+      subject TEXT NOT NULL,
+      status TEXT NOT NULL,
+      error_message TEXT,
+      smtp_message_id TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql`
+    CREATE TABLE IF NOT EXISTS invoice_settings (
+      settings_key TEXT PRIMARY KEY DEFAULT 'default',
+      company_name TEXT NOT NULL DEFAULT 'WashMax',
+      company_address TEXT NOT NULL DEFAULT '',
+      company_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+      company_phone TEXT NOT NULL DEFAULT '',
+      company_cvr TEXT NOT NULL DEFAULT '',
+      invoice_prefix TEXT NOT NULL DEFAULT 'CW',
+      invoice_due_days INTEGER NOT NULL DEFAULT 7,
+      invoice_footer_text TEXT,
+      bank_name TEXT,
+      bank_reg_number TEXT,
+      bank_account_number TEXT,
+      mobilepay_number TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+  `;
+  await sql`
+    INSERT INTO invoice_settings (settings_key)
+    VALUES ('default')
+    ON CONFLICT (settings_key) DO NOTHING;
   `;
   await sql`
     CREATE TABLE IF NOT EXISTS invoice_sequences (
@@ -357,10 +629,16 @@ const invoiceItemFromRow = (row: RawInvoiceItem): InvoiceItem => ({
   id: text(row.id),
   invoiceId: text(row.invoice_id),
   bookingLineItemId: text(row.booking_line_item_id),
+  type: text(row.type) || "custom",
   description: text(row.description),
   quantity: Number(row.quantity || 1),
   unitPriceDkk: Number(row.unit_price_dkk || 0),
   lineTotalDkk: Number(row.line_total_dkk || 0),
+  unitPriceExVatOre: Number(row.unit_price_ex_vat_ore || 0),
+  vatRate: Number(row.vat_rate ?? DEFAULT_VAT_RATE),
+  lineSubtotalExVatOre: Number(row.line_subtotal_ex_vat_ore || 0),
+  lineVatOre: Number(row.line_vat_ore || 0),
+  lineTotalIncVatOre: Number(row.line_total_inc_vat_ore || 0),
   createdAt: dateText(row.created_at),
 });
 
@@ -433,8 +711,17 @@ export const calculatePriceSummary = (
 };
 
 const summaryFromInvoiceItems = (items: InvoiceItem[]): PriceSummary => {
-  const total = items.reduce((sum, item) => sum + item.lineTotalDkk, 0);
-  const vat = Math.round(total * 0.2);
+  const totalOre = items.reduce(
+    (sum, item) => sum + (item.lineTotalIncVatOre || dkkToOre(item.lineTotalDkk)),
+    0
+  );
+  const vatOre = items.reduce(
+    (sum, item) => sum + (item.lineVatOre || getLineVatSnapshot(dkkToOre(item.lineTotalDkk)).vatOre),
+    0
+  );
+  const subtotalOre = Math.max(0, totalOre - vatOre);
+  const total = oreToDkk(totalOre);
+  const vat = oreToDkk(vatOre);
   return {
     originalBookingPriceDkk: items[0]?.lineTotalDkk || total,
     existingExtraServicesDkk: 0,
@@ -444,7 +731,7 @@ const summaryFromInvoiceItems = (items: InvoiceItem[]): PriceSummary => {
     ),
     totalInclMomsDkk: total,
     momsAmountDkk: vat,
-    subtotalExMomsDkk: total - vat,
+    subtotalExMomsDkk: oreToDkk(subtotalOre),
   };
 };
 
@@ -522,6 +809,13 @@ const loadInvoiceItems = async (invoiceId: string) => {
   `;
   return rows.map(invoiceItemFromRow);
 };
+
+const invoiceLineTypeFromBookingItem = (itemType: BookingLineItemType) =>
+  itemType === "original_service"
+    ? "package"
+    : itemType === "existing_extra_service"
+      ? "addon"
+      : "custom";
 
 const latestInvoiceForBooking = async (bookingId: string) => {
   await ensureInvoiceSchema();
@@ -698,6 +992,9 @@ const renderAndStoreInvoice = async (
   data: BookingInvoiceData
 ) => {
   const summary = summaryFromInvoiceItems(items);
+  const subtotalExVatOre = items.reduce((sum, item) => sum + item.lineSubtotalExVatOre, 0);
+  const vatAmountOre = items.reduce((sum, item) => sum + item.lineVatOre, 0);
+  const totalIncVatOre = items.reduce((sum, item) => sum + item.lineTotalIncVatOre, 0);
   const settings = await getBookingSettings();
   const customerName =
     [data.customer.firstName, data.customer.lastName].filter(Boolean).join(" ") ||
@@ -754,6 +1051,10 @@ const renderAndStoreInvoice = async (
       subtotal_ex_moms_dkk = ${summary.subtotalExMomsDkk},
       moms_amount_dkk = ${summary.momsAmountDkk},
       total_incl_moms_dkk = ${summary.totalInclMomsDkk},
+      subtotal_ex_vat_ore = ${subtotalExVatOre},
+      vat_amount_ore = ${vatAmountOre},
+      total_inc_vat_ore = ${totalIncVatOre},
+      vat_rate_snapshot = ${DEFAULT_VAT_RATE},
       last_error = NULL,
       updated_at = NOW()
     WHERE id = ${row.id}
@@ -829,28 +1130,50 @@ export const generateInvoiceForBooking = async (input: {
       INSERT INTO invoices (
         id, invoice_number, booking_id, customer_id, agent_id, status,
         currency, invoice_subject, customer_email, sent_to_email, public_token,
-        created_by_role, created_by_id
+        created_by_role, created_by_id, issue_date, due_date
       )
       VALUES (
         ${id}, ${invoiceNumber}, ${input.bookingId}, ${data.customer.id},
         ${input.agentId || data.booking.assignedAgentId || null}, 'draft', 'DKK',
         ${subject}, ${data.customer.email}, ${data.customer.email}, ${publicToken},
-        ${input.actorType}, ${input.actorId || input.agentId || input.actorType}
+        ${input.actorType}, ${input.actorId || input.agentId || input.actorType},
+        CURRENT_DATE, CURRENT_DATE + 7
       )
       RETURNING *;
     `;
   }
 
   await sql`DELETE FROM invoice_items WHERE invoice_id = ${id};`;
+  await sql`DELETE FROM invoice_lines WHERE invoice_id = ${id};`;
   for (const item of data.lineItems) {
+    const totalIncVatOre = dkkToOre(item.totalPriceDkk);
+    const unitTotalIncVatOre = dkkToOre(item.unitPriceDkk);
+    const lineVat = getLineVatSnapshot(totalIncVatOre);
+    const unitVat = getLineVatSnapshot(unitTotalIncVatOre);
+    const lineType = invoiceLineTypeFromBookingItem(item.itemType);
+    const lineId = createId("ini");
     await sql`
       INSERT INTO invoice_items (
-        id, invoice_id, booking_line_item_id, description, quantity,
-        unit_price_dkk, line_total_dkk
+        id, invoice_id, booking_line_item_id, type, description, quantity,
+        unit_price_dkk, line_total_dkk, unit_price_ex_vat_ore, vat_rate,
+        line_subtotal_ex_vat_ore, line_vat_ore, line_total_inc_vat_ore
       )
       VALUES (
-        ${createId("ini")}, ${id}, ${item.id}, ${item.description},
-        ${item.quantity}, ${item.unitPriceDkk}, ${item.totalPriceDkk}
+        ${lineId}, ${id}, ${item.id}, ${lineType}, ${item.description},
+        ${item.quantity}, ${item.unitPriceDkk}, ${item.totalPriceDkk},
+        ${unitVat.subtotalExVatOre}, ${lineVat.vatRate}, ${lineVat.subtotalExVatOre},
+        ${lineVat.vatOre}, ${lineVat.totalIncVatOre}
+      );
+    `;
+    await sql`
+      INSERT INTO invoice_lines (
+        id, invoice_id, type, description, quantity, unit_price_ex_vat_ore,
+        vat_rate, line_subtotal_ex_vat_ore, line_vat_ore, line_total_inc_vat_ore
+      )
+      VALUES (
+        ${lineId}, ${id}, ${lineType}, ${item.description}, ${item.quantity},
+        ${unitVat.subtotalExVatOre}, ${lineVat.vatRate}, ${lineVat.subtotalExVatOre},
+        ${lineVat.vatOre}, ${lineVat.totalIncVatOre}
       );
     `;
   }
@@ -921,17 +1244,37 @@ export const updateInvoiceDetails = async (
       );
     }
     await sql`DELETE FROM invoice_items WHERE invoice_id = ${invoiceId};`;
+    await sql`DELETE FROM invoice_lines WHERE invoice_id = ${invoiceId};`;
     for (const source of patch.manualLines) {
       const quantity = normalizeQuantity(source.quantity);
       const unitPrice = normalizePrice(source.unitPriceDkk ?? source.unitPrice);
+      const total = quantity * unitPrice;
+      const unitVat = getLineVatSnapshot(dkkToOre(unitPrice));
+      const lineVat = getLineVatSnapshot(dkkToOre(total));
+      const lineId = source.id || createId("ini");
       await sql`
         INSERT INTO invoice_items (
-          id, invoice_id, description, quantity, unit_price_dkk, line_total_dkk
+          id, invoice_id, type, description, quantity, unit_price_dkk, line_total_dkk,
+          unit_price_ex_vat_ore, vat_rate, line_subtotal_ex_vat_ore,
+          line_vat_ore, line_total_inc_vat_ore
         )
         VALUES (
-          ${source.id || createId("ini")}, ${invoiceId},
+          ${lineId}, ${invoiceId}, 'custom',
           ${text(source.description) || "Ekstra service"}, ${quantity},
-          ${unitPrice}, ${quantity * unitPrice}
+          ${unitPrice}, ${total}, ${unitVat.subtotalExVatOre}, ${lineVat.vatRate},
+          ${lineVat.subtotalExVatOre}, ${lineVat.vatOre}, ${lineVat.totalIncVatOre}
+        );
+      `;
+      await sql`
+        INSERT INTO invoice_lines (
+          id, invoice_id, type, description, quantity, unit_price_ex_vat_ore,
+          vat_rate, line_subtotal_ex_vat_ore, line_vat_ore, line_total_inc_vat_ore
+        )
+        VALUES (
+          ${lineId}, ${invoiceId}, 'custom',
+          ${text(source.description) || "Ekstra service"}, ${quantity},
+          ${unitVat.subtotalExVatOre}, ${lineVat.vatRate}, ${lineVat.subtotalExVatOre},
+          ${lineVat.vatOre}, ${lineVat.totalIncVatOre}
         );
       `;
     }
@@ -1022,8 +1365,10 @@ export const sendInvoiceById = async (
   }
   const recipient = invoice.customerEmail || data.customer.email;
   const settings = await getBookingSettings();
+  const subject = `${settings.companyName}: faktura ${invoice.invoiceNumber}`;
+  const invoiceUrl = new URL(invoice.publicUrl, baseUrl()).toString();
   try {
-    const sendStatus = await sendCustomerInvoiceEmail({
+    const sendResult = await sendCustomerInvoiceEmail({
       bookingId: data.booking.id,
       customerId: data.customer.id,
       customerName:
@@ -1034,18 +1379,77 @@ export const sendInvoiceById = async (
       invoiceNumber: invoice.invoiceNumber,
       totalInclMomsDkk: invoice.totalInclMomsDkk,
       appointmentLabel: data.booking.appointmentLabel,
-      invoiceUrl: new URL(invoice.publicUrl, baseUrl()).toString(),
+      invoiceUrl,
+      invoiceHtml: renderInvoiceEmailHtml({ invoice, data, settings, invoiceUrl }),
+      invoiceText: renderInvoiceEmailText({ invoice, data, settings, invoiceUrl }),
       settings,
     });
-    if (sendStatus !== "sent") {
+    if (sendResult.status !== "sent") {
       const sql = getSql();
       await sql`
         UPDATE invoices
         SET last_error = 'SMTP is not configured.', status = 'ready', updated_at = NOW()
         WHERE id = ${invoiceId};
       `;
+      await recordInvoiceEmailLog({
+        invoiceId,
+        bookingId: data.booking.id,
+        recipientEmail: recipient,
+        subject,
+        status: "failed",
+        errorMessage: "SMTP is not configured.",
+      });
       return { invoice: { ...invoice, status: "ready" as const }, sent: false, data };
     }
+    const sql = getSql();
+    const [sentRow] = await sql<RawInvoice[]>`
+      UPDATE invoices
+      SET status = 'sent', sent_at = COALESCE(sent_at, NOW()),
+        sent_by = ${actor.actorId || actor.agentId || actor.actorType},
+        email_message_id = ${sendResult.messageId || null},
+        sent_to_email = ${recipient}, email_sent = true, email_sent_at = NOW(),
+        last_error = NULL, updated_at = NOW()
+      WHERE id = ${invoiceId}
+      RETURNING *;
+    `;
+    await recordInvoiceEmailLog({
+      invoiceId,
+      bookingId: data.booking.id,
+      recipientEmail: recipient,
+      subject,
+      status: "success",
+      smtpMessageId: sendResult.messageId,
+    });
+
+    await sql`
+      UPDATE bookings
+      SET invoice_status = 'sent', updated_at = NOW()
+      WHERE id = ${invoice.bookingId};
+    `;
+    await sql`
+      UPDATE booking_line_items
+      SET locked_at = COALESCE(locked_at, NOW()), updated_at = NOW()
+      WHERE booking_id = ${invoice.bookingId};
+    `;
+    const sentInvoice = (
+      await renderAndStoreInvoice(sentRow, invoice.items, data)
+    ).invoice;
+    try {
+      await sendAdminInvoiceNotice({
+        bookingId: data.booking.id,
+        agentName: data.agent?.fullName || "Admin",
+        invoiceNumber: sentInvoice.invoiceNumber,
+        totalInclMomsDkk: sentInvoice.totalInclMomsDkk,
+        settings,
+      });
+    } catch {
+      // Customer delivery already succeeded; the internal notice is non-critical.
+    }
+    return {
+      invoice: sentInvoice,
+      sent: true,
+      data: { ...data, invoice: sentInvoice },
+    };
   } catch (error) {
     const sql = getSql();
     await sql`
@@ -1054,51 +1458,20 @@ export const sendInvoiceById = async (
         status = 'ready', updated_at = NOW()
       WHERE id = ${invoiceId};
     `;
+    await recordInvoiceEmailLog({
+      invoiceId,
+      bookingId: data.booking.id,
+      recipientEmail: recipient,
+      subject,
+      status: "failed",
+      errorMessage: error instanceof Error ? error.message.slice(0, 1000) : "Email failed.",
+    });
     throw new InvoiceWorkflowError(
       "Invoice was saved, but email could not be sent.",
       502,
       "EMAIL_SEND_FAILED"
     );
   }
-
-  const sql = getSql();
-  const [sentRow] = await sql<RawInvoice[]>`
-    UPDATE invoices
-    SET status = 'sent', sent_at = COALESCE(sent_at, NOW()),
-      sent_to_email = ${recipient}, email_sent = true, email_sent_at = NOW(),
-      last_error = NULL, updated_at = NOW()
-    WHERE id = ${invoiceId}
-    RETURNING *;
-  `;
-  await sql`
-    UPDATE bookings
-    SET invoice_status = 'sent', updated_at = NOW()
-    WHERE id = ${invoice.bookingId};
-  `;
-  await sql`
-    UPDATE booking_line_items
-    SET locked_at = COALESCE(locked_at, NOW()), updated_at = NOW()
-    WHERE booking_id = ${invoice.bookingId};
-  `;
-  const sentInvoice = (
-    await renderAndStoreInvoice(sentRow, invoice.items, data)
-  ).invoice;
-  try {
-    await sendAdminInvoiceNotice({
-      bookingId: data.booking.id,
-      agentName: data.agent?.fullName || "Admin",
-      invoiceNumber: sentInvoice.invoiceNumber,
-      totalInclMomsDkk: sentInvoice.totalInclMomsDkk,
-      settings,
-    });
-  } catch {
-    // Customer delivery already succeeded; the internal notice is non-critical.
-  }
-  return {
-    invoice: sentInvoice,
-    sent: true,
-    data: { ...data, invoice: sentInvoice },
-  };
 };
 
 export const sendInvoiceForBooking = async (input: {

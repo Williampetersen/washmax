@@ -62,6 +62,11 @@ type LoggedMessage = {
   attachments?: nodemailer.SendMailOptions["attachments"];
 };
 
+type LoggedMailResult = {
+  status: "sent" | "not_configured";
+  messageId?: string;
+};
+
 let cachedTransporter: nodemailer.Transporter | null | undefined;
 
 const getMailConfig = () => ({
@@ -363,7 +368,7 @@ const getCustomerStatusCopy = (
   }
 };
 
-const sendLoggedMail = async (message: LoggedMessage) => {
+const sendLoggedMailDetailed = async (message: LoggedMessage): Promise<LoggedMailResult> => {
   const transporter = getTransporter();
 
   if (!transporter) {
@@ -377,13 +382,13 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       status: "not_configured",
       errorMessage: "SMTP is not configured.",
     });
-    return "not_configured";
+    return { status: "not_configured" };
   }
 
   const config = getMailConfig();
 
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: config.from,
       to: message.recipient,
       subject: message.subject,
@@ -391,6 +396,8 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       text: message.text,
       attachments: message.attachments,
     });
+    const messageId =
+      typeof info.messageId === "string" ? info.messageId : String(info.messageId || "");
 
     await recordEmailLog({
       bookingId: message.bookingId,
@@ -402,7 +409,7 @@ const sendLoggedMail = async (message: LoggedMessage) => {
       status: "sent",
       sentAt: new Date().toISOString(),
     });
-    return "sent";
+    return { status: "sent", messageId };
   } catch (error) {
     await recordEmailLog({
       bookingId: message.bookingId,
@@ -417,6 +424,9 @@ const sendLoggedMail = async (message: LoggedMessage) => {
     throw error;
   }
 };
+
+const sendLoggedMail = async (message: LoggedMessage) =>
+  (await sendLoggedMailDetailed(message)).status;
 
 export const sendCustomerBookingCreatedEmail = async (input: CustomerMailInput) => {
   const copy = getCustomerCreationCopy(input.booking, input.settings);
@@ -560,20 +570,22 @@ export const sendCustomerInvoiceEmail = async (input: {
   totalInclMomsDkk: number;
   appointmentLabel?: string;
   invoiceUrl: string;
+  invoiceHtml?: string;
+  invoiceText?: string;
   settings: MailSettings;
 }) => {
   const subject = `${input.settings.companyName}: faktura ${input.invoiceNumber}`;
   const total = formatPrice(input.totalInclMomsDkk);
   const greeting = input.customerName ? `Hej ${input.customerName}` : "Hej";
 
-  return sendLoggedMail({
+  return sendLoggedMailDetailed({
     bookingId: input.bookingId,
     customerId: input.customerId,
     recipient: input.customerEmail,
     recipientRole: "customer",
     templateKey: "customer_invoice",
     subject,
-    html: `
+    html: input.invoiceHtml || `
       <div style="margin:0;background:#edf4f5;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#102d38;line-height:1.6;">
         <div style="max-width:640px;margin:0 auto;overflow:hidden;border-radius:22px;background:#ffffff;box-shadow:0 20px 60px rgba(18,61,82,.12);">
           <div style="padding:30px;background:linear-gradient(135deg,#102d38,#174f61);color:#ffffff;">
@@ -603,7 +615,7 @@ export const sendCustomerInvoiceEmail = async (input: {
         </div>
       </div>
     `,
-    text: [
+    text: input.invoiceText || [
       subject,
       "",
       `${greeting}. Din faktura er klar.`,
