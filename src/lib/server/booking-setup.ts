@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { cache } from "react";
 import { ensureSchema, getSql, isDatabaseConfigured, shouldRunDatabaseSetup } from "@/lib/server/db";
 import {
   defaultBookingSettings,
@@ -645,7 +646,7 @@ const seedBookingSetup = async () => {
   `;
 };
 
-export const getBookingSetupData = async (): Promise<BookingSetupData> => {
+const _getBookingSetupData = async (): Promise<BookingSetupData> => {
   if (!isDatabaseConfigured()) {
     return {
       services: [],
@@ -709,6 +710,8 @@ export const getBookingSetupData = async (): Promise<BookingSetupData> => {
     publicSettings,
   };
 };
+
+export const getBookingSetupData = cache(_getBookingSetupData);
 
 const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publicSettings">): Promise<BookingSettings> => {
   const legacy = await getLegacySettings().catch(() => null);

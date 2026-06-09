@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { cache } from "react";
 import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
   addMinutesToTime,
@@ -862,7 +863,7 @@ export const getAvailabilityBlocks = async (): Promise<AvailabilityBlock[]> => {
   }
 };
 
-export const getBookingSettings = async (): Promise<BookingSettings> => {
+const _getBookingSettings = async (): Promise<BookingSettings> => {
   if (!isDatabaseConfigured()) {
     return {
       ...defaultBookingSettings,
@@ -903,6 +904,8 @@ export const getBookingSettings = async (): Promise<BookingSettings> => {
     };
   }
 };
+
+export const getBookingSettings = cache(_getBookingSettings);
 
 export const saveBookingSettings = async (input: BookingSettings) => {
   await ensureSchema();
@@ -1394,8 +1397,8 @@ export const getAdminDashboardData = async (): Promise<DashboardData> => {
   try {
     await ensureSchema();
     const sql = getSql();
-    const settings = await getBookingSettings();
-    const [bookingRows, customerRows, blockRows, emailRows, activityRows] = await Promise.all([
+    const [settings, bookingRows, customerRows, blockRows, emailRows, activityRows] = await Promise.all([
+      getBookingSettings(),
       sql<RawBooking[]>`
         SELECT *
         FROM bookings
