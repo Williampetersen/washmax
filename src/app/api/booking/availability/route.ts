@@ -6,11 +6,13 @@ import {
 } from "@/lib/server/booking-setup";
 import { isDatabaseConfigured } from "@/lib/server/db";
 
-const json = (body: unknown, status = 200) =>
+const json = (body: unknown, status = 200, cache = false) =>
   NextResponse.json(body, {
     status,
     headers: {
-      "cache-control": "no-store",
+      "cache-control": cache
+        ? "public, s-maxage=30, stale-while-revalidate=60"
+        : "no-store",
     },
   });
 
@@ -49,7 +51,7 @@ export async function GET(request: Request) {
       agentId: String(searchParams.get("agentId") || ""),
     });
 
-    return json(result);
+    return json(result, 200, true);
   } catch (error) {
     console.error("Could not calculate booking availability", error);
     return json({ error: "Could not load available times." }, 500);

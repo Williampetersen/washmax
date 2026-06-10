@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { da } from "date-fns/locale";
 import { format } from "date-fns";
 import {
-  ArrowLeft,
   ArrowRight,
   CalendarDays,
   Car,
@@ -15,7 +14,6 @@ import {
   Clock3,
   LoaderCircle,
   Mail,
-  Plus,
   RotateCcw,
   Search,
   ShieldCheck,
@@ -78,7 +76,11 @@ type BookingConfirmation = {
   customerEmail: string;
 };
 
-const toCalendarDate = (dateValue: string) => new Date(`${dateValue}T12:00:00`);
+// Parse YYYY-MM-DD to a Date at UTC noon so timezone offsets don't flip the day.
+const toCalendarDate = (dateValue: string) => {
+  const [y, m, d] = dateValue.split("-").map(Number);
+  return new Date(Date.UTC(y!, m! - 1, d!, 12, 0, 0));
+};
 const platePattern = /^[A-Z0-9]{2,10}$/;
 const lookupDebounceMs = 400;
 const minAutoLookupPlateLength = 5;
@@ -125,12 +127,6 @@ const findFirstBookableDate = (
   return undefined;
 };
 
-const STEPS = [
-  { number: 1, label: "Pakke" },
-  { number: 2, label: "Tilvalg" },
-  { number: 3, label: "Tid" },
-  { number: 4, label: "Oplysninger" },
-] as const;
 
 export function BookingFlow({ initialPlate, minDate, settings, availabilityBlocks }: BookingFlowProps) {
   const initialBookableDate = useMemo(
@@ -152,7 +148,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false);
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const [openStep, setOpenStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
 
   const [hasSecondCar, setHasSecondCar] = useState(false);
@@ -162,7 +158,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
 
-  const stepBarRef = useRef<HTMLDivElement>(null);
+  const step1Ref = useRef<HTMLDivElement>(null);
+  const step2Ref = useRef<HTMLDivElement>(null);
+  const step3Ref = useRef<HTMLDivElement>(null);
+  const step4Ref = useRef<HTMLDivElement>(null);
   const lookupControllerRef = useRef<AbortController | null>(null);
   const lookupDebounceRef = useRef<number | null>(null);
   const latestLookupPlateRef = useRef("");
@@ -214,7 +213,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   );
   const travelSurcharge = matchedArea?.surcharge ?? 0;
   const total = useMemo(() => basePrice + addonsTotal + travelSurcharge, [addonsTotal, basePrice, travelSurcharge]);
-  const multiCarDiscount = useMemo(() => hasSecondCar ? Math.round(total * 10 / 100) : 0, [hasSecondCar, total]);
+  const multiCarDiscount = useMemo(() => hasSecondCar ? Math.round(total * 15 / 100) : 0, [hasSecondCar, total]);
   const couponDiscount = appliedCoupon?.discountDkk ?? 0;
   const finalTotal = Math.max(0, total - multiCarDiscount - couponDiscount);
   const totalDiscount = multiCarDiscount + couponDiscount;
@@ -315,19 +314,13 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     selectedAddonIds,
   ]);
 
-  const scrollToStepBar = useCallback(() => {
+  const goToStep = useCallback((step: 1 | 2 | 3 | 4) => {
+    setOpenStep(step);
+    const refs = [step1Ref, step2Ref, step3Ref, step4Ref];
     window.setTimeout(() => {
-      stepBarRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 60);
+      refs[step - 1]?.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
   }, []);
-
-  const goToStep = useCallback(
-    (step: 1 | 2 | 3 | 4) => {
-      setCurrentStep(step);
-      scrollToStepBar();
-    },
-    [scrollToStepBar]
-  );
 
   const lookupVehicle = useCallback(async (nextPlateValue: string) => {
     const normalizedPlate = sanitizePlate(nextPlateValue);
@@ -432,7 +425,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     setPlate("");
     setLookupStatus(null);
     setIdempotencyKey("");
-    setCurrentStep(1);
+    setOpenStep(1);
     setConfirmation(null);
     window.history.replaceState({}, "", "/booking");
   };
@@ -661,7 +654,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     <main className={cn("px-4 sm:px-6", vehicle && category ? "pb-32 xl:pb-10" : "pb-10")}>
       {vehicle && category ? (
         <section className="mx-auto mt-8 grid max-w-[88rem] gap-8 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start">
-          <div className="space-y-5">
+          <div className="space-y-3">
 
             {/* Vehicle bar */}
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dde8ed] bg-white px-4 py-3">
@@ -684,51 +677,19 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               </div>
             </div>
 
-            {/* Step bar */}
-            <div ref={stepBarRef} className="scroll-mt-20">
-              <div className="flex items-center justify-between rounded-2xl border border-[#dde8ed] bg-white px-4 py-3">
-                {STEPS.map((step, index) => {
-                  const isDone = step.number < currentStep;
-                  const isActive = step.number === currentStep;
-                  return (
-                    <div key={step.number} className="flex flex-1 items-center">
-                      <button
-                        type="button"
-                        onClick={() => isDone ? goToStep(step.number as 1 | 2 | 3 | 4) : undefined}
-                        disabled={!isDone && !isActive}
-                        className={cn("flex items-center gap-2 rounded-lg px-2 py-1.5 transition", isDone ? "cursor-pointer hover:bg-[#f2f7f9]" : "cursor-default")}
-                      >
-                        <span className={cn(
-                          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                          isActive ? "bg-[#2388d1] text-white" : isDone ? "bg-[#12b886] text-white" : "bg-[#eef2f5] text-[#8ea5b0]"
-                        )}>
-                          {isDone ? <Check className="h-3.5 w-3.5" /> : step.number}
-                        </span>
-                        <span className={cn("hidden text-xs font-semibold sm:block", isActive ? "text-[#2388d1]" : isDone ? "text-[#12b886]" : "text-[#9ab0bc]")}>
-                          {step.label}
-                        </span>
-                      </button>
-                      {index < STEPS.length - 1 ? (
-                        <div className={cn("mx-1 h-0.5 flex-1 rounded-full transition-colors", step.number < currentStep ? "bg-[#12b886]" : "bg-[#e5edf1]")} />
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
             {/* ── Step 1: Package ─────────────────────────────────── */}
-            {currentStep === 1 ? (
-              <Card className="p-5 sm:p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">Trin 1 af 4</p>
-                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Vælg pakke</h2>
-                    <p className="mt-2 text-sm text-[var(--muted)]">Klik på en pakke for at vælge og gå videre.</p>
-                  </div>
-                  <Sparkles className="h-8 w-8 shrink-0 text-[#55b9df]" />
-                </div>
-                <div className="mt-6 grid gap-4 md:grid-cols-3">
+            <div ref={step1Ref} className="scroll-mt-6">
+              <BookingAccordion
+                step={1}
+                title="Vælg pakke"
+                icon={<Sparkles className="h-5 w-5" />}
+                summary={openStep > 1 ? activePackageData.title : undefined}
+                isOpen={openStep === 1}
+                isCompleted={openStep > 1}
+                onEdit={() => goToStep(1)}
+              >
+                <p className="mb-5 text-sm text-[var(--muted)]">Klik på en pakke for at vælge og gå videre.</p>
+                <div className="grid gap-4 md:grid-cols-3">
                   {settings.catalog.packages.map((item) => {
                     const isActive = item.id === activePackage;
                     const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : category.price;
@@ -769,22 +730,23 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     );
                   })}
                 </div>
-              </Card>
-            ) : null}
+              </BookingAccordion>
+            </div>
 
-            {/* ── Step 2: Addons ──────────────────────────────────── */}
-            {currentStep === 2 ? (
-              <Card className="p-5 sm:p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">Trin 2 af 4</p>
-                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Tilvalg</h2>
-                    <p className="mt-2 text-sm text-[var(--muted)]">Tilføj ekstra services. Du kan springe dette trin over.</p>
-                  </div>
-                  <ShieldCheck className="h-8 w-8 shrink-0 text-[#55b9df]" />
-                </div>
-
-                <div className="mt-6 space-y-6">
+            {/* ── Step 2: Add-ons ─────────────────────────────────── */}
+            <div ref={step2Ref} className="scroll-mt-6">
+              <BookingAccordion
+                step={2}
+                title="Tilvalg"
+                icon={<ShieldCheck className="h-5 w-5" />}
+                summary={openStep > 2 ? (selectedAddons.length > 0 ? `${selectedAddons.length} tilvalg valgt` : "Ingen tilvalg") : undefined}
+                isOpen={openStep === 2}
+                isCompleted={openStep > 2}
+                onEdit={() => goToStep(2)}
+                isLocked={openStep < 2}
+              >
+                <p className="mb-5 text-sm text-[var(--muted)]">Tilføj ekstra services. Du kan springe dette trin over.</p>
+                <div className="space-y-6">
                   {settings.catalog.interiorAddOns.length > 0 ? (
                     <div>
                       <h4 className="text-sm font-semibold uppercase tracking-wider text-[#2388d1]">Indvendigt</h4>
@@ -803,7 +765,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       </div>
                     </div>
                   ) : null}
-
                   <div>
                     <h4 className="text-sm font-semibold uppercase tracking-wider text-[#2388d1]">Udvendigt</h4>
                     <div className="mt-3 grid gap-3">
@@ -831,7 +792,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       })}
                     </div>
                   </div>
-
                   {settings.catalog.quantityAddOns.length > 0 ? (
                     <div className="rounded-[1.5rem] border border-dashed border-[#cde6f6] bg-[#fbfeff] px-4 py-4 text-sm text-[var(--muted)]">
                       <p className="font-semibold text-[var(--ink)]">Manuelle tilvalg</p>
@@ -839,85 +799,88 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </div>
                   ) : null}
                 </div>
-
-                {/* Second car upsell */}
-                <div className="mt-6">
-                  {!hasSecondCar ? (
-                    <button
-                      type="button"
-                      onClick={() => setHasSecondCar(true)}
-                      className="flex w-full items-center gap-4 rounded-2xl border border-dashed border-[#55b9df] bg-[#f6fbff] px-4 py-4 text-left transition hover:bg-[#eef8ff]"
-                    >
-                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2388d1] text-white">
-                        <Plus className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="text-sm font-semibold text-[#1a506d]">Tilføj endnu en bil og spar 10%</p>
-                        <p className="mt-0.5 text-xs text-[var(--muted)]">1 bil valgt · klik for at tilføje en bil mere</p>
-                      </div>
-                    </button>
-                  ) : (
-                    <div className="rounded-2xl border border-[#55b9df] bg-[#eef8ff] p-4">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3">
-                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2388d1] text-white">
-                            <Car className="h-4 w-4" />
-                          </span>
-                          <div>
-                            <p className="text-sm font-semibold text-[#1a506d]">2 biler — 10% rabat aktiveret</p>
-                            <p className="mt-0.5 text-xs text-[var(--muted)]">Indtast nummerplade på den anden bil</p>
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => { setHasSecondCar(false); setSecondCarPlate(""); }}
-                          className="rounded-lg p-1.5 text-[var(--muted)] transition hover:bg-white/60"
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                      <input
-                        type="text"
-                        inputMode="text"
-                        autoCapitalize="characters"
-                        placeholder="AB12345"
-                        maxLength={10}
-                        value={secondCarPlate}
-                        onChange={(e) => setSecondCarPlate(e.target.value.toUpperCase())}
-                        className="mt-3 block w-full rounded-xl border border-[#9cb0bd] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[#222] outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
-                      />
-                      <p className="mt-2 text-xs text-[#2388d1] font-semibold">
-                        Du sparer: {Math.round(total * 10 / 100).toLocaleString("da-DK")} kr.
-                      </p>
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-6 flex flex-wrap gap-3">
-                  <button type="button" onClick={() => goToStep(1)} className="inline-flex items-center gap-2 rounded-xl border border-[#dde8ed] px-5 py-3 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9]">
-                    <ArrowLeft className="h-4 w-4" /> Tilbage
-                  </button>
-                  <button type="button" onClick={() => goToStep(3)} className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0] sm:flex-none">
+                <div className="mt-6 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => goToStep(3)}
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#2388d1] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0]"
+                  >
                     Videre til dato og tid <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
-              </Card>
+              </BookingAccordion>
+            </div>
+
+            {/* ── Second car inline option (not a step) ───────────── */}
+            {openStep >= 2 ? (
+              <div className="overflow-hidden rounded-2xl border border-[#dde8ed] bg-[#f8fafb]">
+                <div className="flex items-center justify-between gap-4 px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#43a047]">
+                      <Car className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold text-[var(--ink)]">Tilføj endnu en bil og spar 15%</p>
+                      <p className="text-xs text-[var(--muted)]">Begge biler vaskes i samme besøg</p>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => { setHasSecondCar(false); setSecondCarPlate(""); }}
+                      className={cn(
+                        "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition",
+                        !hasSecondCar ? "bg-[#e8eff3] text-[var(--ink)]" : "text-[var(--muted)] hover:bg-[#eff5f7]"
+                      )}
+                    >
+                      Nej
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setHasSecondCar(true)}
+                      className={cn(
+                        "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition",
+                        hasSecondCar ? "bg-[#2388d1] text-white shadow-sm" : "text-[var(--muted)] hover:bg-[#eff5f7]"
+                      )}
+                    >
+                      Ja
+                    </button>
+                  </div>
+                </div>
+                {hasSecondCar ? (
+                  <div className="border-t border-[#e5edf1] px-4 pb-4 pt-3">
+                    <label className="mb-1.5 block text-xs font-semibold text-[#2388d1]">Nummerplade på den anden bil</label>
+                    <input
+                      type="text"
+                      inputMode="text"
+                      autoCapitalize="characters"
+                      placeholder="AB12345"
+                      maxLength={10}
+                      value={secondCarPlate}
+                      onChange={(e) => setSecondCarPlate(e.target.value.toUpperCase())}
+                      className="block w-full rounded-xl border border-[#9cb0bd] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[#222] outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
+                    />
+                    <p className="mt-2 text-xs font-semibold text-[#2388d1]">
+                      Du sparer: {Math.round(total * 15 / 100).toLocaleString("da-DK")} kr. på begge biler
+                    </p>
+                  </div>
+                ) : null}
+              </div>
             ) : null}
 
             {/* ── Step 3: Date + Time ─────────────────────────────── */}
-            {currentStep === 3 ? (
-              <Card className="p-5 sm:p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">Trin 3 af 4</p>
-                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Vælg dato og tid</h2>
-                    <p className="mt-2 text-sm text-[var(--muted)]">Vælg en ledig dag i kalenderen, og vælg derefter et tidspunkt.</p>
-                  </div>
-                  <CalendarDays className="h-8 w-8 shrink-0 text-[#55b9df]" />
-                </div>
-
-                <div className="mt-6 grid gap-6 lg:grid-cols-2">
-                  {/* Calendar */}
+            <div ref={step3Ref} className="scroll-mt-6">
+              <BookingAccordion
+                step={3}
+                title="Vælg dato og tid"
+                icon={<CalendarDays className="h-5 w-5" />}
+                summary={openStep > 3 ? appointmentLabel : undefined}
+                isOpen={openStep === 3}
+                isCompleted={openStep > 3}
+                onEdit={() => goToStep(3)}
+                isLocked={openStep < 3}
+              >
+                <div className="grid gap-6 lg:grid-cols-2">
                   <div className="rounded-[1.5rem] border border-[var(--line)] p-4">
                     <DayPicker
                       mode="single"
@@ -940,14 +903,24 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       }}
                     />
                   </div>
-
-                  {/* Time slots */}
                   <div className="rounded-[1.5rem] border border-[var(--line)] p-5">
                     {appointmentDate ? (
                       <>
                         <p className="font-semibold text-[var(--ink)]">{appointmentDateLabel}</p>
-                        <p className="mt-1 text-sm text-[var(--muted)]">Ledige tider</p>
-                        {availableTimeSlots.length > 0 ? (
+                        <p className={cn("mt-1 text-sm", isAvailabilityLoading ? "text-[#2388d1]" : "text-[var(--muted)]")}>
+                          {isAvailabilityLoading ? "Henter ledige tider…" : "Ledige tider"}
+                        </p>
+                        {isAvailabilityLoading ? (
+                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                            {[1, 2, 3].map((n) => (
+                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[#e5edf1] bg-[#f0f6f9]" />
+                            ))}
+                          </div>
+                        ) : availabilityError ? (
+                          <p className="mt-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
+                            {availabilityError}
+                          </p>
+                        ) : availableTimeSlots.length > 0 ? (
                           <div className="mt-4 grid gap-3 sm:grid-cols-2">
                             {availableTimeSlots.map((slot) => {
                               const isActive = slot === appointmentTime;
@@ -985,36 +958,29 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </div>
                   </div>
                 </div>
-
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <button type="button" onClick={() => goToStep(2)} className="inline-flex items-center gap-2 rounded-xl border border-[#dde8ed] px-5 py-3 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9]">
-                    <ArrowLeft className="h-4 w-4" /> Tilbage
-                  </button>
+                <div className="mt-6 flex justify-end">
                   <button
                     type="button"
                     onClick={() => goToStep(4)}
                     disabled={!appointmentTime}
-                    className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0] disabled:cursor-not-allowed disabled:opacity-50 sm:flex-none"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[#2388d1] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Videre til dine oplysninger <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
-              </Card>
-            ) : null}
+              </BookingAccordion>
+            </div>
 
-            {/* ── Step 4: Form ────────────────────────────────────── */}
-            {currentStep === 4 ? (
-              <Card id="booking-details" className="p-5 sm:p-7">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">Trin 4 af 4</p>
-                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Dine oplysninger</h2>
-                    <p className="mt-2 text-sm text-[var(--muted)]">Udfyld dine kontaktoplysninger for at bekræfte bookingen.</p>
-                  </div>
-                  <UserRound className="h-8 w-8 shrink-0 text-[#55b9df]" />
-                </div>
-
-                <form onSubmit={onSubmit} className="mt-6 space-y-6">
+            {/* ── Step 4: Customer form ────────────────────────────── */}
+            <div ref={step4Ref} className="scroll-mt-6">
+              <BookingAccordion
+                step={4}
+                title="Dine oplysninger"
+                icon={<UserRound className="h-5 w-5" />}
+                isOpen={openStep === 4}
+                isLocked={openStep < 4}
+              >
+                <form id="booking-details" onSubmit={onSubmit} className="space-y-6">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <button type="button" onClick={() => form.setValue("customerType", "private")} className={cn("rounded-2xl border px-4 py-4 text-sm font-semibold transition", customerType === "private" ? "border-[#55b9df] bg-[#eef8ff] text-[#2388d1]" : "border-[var(--line)] bg-white text-[var(--ink)]")}>
                       Privat
@@ -1023,7 +989,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       Erhverv
                     </button>
                   </div>
-
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field label="Fornavn" error={form.formState.errors.firstName?.message}><Input {...form.register("firstName")} placeholder="Fornavn" /></Field>
                     <Field label="Efternavn" error={form.formState.errors.lastName?.message}><Input {...form.register("lastName")} placeholder="Efternavn" /></Field>
@@ -1042,7 +1007,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       <Textarea {...form.register("notes")} placeholder="Fx parkering, adgang, særlige ønsker..." />
                     </Field>
                   </div>
-
                   <div className="space-y-3 text-sm">
                     <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-4 py-4 text-[#1a506d]">
                       <p className="flex items-center gap-2 font-semibold text-[var(--ink)]">
@@ -1066,8 +1030,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       <span>Ja tak, jeg vil gerne modtage tilbud og nyheder</span>
                     </label>
                   </div>
-
-                  {/* Coupon code */}
                   <div className="rounded-2xl border border-[#dde8ed] bg-[#f8fafb] px-4 py-4">
                     <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
                       <Tag className="h-4 w-4 text-[#2388d1]" /> Rabatkode
@@ -1078,11 +1040,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                           <p className="text-sm font-semibold text-[#0d6b47]">{appliedCoupon.code} — {appliedCoupon.label}</p>
                           <p className="text-xs text-[#1a7a52]">Du sparer {formatShortPrice(appliedCoupon.discountDkk)}</p>
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}
-                          className="rounded-md p-1 text-[#1a7a52] hover:bg-white"
-                        >
+                        <button type="button" onClick={() => { setAppliedCoupon(null); setCouponCode(""); }} className="rounded-md p-1 text-[#1a7a52] hover:bg-white">
                           <X className="h-4 w-4" />
                         </button>
                       </div>
@@ -1109,26 +1067,20 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     )}
                     {couponError ? <p className="mt-2 text-xs text-red-600">{couponError}</p> : null}
                   </div>
-
                   {formError ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</div>
                   ) : null}
-
-                  <div className="flex flex-wrap gap-3">
-                    <button type="button" onClick={() => goToStep(3)} className="inline-flex items-center gap-2 rounded-xl border border-[#dde8ed] px-5 py-3 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9]">
-                      <ArrowLeft className="h-4 w-4" /> Tilbage
-                    </button>
-                    <Button type="submit" size="lg" className="flex-1 sm:flex-none" disabled={isSubmitting}>
-                      {isSubmitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                      {isSubmitting ? "Sender booking..." : `Bekræft booking · ${formatShortPrice(finalTotal)}`}
-                    </Button>
-                  </div>
+                  <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>
+                    {isSubmitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
+                    {isSubmitting ? "Sender booking..." : `Bekræft booking · ${formatShortPrice(finalTotal)}`}
+                  </Button>
                 </form>
-              </Card>
-            ) : null}
+              </BookingAccordion>
+            </div>
+
           </div>
 
-          {/* ── Desktop sidebar ────────────────────────────────────── */}
+          {/* ── Desktop sidebar ──────────────────────────────────── */}
           <aside className="hidden xl:sticky xl:top-28 xl:block">
             <Card className="rounded-[1.5rem] border-[#d8e5ea] p-6 shadow-none">
               <div className="flex items-center gap-3">
@@ -1167,7 +1119,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   <div className="rounded-xl bg-[#f0faf6] px-4 py-3 text-sm">
                     {multiCarDiscount > 0 ? (
                       <div className="flex items-center justify-between gap-2 text-[#0d6b47]">
-                        <span className="font-medium">Multi-bil rabat (10%)</span>
+                        <span className="font-medium">Multi-bil rabat (15%)</span>
                         <span className="font-semibold">−{formatShortPrice(multiCarDiscount)}</span>
                       </div>
                     ) : null}
@@ -1190,7 +1142,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             </Card>
           </aside>
 
-          {/* ── Mobile summary modal ────────────────────────────────── */}
+          {/* ── Mobile summary modal ─────────────────────────────── */}
           {isMobileSummaryOpen ? (
             <div className="fixed inset-0 z-[60] flex items-end bg-black/55 px-3 xl:hidden">
               <div role="dialog" aria-modal="true" aria-labelledby="mobile-booking-summary-title" className="mx-auto flex max-h-[calc(100dvh-3rem)] max-w-xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.22)]">
@@ -1246,13 +1198,13 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             </div>
           ) : null}
 
-          {/* ── Mobile bottom bar ───────────────────────────────────── */}
+          {/* ── Mobile bottom bar ────────────────────────────────── */}
           <div className={cn("fixed inset-x-0 bottom-0 z-50 border-t border-[#d8e5ea] bg-white/95 px-4 py-3 shadow-[0_-16px_40px_rgba(8,27,21,0.12)] backdrop-blur xl:hidden", isMobileSummaryOpen && "hidden")}>
             <div className="mx-auto flex max-w-xl items-center gap-2 overflow-hidden">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9f8ff] text-[#55b9df]"><CalendarDays className="h-5 w-5" /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-xl font-semibold leading-none text-[#2388d1]">{formatShortPrice(finalTotal)}</p>
-                <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{activePackageData.title} · Trin {currentStep} af 4</p>
+                <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{activePackageData.title} · Trin {openStep} af 4</p>
               </div>
               <button type="button" onClick={() => setIsMobileSummaryOpen(true)} className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-[#55b9df] px-3 text-sm font-semibold text-white">
                 Se oversigt
@@ -1326,6 +1278,100 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
     <div className="flex items-start justify-between gap-4 text-sm">
       <span className="text-[var(--muted)]">{label}</span>
       <strong className="max-w-[14rem] text-right text-[var(--ink)]">{value}</strong>
+    </div>
+  );
+}
+
+function BookingAccordion({
+  step,
+  title,
+  icon,
+  summary,
+  isOpen,
+  isCompleted,
+  isLocked,
+  onEdit,
+  children,
+}: {
+  step: number;
+  title: string;
+  icon?: React.ReactNode;
+  summary?: string;
+  isOpen: boolean;
+  isCompleted?: boolean;
+  isLocked?: boolean;
+  onEdit?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={cn(
+        "overflow-hidden rounded-2xl border transition-all",
+        isOpen
+          ? "border-[#b3dff0] bg-white shadow-[0_8px_32px_rgba(35,136,209,0.10)]"
+          : isCompleted
+          ? "border-[#dde8ed] bg-white"
+          : "border-[#e8eff3] bg-[#f9fafb]"
+      )}
+    >
+      <div
+        role={isCompleted && !isOpen ? "button" : undefined}
+        tabIndex={isCompleted && !isOpen ? 0 : undefined}
+        onClick={isCompleted && !isOpen ? onEdit : undefined}
+        onKeyDown={
+          isCompleted && !isOpen
+            ? (e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onEdit?.();
+                }
+              }
+            : undefined
+        }
+        className={cn(
+          "flex items-center justify-between gap-3 px-5 py-4",
+          isCompleted && !isOpen && "cursor-pointer select-none hover:bg-[#f8fafb]"
+        )}
+      >
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
+          <span
+            className={cn(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+              isOpen
+                ? "bg-[#2388d1] text-white"
+                : isCompleted
+                ? "bg-[#12b886] text-white"
+                : "bg-[#e8eff3] text-[#9ab0bc]"
+            )}
+          >
+            {isCompleted && !isOpen ? <Check className="h-3.5 w-3.5" /> : step}
+          </span>
+          <span
+            className={cn(
+              "font-semibold",
+              isOpen ? "text-[#2388d1]" : isCompleted ? "text-[var(--ink)]" : "text-[#9ab0bc]"
+            )}
+          >
+            {title}
+          </span>
+          {summary && !isOpen ? (
+            <span className="rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-semibold text-[#2388d1]">
+              {summary}
+            </span>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {!isOpen && !isLocked && icon ? (
+            <span className="text-[#b3dff0]">{icon}</span>
+          ) : null}
+          {isCompleted && !isOpen && onEdit ? (
+            <span className="text-xs font-semibold text-[#2388d1]">Rediger</span>
+          ) : null}
+        </div>
+      </div>
+      {isOpen ? (
+        <div className="border-t border-[#e8f0f4] px-5 py-5">{children}</div>
+      ) : null}
     </div>
   );
 }

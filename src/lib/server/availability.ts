@@ -537,22 +537,39 @@ export const getAvailableBookingSlots = async (input: AvailableSlotsInput) => {
   const intervalMinutes = Math.max(15, Number(input.settings.slotMinutes || 30));
   const start = timeStringToMinutes(window.startTime);
   const end = timeStringToMinutes(window.endTime);
+
+  // Pre-fetch all shared data in parallel — one round-trip instead of N×3.
+  const [blocks, existingBookings] = await Promise.all([
+    getGlobalAvailabilityBlocks(sql),
+    getRelevantBookings(sql, input.date, agentId),
+  ]);
+
+  const now = getCopenhagenNow();
   const slots: string[] = [];
 
   for (let minutes = start; minutes + durationMinutes <= end; minutes += intervalMinutes) {
-    const hours = Math.floor(minutes / 60)
-      .toString()
-      .padStart(2, "0");
+    const hours = Math.floor(minutes / 60).toString().padStart(2, "0");
     const mins = (minutes % 60).toString().padStart(2, "0");
     const slot = `${hours}:${mins}`;
-    const result = await checkBookingSlotAvailability({
-      appointmentDate: input.date,
-      appointmentTime: slot,
-      durationMinutes,
-      settings: input.settings,
-      agentId,
+
+    if (!slotFitsWindow(slot, durationMinutes, window)) continue;
+    if (!passesCurrentTimeRules(input.date, slot, input.settings, now)) continue;
+    if (isBlockedByGlobalBlock(input.date, slot, durationMinutes, blocks)) continue;
+
+    const newPeriod = getOccupiedPeriod(input.date, slot, durationMinutes, input.settings);
+    if (!newPeriod) continue;
+
+    const hasConflict = existingBookings.some((booking) => {
+      const existingPeriod = getOccupiedPeriod(
+        toDateText(booking.appointment_date),
+        toTimeText(booking.appointment_time, "00:00"),
+        Number(booking.estimated_duration_minutes || input.settings.slotMinutes),
+        input.settings
+      );
+      return existingPeriod ? periodsOverlap(newPeriod, existingPeriod) : false;
     });
-    if (result.available) slots.push(slot);
+
+    if (!hasConflict) slots.push(slot);
   }
 
   return { slots, agentId };
