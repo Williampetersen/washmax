@@ -1365,48 +1365,56 @@ function BookingsView({
   const visibleBookings = [...bookings].sort(sortBookings).slice(0, INITIAL_BOOKING_LIMIT);
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={ListFilter}
+        title="Bookinger"
+        description={`${bookings.length} bookinger i alt · ${pendingBookings.length} afventer`}
+        action={
+          <a
+            href="/admin/bookings/new"
+            className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#6366F1] px-4 text-[12.5px] font-semibold text-white shadow-[0_4px_14px_rgba(99,102,241,0.28)] transition hover:bg-[#4F46E5]"
+          >
+            <CalendarPlus className="h-3.5 w-3.5" />
+            Ny booking
+          </a>
+        }
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Alle bookinger"
           value={dashboard.stats.totalBookings.toString()}
           detail={`${dashboard.stats.cancelledBookings} annullerede`}
           icon={ListFilter}
+          tone="blue"
         />
         <MetricCard
           label="Ventende"
           value={pendingBookings.length.toString()}
           detail="Kræver hurtig handling"
           icon={Clock3}
+          tone={pendingBookings.length > 0 ? "orange" : "violet"}
         />
         <MetricCard
           label="Kommende"
           value={upcomingBookings.length.toString()}
           detail={`${dashboard.stats.todayBookings} i dag`}
           icon={CalendarClock}
+          tone="violet"
         />
         <MetricCard
           label="Afsluttede"
           value={dashboard.stats.completedBookings.toString()}
           detail="Bevares i historikken"
           icon={CheckCircle2}
+          tone="green"
         />
       </div>
 
-      <section className="space-y-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <SectionHeading
-            eyebrow="Kø"
-            title="Bookinger"
-            description={`Viser ${visibleBookings.length} af ${bookings.length}.`}
-          />
-          <a
-            href="/admin/bookings/new"
-            className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#6366f1] px-4 text-[13px] font-semibold text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)] transition hover:bg-[#4f46e5]"
-          >
-            <CalendarPlus className="h-4 w-4" />
-            Opret booking manuelt
-          </a>
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-[12px] font-medium text-[#8E95B5]">Viser {visibleBookings.length} af {bookings.length}</p>
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(31,35,64,0.06)]">
@@ -1453,40 +1461,46 @@ function CustomersView({
   const visibleCustomers = customers.slice(0, INITIAL_CUSTOMER_LIMIT);
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={Users}
+        title="Kunder"
+        description={`${customers.length} kunder · ${customers.filter((c) => c.upcomingBookings > 0).length} aktive`}
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Kunder"
           value={customers.length.toString()}
           detail={`${customers.filter((item) => item.customerType === "business").length} erhverv`}
           icon={Users}
+          tone="blue"
         />
         <MetricCard
           label="Gentagne kunder"
           value={customers.filter((item) => item.bookingsCount > 1).length.toString()}
-          detail="Har booket mere end en gang"
+          detail="Har booket mere end én gang"
           icon={UserRound}
+          tone="violet"
         />
         <MetricCard
           label="Aktive kunder"
           value={customers.filter((item) => item.upcomingBookings > 0).length.toString()}
           detail="Har kommende booking"
           icon={CalendarClock}
+          tone="green"
         />
         <MetricCard
           label="Marketing opt-in"
           value={customers.filter((item) => item.marketingOptIn).length.toString()}
           detail="Kan bruges til kampagner"
           icon={Sparkles}
+          tone="orange"
         />
       </div>
 
-      <section className="space-y-4">
-        <SectionHeading
-          eyebrow="Kundeoversigt"
-          title="Kunder"
-          description={`Viser ${visibleCustomers.length} af ${customers.length}.`}
-        />
+      <section className="space-y-3">
+        <p className="text-[12px] font-medium text-[#8E95B5]">Viser {visibleCustomers.length} af {customers.length}</p>
         <div className="grid gap-4">
           {customers.length > 0 ? (
             visibleCustomers.map((customer) => (
@@ -1510,19 +1524,27 @@ function CustomersView({
 
 function ServicesView({ dashboard }: { dashboard: DashboardData }) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={Sparkles}
+        title="Services & Priser"
+        description="Pakker, bilkategorier og tilvalg der driver bookingflowet"
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Pakker"
           value={dashboard.settings.catalog.packages.length.toString()}
           detail="Vises direkte i bookingflowet"
           icon={Sparkles}
+          tone="violet"
         />
         <MetricCard
           label="Bilkategorier"
           value={dashboard.settings.catalog.vehicleCategories.length.toString()}
           detail="Styrer grundpriserne"
           icon={Wrench}
+          tone="blue"
         />
         <MetricCard
           label="Pris-tilvalg"
@@ -1532,36 +1554,37 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
           ).toString()}
           detail="Har direkte prismodel"
           icon={CreditCard}
+          tone="green"
         />
         <MetricCard
           label="Manuelle tilvalg"
           value={dashboard.settings.catalog.quantityAddOns.length.toString()}
           detail="Gemmes i kataloget uden auto-pris"
           icon={ShieldCheck}
+          tone="orange"
         />
       </div>
 
       <form
         action="/api/admin/settings"
         method="POST"
-        className="space-y-8"
+        className="space-y-5"
       >
         <input type="hidden" name="section" value="services" />
         <input type="hidden" name="return_view" value="services" />
 
-        <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Pakker"
-            title="Servicepakker"
-            description="Ændringer her rammer bookingkortene og tidsestimaterne med det samme."
-          />
+        <section className="space-y-3">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Servicepakker</p>
           <div className="grid gap-4 lg:grid-cols-3">
             {dashboard.settings.catalog.packages.map((pkg) => (
               <article
                 key={pkg.id}
-                className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
               >
-                <div className="grid gap-4">
+                <div className="border-b border-[#e8ebf5] px-4 py-3">
+                  <p className="text-[13px] font-semibold text-[#1F2340]">{pkg.title}</p>
+                </div>
+                <div className="grid gap-3 px-4 py-4">
                   <Field label="Titel">
                     <Input name={`package_title_${pkg.id}`} defaultValue={pkg.title} />
                   </Field>
@@ -1584,7 +1607,7 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
                     <Textarea
                       name={`package_description_${pkg.id}`}
                       defaultValue={pkg.description}
-                      className="min-h-28"
+                      className="min-h-24"
                     />
                   </Field>
                 </div>
@@ -1593,19 +1616,18 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Priser"
-            title="Bilkategorier"
-            description="Prislisten der bruges som grundlag for automatisk pris i bookingflowet."
-          />
+        <section className="space-y-3">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Bilkategorier & Priser</p>
           <div className="grid gap-4 lg:grid-cols-2">
             {dashboard.settings.catalog.vehicleCategories.map((category) => (
               <article
                 key={category.id}
-                className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
               >
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="border-b border-[#e8ebf5] px-4 py-3">
+                  <p className="text-[13px] font-semibold text-[#1F2340]">{category.label}</p>
+                </div>
+                <div className="grid gap-3 px-4 py-4 sm:grid-cols-2">
                   <Field label="Label">
                     <Input name={`vehicle_label_${category.id}`} defaultValue={category.label} />
                   </Field>
@@ -1622,7 +1644,7 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
                     <Textarea
                       name={`vehicle_description_${category.id}`}
                       defaultValue={category.description}
-                      className="min-h-24"
+                      className="min-h-20"
                     />
                   </Field>
                 </div>
@@ -1631,15 +1653,14 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
           </div>
         </section>
 
-        <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Tilvalg"
-            title="Add-ons"
-            description="Pris-tilvalg opdateres direkte i bookingflowet, mens manuelle tilvalg stadig ligger i kataloget."
-          />
+        <section className="space-y-3">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Tilvalg (Add-ons)</p>
           <div className="grid gap-4 xl:grid-cols-3">
-            <div className="space-y-4 rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-              <p className="text-lg font-semibold text-[var(--ink)]">Indvendige tilvalg</p>
+            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+              <div className="border-b border-[#e8ebf5] px-4 py-3">
+                <p className="text-[13px] font-semibold text-[#1F2340]">Indvendige tilvalg</p>
+              </div>
+              <div className="space-y-3 px-4 py-4">
               {dashboard.settings.catalog.interiorAddOns.map((addon) => (
                 <div key={addon.id} className="grid gap-3 sm:grid-cols-[1fr_9rem]">
                   <Input name={`interior_label_${addon.id}`} defaultValue={addon.label} />
@@ -1652,10 +1673,14 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
                   />
                 </div>
               ))}
+              </div>
             </div>
 
-            <div className="space-y-4 rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-              <p className="text-lg font-semibold text-[var(--ink)]">Udvendige tilvalg</p>
+            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+              <div className="border-b border-[#e8ebf5] px-4 py-3">
+                <p className="text-[13px] font-semibold text-[#1F2340]">Udvendige tilvalg</p>
+              </div>
+              <div className="space-y-3 px-4 py-4">
               {dashboard.settings.catalog.exteriorAddOns.map((addon) => (
                 <div key={addon.id} className="grid gap-3 sm:grid-cols-[1fr_9rem]">
                   <Input name={`exterior_label_${addon.id}`} defaultValue={addon.label} />
@@ -1668,10 +1693,14 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
                   />
                 </div>
               ))}
+              </div>
             </div>
 
-            <div className="space-y-4 rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-              <p className="text-lg font-semibold text-[var(--ink)]">Manuelle tilvalg</p>
+            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+              <div className="border-b border-[#e8ebf5] px-4 py-3">
+                <p className="text-[13px] font-semibold text-[#1F2340]">Manuelle tilvalg</p>
+              </div>
+              <div className="space-y-3 px-4 py-4">
               {dashboard.settings.catalog.quantityAddOns.map((addon) => (
                 <Input
                   key={addon.id}
@@ -1679,6 +1708,7 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
                   defaultValue={addon.label}
                 />
               ))}
+              </div>
             </div>
           </div>
         </section>
@@ -1697,8 +1727,14 @@ function AvailabilityView({
   timeSlots: string[];
 }) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={CalendarClock}
+        title="Tilgængelighed"
+        description="Styr arbejdstider, slotindstillinger og blokeringer"
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Arbejdsdage"
           value={dashboard.settings.workingDays.length.toString()}
@@ -1707,33 +1743,37 @@ function AvailabilityView({
             .filter(Boolean)
             .join(", ")}
           icon={CalendarClock}
+          tone="blue"
         />
         <MetricCard
           label="Slots"
           value={timeSlots.length.toString()}
           detail={`${dashboard.settings.slotMinutes} min. per slot`}
           icon={Clock3}
+          tone="violet"
         />
         <MetricCard
           label="Rejsebuffer"
           value={`${dashboard.settings.travelBufferMinutes} min.`}
           detail="Til planlægning mellem jobs"
           icon={Route}
+          tone="green"
         />
         <MetricCard
           label="Blokeringer"
           value={dashboard.availabilityBlocks.length.toString()}
           detail="Heldage og delvise tidsrum"
           icon={XCircle}
+          tone={dashboard.availabilityBlocks.length > 0 ? "orange" : "violet"}
         />
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_0.9fr]">
+      <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         <section className="space-y-4">
           <SectionHeading
             eyebrow="Bookingvindue"
             title="Arbejdstider og arbejdsdage"
-            description="Disse indstillinger bruges baade i adminplanlægning og i kundens bookingflow."
+            description="Bruges både i adminplanlægning og i kundens bookingflow."
           />
           <form
             action="/api/admin/settings"
@@ -1838,39 +1878,47 @@ function AvailabilityView({
         </section>
       </div>
 
-      <section className="space-y-4">
+      <section className="space-y-3">
         <SectionHeading
           eyebrow="Oversigt"
           title="Aktive blokeringer"
-          description="Alle blokeringer ligger her og kan fjernes enkeltvis."
+          description="Alle blokeringer kan fjernes enkeltvis."
         />
-        <div className="grid gap-4">
+        <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
           {dashboard.availabilityBlocks.length > 0 ? (
-            dashboard.availabilityBlocks.map((block) => (
-              <article
-                key={block.id}
-                className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
-              >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-lg font-semibold text-[var(--ink)]">{block.reason}</p>
-                    <p className="mt-2 text-sm text-[var(--muted)]">
-                      {block.startDate} til {block.endDate} | {block.startTime} - {block.endTime}
-                    </p>
+            <div className="divide-y divide-[#e8ebf5]">
+              {dashboard.availabilityBlocks.map((block) => (
+                <div
+                  key={block.id}
+                  className="flex flex-wrap items-center justify-between gap-4 px-5 py-4"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#FFF7ED] text-[#D97706]">
+                      <XCircle className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="text-[14px] font-semibold text-[#1F2340]">{block.reason}</p>
+                      <p className="mt-0.5 text-[12px] text-[#8E95B5]">
+                        {block.startDate} → {block.endDate} · {block.startTime}–{block.endTime}
+                      </p>
+                    </div>
                   </div>
                   <form action="/api/admin/availability" method="POST">
                     <input type="hidden" name="action" value="delete" />
                     <input type="hidden" name="block_id" value={block.id} />
                     <input type="hidden" name="return_view" value="availability" />
-                    <Button type="submit" variant="outline">
-                      Fjern blokering
+                    <Button type="submit" variant="outline" className="h-8 rounded-lg border-red-200 px-3 text-[12px] text-red-600 hover:bg-red-50">
+                      Fjern
                     </Button>
                   </form>
                 </div>
-              </article>
-            ))
+              ))}
+            </div>
           ) : (
-            <EmptyState text="Ingen blokeringer oprettet endnu." />
+            <div className="px-5 py-8 text-center">
+              <CalendarClock className="mx-auto h-8 w-8 text-[#DDE3F5]" />
+              <p className="mt-3 text-[13px] font-medium text-[#8E95B5]">Ingen blokeringer oprettet endnu.</p>
+            </div>
           )}
         </div>
       </section>
@@ -1885,38 +1933,51 @@ function EmailsView({
   dashboard: DashboardData;
   recentEmails: BookingEmailLog[];
 }) {
+  const failedCount = recentEmails.filter((item) => item.status === "failed").length;
+
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-5">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={Mail}
+        title="E-mails"
+        description="Automationsregler og sendte mails"
+      />
+
+      <div className="grid gap-3 md:grid-cols-5">
         <MetricCard
-          label="Create mail"
+          label="Oprettelse"
           value={dashboard.settings.emailAutomation.customerOnCreate ? "Til" : "Fra"}
           detail="Kunde får oprettelsesmail"
           icon={Mail}
+          tone={dashboard.settings.emailAutomation.customerOnCreate ? "green" : "orange"}
         />
         <MetricCard
-          label="Approve mail"
+          label="Godkendelse"
           value={dashboard.settings.emailAutomation.customerOnApprove ? "Til" : "Fra"}
           detail="Kunde får godkendelsesmail"
           icon={CheckCircle2}
+          tone={dashboard.settings.emailAutomation.customerOnApprove ? "green" : "orange"}
         />
         <MetricCard
-          label="Cancel mail"
+          label="Annullering"
           value={dashboard.settings.emailAutomation.customerOnCancel ? "Til" : "Fra"}
           detail="Kunde får aflysningsmail"
           icon={XCircle}
+          tone={dashboard.settings.emailAutomation.customerOnCancel ? "green" : "orange"}
         />
         <MetricCard
-          label="Admin alert"
+          label="Admin-alert"
           value={dashboard.settings.emailAutomation.adminOnCreate ? "Til" : "Fra"}
-          detail="Admin får notifikation ved ny booking"
+          detail="Admin notificeres ved ny booking"
           icon={BellRing}
+          tone={dashboard.settings.emailAutomation.adminOnCreate ? "blue" : "orange"}
         />
         <MetricCard
           label="Fejl i log"
-          value={recentEmails.filter((item) => item.status === "failed").length.toString()}
+          value={failedCount.toString()}
           detail="Baseret på seneste log"
           icon={ShieldCheck}
+          tone={failedCount > 0 ? "red" : "green"}
         />
       </div>
 
@@ -1987,25 +2048,20 @@ function EmailsView({
             <Button type="submit">Gem emailregler</Button>
           </form>
 
-          <div className="rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-            <p className="text-lg font-semibold text-[var(--ink)]">Mailopsaetning</p>
-            <div className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
-              <p className="flex items-center justify-between gap-4">
-                <span>SMTP host</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_HOST || "Ikke sat"}</strong>
-              </p>
-              <p className="flex items-center justify-between gap-4">
-                <span>SMTP user</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_USER || "Ikke sat"}</strong>
-              </p>
-              <p className="flex items-center justify-between gap-4">
-                <span>Mail from</span>
-                <strong className="text-[var(--ink)]">{process.env.MAIL_FROM || "Ikke sat"}</strong>
-              </p>
-              <p className="flex items-center justify-between gap-4">
-                <span>Support e-mail</span>
-                <strong className="text-[var(--ink)]">{dashboard.settings.supportEmail}</strong>
-              </p>
+          <div className="rounded-2xl border border-white/60 bg-white/80 px-5 py-5">
+            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#6366F1]">Mailopsætning</p>
+            <div className="mt-3 divide-y divide-[#e8ebf5]">
+              {[
+                ["SMTP host", process.env.SMTP_HOST || "Ikke sat"],
+                ["SMTP user", process.env.SMTP_USER || "Ikke sat"],
+                ["Mail from", process.env.MAIL_FROM || "Ikke sat"],
+                ["Support e-mail", dashboard.settings.supportEmail],
+              ].map(([label, val]) => (
+                <div key={label} className="flex items-center justify-between gap-4 py-2.5 text-[13px]">
+                  <span className="text-[#8E95B5]">{label}</span>
+                  <strong className="font-semibold text-[#1F2340]">{val}</strong>
+                </div>
+              ))}
             </div>
           </div>
         </section>
@@ -2031,28 +2087,37 @@ function EmailsView({
 
 function AreasView({ dashboard }: { dashboard: DashboardData }) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={MapPinned}
+        title="Serviceområder"
+        description="Postnumre, zoner og kørselsruter"
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Aktive områder"
           value={dashboard.settings.serviceAreas.filter((item) => item.isActive).length.toString()}
           detail={`${dashboard.settings.serviceAreas.length} samlet`}
           icon={MapPinned}
+          tone="blue"
         />
         <MetricCard
-          label="Planlagte rutedage"
+          label="Rutedage"
           value={dashboard.routePlan.length.toString()}
-          detail="Med mindst en pending/godkendt booking"
+          detail="Med mindst én kommende booking"
           icon={Route}
+          tone="violet"
         />
         <MetricCard
-          label="Områder med tillæg"
+          label="Zoner med tillæg"
           value={dashboard.settings.serviceAreas.filter((item) => item.surcharge > 0).length.toString()}
           detail="Bruges i kundeprisen"
           icon={CreditCard}
+          tone="orange"
         />
         <MetricCard
-          label="Samlet kørselstillæg"
+          label="Kørselstillæg i alt"
           value={formatShortPrice(
             dashboard.routePlan.reduce(
               (sum, day) =>
@@ -2062,6 +2127,7 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
           )}
           detail="Baseret på kommende ruteplan"
           icon={BarChart3}
+          tone="green"
         />
       </div>
 
@@ -2131,45 +2197,43 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
             title="Kommende områdegrupper"
             description="Næste jobs er samlet pr. dag og zone, så admin hurtigt kan se belastning og omsætning."
           />
-          <div className="grid gap-4">
+          <div className="grid gap-3">
             {dashboard.routePlan.length > 0 ? (
               dashboard.routePlan.map((day) => (
                 <article
                   key={day.date}
-                  className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+                  className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
                 >
-                  <div className="flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-lg font-semibold text-[var(--ink)]">{day.label}</p>
-                      <p className="mt-1 text-sm text-[var(--muted)]">
-                        {day.areas.length} områder planlagt
-                      </p>
+                  <div className="flex items-center justify-between gap-4 border-b border-[#e8ebf5] px-5 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#2563EB]">
+                        <Route className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-[14px] font-bold text-[#1F2340]">{day.label}</p>
+                        <p className="text-[11px] text-[#8E95B5]">{day.areas.length} zone{day.areas.length !== 1 ? "r" : ""}</p>
+                      </div>
                     </div>
-                    <Route className="h-5 w-5 text-[#2388d1]" />
+                    <p className="text-[13px] font-bold text-[#1F2340]">
+                      {formatShortPrice(day.areas.reduce((s, a) => s + a.totalRevenue, 0))}
+                    </p>
                   </div>
-                  <div className="mt-4 grid gap-3">
+                  <div className="divide-y divide-[#e8ebf5]">
                     {day.areas.map((area) => (
-                      <div
-                        key={area.key}
-                        className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4"
-                      >
+                      <div key={area.key} className="px-5 py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="font-semibold text-[var(--ink)]">
-                            {area.label} ({area.count})
+                          <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[#6366F1]">
+                            {area.label} · {area.count} job
                           </p>
-                          <p className="text-sm text-[var(--muted)]">
-                            {formatPrice(area.totalRevenue)}
-                          </p>
+                          <p className="text-[12px] font-semibold text-[#8E95B5]">{formatPrice(area.totalRevenue)}</p>
                         </div>
-                        <div className="mt-3 grid gap-2">
+                        <div className="mt-2 grid gap-1.5">
                           {area.bookings.map((booking) => (
-                            <div key={booking.id} className="flex items-center justify-between gap-3 text-sm">
-                              <span className="text-[var(--ink)]">
-                                {booking.appointmentTime} - {booking.customerName || booking.customerEmail}
+                            <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12px]">
+                              <span className="font-medium text-[#1F2340]">
+                                {booking.appointmentTime} · {booking.customerName || booking.customerEmail}
                               </span>
-                              <span className="text-[var(--muted)]">
-                                {formatPrice(booking.total)}
-                              </span>
+                              <span className="font-semibold text-[#374151]">{formatPrice(booking.total)}</span>
                             </div>
                           ))}
                         </div>
@@ -2198,31 +2262,41 @@ function PaymentsView({
   const visibleUnpaidBookings = unpaidBookings.slice(0, INITIAL_PAYMENT_LIMIT);
 
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={CreditCard}
+        title="Betalinger"
+        description="Opfølgning på ubetalte bookinger og fakturaer"
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Ubetalte"
           value={dashboard.bookings.filter((item) => item.paymentStatus === "unpaid").length.toString()}
           detail="Ingen betaling registreret"
           icon={CreditCard}
+          tone="red"
         />
         <MetricCard
           label="Afventer betaling"
           value={dashboard.bookings.filter((item) => item.paymentStatus === "pending").length.toString()}
           detail="Beløbet er ikke afsluttet"
           icon={Clock3}
+          tone="orange"
         />
         <MetricCard
           label="Fakturaklare"
           value={dashboard.bookings.filter((item) => item.invoiceStatus === "ready").length.toString()}
           detail="Mangler at blive sendt"
           icon={ReceiptText}
+          tone="blue"
         />
         <MetricCard
-          label="Udestående omsætning"
+          label="Udestående"
           value={formatShortPrice(dashboard.stats.outstandingRevenue)}
-          detail="Ikke markeret som betalt endnu"
+          detail="Ikke markeret som betalt"
           icon={BarChart3}
+          tone="green"
         />
       </div>
 
@@ -2257,45 +2331,51 @@ function SettingsView({
   smtpConfigured: boolean;
 }) {
   return (
-    <div className="space-y-8">
-      <div className="grid gap-4 md:grid-cols-4">
+    <div className="space-y-5">
+      <ViewHeader
+        icon={Settings2}
+        title="Indstillinger"
+        description="Virksomhedsoplysninger, standardstatus og mailmiljø"
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Standardstatus"
           value={getAutoBookingStatusLabel(dashboard.settings.defaultBookingStatus)}
           detail="Bruges ved nye bookinger"
           icon={Cog}
+          tone="violet"
         />
         <MetricCard
           label="Support e-mail"
           value={dashboard.settings.supportEmail}
           detail="Vises til kunden"
           icon={Mail}
+          tone="blue"
         />
         <MetricCard
           label="Admin notify"
           value={dashboard.settings.adminNotifyEmail || "Ikke sat"}
           detail="Modtager booking-alerts"
           icon={BellRing}
+          tone="orange"
         />
         <MetricCard
           label="SMTP"
           value={smtpConfigured ? "Klar" : "Mangler"}
           detail="Mailserver for udsendelser"
           icon={ShieldCheck}
+          tone={smtpConfigured ? "green" : "red"}
         />
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_0.95fr]">
+      <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
         <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Generelt"
-            title="Virksomheds- og bookingopsætning"
-            description="Alt det admin typisk justerer først, inkl. standardstatus for nye bookinger."
-          />
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Generelt</p>
           <form
             action="/api/admin/settings"
             method="POST"
-            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+            className="grid gap-4 overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-5 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
           >
             <input type="hidden" name="section" value="general" />
             <input type="hidden" name="return_view" value="settings" />
@@ -2337,15 +2417,13 @@ function SettingsView({
                         defaultChecked={dashboard.settings.defaultBookingStatus === option.value}
                         className="peer sr-only"
                       />
-                      <span className="flex h-full min-h-36 flex-col rounded-[1.25rem] border border-[var(--line)] bg-white p-4 transition peer-checked:border-[#55b9df] peer-checked:bg-[#eef8ff] peer-checked:shadow-[0_16px_32px_rgba(43,147,220,0.12)]">
-                        <span className="flex items-center gap-3 text-[var(--ink)]">
-                          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[#f2f7fa] text-[#2388d1]">
-                            <Icon className="h-5 w-5" />
-                          </span>
-                          <span className="font-semibold">{option.title}</span>
+                      <span className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-white px-4 py-3 transition peer-checked:border-[#6366F1] peer-checked:bg-[#F5F5FF] peer-checked:shadow-[0_4px_16px_rgba(99,102,241,0.12)]">
+                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f2f7fa] text-[#6366F1]">
+                          <Icon className="h-4 w-4" />
                         </span>
-                        <span className="mt-3 text-sm leading-6 text-[var(--muted)]">
-                          {option.description}
+                        <span className="min-w-0">
+                          <span className="block text-[13px] font-semibold text-[var(--ink)]">{option.title}</span>
+                          <span className="mt-0.5 block text-[12px] leading-5 text-[var(--muted)]">{option.description}</span>
                         </span>
                       </span>
                     </label>
@@ -2358,32 +2436,31 @@ function SettingsView({
         </section>
 
         <section className="space-y-4">
-          <div className="rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-            <p className="text-lg font-semibold text-[var(--ink)]">Hvad betyder standardstatus?</p>
-            <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Info</p>
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+            <p className="text-[13px] font-semibold text-[#1F2340]">Hvad betyder standardstatus?</p>
+            <p className="mt-2 text-[13px] leading-5 text-[#8E95B5]">
               {getAutoBookingStatusDescription(dashboard.settings.defaultBookingStatus)}
             </p>
-            <div className="mt-4 rounded-[1.2rem] bg-[#f6fbff] px-4 py-4 text-sm text-[#1a506d]">
+            <div className="mt-3 rounded-xl bg-[#F5F5FF] px-4 py-3 text-[12px] text-[#6366F1]">
               Denne indstilling påvirker både website-bookinger og manuelle bookinger fra admin.
             </div>
           </div>
 
-          <div className="rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-            <p className="text-lg font-semibold text-[var(--ink)]">Mailmiljoe</p>
-            <div className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
-              <p className="flex items-center justify-between gap-4">
-                <span>SMTP host</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_HOST || "Ikke sat"}</strong>
-              </p>
-              <p className="flex items-center justify-between gap-4">
-                <span>SMTP port</span>
-                <strong className="text-[var(--ink)]">{process.env.SMTP_PORT || "587"}</strong>
-              </p>
-              <p className="flex items-center justify-between gap-4">
-                <span>MAIL_FROM</span>
-                <strong className="text-[var(--ink)]">{process.env.MAIL_FROM || "Ikke sat"}</strong>
-              </p>
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+            <div className="border-b border-[#e8ebf5] px-5 py-3">
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Mailmiljø</p>
             </div>
+            {[
+              { label: "SMTP host", value: process.env.SMTP_HOST || "Ikke sat" },
+              { label: "SMTP port", value: process.env.SMTP_PORT || "587" },
+              { label: "MAIL_FROM", value: process.env.MAIL_FROM || "Ikke sat" },
+            ].map((row, i, arr) => (
+              <div key={row.label} className={`flex items-center justify-between gap-4 px-5 py-3 ${i < arr.length - 1 ? "border-b border-[#e8ebf5]" : ""}`}>
+                <span className="text-[13px] text-[#8E95B5]">{row.label}</span>
+                <strong className="text-[13px] font-semibold text-[#1F2340]">{row.value}</strong>
+              </div>
+            ))}
           </div>
         </section>
       </div>
@@ -2850,89 +2927,84 @@ function AreaCard({ area }: { area: DashboardData["settings"]["serviceAreas"][nu
 
 function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
   return (
-    <section className="space-y-4">
-      <SectionHeading
-        eyebrow="Fakturaer"
-        title="Alle fakturaer"
-        description={`${invoices.length} fakturaer i systemet.`}
+    <div className="space-y-5">
+      <ViewHeader
+        icon={ReceiptText}
+        title="Fakturaer"
+        description={`${invoices.length} fakturaer i systemet`}
       />
-      <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/70 shadow-[0_10px_32px_rgba(31,35,64,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
         {invoices.length > 0 ? (
-          <div className="divide-y divide-[#e8ebf5]">
-            {invoices.map((invoice) => (
-              <article
-                key={invoice.id}
-                className="grid gap-3 px-4 py-4 sm:px-5 lg:grid-cols-[1fr_1fr_9rem_auto] lg:items-center"
-              >
-                <div>
-                  <p className="text-[14px] font-bold text-[#1f2340]">
-                    {invoice.invoiceNumber}
-                  </p>
-                  <p className="mt-1 text-[12px] font-medium text-[#7b829f]">
-                    Booking {invoice.bookingId}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[13px] font-semibold text-[#374151]">
-                    {invoice.customerEmail || invoice.sentToEmail || "Ingen e-mail"}
-                  </p>
-                  <p className="mt-1 text-[12px] font-medium text-[#7b829f]">
-                    {invoice.emailSent ? `Sendt ${invoice.emailSentAt || invoice.sentAt}` : "Ikke sendt"}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-[14px] font-bold text-[#1f2340]">
-                    {formatPrice(invoice.totalInclMomsDkk)}
-                  </p>
-                  <p className="mt-1 text-[12px] font-semibold uppercase text-[#7b829f]">
-                    {invoice.status}
-                  </p>
-                </div>
-                {invoice.publicUrl ? (
-                  <a
-                    href={invoice.publicUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d4e3ed] bg-white px-4 text-[13px] font-semibold text-[#08745a] transition hover:border-[#12b886]"
-                  >
-                    Vis / print
-                  </a>
-                ) : (
-                  <span className="text-[12px] text-[#7b829f]">Ingen visning endnu</span>
-                )}
-              </article>
-            ))}
-          </div>
+          <>
+            <div className="hidden border-b border-[#e8ebf5] px-5 py-2.5 lg:grid lg:grid-cols-[1fr_1fr_9rem_auto] lg:gap-3">
+              {["Faktura", "Kunde / e-mail", "Beløb", ""].map((col) => (
+                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#8E95B5]">{col}</span>
+              ))}
+            </div>
+            <div className="divide-y divide-[#e8ebf5]">
+              {invoices.map((invoice) => (
+                <article
+                  key={invoice.id}
+                  className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto] lg:items-center"
+                >
+                  <div>
+                    <p className="text-[13px] font-bold text-[#1F2340]">{invoice.invoiceNumber}</p>
+                    <p className="mt-0.5 text-[12px] text-[#8E95B5]">Booking {invoice.bookingId}</p>
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-[#1F2340]">
+                      {invoice.customerEmail || invoice.sentToEmail || "Ingen e-mail"}
+                    </p>
+                    <p className="mt-0.5 text-[12px] text-[#8E95B5]">
+                      {invoice.emailSent ? `Sendt ${invoice.emailSentAt || invoice.sentAt}` : "Ikke sendt"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-bold text-[#1F2340]">{formatPrice(invoice.totalInclMomsDkk)}</p>
+                    <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8E95B5]">{invoice.status}</p>
+                  </div>
+                  {invoice.publicUrl ? (
+                    <a
+                      href={invoice.publicUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e8ebf5] bg-white px-3 text-[12px] font-semibold text-[#6366F1] transition hover:border-[#6366F1] hover:bg-[#F5F5FF]"
+                    >
+                      Vis / print
+                    </a>
+                  ) : (
+                    <span className="text-[12px] text-[#8E95B5]">Ingen visning</span>
+                  )}
+                </article>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="p-5">
             <EmptyState text="Ingen fakturaer er oprettet endnu." />
           </div>
         )}
       </div>
-    </section>
+    </div>
   );
 }
 
 function PaymentCard({ booking }: { booking: DashboardBooking }) {
   return (
-    <article className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-        <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <h3 className="text-xl font-semibold text-[var(--ink)]">
-              {booking.customerName || booking.customerEmail}
-            </h3>
-            <PaymentPill status={booking.paymentStatus} />
-            <InvoicePill status={booking.invoiceStatus} />
-          </div>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            {booking.appointmentLabel} | {booking.packageLabel} - {booking.category}
-          </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{formatPrice(booking.total)}</p>
+    <article className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e8ebf5] px-5 py-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <p className="text-[14px] font-bold text-[#1F2340]">{booking.customerName || booking.customerEmail}</p>
+          <PaymentPill status={booking.paymentStatus} />
+          <InvoicePill status={booking.invoiceStatus} />
+        </div>
+        <div className="text-right">
+          <p className="text-[18px] font-bold text-[#1F2340]">{formatPrice(booking.total)}</p>
+          <p className="text-[11px] text-[#8E95B5]">{booking.appointmentLabel}</p>
         </div>
       </div>
 
-      <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="mt-5 grid gap-4 sm:grid-cols-2">
+      <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="grid gap-4 px-5 py-4 sm:grid-cols-2">
         <input type="hidden" name="action" value="financial" />
         <input type="hidden" name="return_view" value="payments" />
         <Field label="Betalingsstatus">
@@ -2980,48 +3052,45 @@ function PaymentCard({ booking }: { booking: DashboardBooking }) {
 }
 
 function EmailLogCard({ email }: { email: BookingEmailLog }) {
+  const isFailed = email.status === "failed";
   return (
-    <article className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <article
+      className={cn(
+        "flex flex-wrap items-start justify-between gap-3 rounded-xl border px-4 py-3.5",
+        isFailed
+          ? "border-red-200 bg-red-50/60"
+          : "border-[#e8ebf5] bg-white/80"
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className={cn(
+            "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold",
+            email.status === "sent" ? "bg-[#ECFDF5] text-[#059669]" : isFailed ? "bg-red-100 text-red-600" : "bg-[#EFF6FF] text-[#2563EB]"
+          )}
+        >
+          {email.status === "sent" ? "✓" : isFailed ? "✗" : "…"}
+        </span>
         <div>
-          <div className="flex flex-wrap items-center gap-3">
-            <p className="text-lg font-semibold text-[var(--ink)]">{email.subject}</p>
-            <span
-              className={cn(
-                "inline-flex rounded-full px-3 py-1 text-xs font-semibold",
-                email.status === "sent"
-                  ? "bg-[#ebf8f1] text-[#1f7a4b]"
-                  : email.status === "failed"
-                    ? "bg-[#fff0f0] text-[#c43d3d]"
-                    : "bg-[#eef8ff] text-[#1f6aa4]"
-              )}
-            >
-              {getEmailStatusLabel(email.status)}
-            </span>
-          </div>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            {getEmailRecipientLabel(email.recipientRole)} | {email.recipient}
+          <p className="text-[13px] font-semibold text-[#1F2340]">{email.subject}</p>
+          <p className="mt-0.5 text-[11px] text-[#8E95B5]">
+            {getEmailRecipientLabel(email.recipientRole)} · {email.recipient} · {email.sentAt || email.createdAt}
           </p>
-          <p className="mt-1 text-sm text-[var(--muted)]">{email.sentAt || email.createdAt}</p>
           {email.errorMessage ? (
-            <p className="mt-2 text-sm text-red-600">{email.errorMessage}</p>
+            <p className="mt-1 text-[12px] font-medium text-red-600">{email.errorMessage}</p>
           ) : null}
         </div>
-        {email.bookingId ? (
-          <form action={`/api/admin/bookings/${email.bookingId}`} method="POST" className="flex gap-3">
-            <input
-              type="hidden"
-              name="action"
-              value={email.recipientRole === "admin" ? "resend_admin" : "resend_customer"}
-            />
-            <input type="hidden" name="return_view" value="emails" />
-            <input type="hidden" name="admin_notes" value="" />
-            <Button type="submit" variant="outline">
-              Send igen
-            </Button>
-          </form>
-        ) : null}
       </div>
+      {email.bookingId ? (
+        <form action={`/api/admin/bookings/${email.bookingId}`} method="POST">
+          <input type="hidden" name="action" value={email.recipientRole === "admin" ? "resend_admin" : "resend_customer"} />
+          <input type="hidden" name="return_view" value="emails" />
+          <input type="hidden" name="admin_notes" value="" />
+          <Button type="submit" variant="outline" className="h-7 rounded-lg px-3 text-[11px]">
+            Send igen
+          </Button>
+        </form>
+      ) : null}
     </article>
   );
 }
@@ -3031,22 +3100,32 @@ function MetricCard({
   value,
   detail,
   icon: Icon,
+  tone = "violet",
 }: {
   label: string;
   value: string;
   detail: string;
   icon: LucideIcon;
+  tone?: "violet" | "green" | "orange" | "red" | "blue";
 }) {
+  const iconStyles = {
+    violet: "bg-[#EEF0FF] text-[#6366F1]",
+    green: "bg-[#ECFDF5] text-[#059669]",
+    orange: "bg-[#FFF7ED] text-[#D97706]",
+    red: "bg-[#FEF2F2] text-[#DC2626]",
+    blue: "bg-[#EFF6FF] text-[#2563EB]",
+  }[tone];
+
   return (
-    <article className="rounded-3xl border border-white/55 bg-white/[0.65] px-4 py-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl transition duration-[250ms] hover:-translate-y-0.5">
+    <article className="rounded-2xl border border-white/60 bg-white/80 px-4 py-4 shadow-[0_2px_12px_rgba(99,102,241,0.07)] backdrop-blur-xl transition hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="text-[12px] font-medium text-[#8E95B5]">{label}</p>
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8E95B5]">{label}</p>
           <p className="mt-2 break-words text-[22px] font-bold leading-none text-[#1F2340]">{value}</p>
-          <p className="mt-2 text-[12px] font-medium leading-5 text-[#4B5563]">{detail}</p>
+          <p className="mt-2 truncate text-[12px] font-medium leading-5 text-[#6B7280]">{detail}</p>
         </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1] shadow-[inset_0_0_0_1px_rgba(99,102,241,0.12)]">
-          <Icon className="h-5 w-5" />
+        <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", iconStyles)}>
+          <Icon className="h-4.5 w-4.5 h-[18px] w-[18px]" />
         </span>
       </div>
     </article>
@@ -3064,11 +3143,38 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">{eyebrow}</p>
-      <h2 className="mt-1.5 text-xl font-bold text-[#1F2340] sm:text-2xl">{title}</h2>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6366F1]">{eyebrow}</p>
+      <h2 className="mt-1 text-lg font-bold text-[#1F2340] sm:text-xl">{title}</h2>
       {description ? (
-        <p className="mt-1.5 max-w-2xl text-[13px] font-medium leading-6 text-[#4B5563]">{description}</p>
+        <p className="mt-1 max-w-2xl text-[12px] font-medium leading-5 text-[#8E95B5]">{description}</p>
       ) : null}
+    </div>
+  );
+}
+
+function ViewHeader({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(99,102,241,0.06)] backdrop-blur-xl">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEF0FF] text-[#6366F1]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-base font-bold text-[#1F2340] sm:text-lg">{title}</h1>
+          {description ? <p className="text-[12px] font-medium text-[#8E95B5]">{description}</p> : null}
+        </div>
+      </div>
+      {action ? <div>{action}</div> : null}
     </div>
   );
 }

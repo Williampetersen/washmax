@@ -218,29 +218,6 @@ export default function HomePage() {
                 Professionel bilvask i København og på Sjælland
               </h1>
 
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Link
-                  href="/booking"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#10211a] shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition hover:bg-[#eef8ff]"
-                >
-                  Book bilvask
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-                <a
-                  href="#services"
-                  className="inline-flex h-12 items-center justify-center rounded-md border border-white/22 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  Se priser
-                </a>
-                <a
-                  href={siteConfig.phoneHref}
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/22 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
-                >
-                  <Phone className="h-4 w-4" />
-                  Ring: {siteConfig.phoneDisplay}
-                </a>
-              </div>
-
               <HomePlateForm />
 
               <div className="mt-5 flex flex-wrap gap-3">
