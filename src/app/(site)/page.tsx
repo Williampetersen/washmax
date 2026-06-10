@@ -209,18 +209,14 @@ export default function HomePage() {
           <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,9,8,0.9)_0%,rgba(5,17,13,0.72)_48%,rgba(7,21,17,0.45)_100%)]" />
           <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(3,9,8,0.8))]" />
 
-          <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_0.82fr] lg:items-center lg:px-10">
-            <div className="max-w-3xl text-white">
+          <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl flex-col justify-center px-4 py-16 sm:px-6 lg:px-10">
+            <div className="text-white">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#8ce7ff]">
                 CleanWash · mobil bilvask
               </p>
-              <h1 className="mt-4 max-w-3xl font-display text-[clamp(2.7rem,6vw,5.8rem)] font-semibold leading-none text-white">
+              <h1 className="mt-4 max-w-3xl font-display text-[clamp(2rem,4.2vw,3.8rem)] font-normal leading-[1.08] text-white">
                 Professionel bilvask i København og på Sjælland
               </h1>
-              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/82">
-                Book mobil bilvask på adressen. Indtast nummerpladen, se pris og vælg en ledig tid.
-                Nemt for private. Effektivt for erhverv.
-              </p>
 
               <div className="mt-7 flex flex-wrap gap-3">
                 <Link
@@ -246,31 +242,17 @@ export default function HomePage() {
               </div>
 
               <HomePlateForm />
-            </div>
 
-            <div className="hidden lg:block">
-              <div className="rounded-[2rem] border border-white/14 bg-white/10 p-5 shadow-[0_28px_80px_rgba(0,0,0,0.25)] backdrop-blur-md">
-                <div className="rounded-2xl border border-white/16 bg-white/12 p-6 text-white">
-                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8ce7ff]">
-                    CleanWash
-                  </p>
-                  <p className="mt-4 text-3xl font-semibold leading-tight">
-                    Mobil bilvask med klar pris og hurtig booking.
-                  </p>
-                </div>
-                <div className="mt-4 grid gap-3">
-                  {["Bilvask hjemme", "Bilpleje København", "Bilrengøring Sjælland"].map(
-                    (item) => (
-                      <div
-                        key={item}
-                        className="flex items-center gap-3 rounded-2xl bg-white/12 px-4 py-3 text-white"
-                      >
-                        <Check className="h-5 w-5 text-[#8ce7ff]" />
-                        <span className="font-semibold">{item}</span>
-                      </div>
-                    )
-                  )}
-                </div>
+              <div className="mt-5 flex flex-wrap gap-3">
+                {["Bilvask hjemme", "Bilpleje København", "Bilrengøring Sjælland"].map((item) => (
+                  <div
+                    key={item}
+                    className="flex items-center gap-2 rounded-xl border border-white/16 bg-white/10 px-4 py-2.5 backdrop-blur-sm"
+                  >
+                    <Check className="h-4 w-4 text-[#8ce7ff]" />
+                    <span className="text-sm font-semibold text-white">{item}</span>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -496,6 +478,113 @@ export default function HomePage() {
           </div>
         </div>
 
+      </section>
+
+      {/* ── Priser ── */}
+      <section id="priser" className="mx-auto mt-20 max-w-7xl">
+        <div className="text-center">
+          <span className="eyebrow">Priser</span>
+          <h2 className="mt-4 section-title">Mobil bilvask fra 349 kr.</h2>
+          <p className="mx-auto mt-4 max-w-xl text-[var(--muted)]">
+            Fast pris fra start — ingen skjulte gebyrer. Du betaler kun efter bilvask er udført.
+          </p>
+        </div>
+
+        <div className="mt-12 grid items-start gap-6 lg:grid-cols-3">
+          {/* Udvendig */}
+          <div className="rounded-2xl border border-[var(--line)] bg-white p-8 shadow-[0_18px_48px_rgba(8,27,21,0.07)]">
+            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Udvendig vask</h3>
+            <div className="mt-4 flex items-baseline gap-1.5">
+              <span className="text-sm text-[var(--muted)]">fra</span>
+              <span className="font-display text-5xl font-bold text-[var(--ink)]">349</span>
+              <span className="text-lg font-semibold text-[var(--muted)]">kr.</span>
+            </div>
+            <ul className="mt-7 space-y-3.5">
+              {[
+                "Skånsom vask med skum og skyl",
+                "Fælge og hjulbuer rengjort",
+                "Ruder og spejle aftørret",
+                "Finish og tøring af bil",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-[var(--muted)]">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#19af84]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/booking"
+              className="mt-8 flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-[#0d2e22] text-sm font-semibold text-[#0d2e22] transition hover:bg-[#0d2e22] hover:text-white"
+            >
+              Vælg pakke <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Komplet — featured */}
+          <div className="relative rounded-2xl bg-[#0d2e22] p-8 shadow-[0_32px_80px_rgba(8,27,21,0.30)] lg:-mt-4 lg:pb-10 lg:pt-12">
+            <div className="absolute -top-4 left-0 right-0 flex justify-center">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#19af84] px-4 py-1.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(25,175,132,0.4)]">
+                <Sparkles className="h-3.5 w-3.5" />
+                Mest populær
+              </span>
+            </div>
+            <h3 className="font-display text-2xl font-semibold text-white">Komplet bilvask</h3>
+            <div className="mt-4 flex items-baseline gap-1.5">
+              <span className="text-sm text-white/60">fra</span>
+              <span className="font-display text-5xl font-bold text-white">599</span>
+              <span className="text-lg font-semibold text-white/60">kr.</span>
+            </div>
+            <ul className="mt-7 space-y-3.5">
+              {[
+                "Alt fra udvendig vask inkluderet",
+                "Grundig støvsugning af kabine",
+                "Instrumentbræt og paneler rengjort",
+                "Vinyl, rat og sæder behandlet",
+                "Frisk og klar bil ved aflevering",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-white/80">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#4ade80]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/booking"
+              className="mt-8 flex h-12 items-center justify-center gap-2 rounded-xl bg-[#19af84] text-sm font-semibold text-white shadow-[0_8px_24px_rgba(25,175,132,0.38)] transition hover:bg-[#15976f]"
+            >
+              Vælg pakke <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+
+          {/* Premium */}
+          <div className="rounded-2xl border border-[var(--line)] bg-white p-8 shadow-[0_18px_48px_rgba(8,27,21,0.07)]">
+            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Premium bilpleje</h3>
+            <div className="mt-4 flex items-baseline gap-1.5">
+              <span className="text-sm text-[var(--muted)]">fra</span>
+              <span className="font-display text-5xl font-bold text-[var(--ink)]">849</span>
+              <span className="text-lg font-semibold text-[var(--muted)]">kr.</span>
+            </div>
+            <ul className="mt-7 space-y-3.5">
+              {[
+                "Alt fra komplet bilvask inkluderet",
+                "Polering og voksbeskyttelse",
+                "Dybderens af sæder og tæpper",
+                "Klargøring til salg eller fremvisning",
+              ].map((item) => (
+                <li key={item} className="flex items-start gap-3 text-sm text-[var(--muted)]">
+                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#19af84]" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <Link
+              href="/booking"
+              className="mt-8 flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-[#0d2e22] text-sm font-semibold text-[#0d2e22] transition hover:bg-[#0d2e22] hover:text-white"
+            >
+              Vælg pakke <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+        </div>
       </section>
 
       <section id="koebenhavn" className="mx-auto mt-16 max-w-7xl">

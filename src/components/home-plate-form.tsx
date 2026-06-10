@@ -40,17 +40,17 @@ export function HomePlateForm() {
     <>
       <form
         onSubmit={handleSubmit}
-        className="mt-7 flex max-w-3xl flex-col gap-2 sm:flex-row sm:items-stretch"
+        className="mt-7 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-stretch"
       >
-        <label className="block sm:w-[20rem]">
+        <label className="block sm:flex-1">
           <span className="sr-only">Dansk nummerplade</span>
-          <span className="flex h-12 overflow-hidden rounded-md border border-white/30 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.18)] focus-within:border-[#55b9df] focus-within:ring-4 focus-within:ring-[#55b9df]/22">
+          <span className="flex h-16 overflow-hidden rounded-xl border border-white/30 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.18)] focus-within:border-[#55b9df] focus-within:ring-4 focus-within:ring-[#55b9df]/22">
             <Image
               src="/DKEU.svg"
               alt="DK"
-              width={48}
-              height={54}
-              className="h-full w-10 shrink-0 object-cover"
+              width={56}
+              height={64}
+              className="h-full w-12 shrink-0 object-cover"
             />
             <input
               name="plate"
@@ -63,14 +63,14 @@ export function HomePlateForm() {
               value={plate}
               onFocus={() => router.prefetch("/booking")}
               onChange={(event) => setPlate(sanitizePlate(event.target.value))}
-              className="min-w-0 flex-1 border-0 bg-white px-3 text-xl font-semibold uppercase tracking-[0.08em] text-[#222] outline-none placeholder:text-[#cfcfcf]"
+              className="min-w-0 flex-1 border-0 bg-white px-4 text-2xl font-bold uppercase tracking-[0.1em] text-[#222] outline-none placeholder:text-[#d0d0d0]"
             />
           </span>
         </label>
 
-        <Button type="submit" size="lg" className="h-12 rounded-md px-7" disabled={isSubmitting}>
+        <Button type="submit" size="lg" className="h-16 rounded-xl px-8 text-base" disabled={isSubmitting}>
           <Search className="h-5 w-5" />
-          {isSubmitting ? "Aabner..." : "Se din pris"}
+          {isSubmitting ? "Åbner..." : "Se din pris"}
         </Button>
       </form>
 
