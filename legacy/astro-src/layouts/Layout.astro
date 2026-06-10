@@ -12,15 +12,15 @@ export interface Props {
   image?: string;
 }
 
-const site = Astro.site ?? new URL("https://washmax.dk");
+const site = Astro.site ?? new URL("https://cleanwash.dk");
 const canonicalURL = new URL(Astro.url.pathname, site).toString();
 const {
   title = "Mobil bilrengoring hos dig",
-  description = "WashMax tilbyder mobil bilrengoring pa Sjaelland med hurtig booking, miljoevenlig behandling og klare pakker til privat og erhverv.",
-  image = "https://washmax.dk/wp-content/uploads/2023/06/bilvask-4-scaled.jpg",
+  description = "CleanWash tilbyder mobil bilrengoring pa Sjaelland med hurtig booking, miljoevenlig behandling og klare pakker til privat og erhverv.",
+  image = "https://cleanwash.dk/opengraph.jpg",
 } = Astro.props;
 
-const makeTitle = `${title} | WashMax`;
+const makeTitle = `${title} | CleanWash`;
 ---
 
 <!doctype html>
@@ -36,8 +36,8 @@ const makeTitle = `${title} | WashMax`;
       description={description}
       canonical={canonicalURL}
       twitter={{
-        creator: "@washmaxdk",
-        site: "@washmaxdk",
+        creator: "@CleanWashdk",
+        site: "@CleanWashdk",
         card: "summary_large_image",
       }}
       openGraph={{
@@ -48,7 +48,7 @@ const makeTitle = `${title} | WashMax`;
           image,
         },
         image: {
-          alt: "WashMax mobil bilrengoring",
+          alt: "CleanWash mobil bilrengoring",
         },
       }}
     />

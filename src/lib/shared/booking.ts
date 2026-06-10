@@ -87,6 +87,8 @@ export type BookingSettings = {
   startHour: number;
   endHour: number;
   slotMinutes: number;
+  bufferBeforeMinutes?: number;
+  bufferAfterMinutes?: number;
   travelBufferMinutes: number;
   workingDays: number[];
   catalog: ServiceCatalog;
@@ -98,6 +100,7 @@ export type BookingSettings = {
   minimumNoticeHours?: number;
   maxBookingsPerSlot?: number;
   maxBookingsPerDay?: number;
+  allowSameDayBooking?: boolean;
   vatRate?: number;
 };
 
@@ -221,14 +224,16 @@ export const weekdayOptions = [
 ] as const;
 
 export const defaultBookingSettings: BookingSettings = {
-  companyName: "WashMax",
-  supportEmail: "info@washmax.dk",
+  companyName: "CleanWash",
+  supportEmail: "info@cleanwash.dk",
   adminNotifyEmail: "",
   defaultBookingStatus: "pending",
   startHour: 8,
   endHour: 18,
   slotMinutes: 150,
-  travelBufferMinutes: 30,
+  bufferBeforeMinutes: 160,
+  bufferAfterMinutes: 0,
+  travelBufferMinutes: 0,
   workingDays: [0, 1, 2, 3, 4, 5, 6],
   catalog: defaultServiceCatalog,
   serviceAreas: [],

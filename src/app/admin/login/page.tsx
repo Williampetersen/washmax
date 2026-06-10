@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 
 export const metadata: Metadata = {
   title: "Admin login",
-  description: "Log ind til WashMax admin.",
+  description: "Log ind til CleanWash admin.",
   alternates: {
     canonical: "/admin/login",
   },
@@ -40,7 +40,7 @@ export default async function AdminLoginPage({
         <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="rounded-[2rem] bg-[linear-gradient(155deg,#0d3556,#184e75_45%,#1d6f9a)] p-8 text-white shadow-[0_30px_80px_rgba(8,27,21,0.22)]">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#a7e7ff]">
-              WashMax Admin
+              CleanWash Admin
             </p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-tight">
               Booking, kalender og kundeoverblik samlet et sted.

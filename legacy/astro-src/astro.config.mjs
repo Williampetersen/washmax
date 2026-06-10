@@ -6,7 +6,7 @@ import icon from "astro-icon";
 import vercel from "@astrojs/vercel";
 
 export default defineConfig({
-  site: "https://washmax.dk",
+  site: "https://cleanwash.dk",
   output: "server",
   adapter: vercel(),
   integrations: [mdx(), sitemap(), icon()],

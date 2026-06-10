@@ -1,8 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Menu, Phone } from "lucide-react";
+import { Menu } from "lucide-react";
 import { navItems, siteConfig } from "@/lib/site";
-import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   return (
@@ -13,7 +12,7 @@ export function SiteHeader() {
             <Link href="/" className="flex items-center gap-3">
               <Image
                 src="/logo.png"
-                alt="WashMax"
+                alt="CleanWash professionel bilvask"
                 width={208}
                 height={48}
                 className="h-11 w-auto max-w-[13rem] object-contain sm:h-12"
@@ -44,7 +43,7 @@ export function SiteHeader() {
                 href="/booking"
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
               >
-                Se pris og bestil
+                Book bilvask
               </Link>
             </div>
 
@@ -76,13 +75,13 @@ export function SiteHeader() {
                     href="/booking"
                     className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#5ec1eb,#39aee0)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(43,147,220,0.24)] transition hover:brightness-105"
                   >
-                    Se pris og bestil
+                    Book bilvask
                   </Link>
                   <a
-                    href={siteConfig.giftCardUrl}
+                    href={`mailto:${siteConfig.email}`}
                     className="rounded-2xl border border-black/8 px-4 py-3 text-center text-sm text-[var(--ink)]"
                   >
-                    Gavekort
+                    {siteConfig.email}
                   </a>
                 </div>
               </div>

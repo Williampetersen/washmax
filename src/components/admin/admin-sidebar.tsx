@@ -32,11 +32,11 @@ export function AdminSidebar({
       <div className="border-b border-white/55 px-4 py-5">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#6366F1] text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)]">
-            W
+            C
           </div>
           <div className="min-w-0">
             <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
-              WashMax
+              CleanWash
             </p>
             <p className="mt-1 text-[13px] font-semibold">Admin</p>
             <p className="truncate text-[12px] font-medium text-[#8E95B5]">{sessionEmail}</p>

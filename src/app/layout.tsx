@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   title: {
-    default: `${siteConfig.name} | Mobil bilrengoring`,
+    default: `${siteConfig.name} | Bilvask i København og på Sjælland`,
     template: `%s | ${siteConfig.name}`,
   },
   description: siteConfig.description,
@@ -19,13 +19,20 @@ export const metadata: Metadata = {
     type: "website",
     siteName: siteConfig.name,
     url: siteConfig.url,
-    title: `${siteConfig.name} | Mobil bilrengoring`,
+    title: `${siteConfig.name} | Professionel mobil bilvask`,
     description: siteConfig.description,
-    images: [{ url: siteConfig.ogImage }],
+    images: [
+      {
+        url: siteConfig.ogImage,
+        width: 1200,
+        height: 630,
+        alt: "CleanWash bilvask i København og på Sjælland",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: `${siteConfig.name} | Mobil bilrengoring`,
+    title: `${siteConfig.name} | Bilvask København og Sjælland`,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
   },

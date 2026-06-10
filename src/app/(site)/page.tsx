@@ -1,101 +1,275 @@
-import { Clock3, Gift, MapPinned, Search, ShieldCheck } from "lucide-react";
+import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
+import {
+  ArrowRight,
+  BadgeCheck,
+  BriefcaseBusiness,
+  BrushCleaning,
+  Building2,
+  Car,
+  Check,
+  MapPinned,
+  Phone,
+  Search,
+  ShieldCheck,
+  Sparkles,
+  SprayCan,
+  Star,
+  WandSparkles,
+} from "lucide-react";
 import { HomePlateForm } from "@/components/home-plate-form";
-import { Button } from "@/components/ui/button";
 import { siteConfig } from "@/lib/site";
-import { vehicleCategories } from "@/lib/shared/booking";
 
-const trustItems = [
+export const metadata: Metadata = {
+  title: "Bilvask København og Sjælland",
+  description:
+    "Book professionel mobil bilvask i København og på Sjælland hos CleanWash. Bilvask på adressen, indvendig bilrengøring, udvendig bilvask og erhvervsaftaler.",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "CleanWash | Bilvask i København og på Sjælland",
+    description:
+      "Mobil bilvask på adressen. Nem booking, klar pris og professionel bilpleje til private og erhverv.",
+    images: [
+      {
+        url: "/opengraph.jpg",
+        width: 1200,
+        height: 630,
+        alt: "CleanWash bilvask i København og på Sjælland",
+      },
+    ],
+  },
+};
+
+const benefits = [
+  "Bilvask på din adresse",
+  "Fleksible tider",
+  "Professionel rengøring",
+  "Til private og erhverv",
+  "Service i København og på Sjælland",
+];
+
+const services = [
   {
-    icon: Clock3,
-    title: "Alle ugens dage",
-    text: "Book mobil bilrengoring nar bilen alligevel holder stille.",
+    title: "Udvendig bilvask",
+    text: "Skånsom vask, fælge, ruder og finish. Bilen står skarp igen.",
+    icon: SprayCan,
   },
   {
-    icon: MapPinned,
-    title: "Vi kommer til dig",
-    text: "Privatadresse, arbejdsplads eller parkeringsanlaeg pa Sjaelland.",
+    title: "Indvendig bilvask",
+    text: "Støvsugning, aftørring, måtter og kabine. Godt til hverdagsbiler.",
+    icon: BrushCleaning,
   },
   {
-    icon: ShieldCheck,
-    title: "Tydelig pris",
-    text: "Nummerpladen finder bilkategori og pris for dig.",
+    title: "Komplet bilpleje",
+    text: "Indvendig og udvendig bilrengøring samlet i én nem booking.",
+    icon: Sparkles,
+  },
+  {
+    title: "Sæderens og støvsugning",
+    text: "Grundig behandling af sæder, gulve og svært tilgængelige områder.",
+    icon: WandSparkles,
+  },
+  {
+    title: "Fælgrens",
+    text: "Målrettet rens af fælge, bremsestøv og snavs omkring hjul.",
+    icon: Star,
+  },
+  {
+    title: "Erhvervsaftaler",
+    text: "Fast bilvask til firmabiler, flåder, taxa og transport.",
+    icon: BriefcaseBusiness,
+  },
+  {
+    title: "Klargøring før salg",
+    text: "Gør bilen klar til billeder, fremvisning, leasingretur eller salg.",
+    icon: BadgeCheck,
+  },
+];
+
+const copenhagenAreas = [
+  "København",
+  "Frederiksberg",
+  "Amager",
+  "Østerbro",
+  "Nørrebro",
+  "Vesterbro",
+  "Valby",
+  "Hvidovre",
+  "Rødovre",
+  "Glostrup",
+  "Gentofte",
+];
+
+const zealandAreas = [
+  "Sjælland",
+  "Storkøbenhavn",
+  "Roskilde",
+  "Køge",
+  "Hillerød",
+  "Helsingør",
+  "Holbæk",
+  "Ringsted",
+  "Næstved",
+  "Slagelse",
+];
+
+const steps = [
+  {
+    title: "Indtast nummerplade",
+    text: "Vi finder biltypen og hjælper med den rigtige pris.",
+  },
+  {
+    title: "Vælg bilvask",
+    text: "Vælg udvendig, indvendig eller komplet bilpleje.",
+  },
+  {
+    title: "Vælg tid og adresse",
+    text: "Du vælger en ledig tid. Vi kommer til bilen.",
+  },
+  {
+    title: "Vi klarer resten",
+    text: "Professionel bilvask uden kø og uden ventetid.",
+  },
+];
+
+const whyItems = [
+  "Ingen kø",
+  "Ingen ventetid",
+  "Klar pris",
+  "Nem online booking",
+  "Professionelt udstyr",
+  "Perfekt til travle bilejere",
+  "Perfekt til virksomheder med flere biler",
+];
+
+const businessItems = [
+  "Firmabiler",
+  "Leasingbiler",
+  "Taxa og transport",
+  "Ejendomsselskaber",
+  "Bilforhandlere",
+  "Flådeaftaler",
+];
+
+const faqs = [
+  {
+    question: "Tilbyder CleanWash bilvask i København?",
+    answer:
+      "Ja. CleanWash tilbyder bilvask i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og flere nærliggende bydele.",
+  },
+  {
+    question: "Kører CleanWash ud på Sjælland?",
+    answer:
+      "Ja. Vi tilbyder mobil bilvask på Sjælland og i Storkøbenhavn. Dækningsområdet kan afhænge af dato, adresse og rute.",
+  },
+  {
+    question: "Kan jeg booke bilvask hjemme?",
+    answer:
+      "Ja. Du kan booke bilvask hjemme, på arbejdspladsen eller et andet sted, hvor bilen holder lovligt og tilgængeligt.",
+  },
+  {
+    question: "Tilbyder I indvendig bilvask?",
+    answer:
+      "Ja. Vi tilbyder indvendig bilvask med støvsugning, aftørring, måtter og kabinerengøring.",
+  },
+  {
+    question: "Tilbyder I erhvervsaftaler?",
+    answer:
+      "Ja. CleanWash laver erhvervsaftaler for firmabiler, leasingbiler, taxa, transport, bilforhandlere og flåder.",
+  },
+  {
+    question: "Hvor lang tid tager en bilvask?",
+    answer:
+      "Tiden afhænger af bilens størrelse, valgt service og tilvalg. Du ser varighed og ledige tider i bookingflowet.",
+  },
+  {
+    question: "Hvordan kontakter jeg CleanWash?",
+    answer: `Ring på ${siteConfig.phoneDisplay} eller skriv til ${siteConfig.email}. Du kan også booke direkte online.`,
   },
 ];
 
 export default function HomePage() {
   return (
     <main id="top" className="px-4 pb-12 sm:px-6">
-      <section className="-mx-4 sm:-mx-6">
-        <div className="relative overflow-hidden bg-[#071611]">
+      <section className="-mx-4 -mt-24 sm:-mx-6">
+        <div className="relative overflow-hidden bg-[#071611] pt-24">
           <video
             autoPlay
             muted
             loop
             playsInline
-            preload="none"
-            poster="/opengraph.jpg"
+            preload="metadata"
             className="absolute inset-0 h-full w-full object-cover"
           >
-            <source src="/videos/hero.mp4" type="video/mp4" />
+            <source src="/videos/frontvideo.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,9,8,0.88)_0%,rgba(5,17,13,0.68)_54%,rgba(7,21,17,0.42)_100%)]" />
-          <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(3,9,8,0.78))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(3,9,8,0.9)_0%,rgba(5,17,13,0.72)_48%,rgba(7,21,17,0.45)_100%)]" />
+          <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(180deg,transparent,rgba(3,9,8,0.8))]" />
 
-          <div className="relative mx-auto grid min-h-[calc(100vh-6rem)] max-w-7xl gap-8 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_0.8fr] lg:items-center lg:px-10">
+          <div className="relative mx-auto grid min-h-[calc(100vh-4rem)] max-w-7xl gap-8 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_0.82fr] lg:items-center lg:px-10">
             <div className="max-w-3xl text-white">
-              <p className="text-sm font-semibold uppercase text-[#61c8f4]">
-                Mobil bilrengoring hos dig
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#8ce7ff]">
+                CleanWash · mobil bilvask
               </p>
-              <h1 className="mt-4 max-w-2xl font-display text-[clamp(3rem,7vw,5.9rem)] font-semibold leading-none text-white">
-                Beregn pris online
+              <h1 className="mt-4 max-w-3xl font-display text-[clamp(2.7rem,6vw,5.8rem)] font-semibold leading-none text-white">
+                Professionel bilvask i København og på Sjælland
               </h1>
-              <p className="mt-5 max-w-xl text-lg leading-8 text-white/78">
-                Sla nummerpladen op, fa bilen fundet automatisk og ga direkte videre
-                til booking med den rigtige bilkategori.
+              <p className="mt-5 max-w-2xl text-lg leading-8 text-white/82">
+                Book mobil bilvask på adressen. Indtast nummerpladen, se pris og vælg en ledig tid.
+                Nemt for private. Effektivt for erhverv.
               </p>
+
+              <div className="mt-7 flex flex-wrap gap-3">
+                <Link
+                  href="/booking"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#10211a] shadow-[0_18px_48px_rgba(0,0,0,0.22)] transition hover:bg-[#eef8ff]"
+                >
+                  Book bilvask
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href="#services"
+                  className="inline-flex h-12 items-center justify-center rounded-md border border-white/22 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  Se priser
+                </a>
+                <a
+                  href={siteConfig.phoneHref}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-white/22 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  <Phone className="h-4 w-4" />
+                  Ring: {siteConfig.phoneDisplay}
+                </a>
+              </div>
 
               <HomePlateForm />
-
-              <p className="mt-3 max-w-2xl text-xs font-semibold text-white/88">
-                Vaelg rengoring af hele bilen og spar min. 398 kr. inkl. gratis
-                voksbehandling.
-              </p>
-
-              <div className="mt-6 flex flex-wrap gap-3">
-                {trustItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <div
-                      key={item.title}
-                      className="flex items-center gap-2 rounded-full border border-white/12 bg-white/8 px-4 py-2 text-sm text-white/82 backdrop-blur-sm"
-                    >
-                      <Icon className="h-5 w-5 text-[#61c8f4]" />
-                      <span className="font-semibold">{item.title}</span>
-                    </div>
-                  );
-                })}
-              </div>
             </div>
 
-            <div className="hidden justify-center lg:flex">
-              <div className="relative flex h-64 w-64 rotate-[7deg] items-center justify-center rounded-full border-[8px] border-white/85 bg-[radial-gradient(circle_at_40%_30%,#a8ea62,#7bc93b_58%,#62aa24_100%)] p-8 text-center text-white shadow-[0_28px_70px_rgba(0,0,0,0.3)]">
-                <div className="absolute inset-[0.65rem] rounded-full border border-white/70" />
-                <div className="absolute inset-[1.35rem] rounded-full border border-white/25" />
-                <div className="relative z-10 -rotate-[7deg]">
-                  <p className="text-[0.68rem] font-semibold uppercase tracking-[0.16em] text-white/84">
-                    Bestil komplet bilrengoring
+            <div className="hidden lg:block">
+              <div className="rounded-[2rem] border border-white/14 bg-white/10 p-5 shadow-[0_28px_80px_rgba(0,0,0,0.25)] backdrop-blur-md">
+                <div className="rounded-2xl border border-white/16 bg-white/12 p-6 text-white">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#8ce7ff]">
+                    CleanWash
                   </p>
-                  <p className="mt-4 font-display text-3xl font-semibold leading-tight">
-                    Fa gratis voksbehandling
+                  <p className="mt-4 text-3xl font-semibold leading-tight">
+                    Mobil bilvask med klar pris og hurtig booking.
                   </p>
-                  <p className="mt-2 text-2xl font-semibold leading-tight">
-                    &amp; hel bils rabat
-                  </p>
-                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.16em] text-white/82">
-                    Spar minimum
-                  </p>
-                  <p className="font-display text-5xl font-semibold leading-none">398,-</p>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  {["Bilvask hjemme", "Bilpleje København", "Bilrengøring Sjælland"].map(
+                    (item) => (
+                      <div
+                        key={item}
+                        className="flex items-center gap-3 rounded-2xl bg-white/12 px-4 py-3 text-white"
+                      >
+                        <Check className="h-5 w-5 text-[#8ce7ff]" />
+                        <span className="font-semibold">{item}</span>
+                      </div>
+                    )
+                  )}
                 </div>
               </div>
             </div>
@@ -103,73 +277,343 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl">
-        <div className="grid gap-8 lg:grid-cols-[0.78fr_1.22fr] lg:items-start">
+      <section className="mx-auto -mt-8 max-w-7xl">
+        <div className="grid gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(8,27,21,0.12)] backdrop-blur sm:grid-cols-2 lg:grid-cols-5">
+          {benefits.map((item) => (
+            <div key={item} className="flex items-center gap-3 rounded-xl bg-[#f4fafc] px-4 py-3">
+              <ShieldCheck className="h-5 w-5 shrink-0 text-[#1f6aa4]" />
+              <span className="text-sm font-semibold text-[var(--ink)]">{item}</span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section id="services" className="mx-auto mt-16 max-w-7xl">
+        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
           <div className="section-shell px-6 py-8 sm:px-8">
-            <span className="eyebrow">Prislogik</span>
-            <h2 className="mt-5 section-title">Den rigtige kategori uden gaetteri.</h2>
+            <span className="eyebrow">Services</span>
+            <h2 className="mt-5 section-title">Bilvask uden turen til vaskehallen.</h2>
             <p className="mt-5 support-copy">
-              Nummerpladen bruges til at finde biltype og totalvaegt. Derfor kan
-              WashMax vise den rigtige pris, for kunden gar videre i bookingflowet.
+              CleanWash leverer professionel bilvask, indvendig bilrengøring og bilpleje på
+              adressen. Du vælger service. Vi møder op.
             </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href="/booking"
+                className="inline-flex h-11 items-center justify-center rounded-md bg-[#123549] px-5 text-sm font-semibold text-white transition hover:bg-[#0b2634]"
+              >
+                Book bilvask
+              </Link>
+              <a
+                href={siteConfig.phoneHref}
+                className="inline-flex h-11 items-center justify-center rounded-md border border-[var(--line)] px-5 text-sm font-semibold text-[var(--ink)] transition hover:bg-white"
+              >
+                Ring {siteConfig.phoneDisplay}
+              </a>
+            </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {vehicleCategories.map((rule) => (
-              <article
-                key={rule.id}
-                className="rounded-lg border border-[var(--line)] bg-white/86 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]"
-              >
-                <p className="text-xs font-semibold uppercase text-[var(--muted)]">
-                  Bilkategori
-                </p>
-                <h3 className="mt-3 font-display text-2xl font-semibold text-[var(--ink)]">
-                  {rule.label}
-                </h3>
-                <p className="mt-2 text-3xl font-semibold text-[#2388d1]">
-                  {rule.price.toLocaleString("da-DK")} kr
-                </p>
-                <p className="mt-4 text-sm leading-6 text-[var(--muted)]">
-                  {rule.description}
-                </p>
-              </article>
-            ))}
+          <div className="grid gap-4 sm:grid-cols-2">
+            {services.map((service) => {
+              const Icon = service.icon;
+              return (
+                <article
+                  key={service.title}
+                  className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(8,27,21,0.12)]"
+                >
+                  <span className="flex h-11 w-11 items-center justify-center rounded-md bg-[#e9f8ff] text-[#1f6aa4]">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <h3 className="mt-4 font-display text-2xl font-semibold text-[var(--ink)]">
+                    {service.title}
+                  </h3>
+                  <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{service.text}</p>
+                </article>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      <section className="mx-auto mt-10 max-w-7xl">
-        <div className="rounded-lg bg-[#0d1f19] px-6 py-8 text-white shadow-[0_24px_70px_rgba(8,27,21,0.2)] sm:px-8 lg:flex lg:items-center lg:justify-between lg:gap-8">
-          <div>
-            <p className="text-sm font-semibold uppercase text-[#88ddc2]">WashMax</p>
-            <h2 className="mt-3 font-display text-3xl font-semibold leading-tight sm:text-4xl">
-              Klar til en renere bil uden turen til vaskehallen?
-            </h2>
+      <section className="mx-auto mt-16 grid max-w-7xl gap-6 lg:grid-cols-3">
+        <ImagePanel
+          src="/service/helebil.jpg"
+          alt="Professionel bilvask i København hos CleanWash"
+          title="Bilvask København"
+          text="Mobil bilvask til travle bilejere, familier og virksomheder."
+        />
+        <ImagePanel
+          src="/service/udenfor.jpg"
+          alt="Mobil bilvask på Sjælland til elbiler og firmabiler"
+          title="Udvendig bilvask"
+          text="Skånsom udvendig vask, fælge, ruder og finish på adressen."
+        />
+        <ImagePanel
+          src="/service/inside.jpg"
+          alt="Indvendig bilrengøring hos CleanWash på Sjælland"
+          title="Indvendig bilrengøring"
+          text="Kabine, paneler, sæder og detaljer behandles grundigt."
+        />
+      </section>
+
+      <section id="koebenhavn" className="mx-auto mt-16 max-w-7xl">
+        <LocalSeoSection
+          eyebrow="Bilvask København"
+          title="Mobil bilvask i København."
+          text="CleanWash gør bilvask i København enkel. Du slipper for kø, kørsel og ventetid. Vi kommer til adressen og udfører professionel bilvask, når bilen alligevel holder stille."
+          areas={copenhagenAreas}
+          bullets={[
+            "Bilvask på adressen i København",
+            "Indvendig og udvendig bilrengøring",
+            "Fleksibel bilvask til private og erhverv",
+            "Nem online booking med nummerpladeopslag",
+          ]}
+        />
+      </section>
+
+      <section id="sjaelland" className="mx-auto mt-8 max-w-7xl">
+        <LocalSeoSection
+          eyebrow="Bilvask Sjælland"
+          title="Bilvask på Sjælland uden besvær."
+          text="Har du brug for bilvask på Sjælland, kan CleanWash hjælpe med mobil bilvask, bilpleje og klargøring af bil. Perfekt til hjemmet, arbejdspladsen og virksomheder med flere biler."
+          areas={zealandAreas}
+          bullets={[
+            "Mobil bilvask på Sjælland",
+            "Bilpleje Sjælland og Storkøbenhavn",
+            "Klargøring af bil før salg eller leasingretur",
+            "Erhvervs bilvask og faste aftaler",
+          ]}
+        />
+      </section>
+
+      <section id="hvordan" className="mx-auto mt-16 max-w-7xl">
+        <div className="mb-8 max-w-2xl">
+          <span className="eyebrow">Sådan fungerer det</span>
+          <h2 className="mt-5 section-title">Fire korte trin.</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          {steps.map((step, index) => (
+            <article
+              key={step.title}
+              className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#123549] text-sm font-semibold text-white">
+                {index + 1}
+              </span>
+              <h3 className="mt-5 font-display text-2xl font-semibold">{step.title}</h3>
+              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{step.text}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mt-16 grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
+        <div className="rounded-[2rem] bg-[#0d1f19] p-6 text-white shadow-[0_24px_70px_rgba(8,27,21,0.2)] sm:p-8">
+          <span className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8ce7ff]">
+            Hvorfor CleanWash
+          </span>
+          <h2 className="mt-5 font-display text-4xl font-semibold leading-none sm:text-5xl">
+            Mindre ventetid. Mere ren bil.
+          </h2>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2">
+            {whyItems.map((item) => (
+              <div key={item} className="flex items-center gap-3 rounded-xl bg-white/8 px-4 py-3">
+                <Check className="h-5 w-5 text-[#8ce7ff]" />
+                <span className="text-sm font-semibold">{item}</span>
+              </div>
+            ))}
           </div>
-          <div className="mt-6 flex flex-col gap-3 sm:flex-row lg:mt-0">
+        </div>
+        <div className="section-shell px-6 py-8 sm:px-8">
+          <span className="eyebrow">Miljø og hverdag</span>
+          <h2 className="mt-5 section-title">Miljøvenlig bilvask med omtanke.</h2>
+          <p className="mt-5 support-copy">
+            Vi planlægger ruter effektivt og arbejder med professionelt udstyr. Det giver en
+            fleksibel bilvask, der passer bedre ind i hverdagen.
+          </p>
+          <ul className="mt-6 grid gap-3 text-sm font-semibold text-[var(--ink)]">
+            <li className="flex gap-3"><Check className="h-5 w-5 text-[#19af84]" /> Mindre spildtid for dig</li>
+            <li className="flex gap-3"><Check className="h-5 w-5 text-[#19af84]" /> God løsning til travle adresser</li>
+            <li className="flex gap-3"><Check className="h-5 w-5 text-[#19af84]" /> Professionel bilpleje København og Sjælland</li>
+          </ul>
+        </div>
+      </section>
+
+      <section id="erhverv" className="mx-auto mt-16 max-w-7xl">
+        <div className="rounded-[2rem] border border-[var(--line)] bg-white/88 p-6 shadow-[0_24px_70px_rgba(8,27,21,0.1)] sm:p-8">
+          <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+            <div>
+              <span className="eyebrow">Erhvervs bilvask</span>
+              <h2 className="mt-5 section-title">Ren bilflåde uden intern koordinering.</h2>
+              <p className="mt-5 support-copy">
+                CleanWash hjælper virksomheder med mobil bilvask og faste aftaler. Godt til
+                firmabiler, leasingbiler, taxa, transport og bilforhandlere.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a
+                  href={`mailto:${siteConfig.email}`}
+                  className="inline-flex h-11 items-center justify-center rounded-md bg-[#123549] px-5 text-sm font-semibold text-white transition hover:bg-[#0b2634]"
+                >
+                  Få erhvervsaftale
+                </a>
+                <a
+                  href={siteConfig.phoneHref}
+                  className="inline-flex h-11 items-center justify-center rounded-md border border-[var(--line)] px-5 text-sm font-semibold"
+                >
+                  Ring {siteConfig.phoneDisplay}
+                </a>
+              </div>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {businessItems.map((item) => (
+                <div key={item} className="flex items-center gap-3 rounded-xl bg-[#f4fafc] px-4 py-4">
+                  <Building2 className="h-5 w-5 text-[#1f6aa4]" />
+                  <span className="font-semibold text-[var(--ink)]">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="mx-auto mt-16 max-w-5xl">
+        <div className="text-center">
+          <span className="eyebrow">FAQ</span>
+          <h2 className="mt-5 section-title">Spørgsmål om bilvask.</h2>
+        </div>
+        <div className="mt-8 grid gap-3">
+          {faqs.map((faq) => (
+            <details
+              key={faq.question}
+              className="group rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_14px_32px_rgba(8,27,21,0.06)]"
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[var(--ink)]">
+                {faq.question}
+                <span className="text-[#1f6aa4] transition group-open:rotate-45">+</span>
+              </summary>
+              <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{faq.answer}</p>
+            </details>
+          ))}
+        </div>
+      </section>
+
+      <section className="mx-auto mt-16 max-w-7xl">
+        <div className="rounded-[2rem] bg-[linear-gradient(135deg,#123549,#1f6aa4)] px-6 py-10 text-white shadow-[0_24px_80px_rgba(31,106,164,0.22)] sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/65">
+              Book din bilvask i dag
+            </p>
+            <h2 className="mt-3 font-display text-4xl font-semibold leading-none sm:text-5xl">
+              Klar til en renere bil?
+            </h2>
+            <p className="mt-4 max-w-2xl text-white/76">
+              Book professionel bilvask i København og på Sjælland. Eller kontakt CleanWash direkte.
+            </p>
+          </div>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:mt-0">
             <Link
               href="/booking"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#0d1f19] transition hover:bg-[#eef8f4]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#123549] transition hover:bg-[#eef8ff]"
             >
               <Search className="h-5 w-5" />
-              Beregn pris
+              Book bilvask
             </Link>
             <a
-              href={siteConfig.giftCardUrl}
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/18 px-5 text-sm font-semibold text-white transition hover:bg-white/8"
-            >
-              <Gift className="h-5 w-5" />
-              Gavekort
-            </a>
-            <a
               href={siteConfig.phoneHref}
-              className="inline-flex h-11 items-center justify-center rounded-xl border border-white/18 px-5 text-sm text-white/85 transition hover:bg-white/8"
+              className="inline-flex h-12 items-center justify-center rounded-md border border-white/20 px-5 text-sm font-semibold"
             >
               {siteConfig.phoneDisplay}
+            </a>
+            <a
+              href={`mailto:${siteConfig.email}`}
+              className="inline-flex h-12 items-center justify-center rounded-md border border-white/20 px-5 text-sm font-semibold"
+            >
+              {siteConfig.email}
             </a>
           </div>
         </div>
       </section>
     </main>
+  );
+}
+
+function ImagePanel({
+  src,
+  alt,
+  title,
+  text,
+}: {
+  src: string;
+  alt: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <article className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/88 shadow-[0_18px_50px_rgba(8,27,21,0.1)]">
+      <div className="relative aspect-[16/10] bg-[#e9f8ff]">
+        <Image src={src} alt={alt} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
+      </div>
+      <div className="p-5">
+        <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">{title}</h3>
+        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{text}</p>
+      </div>
+    </article>
+  );
+}
+
+function LocalSeoSection({
+  eyebrow,
+  title,
+  text,
+  areas,
+  bullets,
+}: {
+  eyebrow: string;
+  title: string;
+  text: string;
+  areas: string[];
+  bullets: string[];
+}) {
+  return (
+    <div className="section-shell px-6 py-8 sm:px-8">
+      <div className="relative grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
+        <div>
+          <span className="eyebrow">{eyebrow}</span>
+          <h2 className="mt-5 section-title">{title}</h2>
+          <p className="mt-5 support-copy">{text}</p>
+          <ul className="mt-6 grid gap-3">
+            {bullets.map((bullet) => (
+              <li key={bullet} className="flex gap-3 text-sm font-semibold text-[var(--ink)]">
+                <MapPinned className="h-5 w-5 shrink-0 text-[#1f6aa4]" />
+                {bullet}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+            Områder
+          </p>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {areas.map((area) => (
+              <span
+                key={area}
+                className="rounded-full border border-[var(--line)] bg-white/78 px-4 py-2 text-sm font-semibold text-[var(--ink)]"
+              >
+                {area}
+              </span>
+            ))}
+          </div>
+          <div className="mt-6 rounded-2xl bg-[#f4fafc] p-5">
+            <div className="flex items-center gap-3">
+              <Car className="h-6 w-6 text-[#1f6aa4]" />
+              <p className="font-semibold text-[var(--ink)]">
+                Book mobil bilvask, bilrengøring og bilpleje direkte online.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,19 +1,20 @@
 export const siteConfig = {
-  name: "WashMax",
+  name: "CleanWash",
   description:
-    "Beregn pris online hos WashMax med dansk nummerpladeopslag, automatisk bilkategori og hurtig booking af mobil bilrengoring.",
-  url: process.env.APP_URL || "https://washmax.dk",
+    "CleanWash tilbyder professionel mobil bilvask i København og på Sjælland. Book bilvask på adressen med nummerpladeopslag, klar pris og fleksible tider.",
+  url: process.env.APP_URL || "https://cleanwash.dk",
   ogImage: "/opengraph.jpg",
-  phoneDisplay: "+45 91 67 14 52",
-  phoneHref: "tel:+4591671452",
-  email: "info@washmax.dk",
-  bookingExternalUrl: "https://washmax.dk/book-nu/",
-  giftCardUrl: "https://washmax.dk/shop/",
+  phoneDisplay: "42 50 45 51",
+  phoneHref: "tel:+4542504551",
+  email: "info@cleanwash.dk",
+  bookingExternalUrl: "/booking",
+  giftCardUrl: "/booking",
 };
 
 export const navItems = [
-  { label: "Pakker", href: "/#pakker" },
-  { label: "Sa nemt er det", href: "/#hvordan" },
-  { label: "Daekningsomrade", href: "/#omrader" },
-  { label: "Anmeldelser", href: "/#anmeldelser" },
+  { label: "Services", href: "/#services" },
+  { label: "København", href: "/#koebenhavn" },
+  { label: "Sjælland", href: "/#sjaelland" },
+  { label: "Erhverv", href: "/#erhverv" },
+  { label: "FAQ", href: "/#faq" },
 ] as const;

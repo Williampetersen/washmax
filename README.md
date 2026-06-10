@@ -1,6 +1,6 @@
-# WashMax
+# CleanWash
 
-WashMax is now a Next.js 16 App Router project for the WashMax booking site, customer portal, and admin dashboard.
+CleanWash is now a Next.js 16 App Router project for the CleanWash booking site, customer portal, and admin dashboard.
 
 ## Stack
 
@@ -68,7 +68,7 @@ SMTP_SECURE=false
 SMTP_USER=
 SMTP_PASSWORD=
 MAIL_FROM=
-MAIL_FROM_NAME=WashMax
+MAIL_FROM_NAME=CleanWash
 ```
 
 ### Simply.com SMTP Example
@@ -79,8 +79,8 @@ SMTP_PORT=587
 SMTP_SECURE=false
 SMTP_USER=info@cleanwash.dk
 SMTP_PASSWORD=your-mailbox-password
-MAIL_FROM=WashMax <info@cleanwash.dk>
-MAIL_FROM_NAME=WashMax
+MAIL_FROM=CleanWash <info@cleanwash.dk>
+MAIL_FROM_NAME=CleanWash
 BOOKING_ADMIN_EMAIL=info@cleanwash.dk
 ```
 
@@ -133,7 +133,7 @@ Public assets remain in `public/`, including:
 - `public/logo.png`
 - `public/opengraph.jpg`
 - `public/DKEU.svg`
-- `public/videos/hero.mp4`
+- `public/videos/frontvideo.mp4`
 - `public/bilbrands/*`
 - `public/robots.txt`
 

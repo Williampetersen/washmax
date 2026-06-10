@@ -1,4 +1,9 @@
 import { randomBytes } from "node:crypto";
+import {
+  checkBookingSlotAvailability,
+  getBookingSlotLockKey,
+  SLOT_UNAVAILABLE_MESSAGE,
+} from "@/lib/server/availability";
 import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
   addMinutesToTime,
@@ -322,6 +327,7 @@ type CreateBookingInput = {
   invoiceStatus?: InvoiceStatus;
   invoiceNumber?: string;
   idempotencyKey?: string;
+  assignedAgentId?: string;
   settings?: BookingSettings;
   customer: CustomerInput;
 };
@@ -507,6 +513,10 @@ const settingsFromRow = (row?: RawSettings | null): BookingSettings => ({
   startHour: Number(row?.start_hour ?? defaultBookingSettings.startHour),
   endHour: Number(row?.end_hour ?? defaultBookingSettings.endHour),
   slotMinutes: Number(row?.slot_minutes ?? defaultBookingSettings.slotMinutes),
+  bufferBeforeMinutes: defaultBookingSettings.bufferBeforeMinutes,
+  bufferAfterMinutes: Number(
+    row?.travel_buffer_minutes ?? defaultBookingSettings.travelBufferMinutes
+  ),
   travelBufferMinutes: Number(
     row?.travel_buffer_minutes ?? defaultBookingSettings.travelBufferMinutes
   ),
@@ -1023,68 +1033,133 @@ export const createBooking = async (input: CreateBookingInput) => {
   const invoiceStatus =
     input.invoiceStatus ?? (invoiceRequested ? "ready" : "not_requested");
 
-  const [created] = await sql<RawBooking[]>`
-    INSERT INTO bookings (
-      id,
-      customer_id,
-      plate,
-      registration_number,
-      vehicle_name,
-      vehicle_year,
-      vehicle_type,
-      category,
-      package_id,
-      package_label,
-      addons_json,
-      subtotal,
-      total,
-      travel_surcharge,
-      area_name,
-      estimated_duration_minutes,
-      appointment_date,
-      appointment_time,
-      status,
-      payment_status,
-      payment_method,
-      invoice_requested,
-      invoice_status,
-      invoice_number,
-      admin_notes,
-      idempotency_key,
-      source
-    )
-    VALUES (
-      ${createId("bok")},
-      ${customer.id},
-      ${input.plate},
-      ${input.registrationNumber},
-      ${input.vehicleName},
-      ${input.vehicleYear},
-      ${input.vehicleType},
-      ${input.category},
-      ${input.packageId},
-      ${input.packageLabel},
-      ${sql.json(addons)},
-      ${Number(input.subtotal || 0)},
-      ${Math.round(total)},
-      ${Math.round(travelSurcharge || 0)},
-      ${matchedArea?.label || ""},
-      ${estimatedMinutes},
-      ${input.appointmentDate},
-      ${input.appointmentTime},
-      ${input.status || "pending"},
-      ${input.paymentStatus || "unpaid"},
-      ${input.paymentMethod || ""},
-      ${invoiceRequested},
-      ${invoiceStatus},
-      ${input.invoiceNumber || ""},
-      ${input.adminNotes || ""},
-      ${idempotencyKey},
-      ${input.source}
-    )
-    ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
-    RETURNING *;
-  `;
+  const created = await sql.begin(async (tx) => {
+    const preflight = await checkBookingSlotAvailability(
+      {
+        appointmentDate: input.appointmentDate,
+        appointmentTime: input.appointmentTime,
+        durationMinutes: estimatedMinutes,
+        settings,
+        agentId: input.assignedAgentId,
+      },
+      tx
+    );
+
+    if (!preflight.available) {
+      if (idempotencyKey) {
+        const [existing] = await tx<RawBooking[]>`
+          SELECT *
+          FROM bookings
+          WHERE idempotency_key = ${idempotencyKey}
+          LIMIT 1;
+        `;
+        if (existing) return existing;
+      }
+      throw new Error(preflight.reason || SLOT_UNAVAILABLE_MESSAGE);
+    }
+
+    await tx`
+      SELECT pg_advisory_xact_lock(hashtext(${getBookingSlotLockKey(
+        input.appointmentDate,
+        preflight.agentId
+      )}));
+    `;
+
+    const lockedCheck = await checkBookingSlotAvailability(
+      {
+        appointmentDate: input.appointmentDate,
+        appointmentTime: input.appointmentTime,
+        durationMinutes: estimatedMinutes,
+        settings,
+        agentId: preflight.agentId,
+      },
+      tx
+    );
+
+    if (!lockedCheck.available) {
+      if (idempotencyKey) {
+        const [existing] = await tx<RawBooking[]>`
+          SELECT *
+          FROM bookings
+          WHERE idempotency_key = ${idempotencyKey}
+          LIMIT 1;
+        `;
+        if (existing) return existing;
+      }
+      throw new Error(lockedCheck.reason || SLOT_UNAVAILABLE_MESSAGE);
+    }
+
+    const [row] = await tx<RawBooking[]>`
+      INSERT INTO bookings (
+        id,
+        customer_id,
+        plate,
+        registration_number,
+        vehicle_name,
+        vehicle_year,
+        vehicle_type,
+        category,
+        package_id,
+        package_label,
+        addons_json,
+        subtotal,
+        total,
+        travel_surcharge,
+        area_name,
+        estimated_duration_minutes,
+        appointment_date,
+        appointment_time,
+        status,
+        payment_status,
+        payment_method,
+        invoice_requested,
+        invoice_status,
+        invoice_number,
+        admin_notes,
+        idempotency_key,
+        assigned_agent_id,
+        agent_status,
+        assigned_at,
+        source
+      )
+      VALUES (
+        ${createId("bok")},
+        ${customer.id},
+        ${input.plate},
+        ${input.registrationNumber},
+        ${input.vehicleName},
+        ${input.vehicleYear},
+        ${input.vehicleType},
+        ${input.category},
+        ${input.packageId},
+        ${input.packageLabel},
+        ${tx.json(addons)},
+        ${Number(input.subtotal || 0)},
+        ${Math.round(total)},
+        ${Math.round(travelSurcharge || 0)},
+        ${matchedArea?.label || ""},
+        ${estimatedMinutes},
+        ${input.appointmentDate},
+        ${input.appointmentTime},
+        ${input.status || "pending"},
+        ${input.paymentStatus || "unpaid"},
+        ${input.paymentMethod || ""},
+        ${invoiceRequested},
+        ${invoiceStatus},
+        ${input.invoiceNumber || ""},
+        ${input.adminNotes || ""},
+        ${idempotencyKey},
+        ${lockedCheck.agentId || null},
+        ${lockedCheck.agentId ? "pending_agent_acceptance" : null},
+        ${lockedCheck.agentId ? new Date() : null},
+        ${input.source}
+      )
+      ON CONFLICT (idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING
+      RETURNING *;
+    `;
+
+    return row;
+  });
 
   if (!created && idempotencyKey) {
     const [existing] = await sql<Pick<RawBooking, "id">[]>`
@@ -1292,15 +1367,45 @@ export const updateBookingSchedule = async (
   const sql = getSql();
   const current = await getBookingById(bookingId);
 
-  await sql`
-    UPDATE bookings
-    SET
-      appointment_date = ${input.appointmentDate},
-      appointment_time = ${input.appointmentTime},
-      admin_notes = ${input.adminNotes},
-      updated_at = NOW()
-    WHERE id = ${bookingId};
-  `;
+  if (!current) {
+    return null;
+  }
+
+  const settings = await getBookingSettings();
+  await sql.begin(async (tx) => {
+    await tx`
+      SELECT pg_advisory_xact_lock(hashtext(${getBookingSlotLockKey(
+        input.appointmentDate,
+        current.booking.assignedAgentId
+      )}));
+    `;
+
+    const availability = await checkBookingSlotAvailability(
+      {
+        appointmentDate: input.appointmentDate,
+        appointmentTime: input.appointmentTime,
+        durationMinutes: current.booking.estimatedMinutes,
+        settings,
+        agentId: current.booking.assignedAgentId,
+        excludeBookingId: bookingId,
+      },
+      tx
+    );
+
+    if (!availability.available) {
+      throw new Error(availability.reason || SLOT_UNAVAILABLE_MESSAGE);
+    }
+
+    await tx`
+      UPDATE bookings
+      SET
+        appointment_date = ${input.appointmentDate},
+        appointment_time = ${input.appointmentTime},
+        admin_notes = ${input.adminNotes},
+        updated_at = NOW()
+      WHERE id = ${bookingId};
+    `;
+  });
 
   await logBookingActivity(bookingId, {
     actor: "admin",

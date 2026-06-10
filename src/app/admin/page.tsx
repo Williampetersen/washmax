@@ -1,4 +1,4 @@
-﻿import type { Metadata } from "next";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -77,7 +77,7 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Admin",
-  description: "WashMax admin dashboard.",
+  description: "CleanWash admin dashboard.",
   alternates: {
     canonical: "/admin",
   },
@@ -992,7 +992,7 @@ function AdminOverviewDashboard({
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e9e6ff] text-lg font-semibold text-[#6257e8]">
             WM
           </div>
-          <p className="mt-3 font-semibold text-[#211955]">WashMax Admin</p>
+          <p className="mt-3 font-semibold text-[#211955]">CleanWash Admin</p>
           <p className="mt-1 text-xs text-[#8b85aa]">{dashboard.settings.supportEmail}</p>
         </div>
 
@@ -1136,7 +1136,7 @@ function GlassCalendarPanel({
                 {monthName}
               </p>
               <p className="mt-3 max-w-xl text-sm leading-6 text-[#817b9f]">
-                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra WashMax.
+                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra CleanWash.
               </p>
             </div>
 

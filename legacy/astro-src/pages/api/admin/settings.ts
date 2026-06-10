@@ -12,7 +12,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
   const formData = await request.formData();
 
   await saveBookingSettings({
-    companyName: String(formData.get("company_name") || "WashMax").trim(),
+    companyName: String(formData.get("company_name") || "CleanWash").trim(),
     supportEmail: String(formData.get("support_email") || "").trim(),
     adminNotifyEmail: String(formData.get("admin_notify_email") || "").trim(),
     startHour: Number(formData.get("start_hour") || 8),

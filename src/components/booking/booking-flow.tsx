@@ -145,6 +145,9 @@ export function BookingFlow({
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [appointmentDate, setAppointmentDate] = useState<Date | undefined>(initialBookableDate);
   const [selectedAppointmentTime, setSelectedAppointmentTime] = useState("");
+  const [liveAvailableTimeSlots, setLiveAvailableTimeSlots] = useState<string[]>([]);
+  const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
   const [isLookupPending, setIsLookupPending] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState("");
@@ -214,13 +217,7 @@ export function BookingFlow({
     [addonsTotal, basePrice, travelSurcharge]
   );
   const appointmentDateValue = appointmentDate ? format(appointmentDate, "yyyy-MM-dd") : "";
-  const availableTimeSlots = useMemo(
-    () =>
-      appointmentDateValue
-        ? getAvailableTimeSlots(appointmentDateValue, settings, availabilityBlocks)
-        : [],
-    [appointmentDateValue, availabilityBlocks, settings]
-  );
+  const availableTimeSlots = liveAvailableTimeSlots;
   const appointmentTime = useMemo(
     () =>
       availableTimeSlots.includes(selectedAppointmentTime)
@@ -263,6 +260,75 @@ export function BookingFlow({
       : settings.serviceAreas.length > 0
         ? "Dit postnummer ligger uden for de faste zoner. Vi gennemgaar bookingen manuelt, hvis koersel skal justeres."
         : "Vi daekker fortsat din adresse uden registreret zonetillaeg.";
+
+  useEffect(() => {
+    if (!appointmentDateValue || !activePackageData?.id) {
+      queueMicrotask(() => {
+        setLiveAvailableTimeSlots([]);
+        setAvailabilityError("");
+      });
+      return;
+    }
+
+    const controller = new AbortController();
+    const params = new URLSearchParams({
+      date: appointmentDateValue,
+      packageId: activePackageData.id,
+    });
+
+    if (selectedAddonIds.length > 0) {
+      params.set("addonIds", selectedAddonIds.join(","));
+    }
+    if (category?.label) {
+      params.set("category", category.label);
+    }
+    if (postalCodeValue) {
+      params.set("postalCode", postalCodeValue);
+    }
+
+    void (async () => {
+      setIsAvailabilityLoading(true);
+      setAvailabilityError("");
+      setLiveAvailableTimeSlots([]);
+
+      try {
+        const response = await fetch(`/api/booking/availability?${params.toString()}`, {
+          headers: { accept: "application/json" },
+          signal: controller.signal,
+        });
+        const payload = (await response.json().catch(() => ({}))) as {
+          slots?: string[];
+          error?: string;
+        };
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Kunne ikke hente ledige tider.");
+        }
+
+        setLiveAvailableTimeSlots(Array.isArray(payload.slots) ? payload.slots : []);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setLiveAvailableTimeSlots([]);
+        setAvailabilityError(
+          error instanceof Error ? error.message : "Kunne ikke hente ledige tider."
+        );
+      } finally {
+        if (!controller.signal.aborted) {
+          setIsAvailabilityLoading(false);
+        }
+      }
+    })();
+
+    return () => controller.abort();
+  }, [
+    activePackageData?.id,
+    appointmentDateValue,
+    category?.label,
+    postalCodeValue,
+    selectedAddonIds,
+  ]);
 
   const lookupVehicle = useCallback(async (nextPlateValue: string) => {
     const normalizedPlate = sanitizePlate(nextPlateValue);
@@ -977,7 +1043,15 @@ export function BookingFlow({
                             );
                           })}
                         </div>
-                        {availableTimeSlots.length === 0 ? (
+                        {isAvailabilityLoading ? (
+                          <p className="mt-4 text-sm text-[var(--muted)]">
+                            Henter ledige tider...
+                          </p>
+                        ) : null}
+                        {availabilityError ? (
+                          <p className="mt-4 text-sm text-red-600">{availabilityError}</p>
+                        ) : null}
+                        {!isAvailabilityLoading && !availabilityError && availableTimeSlots.length === 0 ? (
                           <p className="mt-4 text-sm text-[var(--muted)]">
                             Der er ingen ledige tider pa den valgte dag. Vaelg en anden dag i
                             kalenderen.

@@ -418,13 +418,13 @@ const unavailableDateFromRow = (row: RawUnavailableDate): BookingUnavailableDate
 });
 
 const timeSettingsFromRow = (row?: RawTimeSettings | null): BookingTimeSettings => ({
-  slotIntervalMinutes: Number(row?.slot_interval_minutes || 30),
-  minimumNoticeHours: Number(row?.minimum_notice_hours || 2),
-  maximumDaysAhead: Number(row?.maximum_days_ahead || 30),
-  bufferBeforeMinutes: Number(row?.buffer_before_minutes || 0),
-  bufferAfterMinutes: Number(row?.buffer_after_minutes || 30),
-  maxBookingsPerSlot: Number(row?.max_bookings_per_slot || 1),
-  maxBookingsPerDay: Number(row?.max_bookings_per_day || 0),
+  slotIntervalMinutes: Number(row?.slot_interval_minutes ?? 30),
+  minimumNoticeHours: Number(row?.minimum_notice_hours ?? 2),
+  maximumDaysAhead: Number(row?.maximum_days_ahead ?? 30),
+  bufferBeforeMinutes: Number(row?.buffer_before_minutes ?? 160),
+  bufferAfterMinutes: Number(row?.buffer_after_minutes ?? 0),
+  maxBookingsPerSlot: Number(row?.max_bookings_per_slot ?? 1),
+  maxBookingsPerDay: Number(row?.max_bookings_per_day ?? 0),
   allowSameDayBooking: row?.allow_same_day_booking !== false,
 });
 
@@ -597,8 +597,10 @@ const seedBookingSetup = async () => {
       max_bookings_per_day, allow_same_day_booking
     )
     VALUES (
-      'default', ${defaultBookingSettings.slotMinutes}, 2, 30, 0,
-      ${defaultBookingSettings.travelBufferMinutes}, 1, 0, true
+      'default', ${defaultBookingSettings.slotMinutes}, 2, 30,
+      ${defaultBookingSettings.bufferBeforeMinutes ?? 160},
+      ${defaultBookingSettings.bufferAfterMinutes ?? defaultBookingSettings.travelBufferMinutes},
+      1, 0, true
     )
     ON CONFLICT (settings_key) DO NOTHING;
   `;
@@ -763,6 +765,8 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     startHour: Number(firstOpen?.startTime.slice(0, 2) || defaultBookingSettings.startHour),
     endHour: Number(firstOpen?.endTime.slice(0, 2) || defaultBookingSettings.endHour),
     slotMinutes: data.timeSettings.slotIntervalMinutes,
+    bufferBeforeMinutes: data.timeSettings.bufferBeforeMinutes,
+    bufferAfterMinutes: data.timeSettings.bufferAfterMinutes,
     travelBufferMinutes: data.timeSettings.bufferAfterMinutes,
     workingDays: workingDays.length > 0 ? workingDays : defaultBookingSettings.workingDays,
     catalog,
@@ -781,6 +785,7 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     minimumNoticeHours: data.timeSettings.minimumNoticeHours,
     maxBookingsPerSlot: data.timeSettings.maxBookingsPerSlot,
     maxBookingsPerDay: data.timeSettings.maxBookingsPerDay,
+    allowSameDayBooking: data.timeSettings.allowSameDayBooking,
     vatRate: data.general.vatRate,
   };
 };

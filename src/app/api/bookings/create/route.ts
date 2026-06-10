@@ -1,5 +1,6 @@
 import { after, NextResponse } from "next/server";
 import { bookingRequestSchema } from "@/lib/schemas/booking";
+import { SLOT_UNAVAILABLE_MESSAGE } from "@/lib/server/availability";
 import { createBooking, logBookingActivity } from "@/lib/server/bookings";
 import {
   calculateBookingPriceFromSetup,
@@ -164,11 +165,12 @@ export async function POST(request: Request) {
       confirmationEmailSent,
     });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Kunne ikke oprette bookingen.";
     return json(
       {
-        error: error instanceof Error ? error.message : "Kunne ikke oprette bookingen.",
+        error: message,
       },
-      500
+      message === SLOT_UNAVAILABLE_MESSAGE ? 409 : 500
     );
   } finally {
     logTiming("booking.api", startedAt);

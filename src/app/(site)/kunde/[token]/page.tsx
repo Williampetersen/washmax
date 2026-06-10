@@ -276,7 +276,7 @@ export default async function CustomerPortalPage({
               </h2>
               <div className="mt-4 grid gap-3 text-sm">
                 <SupportLink icon={Mail} href={`mailto:${settings.supportEmail}`} text={settings.supportEmail} />
-                <SupportLink icon={Phone} href="tel:+4591671452" text="+45 91 67 14 52" />
+                <SupportLink icon={Phone} href="tel:+4542504551" text="42 50 45 51" />
               </div>
             </Card>
           </aside>

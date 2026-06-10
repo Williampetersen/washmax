@@ -1,4 +1,10 @@
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
+import {
+  checkBookingSlotAvailability,
+  getBookingSlotLockKey,
+  SLOT_UNAVAILABLE_MESSAGE,
+} from "@/lib/server/availability";
+import { getBookingSettingsFromSetup } from "@/lib/server/booking-setup";
 import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
   addMinutesToTime,
@@ -1044,20 +1050,74 @@ export const assignBookingToAgent = async (
     throw new Error("Agent is not active.");
   }
 
-  await sql`
-    UPDATE bookings
-    SET
-      assigned_agent_id = ${agentId},
-      agent_status = 'pending_agent_acceptance',
-      agent_note = ${note},
-      assigned_at = NOW(),
-      accepted_at = NULL,
-      completed_at = NULL,
-      cancelled_at = NULL,
-      status = 'approved',
-      updated_at = NOW()
-    WHERE id = ${bookingId};
-  `;
+  await sql.begin(async (tx) => {
+    const [booking] = await tx<RawAgentBooking[]>`
+      SELECT
+        b.*,
+        c.email AS customer_email,
+        c.first_name,
+        c.last_name,
+        c.phone,
+        c.address,
+        c.postal_code,
+        c.city,
+        c.notes AS customer_notes,
+        c.company,
+        a.full_name AS agent_full_name,
+        a.email AS agent_email,
+        a.avatar_url AS agent_avatar_url
+      FROM bookings b
+      INNER JOIN customers c ON c.id = b.customer_id
+      LEFT JOIN agents a ON a.id = b.assigned_agent_id
+      WHERE b.id = ${bookingId}
+      LIMIT 1;
+    `;
+
+    if (!booking) {
+      throw new Error("Booking was not found.");
+    }
+
+    const appointmentDate = toDateText(booking.appointment_date);
+    const appointmentTime = toTimeText(booking.appointment_time, "08:00");
+    await tx`
+      SELECT pg_advisory_xact_lock(hashtext(${getBookingSlotLockKey(
+        appointmentDate,
+        agentId
+      )}));
+    `;
+
+    const settings = await getBookingSettingsFromSetup();
+    const availability = await checkBookingSlotAvailability(
+      {
+        appointmentDate,
+        appointmentTime,
+        durationMinutes: Number(booking.estimated_duration_minutes || settings.slotMinutes),
+        settings,
+        agentId,
+        excludeBookingId: bookingId,
+      },
+      tx
+    );
+
+    if (!availability.available) {
+      throw new Error(availability.reason || SLOT_UNAVAILABLE_MESSAGE);
+    }
+
+    await tx`
+      UPDATE bookings
+      SET
+        assigned_agent_id = ${agentId},
+        agent_status = 'pending_agent_acceptance',
+        agent_note = ${note},
+        assigned_at = NOW(),
+        accepted_at = NULL,
+        completed_at = NULL,
+        cancelled_at = NULL,
+        status = 'approved',
+        updated_at = NOW()
+      WHERE id = ${bookingId};
+    `;
+  });
 
   await recordAgentHistory({
     bookingId,

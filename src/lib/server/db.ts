@@ -3,12 +3,12 @@ import { defaultBookingSettings } from "@/lib/shared/booking";
 
 declare global {
   // Keep one postgres pool per server runtime, including Next.js dev hot reloads.
-  var washmaxSql: Sql | null | undefined;
-  var washmaxSchemaPromise: Promise<void> | null | undefined;
+  var CleanWashSql: Sql | null | undefined;
+  var CleanWashSchemaPromise: Promise<void> | null | undefined;
 }
 
-let cachedSql: Sql | null | undefined = globalThis.washmaxSql;
-let schemaPromise: Promise<void> | null = globalThis.washmaxSchemaPromise ?? null;
+let cachedSql: Sql | null | undefined = globalThis.CleanWashSql;
+let schemaPromise: Promise<void> | null = globalThis.CleanWashSchemaPromise ?? null;
 
 const getConnectionString = () => process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
 export const shouldRunDatabaseSetup = () =>
@@ -35,7 +35,7 @@ const createClient = () => {
 export const getSql = () => {
   if (cachedSql === undefined) {
     cachedSql = createClient();
-    globalThis.washmaxSql = cachedSql;
+    globalThis.CleanWashSql = cachedSql;
   }
 
   if (!cachedSql) {
@@ -499,7 +499,7 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           start_hour INTEGER NOT NULL,
           end_hour INTEGER NOT NULL,
           slot_minutes INTEGER NOT NULL,
-          travel_buffer_minutes INTEGER NOT NULL DEFAULT 30,
+          travel_buffer_minutes INTEGER NOT NULL DEFAULT 0,
           working_days_json JSONB NOT NULL DEFAULT '[0,1,2,3,4,5,6]'::jsonb,
           service_catalog_json JSONB NOT NULL DEFAULT '{}'::jsonb,
           service_areas_json JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -512,14 +512,14 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
       await sql`
         ALTER TABLE booking_settings
           ADD COLUMN IF NOT EXISTS settings_key TEXT,
-          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'WashMax',
-          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'CleanWash',
+          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           ADD COLUMN IF NOT EXISTS admin_notify_email TEXT NOT NULL DEFAULT '',
           ADD COLUMN IF NOT EXISTS default_booking_status TEXT NOT NULL DEFAULT 'pending',
           ADD COLUMN IF NOT EXISTS start_hour INTEGER NOT NULL DEFAULT 8,
           ADD COLUMN IF NOT EXISTS end_hour INTEGER NOT NULL DEFAULT 18,
           ADD COLUMN IF NOT EXISTS slot_minutes INTEGER NOT NULL DEFAULT 150,
-          ADD COLUMN IF NOT EXISTS travel_buffer_minutes INTEGER NOT NULL DEFAULT 30,
+          ADD COLUMN IF NOT EXISTS travel_buffer_minutes INTEGER NOT NULL DEFAULT 0,
           ADD COLUMN IF NOT EXISTS working_days_json JSONB NOT NULL DEFAULT '[0,1,2,3,4,5,6]'::jsonb,
           ADD COLUMN IF NOT EXISTS service_catalog_json JSONB NOT NULL DEFAULT '{}'::jsonb,
           ADD COLUMN IF NOT EXISTS service_areas_json JSONB NOT NULL DEFAULT '[]'::jsonb,
@@ -650,8 +650,8 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           slot_interval_minutes INTEGER NOT NULL DEFAULT 30,
           minimum_notice_hours INTEGER NOT NULL DEFAULT 2,
           maximum_days_ahead INTEGER NOT NULL DEFAULT 30,
-          buffer_before_minutes INTEGER NOT NULL DEFAULT 0,
-          buffer_after_minutes INTEGER NOT NULL DEFAULT 30,
+          buffer_before_minutes INTEGER NOT NULL DEFAULT 160,
+          buffer_after_minutes INTEGER NOT NULL DEFAULT 0,
           max_bookings_per_slot INTEGER NOT NULL DEFAULT 1,
           max_bookings_per_day INTEGER NOT NULL DEFAULT 0,
           allow_same_day_booking BOOLEAN NOT NULL DEFAULT true,
@@ -682,8 +682,8 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           disabled_message TEXT NOT NULL DEFAULT 'Online booking is temporarily unavailable.',
           currency TEXT NOT NULL DEFAULT 'DKK',
           vat_rate INTEGER NOT NULL DEFAULT 25,
-          company_name TEXT NOT NULL DEFAULT 'WashMax',
-          support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          company_name TEXT NOT NULL DEFAULT 'CleanWash',
+          support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           admin_notify_email TEXT NOT NULL DEFAULT '',
           customer_confirmation_enabled BOOLEAN NOT NULL DEFAULT true,
           admin_notification_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -789,14 +789,14 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
         ON CONFLICT (settings_key) DO NOTHING;
       `;
     })();
-    globalThis.washmaxSchemaPromise = schemaPromise;
+    globalThis.CleanWashSchemaPromise = schemaPromise;
   }
 
   try {
     await schemaPromise;
   } catch (error) {
     schemaPromise = null;
-    globalThis.washmaxSchemaPromise = null;
+    globalThis.CleanWashSchemaPromise = null;
     throw error;
   }
 };

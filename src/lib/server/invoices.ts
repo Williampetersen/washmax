@@ -558,9 +558,9 @@ const applyInvoiceSchema = async () => {
   await sql`
     CREATE TABLE IF NOT EXISTS invoice_settings (
       settings_key TEXT PRIMARY KEY DEFAULT 'default',
-      company_name TEXT NOT NULL DEFAULT 'WashMax',
+      company_name TEXT NOT NULL DEFAULT 'CleanWash',
       company_address TEXT NOT NULL DEFAULT '',
-      company_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+      company_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
       company_phone TEXT NOT NULL DEFAULT '',
       company_cvr TEXT NOT NULL DEFAULT '',
       invoice_prefix TEXT NOT NULL DEFAULT 'CW',
@@ -1039,7 +1039,7 @@ const renderAndStoreInvoice = async (
     notes: text(row.invoice_notes),
     paymentInstructions:
       process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-      "Betaling sker efter aftale med WashMax.",
+      "Betaling sker efter aftale med CleanWash.",
   });
   const sql = getSql();
   const [stored] = await sql<RawInvoice[]>`
