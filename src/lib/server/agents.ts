@@ -1389,20 +1389,47 @@ export const getAdminAgentsData = async (): Promise<AdminAgentsData> => {
         listNotifications({ recipientType: "admin" }),
       ]);
 
+    const bookingsByAgent = new Map<string, typeof bookings>();
+    for (const booking of bookings) {
+      if (!booking.assignedAgentId) continue;
+      const list = bookingsByAgent.get(booking.assignedAgentId) ?? [];
+      list.push(booking);
+      bookingsByAgent.set(booking.assignedAgentId, list);
+    }
+    const servicesByAgent = new Map<string, typeof services>();
+    for (const service of services) {
+      const list = servicesByAgent.get(service.agentId) ?? [];
+      list.push(service);
+      servicesByAgent.set(service.agentId, list);
+    }
+    const availabilityByAgent = new Map<string, typeof availability>();
+    for (const item of availability) {
+      const list = availabilityByAgent.get(item.agentId) ?? [];
+      list.push(item);
+      availabilityByAgent.set(item.agentId, list);
+    }
+    const unavailableDatesByAgent = new Map<string, typeof unavailableDates>();
+    for (const item of unavailableDates) {
+      const list = unavailableDatesByAgent.get(item.agentId) ?? [];
+      list.push(item);
+      unavailableDatesByAgent.set(item.agentId, list);
+    }
+    const unreadByAgent = new Map<string, number>();
+    for (const message of chatMessages) {
+      if (message.senderType === "agent" && !message.isRead) {
+        unreadByAgent.set(message.agentId, (unreadByAgent.get(message.agentId) ?? 0) + 1);
+      }
+    }
+
     return {
-      agents: agents.map((agent) => {
-        const agentBookings = bookings.filter((booking) => booking.assignedAgentId === agent.id);
-        return {
-          ...agent,
-          services: services.filter((service) => service.agentId === agent.id),
-          availability: availability.filter((item) => item.agentId === agent.id),
-          unavailableDates: unavailableDates.filter((item) => item.agentId === agent.id),
-          stats: buildAgentStats(agentBookings),
-          unreadAdminMessages: chatMessages.filter(
-            (message) => message.agentId === agent.id && message.senderType === "agent" && !message.isRead
-          ).length,
-        };
-      }),
+      agents: agents.map((agent) => ({
+        ...agent,
+        services: servicesByAgent.get(agent.id) ?? [],
+        availability: availabilityByAgent.get(agent.id) ?? [],
+        unavailableDates: unavailableDatesByAgent.get(agent.id) ?? [],
+        stats: buildAgentStats(bookingsByAgent.get(agent.id) ?? []),
+        unreadAdminMessages: unreadByAgent.get(agent.id) ?? 0,
+      })),
       bookings,
       notifications,
     };

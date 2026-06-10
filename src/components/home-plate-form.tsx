@@ -61,6 +61,7 @@ export function HomePlateForm() {
               placeholder="AB12345"
               maxLength={10}
               value={plate}
+              onFocus={() => router.prefetch("/booking")}
               onChange={(event) => setPlate(sanitizePlate(event.target.value))}
               className="min-w-0 flex-1 border-0 bg-white px-3 text-xl font-semibold uppercase tracking-[0.08em] text-[#222] outline-none placeholder:text-[#cfcfcf]"
             />

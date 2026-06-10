@@ -168,11 +168,13 @@ export default async function AdminPage({
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
   const searchQuery = Array.isArray(params.q) ? params.q[0] || "" : params.q || "";
-  const dashboard = await getAdminDashboardData();
-  const agentsData = view === "agents" ? await getAdminAgentsData() : undefined;
-  const bookingSetupData = view === "booking-setup" ? await getBookingSetupData() : undefined;
   const hasDatabase = isDatabaseConfigured();
-  const adminInvoices = view === "invoices" && hasDatabase ? await listInvoices() : [];
+  const [dashboard, agentsData, bookingSetupData, adminInvoices] = await Promise.all([
+    getAdminDashboardData(),
+    view === "agents" ? getAdminAgentsData() : Promise.resolve(undefined),
+    view === "booking-setup" ? getBookingSetupData() : Promise.resolve(undefined),
+    view === "invoices" && hasDatabase ? listInvoices() : Promise.resolve([]),
+  ]);
   const today = getTodayDateText();
   const timeSlots = getTimeSlots(dashboard.settings);
   const upcomingBookings = [...dashboard.bookings]
