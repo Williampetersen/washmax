@@ -211,7 +211,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     [availableTimeSlots, selectedAppointmentTime]
   );
   const appointmentLabel = useMemo(
-    () => (appointmentDateValue ? formatDateTimeLabel(appointmentDateValue, appointmentTime || "00:00") : "Vaelg en ledig dag"),
+    () => (appointmentDateValue ? formatDateTimeLabel(appointmentDateValue, appointmentTime || "00:00") : "Vælg en ledig dag"),
     [appointmentDateValue, appointmentTime]
   );
   const appointmentDateLabel = useMemo(
@@ -225,12 +225,12 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     return date;
   }, [minDate, settings.maximumDaysAhead]);
   const areaCoverageHint = !postalCodeValue?.trim()
-    ? "Indtast dit postnummer for at se, om der er en koerselszone eller et tillaeg."
+    ? "Indtast dit postnummer for at se, om der er en kørselszone eller et tillæg."
     : matchedArea
-      ? `${matchedArea.label} matcher din adresse${matchedArea.surcharge > 0 ? ` med et koerselstillaeg pa ${formatPrice(matchedArea.surcharge)}.` : " uden ekstra koerselstillaeg."}`
+      ? `${matchedArea.label} matcher din adresse${matchedArea.surcharge > 0 ? ` med et Kørselstillæg på ${formatPrice(matchedArea.surcharge)}.` : " uden ekstra Kørselstillæg."}`
       : settings.serviceAreas.length > 0
-        ? "Dit postnummer ligger uden for de faste zoner. Vi gennemgaar bookingen manuelt, hvis koersel skal justeres."
-        : "Vi daekker fortsat din adresse uden registreret zonetillaeg.";
+        ? "Dit postnummer ligger uden for de faste zoner. Vi gennemgår bookingen manuelt, hvis kørsel skal justeres."
+        : "Vi dækker fortsat din adresse uden registreret zonetillæg.";
 
   useEffect(() => {
     if (!appointmentDateValue || !activePackageData?.id) {
@@ -354,14 +354,14 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       if (latestLookupPlateRef.current !== normalizedPlate || controller.signal.aborted) return;
       vehicleLookupCache.set(normalizedPlate, { vehicle: nextVehicle, cachedAt: Date.now() });
       setVehicle(nextVehicle);
-      setLookupStatus(nextVehicle.lookupUnavailable ? { message: "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsaette manuelt.", type: "error" } : null);
+      setLookupStatus(nextVehicle.lookupUnavailable ? { message: "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsætte manuelt.", type: "error" } : null);
       window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
       if (process.env.NODE_ENV === "development") console.info(`[perf] booking.lookup ${normalizedPlate} ${Math.round(performance.now() - startedAt)}ms`);
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
       if (latestLookupPlateRef.current !== normalizedPlate) return;
       setVehicle(createManualVehicle(normalizedPlate));
-      setLookupStatus({ message: "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsaette manuelt.", type: "error" });
+      setLookupStatus({ message: "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsætte manuelt.", type: "error" });
       window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
     } finally {
       if (latestLookupPlateRef.current === normalizedPlate) { setIsLookupPending(false); lookupControllerRef.current = null; }
@@ -431,7 +431,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       return;
     }
     if (!appointmentDateValue || !appointmentTime) {
-      setFormError("Vaelg en dag med ledige tider for bookingen.");
+      setFormError("Vælg en dag med ledige tider for bookingen.");
       return;
     }
     setFormError(null);
@@ -582,7 +582,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       <p className="text-sm font-semibold uppercase text-[#6b7780]">Booking</p>
       <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">Sla nummerplade op</h1>
       <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
-        Indtast nummerpladen og se prisen. Derefter vaelger du pakke, tilvalg, tidspunkt og kontaktoplysninger.
+        Indtast nummerpladen og se prisen. Derefter vælger du pakke, tilvalg, tidspunkt og kontaktoplysninger.
       </p>
       <form onSubmit={(event) => { event.preventDefault(); submitPlateLookup(); }} className="mt-6 grid max-w-xl gap-3">
         <label className="block">
@@ -682,7 +682,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">Trin 1 af 4</p>
-                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Vaelg pakke</h2>
+                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Vælg pakke</h2>
                     <p className="mt-2 text-sm text-[var(--muted)]">Klik på en pakke for at vælge og gå videre.</p>
                   </div>
                   <Sparkles className="h-8 w-8 shrink-0 text-[#55b9df]" />
@@ -722,7 +722,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                         </div>
                         <div className={cn("mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold", isActive ? "text-[#2388d1]" : "text-[var(--muted)]")}>
                           {isActive ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                          {isActive ? "Valgt — fortsaetter..." : "Vaelg denne pakke"}
+                          {isActive ? "Valgt — fortsætter..." : "Vælg denne pakke"}
                         </div>
                       </button>
                     );
@@ -794,7 +794,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   {settings.catalog.quantityAddOns.length > 0 ? (
                     <div className="rounded-[1.5rem] border border-dashed border-[#cde6f6] bg-[#fbfeff] px-4 py-4 text-sm text-[var(--muted)]">
                       <p className="font-semibold text-[var(--ink)]">Manuelle tilvalg</p>
-                      <p className="mt-2">{settings.catalog.quantityAddOns.map((item) => item.label).join(" og ")} kan stadig laegges pa efter booking.</p>
+                      <p className="mt-2">{settings.catalog.quantityAddOns.map((item) => item.label).join(" og ")} kan stadig lægges på efter booking.</p>
                     </div>
                   ) : null}
                 </div>
@@ -816,8 +816,8 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 <div className="flex items-center justify-between gap-4">
                   <div>
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#2388d1]">Trin 3 af 4</p>
-                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Vaelg dato og tid</h2>
-                    <p className="mt-2 text-sm text-[var(--muted)]">Vaelg en ledig dag i kalenderen, og vaelg derefter et tidspunkt.</p>
+                    <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">Vælg dato og tid</h2>
+                    <p className="mt-2 text-sm text-[var(--muted)]">Vælg en ledig dag i kalenderen, og vælg derefter et tidspunkt.</p>
                   </div>
                   <CalendarDays className="h-8 w-8 shrink-0 text-[#55b9df]" />
                 </div>
@@ -875,18 +875,18 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                             })}
                           </div>
                         ) : (
-                          <p className="mt-4 text-sm text-[var(--muted)]">Ingen ledige tider denne dag. Vaelg en anden dag.</p>
+                          <p className="mt-4 text-sm text-[var(--muted)]">Ingen ledige tider denne dag. Vælg en anden dag.</p>
                         )}
                       </>
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center py-10 text-center text-[var(--muted)]">
                         <CalendarDays className="mb-3 h-8 w-8 text-[#b3d8e8]" />
-                        <p className="text-sm font-semibold">Vaelg en dag i kalenderen</p>
+                        <p className="text-sm font-semibold">Vælg en dag i kalenderen</p>
                         <p className="mt-1 text-xs">Derefter vises ledige tider her.</p>
                       </div>
                     )}
                     <div className="mt-5 space-y-2 border-t border-[#e8f0f4] pt-4 text-xs text-[var(--muted)]">
-                      <p>{settings.defaultBookingStatus === "approved" ? "Booking godkendes automatisk — du faar bekraeftelse pa email med det samme." : "Booking starter som afventer — vi godkender og sender bekraeftelse."}</p>
+                      <p>{settings.defaultBookingStatus === "approved" ? "Booking godkendes automatisk — du får bekræftelse på email med det samme." : "Booking starter som afventer — vi godkender og sender bekræftelse."}</p>
                       <p>{areaCoverageHint}</p>
                     </div>
                   </div>
@@ -944,8 +944,8 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     <Field label="Adresse" className="md:col-span-2" error={form.formState.errors.address?.message}><Input {...form.register("address")} placeholder="Adresse" /></Field>
                     <Field label="Postnr." error={form.formState.errors.postalCode?.message}><Input {...form.register("postalCode")} placeholder="Postnr." /></Field>
                     <Field label="By" error={form.formState.errors.city?.message}><Input {...form.register("city")} placeholder="By" /></Field>
-                    <Field className="md:col-span-2" label="Bemaerkninger (valgfrit)">
-                      <Textarea {...form.register("notes")} placeholder="Fx parkering, adgang, saerlige onsker..." />
+                    <Field className="md:col-span-2" label="Bemærkninger (valgfrit)">
+                      <Textarea {...form.register("notes")} placeholder="Fx parkering, adgang, særlige ønsker..." />
                     </Field>
                   </div>
 
@@ -956,8 +956,8 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       </p>
                       <p className="mt-2 leading-6">
                         {settings.defaultBookingStatus === "approved"
-                          ? "Din booking bliver godkendt med det samme, og du faar en endelig bekraeftelse pa email."
-                          : "Din booking starter som afventer. Du faar en mail med det samme og en ny mail, naar vi har godkendt tiden."}
+                          ? "Din booking bliver godkendt med det samme, og du får en endelig bekræftelse på email."
+                          : "Din booking starter som afventer. Du får en mail med det samme og en ny mail, når vi har godkendt tiden."}
                       </p>
                     </div>
                     <label className="flex items-start gap-3">
@@ -1023,7 +1023,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 </div>
                 {travelSurcharge > 0 ? (
                   <div className="rounded-xl bg-[#f8fafb] px-4 py-4">
-                    <SummaryRow label="Koerselstillaeg" value={formatPrice(travelSurcharge)} />
+                    <SummaryRow label="Kørselstillæg" value={formatPrice(travelSurcharge)} />
                   </div>
                 ) : null}
                 <div className="rounded-xl bg-[#eef8ff] px-4 py-4">
@@ -1078,7 +1078,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 </div>
                 <div className="border-t border-[#e1edf2] bg-white px-5 py-4">
                   <button type="button" onClick={() => { setIsMobileSummaryOpen(false); document.getElementById("booking-details")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} className="flex h-12 w-full items-center justify-center rounded-xl bg-[#78cdea] px-4 text-sm font-semibold text-[#123549]">
-                    Fortsaet booking · {formatShortPrice(total)}
+                    Fortsæt booking · {formatShortPrice(total)}
                   </button>
                 </div>
               </div>

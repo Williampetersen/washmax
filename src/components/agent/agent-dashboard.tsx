@@ -121,7 +121,7 @@ export function AgentDashboard({
                   error ? "border-red-200 bg-red-50 text-red-700" : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
                 )}
               >
-                {error ? "Handlingen kunne ikke gennemfoeres." : "Aendringen er gemt."}
+                {error ? "Handlingen kunne ikke gennemføres." : "Ændringen er gemt."}
               </div>
             ) : null}
 

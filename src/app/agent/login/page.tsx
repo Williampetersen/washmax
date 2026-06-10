@@ -31,7 +31,7 @@ export default async function AgentLoginPage({
     error === "invalid"
       ? "Forkert agent e-mail eller adgangskode."
       : error === "config"
-        ? "Agent-login kunne ikke gennemfoeres. Tjek database og session secret."
+        ? "Agent-login kunne ikke gennemføres. Tjek database og session secret."
         : "";
 
   return (

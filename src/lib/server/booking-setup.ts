@@ -615,7 +615,7 @@ const seedBookingSetup = async () => {
     ["postalCode", "Postnr.", "Postnr.", ""],
     ["city", "By", "By", ""],
     ["plate", "Nummerplade", "AB12345", ""],
-    ["notes", "Bemaerkninger", "Fx parkering, adgang, saerlige onsker...", ""],
+    ["notes", "Bemærkninger", "Fx parkering, adgang, særlige onsker...", ""],
   ] as const;
   for (const [index, field] of fields.entries()) {
     await sql`

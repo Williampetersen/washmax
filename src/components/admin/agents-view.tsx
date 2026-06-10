@@ -39,7 +39,7 @@ export function AdminAgentsView({
     <div className="space-y-5">
       {data.databaseError ? (
         <div className="rounded-3xl border border-red-200 bg-red-50 px-4 py-4 text-[13px] font-medium text-red-700">
-          Agents kunne ikke indlaeses: {data.databaseError}
+          Agents kunne ikke indlæses: {data.databaseError}
         </div>
       ) : null}
 
@@ -52,7 +52,7 @@ export function AdminAgentsView({
               : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
           )}
         >
-          {error === "agent" ? "Agent-handlingen kunne ikke gennemfoeres." : "Agent-opdateringen er gemt."}
+          {error === "agent" ? "Agent-handlingen kunne ikke gennemføres." : "Agent-opdateringen er gemt."}
         </div>
       ) : null}
 

@@ -802,7 +802,7 @@ function AdminOverviewDashboard({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/62">
-                  Omsaetning
+                  Omsætning
                 </p>
                 <p className="mt-3 font-display text-4xl font-semibold">
                   {formatShortPrice(dashboard.stats.totalRevenue)}
@@ -888,7 +888,7 @@ function AdminOverviewDashboard({
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-[#211955]">Historik</p>
-                <p className="mt-1 text-xs text-[#8b85aa]">Omsaetning og udestaaende pr. maaned</p>
+                <p className="mt-1 text-xs text-[#8b85aa]">Omsætning og udestående pr. maaned</p>
               </div>
               <BarChart3 className="h-5 w-5 text-[#6257e8]" />
             </div>
@@ -904,7 +904,7 @@ function AdminOverviewDashboard({
                   <div key={point.key} className="flex min-w-0 flex-1 flex-col items-center gap-3">
                     <div className="flex h-36 w-full items-end justify-center gap-2">
                       <span
-                        title={`Omsaetning ${formatPrice(point.revenue)}`}
+                        title={`Omsætning ${formatPrice(point.revenue)}`}
                         className="w-4 rounded-t-full bg-[#6257e8] shadow-[0_10px_24px_rgba(98,87,232,0.2)]"
                         style={{ height: `${revenueHeight}%` }}
                       />
@@ -924,7 +924,7 @@ function AdminOverviewDashboard({
             <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-[#817b9f]">
               <span className="inline-flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#6257e8]" />
-                Omsaetning
+                Omsætning
               </span>
               <span className="inline-flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-[#ffb5cf]" />
@@ -1737,7 +1737,7 @@ function AvailabilityView({
           <SectionHeading
             eyebrow="Bookingvindue"
             title="Arbejdstider og arbejdsdage"
-            description="Disse indstillinger bruges baade i adminplanlaegning og i kundens bookingflow."
+            description="Disse indstillinger bruges baade i adminplanlægning og i kundens bookingflow."
           />
           <form
             action="/api/admin/settings"
@@ -2803,7 +2803,7 @@ function AreaCard({ area }: { area: DashboardData["settings"]["serviceAreas"][nu
           <Field label="Navn">
             <Input name="label" defaultValue={area.label} />
           </Field>
-          <Field label="Tillaeg">
+          <Field label="Tillæg">
             <Input name="surcharge" type="number" min="0" step="1" defaultValue={area.surcharge} />
           </Field>
           <Field label="Postnumre / prefixes" className="sm:col-span-2">
@@ -2827,7 +2827,7 @@ function AreaCard({ area }: { area: DashboardData["settings"]["serviceAreas"][nu
             defaultChecked={area.isActive}
             className="h-4 w-4 rounded border-[#9cb0bd]"
           />
-          Aktivt serviceomraade
+          Aktivt serviceområde
         </label>
         <div className="flex flex-wrap gap-3">
           <Button type="submit" variant="secondary">

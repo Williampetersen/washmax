@@ -284,7 +284,7 @@ const getCustomerCreationCopy = (
         highlight:
           "Du har nu en aktiv tid i kalenderen. Brug kundeportalen, hvis du vil gennemga detaljerne eller opdatere dine oplysninger.",
         footer:
-          "Har du brug for at aendre noget, kan du svare pa denne mail eller kontakte os direkte.",
+          "Har du brug for at ændre noget, kan du svare på denne mail eller kontakte os direkte.",
         portalLabel: "Se din booking",
       };
     default:
@@ -292,9 +292,9 @@ const getCustomerCreationCopy = (
         subject: `${settings.companyName}: booking modtaget`,
         eyebrow: "Booking modtaget",
         title: "Vi har modtaget din booking",
-        intro: `Tak for din booking hos ${settings.companyName}. Vi gennemgaar nu forespoergslen for ${appointmentLabel}.`,
+        intro: `Tak for din booking hos ${settings.companyName}. Vi gennemgår nu forespørgslen for ${appointmentLabel}.`,
         highlight:
-          "Du faar en ny mail, saa snart bookingen er godkendt eller hvis vi har brug for at justere noget.",
+          "Du får en ny mail, så snart bookingen er godkendt eller hvis vi har brug for at justere noget.",
         footer:
           "Du kan bruge kundeportalen allerede nu, hvis du vil tjekke oplysningerne eller sende os en kommentar.",
         portalLabel: "Aabn kundeportal",
@@ -350,7 +350,7 @@ const getCustomerStatusCopy = (
         highlight:
           "Hvis du gerne vil have en ny tid, kan du booke igen fra kundeportalen eller skrive til os, saa finder vi en ny aftale.",
         footer:
-          "Vi hjaelper gerne med at finde en ny tid, hvis annulleringen skal aendres til en ombooking.",
+          "Vi hjælper gerne med at finde en ny tid, hvis annulleringen skal ændres til en ombooking.",
         portalLabel: "Aabn kundeportal",
       };
     default:
@@ -360,7 +360,7 @@ const getCustomerStatusCopy = (
         title: "Din booking afventer godkendelse",
         intro: `Vi er i gang med at behandle din booking for ${appointmentLabel}.`,
         highlight:
-          "Du faar en ny mail, saa snart bookingen er godkendt eller hvis vi mangler noget fra dig.",
+          "Du får en ny mail, så snart bookingen er godkendt eller hvis vi mangler noget fra dig.",
         footer:
           "Du kan bruge kundeportalen til at holde overblik over status og dine kontaktoplysninger.",
         portalLabel: "Aabn kundeportal",

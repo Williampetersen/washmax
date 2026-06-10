@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Lexend } from "next/font/google";
 import "./globals.css";
 import { siteConfig } from "@/lib/site";
+
+const lexend = Lexend({
+  subsets: ["latin"],
+  variable: "--font-lexend",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
@@ -44,7 +52,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="da">
+    <html lang="da" className={lexend.variable}>
       <head>
         <Script async src="https://www.googletagmanager.com/gtag/js?id=G-W67LMJHPML" strategy="afterInteractive" />
         <Script id="google-analytics" strategy="afterInteractive">

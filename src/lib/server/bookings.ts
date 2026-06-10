@@ -1347,7 +1347,7 @@ export const updateBookingStatus = async (
   await logBookingActivity(bookingId, {
     actor: "admin",
     activityType: "status_updated",
-    summary: `Status aendret til ${status}.`,
+    summary: `Status ændret til ${status}.`,
     details: {
       previousStatus: current?.booking.status || "",
       nextStatus: status,
