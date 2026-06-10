@@ -165,6 +165,7 @@ export default async function AdminPage({
   const view = navItems.some((item) => item.id === rawView)
     ? (rawView as AdminView)
     : "overview";
+  const setupTab = Array.isArray(params.st) ? params.st[0] || "services" : params.st || "services";
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
   const searchQuery = Array.isArray(params.q) ? params.q[0] || "" : params.q || "";
@@ -203,108 +204,103 @@ export default async function AdminPage({
 
   return (
     <AdminShellLayout>
-      <section>
-        <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-          <AdminSidebarLayout dashboard={dashboard} sessionEmail={session.email} view={view} />
+      <AdminSidebarLayout dashboard={dashboard} sessionEmail={session.email} view={view} />
 
-          <div className="space-y-5">
-            {!hasDatabase ? (
-              <div className="rounded-[1.6rem] border border-[#ffe2af] bg-[#fff8ea] px-5 py-4 text-sm text-[#8d5d08] shadow-[0_12px_32px_rgba(141,93,8,0.08)]">
-                DATABASE_URL mangler. Panelet kan vises, men bookinger og ændringer bliver
-                ikke gemt, før databasen er sat op.
-              </div>
-            ) : null}
-
-            {dashboard.databaseError ? (
-              <div className="rounded-[1.6rem] border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700 shadow-[0_12px_32px_rgba(176,38,38,0.08)]">
-                Databasen kunne ikke indlæses: {dashboard.databaseError}
-              </div>
-            ) : null}
-
-            {statusMessage || errorMessage ? (
-              <div
-                className={cn(
-                  "rounded-[1.5rem] border px-5 py-4 text-sm",
-                  errorMessage
-                    ? "border-red-200 bg-red-50 text-red-700"
-                    : "border-[#cde6f6] bg-[#f6fbff] text-[#1a506d]"
-                )}
-              >
-                {errorMessage || statusMessage}
-              </div>
-            ) : null}
-
-            {view === "overview" ? (
-              <OverviewView
-                dashboard={dashboard}
-                pendingBookings={pendingBookings}
-                todayBookings={todayBookings}
-                upcomingBookings={upcomingBookings}
-                unpaidBookings={unpaidBookings}
-                searchQuery={searchQuery}
-                timeSlots={timeSlots}
-                today={today}
-              />
-            ) : null}
-
-            {view === "calendar" ? (
-              <CalendarView
-                dashboard={dashboard}
-                searchQuery={searchQuery}
-                timeSlots={timeSlots}
-                today={today}
-              />
-            ) : null}
-
-            {view === "bookings" ? (
-              <BookingsView
-                dashboard={dashboard}
-                bookings={dashboard.bookings}
-                pendingBookings={pendingBookings}
-                upcomingBookings={upcomingBookings}
-                timeSlots={timeSlots}
-              />
-            ) : null}
-
-            {view === "customers" ? (
-              <CustomersView
-                customers={dashboard.customers}
-                bookingsByCustomer={bookingsByCustomer}
-              />
-            ) : null}
-
-            {view === "agents" && agentsData ? (
-              <AdminAgentsView data={agentsData} saved={saved} error={error} />
-            ) : null}
-
-            {view === "booking-setup" && bookingSetupData ? (
-              <BookingSetupView data={bookingSetupData} saved={saved} error={error} />
-            ) : null}
-
-            {view === "services" ? <ServicesView dashboard={dashboard} /> : null}
-
-            {view === "availability" ? (
-              <AvailabilityView dashboard={dashboard} timeSlots={timeSlots} />
-            ) : null}
-
-            {view === "emails" ? (
-              <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs.slice(0, 30)} />
-            ) : null}
-
-            {view === "invoices" ? <AdminInvoicesView invoices={adminInvoices} /> : null}
-
-            {view === "areas" ? <AreasView dashboard={dashboard} /> : null}
-
-            {view === "payments" ? (
-              <PaymentsView unpaidBookings={unpaidBookings} dashboard={dashboard} />
-            ) : null}
-
-            {view === "settings" ? (
-              <SettingsView dashboard={dashboard} smtpConfigured={Boolean(process.env.SMTP_HOST)} />
-            ) : null}
+      <div className="space-y-4">
+        {!hasDatabase ? (
+          <div className="rounded-2xl border border-[#ffe2af] bg-[#fff8ea] px-5 py-4 text-sm text-[#8d5d08]">
+            DATABASE_URL mangler. Panelet kan vises, men bookinger og ændringer bliver ikke gemt, før databasen er sat op.
           </div>
-        </div>
-      </section>
+        ) : null}
+
+        {dashboard.databaseError ? (
+          <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+            Databasen kunne ikke indlæses: {dashboard.databaseError}
+          </div>
+        ) : null}
+
+        {statusMessage || errorMessage ? (
+          <div
+            className={cn(
+              "rounded-2xl border px-5 py-4 text-sm",
+              errorMessage
+                ? "border-red-200 bg-red-50 text-red-700"
+                : "border-[#cde6f6] bg-[#f6fbff] text-[#1a506d]"
+            )}
+          >
+            {errorMessage || statusMessage}
+          </div>
+        ) : null}
+
+        {view === "overview" ? (
+          <OverviewView
+            dashboard={dashboard}
+            pendingBookings={pendingBookings}
+            todayBookings={todayBookings}
+            upcomingBookings={upcomingBookings}
+            unpaidBookings={unpaidBookings}
+            searchQuery={searchQuery}
+            timeSlots={timeSlots}
+            today={today}
+          />
+        ) : null}
+
+        {view === "calendar" ? (
+          <CalendarView
+            dashboard={dashboard}
+            searchQuery={searchQuery}
+            timeSlots={timeSlots}
+            today={today}
+          />
+        ) : null}
+
+        {view === "bookings" ? (
+          <BookingsView
+            dashboard={dashboard}
+            bookings={dashboard.bookings}
+            pendingBookings={pendingBookings}
+            upcomingBookings={upcomingBookings}
+            timeSlots={timeSlots}
+          />
+        ) : null}
+
+        {view === "customers" ? (
+          <CustomersView
+            customers={dashboard.customers}
+            bookingsByCustomer={bookingsByCustomer}
+          />
+        ) : null}
+
+        {view === "agents" && agentsData ? (
+          <AdminAgentsView data={agentsData} saved={saved} error={error} />
+        ) : null}
+
+        {view === "booking-setup" && bookingSetupData ? (
+          <BookingSetupView data={bookingSetupData} saved={saved} error={error} setupTab={setupTab} />
+        ) : null}
+
+        {view === "services" ? <ServicesView dashboard={dashboard} /> : null}
+
+        {view === "availability" ? (
+          <AvailabilityView dashboard={dashboard} timeSlots={timeSlots} />
+        ) : null}
+
+        {view === "emails" ? (
+          <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs.slice(0, 30)} />
+        ) : null}
+
+        {view === "invoices" ? <AdminInvoicesView invoices={adminInvoices} /> : null}
+
+        {view === "areas" ? <AreasView dashboard={dashboard} /> : null}
+
+        {view === "payments" ? (
+          <PaymentsView unpaidBookings={unpaidBookings} dashboard={dashboard} />
+        ) : null}
+
+        {view === "settings" ? (
+          <SettingsView dashboard={dashboard} smtpConfigured={Boolean(process.env.SMTP_HOST)} />
+        ) : null}
+      </div>
     </AdminShellLayout>
   );
 }

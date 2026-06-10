@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { CalendarClock, Eye, EyeOff, Image as ImageIcon, Plus, Settings2, Sparkles } from "lucide-react";
+import Link from "next/link";
+import { CalendarClock, Eye, EyeOff, Image as ImageIcon, Plus, Settings2, Sparkles, SlidersHorizontal, ListChecks, Clock, CalendarX, FileText, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUploadForm } from "@/components/admin/image-upload-form";
@@ -14,181 +15,254 @@ import { cn } from "@/lib/utils";
 
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
+const setupTabs = [
+  { id: "services",  label: "Ydelser",        icon: Sparkles },
+  { id: "addons",    label: "Tilvalg",         icon: Plus },
+  { id: "options",   label: "Muligheder",      icon: SlidersHorizontal },
+  { id: "hours",     label: "Åbningstider",    icon: Clock },
+  { id: "dates",     label: "Spærringer",      icon: CalendarX },
+  { id: "form",      label: "Formular",        icon: FileText },
+  { id: "general",   label: "Generelt",        icon: Wrench },
+] as const;
+
+type SetupTabId = (typeof setupTabs)[number]["id"];
+
 export function BookingSetupView({
   data,
   saved,
   error,
+  setupTab = "services",
 }: {
   data: BookingSetupData;
   saved?: string;
   error?: string;
+  setupTab?: string;
 }) {
+  const activeTab = setupTabs.some((t) => t.id === setupTab)
+    ? (setupTab as SetupTabId)
+    : "services";
+
   return (
-    <div className="space-y-5">
+    <div className="space-y-4">
+      {/* Page header */}
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#EEF0FF] text-[#6366F1]">
+          <Settings2 className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-lg font-bold text-[#1F2340]">Booking Setup</h1>
+          <p className="text-[12px] font-medium text-[#8E95B5]">Konfigurer ydelser, tilvalg, åbningstider og formularer</p>
+        </div>
+      </div>
+
+      {/* Sub-tab bar */}
+      <div className="flex gap-1 overflow-x-auto rounded-2xl border border-white/60 bg-white/80 p-1.5 shadow-[0_2px_12px_rgba(99,102,241,0.06)] backdrop-blur-xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {setupTabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <Link
+              key={tab.id}
+              href={`/admin?view=booking-setup&st=${tab.id}`}
+              scroll={false}
+              className={cn(
+                "flex shrink-0 items-center gap-1.5 rounded-xl px-3.5 py-2 text-[12.5px] font-semibold whitespace-nowrap transition-all duration-150",
+                isActive
+                  ? "bg-[#6366F1] text-white shadow-[0_4px_12px_rgba(99,102,241,0.25)]"
+                  : "text-[#8E95B5] hover:bg-white hover:text-[#1F2340]"
+              )}
+            >
+              <Icon className="h-3.5 w-3.5 shrink-0" />
+              {tab.label}
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Status banner */}
       {saved === "booking-setup" || error === "booking-setup" ? (
         <div
           className={cn(
-            "rounded-3xl border px-4 py-4 text-[13px] font-medium",
+            "rounded-2xl border px-4 py-3 text-[13px] font-medium",
             error === "booking-setup"
               ? "border-red-200 bg-red-50 text-red-700"
               : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
           )}
         >
-          {error === "booking-setup"
-            ? "Booking setup kunne ikke gemmes."
-            : "Booking setup er gemt."}
+          {error === "booking-setup" ? "Booking setup kunne ikke gemmes." : "Booking setup er gemt."}
         </div>
       ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <CreateServiceCard />
-        <CreateAddonCard services={data.services} />
-      </div>
-
-      <SetupSection
-        eyebrow="Services"
-        title="Main services / packages"
-        description="Shown in the public booking flow when visible."
-      >
-        <div className="grid gap-4">
-          {data.services.map((service) => (
-            <ServiceEditor key={service.id} service={service} />
-          ))}
-        </div>
-      </SetupSection>
-
-      <SetupSection
-        eyebrow="Add-ons"
-        title="Extra services / additional options"
-        description="Hidden add-ons are excluded from the public booking flow."
-      >
-        <div className="grid gap-4">
-          {data.addons.map((addon) => (
-            <AddonEditor key={addon.id} addon={addon} services={data.services} />
-          ))}
-        </div>
-      </SetupSection>
-
-      <SetupSection
-        eyebrow="Options"
-        title="Booking options"
-        description="Vehicle category and other customer choices."
-      >
-        <div className="grid gap-4">
-          {data.optionGroups.map((group) => (
-            <div key={group.id} className="rounded-2xl border border-white/55 bg-white/55 p-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <p className="text-[14px] font-semibold text-[#1F2340]">{group.name}</p>
-                  <p className="text-[12px] font-medium text-[#8E95B5]">{group.description}</p>
+      {/* Tab content */}
+      {activeTab === "services" ? (
+        <div className="space-y-5">
+          <SetupSection
+            eyebrow="Ydelser"
+            title="Ydelser / pakker"
+            description="Vises i den offentlige booking, når synlige."
+            action={<CreateInlineButton label="Tilføj ydelse" formId="create-service-form" />}
+          >
+            <div className="grid gap-4">
+              {data.services.map((service) => (
+                <ServiceEditor key={service.id} service={service} />
+              ))}
+            </div>
+            <div className="mt-4 rounded-2xl border border-dashed border-[#DDE3F5] bg-white/50 p-4">
+              <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6366F1]">
+                Ny ydelse
+              </p>
+              <form id="create-service-form" action="/api/admin/booking-setup/services" method="POST" className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Navn"><Input name="name" required placeholder="fx Udvendig bilvask" /></Field>
+                  <Field label="Kort beskrivelse"><Input name="short_description" placeholder="Vises under navn" /></Field>
                 </div>
-                <StatusPill visible={group.isVisible} />
-              </div>
-              <div className="mt-3 grid gap-2">
-                {group.options.map((option) => (
-                  <form
-                    key={option.id}
-                    action={`/api/admin/booking-setup/options/${option.id}`}
-                    method="POST"
-                    className="grid gap-2 rounded-2xl border border-white/55 bg-white/60 p-3 lg:grid-cols-[1fr_7rem_7rem_5rem_auto]"
-                  >
-                    <input type="hidden" name="group_id" value={group.id} />
-                    <Input name="label" defaultValue={option.label} />
-                    <Input type="number" name="price_adjustment_dkk" defaultValue={option.priceAdjustmentDkk} />
-                    <Input type="number" name="duration_adjustment_minutes" defaultValue={option.durationAdjustmentMinutes} />
-                    <Input type="number" name="sort_order" defaultValue={option.sortOrder} />
-                    <div className="flex flex-wrap gap-2">
-                      <label className="flex items-center gap-2 text-[12px] font-semibold">
-                        <input type="checkbox" name="is_visible" defaultChecked={option.isVisible} />
-                        Visible
-                      </label>
-                      <Button type="submit" className="h-10">Save</Button>
-                      <Button type="submit" name="action" value="delete" variant="outline" className="h-10">
-                        Delete
-                      </Button>
-                    </div>
-                  </form>
-                ))}
-              </div>
-              <form action="/api/admin/booking-setup/options" method="POST" className="mt-3 grid gap-2 rounded-2xl border border-dashed border-[#DDE3F5] bg-white/45 p-3 lg:grid-cols-[1fr_7rem_7rem_auto]">
-                <input type="hidden" name="group_id" value={group.id} />
-                <Input name="label" placeholder="New option" required />
-                <Input type="number" name="price_adjustment_dkk" placeholder="Price" />
-                <Input type="number" name="duration_adjustment_minutes" placeholder="Minutes" />
-                <Button type="submit">Add option</Button>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Field label="Pris (DKK)"><Input type="number" name="price_dkk" min="0" defaultValue="0" /></Field>
+                  <Field label="Varighed (min)"><Input type="number" name="duration_minutes" min="1" defaultValue="60" /></Field>
+                  <Field label="Rækkefølge"><Input type="number" name="sort_order" defaultValue="0" /></Field>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 text-[13px] font-semibold">
+                    <input type="checkbox" name="is_visible" defaultChecked /> Synlig
+                  </label>
+                  <label className="flex items-center gap-2 text-[13px] font-semibold">
+                    <input type="checkbox" name="is_featured" /> Fremhævet
+                  </label>
+                  <Button type="submit">Opret ydelse</Button>
+                </div>
               </form>
             </div>
-          ))}
+          </SetupSection>
         </div>
-      </SetupSection>
+      ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-2">
-        <OpeningHoursCard data={data} />
-        <TimeSettingsCard data={data} />
-      </div>
+      {activeTab === "addons" ? (
+        <div className="space-y-5">
+          <SetupSection
+            eyebrow="Tilvalg"
+            title="Ekstra ydelser / tilvalg"
+            description="Skjulte tilvalg vises ikke i den offentlige booking."
+          >
+            <div className="grid gap-4">
+              {data.addons.map((addon) => (
+                <AddonEditor key={addon.id} addon={addon} services={data.services} />
+              ))}
+            </div>
+            <div className="mt-4 rounded-2xl border border-dashed border-[#DDE3F5] bg-white/50 p-4">
+              <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#6366F1]">
+                Nyt tilvalg
+              </p>
+              <form action="/api/admin/booking-setup/addons" method="POST" className="grid gap-3">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Navn"><Input name="name" required placeholder="fx Fælgrens" /></Field>
+                  <Field label="Beskrivelse"><Input name="description" /></Field>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <Field label="Pris (DKK)"><Input type="number" name="price_dkk" min="0" defaultValue="0" /></Field>
+                  <Field label="Varighed (min)"><Input type="number" name="duration_minutes" min="0" defaultValue="0" /></Field>
+                  <Field label="Rækkefølge"><Input type="number" name="sort_order" defaultValue="0" /></Field>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field label="Kategori">
+                    <select name="addon_category" defaultValue="exterior" className={selectClassName}>
+                      <option value="interior">Indvendig</option>
+                      <option value="exterior">Udvendig</option>
+                      <option value="quantity">Antal/manuel</option>
+                    </select>
+                  </Field>
+                  <Field label="Tilladte ydelse-IDs">
+                    <Input name="allowed_service_ids" placeholder={data.services.map((s) => s.id).join(", ")} />
+                  </Field>
+                </div>
+                <div className="flex flex-wrap gap-4">
+                  <label className="flex items-center gap-2 text-[13px] font-semibold">
+                    <input type="checkbox" name="is_visible" defaultChecked /> Synlig
+                  </label>
+                  <Button type="submit">Opret tilvalg</Button>
+                </div>
+              </form>
+            </div>
+          </SetupSection>
+        </div>
+      ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-2">
+      {activeTab === "options" ? (
+        <SetupSection
+          eyebrow="Muligheder"
+          title="Bookingmuligheder"
+          description="Bilkategori og andre kundevalg."
+        >
+          <div className="grid gap-4">
+            {data.optionGroups.map((group) => (
+              <div key={group.id} className="rounded-2xl border border-white/55 bg-white/55 p-4">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-[14px] font-semibold text-[#1F2340]">{group.name}</p>
+                    <p className="text-[12px] font-medium text-[#8E95B5]">{group.description}</p>
+                  </div>
+                  <StatusPill visible={group.isVisible} />
+                </div>
+                <div className="grid gap-2">
+                  {group.options.map((option) => (
+                    <form
+                      key={option.id}
+                      action={`/api/admin/booking-setup/options/${option.id}`}
+                      method="POST"
+                      className="grid gap-2 rounded-xl border border-white/55 bg-white/60 p-3 lg:grid-cols-[1fr_7rem_7rem_5rem_auto]"
+                    >
+                      <input type="hidden" name="group_id" value={group.id} />
+                      <Input name="label" defaultValue={option.label} />
+                      <Input type="number" name="price_adjustment_dkk" defaultValue={option.priceAdjustmentDkk} />
+                      <Input type="number" name="duration_adjustment_minutes" defaultValue={option.durationAdjustmentMinutes} />
+                      <Input type="number" name="sort_order" defaultValue={option.sortOrder} />
+                      <div className="flex flex-wrap gap-2">
+                        <label className="flex items-center gap-2 text-[12px] font-semibold">
+                          <input type="checkbox" name="is_visible" defaultChecked={option.isVisible} />
+                          Synlig
+                        </label>
+                        <Button type="submit" className="h-9">Gem</Button>
+                        <Button type="submit" name="action" value="delete" variant="outline" className="h-9 border-red-200 text-red-600 hover:bg-red-50">
+                          Slet
+                        </Button>
+                      </div>
+                    </form>
+                  ))}
+                </div>
+                <form action="/api/admin/booking-setup/options" method="POST" className="mt-3 grid gap-2 rounded-xl border border-dashed border-[#DDE3F5] bg-white/45 p-3 lg:grid-cols-[1fr_7rem_7rem_auto]">
+                  <input type="hidden" name="group_id" value={group.id} />
+                  <Input name="label" placeholder="Ny mulighed" required />
+                  <Input type="number" name="price_adjustment_dkk" placeholder="Pris" />
+                  <Input type="number" name="duration_adjustment_minutes" placeholder="Minutter" />
+                  <Button type="submit">Tilføj</Button>
+                </form>
+              </div>
+            ))}
+          </div>
+        </SetupSection>
+      ) : null}
+
+      {activeTab === "hours" ? (
+        <div className="grid gap-5 xl:grid-cols-2">
+          <OpeningHoursCard data={data} />
+          <TimeSettingsCard data={data} />
+        </div>
+      ) : null}
+
+      {activeTab === "dates" ? (
         <UnavailableDatesCard data={data} />
-        <FormFieldsCard data={data} />
-      </div>
+      ) : null}
 
-      <GeneralSettingsCard data={data} />
+      {activeTab === "form" ? (
+        <FormFieldsCard data={data} />
+      ) : null}
+
+      {activeTab === "general" ? (
+        <GeneralSettingsCard data={data} />
+      ) : null}
     </div>
   );
 }
 
-function CreateServiceCard() {
-  return (
-    <SetupPanel title="Add main service" icon={<Plus className="h-5 w-5" />}>
-      <form action="/api/admin/booking-setup/services" method="POST" className="grid gap-3">
-        <Field label="Service name"><Input name="name" required /></Field>
-        <Field label="Short description"><Input name="short_description" /></Field>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Price DKK"><Input type="number" name="price_dkk" min="0" defaultValue="0" /></Field>
-          <Field label="Duration min"><Input type="number" name="duration_minutes" min="1" defaultValue="60" /></Field>
-          <Field label="Sort order"><Input type="number" name="sort_order" defaultValue="0" /></Field>
-        </div>
-        <label className="flex items-center gap-2 text-[13px] font-semibold">
-          <input type="checkbox" name="is_visible" defaultChecked /> Visible
-        </label>
-        <label className="flex items-center gap-2 text-[13px] font-semibold">
-          <input type="checkbox" name="is_featured" /> Featured
-        </label>
-        <Button type="submit">Create service</Button>
-      </form>
-    </SetupPanel>
-  );
-}
-
-function CreateAddonCard({ services }: { services: BookingSetupService[] }) {
-  return (
-    <SetupPanel title="Add extra service" icon={<Sparkles className="h-5 w-5" />}>
-      <form action="/api/admin/booking-setup/addons" method="POST" className="grid gap-3">
-        <Field label="Add-on name"><Input name="name" required /></Field>
-        <Field label="Description"><Input name="description" /></Field>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Field label="Price DKK"><Input type="number" name="price_dkk" min="0" defaultValue="0" /></Field>
-          <Field label="Duration min"><Input type="number" name="duration_minutes" min="0" defaultValue="0" /></Field>
-          <Field label="Sort order"><Input type="number" name="sort_order" defaultValue="0" /></Field>
-        </div>
-        <Field label="Category">
-          <select name="addon_category" defaultValue="interior" className={selectClassName}>
-            <option value="interior">Interior</option>
-            <option value="exterior">Exterior</option>
-            <option value="quantity">Quantity/manual</option>
-          </select>
-        </Field>
-        <Field label="Allowed service IDs">
-          <Input name="allowed_service_ids" placeholder={services.map((service) => service.id).join(", ")} />
-        </Field>
-        <label className="flex items-center gap-2 text-[13px] font-semibold">
-          <input type="checkbox" name="is_visible" defaultChecked /> Visible
-        </label>
-        <Button type="submit">Create add-on</Button>
-      </form>
-    </SetupPanel>
-  );
-}
 
 function ServiceEditor({ service }: { service: BookingSetupService }) {
   return (
@@ -412,16 +486,31 @@ function StatusPill({ visible }: { visible: boolean }) {
   );
 }
 
-function SetupSection({ eyebrow, title, description, children }: { eyebrow: string; title: string; description: string; children: ReactNode }) {
+function SetupSection({ eyebrow, title, description, children, action }: { eyebrow: string; title: string; description: string; children: ReactNode; action?: ReactNode }) {
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
-      <div className="mb-4">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">{eyebrow}</p>
-        <h2 className="mt-1.5 text-xl font-bold text-[#1F2340]">{title}</h2>
-        <p className="mt-1.5 text-[13px] font-medium leading-6 text-[#4B5563]">{description}</p>
+    <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-5 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6366F1]">{eyebrow}</p>
+          <h2 className="mt-1 text-[18px] font-bold text-[#1F2340]">{title}</h2>
+          <p className="mt-1 text-[12px] font-medium leading-5 text-[#8E95B5]">{description}</p>
+        </div>
+        {action}
       </div>
       {children}
     </section>
+  );
+}
+
+function CreateInlineButton({ label, formId }: { label: string; formId: string }) {
+  return (
+    <button
+      type="submit"
+      form={formId}
+      className="shrink-0 rounded-xl bg-[#6366F1] px-4 py-2 text-[12px] font-semibold text-white shadow-[0_4px_12px_rgba(99,102,241,0.22)] transition hover:bg-[#4F46E5]"
+    >
+      {label}
+    </button>
   );
 }
 

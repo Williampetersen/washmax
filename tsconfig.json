@@ -42,6 +42,7 @@
   "exclude": [
     "node_modules",
     "legacy",
-    "CleanWash"
+    "CleanWash",
+    "washmax"
   ]
 }
