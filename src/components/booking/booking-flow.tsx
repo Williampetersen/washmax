@@ -681,52 +681,29 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             <div ref={step1Ref} className="scroll-mt-6">
               <BookingAccordion
                 step={1}
-                title="Vælg pakke"
+                title="Vælg din service"
                 icon={<Sparkles className="h-5 w-5" />}
                 summary={openStep > 1 ? activePackageData.title : undefined}
                 isOpen={openStep === 1}
                 isCompleted={openStep > 1}
                 onEdit={() => goToStep(1)}
               >
-                <p className="mb-5 text-sm text-[var(--muted)]">Klik på en pakke for at vælge og gå videre.</p>
-                <div className="grid gap-4 md:grid-cols-3">
+                <p className="mb-5 text-sm text-[var(--muted)]">Det tager under 1 minut at booke</p>
+                <div className="grid gap-4 sm:grid-cols-3">
                   {settings.catalog.packages.map((item) => {
                     const isActive = item.id === activePackage;
                     const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : category.price;
                     return (
-                      <button
+                      <PackageCard
                         key={item.id}
-                        type="button"
+                        item={item}
+                        isActive={isActive}
+                        price={itemPrice}
                         onClick={() => {
                           setActivePackage(item.id);
                           window.setTimeout(() => goToStep(2), 280);
                         }}
-                        className={cn(
-                          "flex min-h-52 flex-col rounded-[1.5rem] border p-5 text-left transition",
-                          isActive
-                            ? "border-[#55b9df] bg-[#f8fdff] shadow-[0_18px_40px_rgba(43,147,220,0.16)]"
-                            : "border-[var(--line)] bg-white hover:border-[#8bd4ef] hover:shadow-md"
-                        )}
-                      >
-                        {item.imageUrl ? (
-                          <Image src={item.imageUrl} alt="" width={420} height={220} className="mb-4 h-28 w-full rounded-2xl object-cover" />
-                        ) : null}
-                        <div className="flex items-start justify-between gap-3">
-                          <span className="text-2xl font-semibold text-[var(--ink)]">{item.title}</span>
-                          <span className="text-xl font-semibold text-[#55b9df]">{formatShortPrice(itemPrice)}</span>
-                        </div>
-                        <span className={cn("mt-3 inline-flex w-fit rounded-full px-3 py-1 text-xs font-semibold", item.id === "whole" && isActive ? "bg-[#78c742] text-white" : "bg-[#eef2f0] text-[var(--muted)]")}>
-                          {item.badge}
-                        </span>
-                        <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{item.description}</p>
-                        <div className="mt-5 flex items-center gap-2 text-sm text-[var(--muted)]">
-                          <Clock3 className="h-4 w-4" /> {item.duration}
-                        </div>
-                        <div className={cn("mt-auto inline-flex items-center gap-2 pt-6 text-sm font-semibold", isActive ? "text-[#2388d1]" : "text-[var(--muted)]")}>
-                          {isActive ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                          {isActive ? "Valgt — fortsætter..." : "Vælg denne pakke"}
-                        </div>
-                      </button>
+                      />
                     );
                   })}
                 </div>
@@ -745,59 +722,19 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 onEdit={() => goToStep(2)}
                 isLocked={openStep < 2}
               >
-                <p className="mb-5 text-sm text-[var(--muted)]">Tilføj ekstra services. Du kan springe dette trin over.</p>
-                <div className="space-y-6">
-                  {settings.catalog.interiorAddOns.length > 0 ? (
-                    <div>
-                      <h4 className="text-sm font-semibold uppercase tracking-wider text-[#2388d1]">Indvendigt</h4>
-                      <div className="mt-3 grid gap-3">
-                        {settings.catalog.interiorAddOns.map((addon) => {
-                          const isSelected = selectedAddonIds.includes(addon.id);
-                          return (
-                            <AddonRow
-                              key={addon.id}
-                              addon={addon}
-                              isSelected={isSelected}
-                              onToggle={() => handleAddonToggle({ id: addon.id, label: addon.label, price: Number(addon.price || 0) })}
-                            />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                  <div>
-                    <h4 className="text-sm font-semibold uppercase tracking-wider text-[#2388d1]">Udvendigt</h4>
-                    <div className="mt-3 grid gap-3">
-                      <div className="flex items-center justify-between rounded-2xl border border-[#cde6f6] bg-[#f6fbff] px-4 py-4">
-                        <span className="flex items-center gap-3 text-sm font-medium text-[var(--ink)]">
-                          <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[#55b9df] text-white">
-                            <Check className="h-3.5 w-3.5" />
-                          </span>
-                          Voksbehandling
-                        </span>
-                        <span className="text-sm font-semibold text-[#2388d1]">
-                          {activePackage === "whole" ? "Inkl." : "Kun inkl. i Hele bilen"}
-                        </span>
-                      </div>
-                      {settings.catalog.exteriorAddOns.map((addon) => {
-                        const isSelected = selectedAddonIds.includes(addon.id);
-                        return (
-                          <AddonRow
-                            key={addon.id}
-                            addon={addon}
-                            isSelected={isSelected}
-                            onToggle={() => handleAddonToggle({ id: addon.id, label: addon.label, price: Number(addon.price || 0) })}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                  {settings.catalog.quantityAddOns.length > 0 ? (
-                    <div className="rounded-[1.5rem] border border-dashed border-[#cde6f6] bg-[#fbfeff] px-4 py-4 text-sm text-[var(--muted)]">
-                      <p className="font-semibold text-[var(--ink)]">Manuelle tilvalg</p>
-                      <p className="mt-2">{settings.catalog.quantityAddOns.map((item) => item.label).join(" og ")} kan stadig lægges på efter booking.</p>
-                    </div>
-                  ) : null}
+                <p className="mb-5 text-sm text-[var(--muted)]">Du kan altid fjerne tilvalg senere</p>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {[...settings.catalog.interiorAddOns, ...settings.catalog.exteriorAddOns, ...settings.catalog.quantityAddOns].map((addon) => {
+                    const isSelected = selectedAddonIds.includes(addon.id);
+                    return (
+                      <AddonCard
+                        key={addon.id}
+                        addon={addon}
+                        isSelected={isSelected}
+                        onToggle={() => handleAddonToggle({ id: addon.id, label: addon.label, price: Number(addon.price || 0) })}
+                      />
+                    );
+                  })}
                 </div>
                 <div className="mt-6 flex justify-end">
                   <button
@@ -813,40 +750,33 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
             {/* ── Second car inline option (not a step) ───────────── */}
             {openStep >= 2 ? (
-              <div className="overflow-hidden rounded-2xl border border-[#dde8ed] bg-[#f8fafb]">
-                <div className="flex items-center justify-between gap-4 px-4 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-[#e8f5e9] text-[#43a047]">
-                      <Car className="h-4 w-4" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-semibold text-[var(--ink)]">Tilføj endnu en bil og spar 15%</p>
+              <div className="overflow-hidden rounded-2xl border border-[#dde8ed] bg-white">
+                <button
+                  type="button"
+                  onClick={() => { setHasSecondCar(!hasSecondCar); if (hasSecondCar) setSecondCarPlate(""); }}
+                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-[#f8fafb]"
+                >
+                  <span className={cn(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition",
+                    hasSecondCar ? "bg-[#2388d1] text-white" : "bg-[#f0f6f9] text-[#9ab0bc]"
+                  )}>
+                    <Car className="h-4 w-4" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[var(--ink)]">Tilføj endnu en bil og spar 15%</p>
+                    {hasSecondCar ? (
+                      <p className="text-xs text-[var(--muted)]">2 biler valgt</p>
+                    ) : (
                       <p className="text-xs text-[var(--muted)]">Begge biler vaskes i samme besøg</p>
-                    </div>
+                    )}
                   </div>
-                  <div className="flex shrink-0 gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => { setHasSecondCar(false); setSecondCarPlate(""); }}
-                      className={cn(
-                        "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition",
-                        !hasSecondCar ? "bg-[#e8eff3] text-[var(--ink)]" : "text-[var(--muted)] hover:bg-[#eff5f7]"
-                      )}
-                    >
-                      Nej
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setHasSecondCar(true)}
-                      className={cn(
-                        "rounded-xl px-3.5 py-1.5 text-xs font-semibold transition",
-                        hasSecondCar ? "bg-[#2388d1] text-white shadow-sm" : "text-[var(--muted)] hover:bg-[#eff5f7]"
-                      )}
-                    >
-                      Ja
-                    </button>
-                  </div>
-                </div>
+                  {hasSecondCar ? (
+                    <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#2388d1]">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Sparer {Math.round(total * 15 / 100).toLocaleString("da-DK")} kr
+                    </span>
+                  ) : null}
+                </button>
                 {hasSecondCar ? (
                   <div className="border-t border-[#e5edf1] px-4 pb-4 pt-3">
                     <label className="mb-1.5 block text-xs font-semibold text-[#2388d1]">Nummerplade på den anden bil</label>
@@ -860,9 +790,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       onChange={(e) => setSecondCarPlate(e.target.value.toUpperCase())}
                       className="block w-full rounded-xl border border-[#9cb0bd] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[#222] outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
                     />
-                    <p className="mt-2 text-xs font-semibold text-[#2388d1]">
-                      Du sparer: {Math.round(total * 15 / 100).toLocaleString("da-DK")} kr. på begge biler
-                    </p>
                   </div>
                 ) : null}
               </div>
@@ -1218,12 +1145,96 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     </main>
   );
 }
-function AddonRow({
+function PackageCard({
+  item,
+  isActive,
+  price,
+  onClick,
+}: {
+  item: { id: string; title: string; description: string; duration: string; badge: string; imageUrl?: string; features?: string[] };
+  isActive: boolean;
+  price: number;
+  onClick: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const features = item.features ?? [];
+  const visibleFeatures = expanded ? features : features.slice(0, 4);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "flex flex-col overflow-hidden rounded-2xl border text-left transition",
+        isActive
+          ? "border-[#55b9df] shadow-[0_8px_32px_rgba(35,136,209,0.18)]"
+          : "border-[#e5edf1] bg-white hover:border-[#8bd4ef] hover:shadow-md"
+      )}
+    >
+      {/* Image */}
+      {item.imageUrl ? (
+        <div className="relative h-44 w-full overflow-hidden">
+          <Image src={item.imageUrl} alt="" fill sizes="(max-width:640px) 100vw,33vw" className="object-cover" />
+          {isActive ? (
+            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#2388d1] text-white shadow-md">
+              <Check className="h-4 w-4" />
+            </span>
+          ) : null}
+        </div>
+      ) : (
+        <div className={cn("flex h-32 items-center justify-center", isActive ? "bg-[#e8f5fd]" : "bg-[#f0f6f9]")}>
+          <Sparkles className={cn("h-10 w-10", isActive ? "text-[#2388d1]" : "text-[#b3d8e8]")} />
+        </div>
+      )}
+
+      {/* Content */}
+      <div className="flex flex-1 flex-col bg-white p-4">
+        <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
+        <div className="mt-1.5 flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
+            <Clock3 className="h-3.5 w-3.5" />
+            {item.duration}
+          </span>
+          <span className="text-sm text-[var(--muted)]">
+            Fra <strong className="text-base text-[#2388d1]">{formatShortPrice(price)}</strong>
+          </span>
+        </div>
+
+        {features.length > 0 ? (
+          <div className="mt-4">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#2388d1]">Dette er inkluderet</p>
+            <ul className="mt-2 space-y-1.5">
+              {visibleFeatures.map((f, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-[var(--muted)]">
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#2388d1]" />
+                  {f}
+                </li>
+              ))}
+            </ul>
+            {features.length > 4 ? (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[#2388d1] hover:underline"
+              >
+                {expanded ? `Se mindre ▲` : `Se mere (+${features.length - 4}) ▼`}
+              </button>
+            ) : null}
+          </div>
+        ) : (
+          <p className="mt-3 text-sm leading-5 text-[var(--muted)]">{item.description}</p>
+        )}
+      </div>
+    </button>
+  );
+}
+
+function AddonCard({
   addon,
   isSelected,
   onToggle,
 }: {
-  addon: { id: string; label: string; price?: number; imageUrl?: string };
+  addon: { id: string; label: string; price?: number; description?: string; imageUrl?: string };
   isSelected: boolean;
   onToggle: () => void;
 }) {
@@ -1232,22 +1243,45 @@ function AddonRow({
       type="button"
       onClick={onToggle}
       className={cn(
-        "flex items-center justify-between gap-4 rounded-2xl border px-4 py-4 text-left transition",
+        "relative flex flex-col overflow-hidden rounded-2xl border text-left transition",
         isSelected
-          ? "border-[#55b9df] bg-[#eef8ff] shadow-[0_12px_28px_rgba(43,147,220,0.12)]"
-          : "border-[var(--line)] bg-white hover:border-[#b3dff0]"
+          ? "border-[#0d9e72] shadow-[0_4px_16px_rgba(13,158,114,0.18)]"
+          : "border-[#e5edf1] bg-white hover:border-[#8bd4ef] hover:shadow-sm"
       )}
     >
-      <span className="flex items-center gap-3">
+      {/* Image */}
+      <div className="relative aspect-square w-full overflow-hidden">
         {addon.imageUrl ? (
-          <Image src={addon.imageUrl} alt="" width={56} height={56} className="h-12 w-12 rounded-xl object-cover" />
+          <Image src={addon.imageUrl} alt="" fill sizes="(max-width:640px) 50vw,25vw" className="object-cover" />
+        ) : (
+          <div className={cn("h-full w-full", isSelected ? "bg-[#0a6b4e]" : "bg-[#f0f6f9]")} />
+        )}
+        {/* Price badge */}
+        {addon.price ? (
+          <span className={cn(
+            "absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-bold shadow-sm",
+            isSelected ? "bg-[#12b886] text-white" : "bg-white/90 text-[var(--ink)]"
+          )}>
+            {formatShortPrice(Number(addon.price))}
+          </span>
         ) : null}
-        <span className={cn("flex h-5 w-5 items-center justify-center rounded-md border", isSelected ? "border-[#55b9df] bg-[#55b9df] text-white" : "border-[#9ab2c0] bg-white text-transparent")}>
-          <Check className="h-3.5 w-3.5" />
-        </span>
-        <span className="text-sm font-medium text-[var(--ink)]">{addon.label}</span>
-      </span>
-      <span className="text-sm font-semibold text-[var(--ink)]">{formatShortPrice(Number(addon.price || 0))}</span>
+        {/* Check badge */}
+        {isSelected ? (
+          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#12b886] text-white shadow-sm">
+            <Check className="h-3.5 w-3.5" />
+          </span>
+        ) : null}
+      </div>
+
+      {/* Content */}
+      <div className={cn("p-2.5", isSelected ? "bg-[#0d4f38]" : "bg-white")}>
+        <p className={cn("text-xs font-semibold leading-tight", isSelected ? "text-white" : "text-[var(--ink)]")}>
+          {addon.label}
+        </p>
+        {isSelected && addon.description ? (
+          <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#8fe8ca]">{addon.description}</p>
+        ) : null}
+      </div>
     </button>
   );
 }

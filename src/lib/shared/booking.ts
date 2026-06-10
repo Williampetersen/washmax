@@ -8,6 +8,7 @@ export type CleaningPackage = {
   price?: number;
   imageUrl?: string;
   isFeatured?: boolean;
+  features?: string[];
 };
 
 export type AddOn = {
