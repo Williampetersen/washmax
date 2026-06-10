@@ -1,13 +1,10 @@
 import { randomBytes } from "node:crypto";
-<<<<<<< HEAD
+import { cache } from "react";
 import {
   checkBookingSlotAvailability,
   getBookingSlotLockKey,
   SLOT_UNAVAILABLE_MESSAGE,
 } from "@/lib/server/availability";
-=======
-import { cache } from "react";
->>>>>>> ac175710bc5eca8986bbd839ea75a3fe57e35559
 import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
   addMinutesToTime,
