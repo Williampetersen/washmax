@@ -335,25 +335,167 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto mt-16 grid max-w-7xl gap-6 lg:grid-cols-3">
-        <ImagePanel
-          src="/service/helebil.jpg"
-          alt="Professionel bilvask i København hos CleanWash"
-          title="Bilvask København"
-          text="Mobil bilvask til travle bilejere, familier og virksomheder."
-        />
-        <ImagePanel
-          src="/service/udenfor.jpg"
-          alt="Mobil bilvask på Sjælland til elbiler og firmabiler"
-          title="Udvendig bilvask"
-          text="Skånsom udvendig vask, fælge, ruder og finish på adressen."
-        />
-        <ImagePanel
-          src="/service/inside.jpg"
-          alt="Indvendig bilrengøring hos CleanWash på Sjælland"
-          title="Indvendig bilrengøring"
-          text="Kabine, paneler, sæder og detaljer behandles grundigt."
-        />
+      {/* ── Feature sections ── */}
+      <section className="mx-auto mt-20 max-w-7xl space-y-24">
+
+        {/* 01 — Udvendig bilvask */}
+        <div className="grid items-center gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="group relative overflow-hidden rounded-3xl shadow-[0_24px_80px_rgba(8,27,21,0.18)]">
+            <div className="relative aspect-[4/3]">
+              <Image
+                src="/service/udenfor.jpg"
+                alt="Udvendig bilvask udført af CleanWash på adressen"
+                fill
+                sizes="(min-width: 1024px) 55vw, 100vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+              <span className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold tracking-wide text-[#0d1f19] backdrop-blur-sm">
+                01
+              </span>
+              <div className="absolute bottom-5 left-5 flex items-center gap-2 rounded-xl bg-black/50 px-4 py-2.5 backdrop-blur-sm">
+                <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
+                <span className="text-sm font-semibold text-white">Mest populære service</span>
+              </div>
+            </div>
+          </div>
+          <div className="lg:pl-6">
+            <span className="eyebrow">Udvendig bilvask</span>
+            <h2 className="mt-3 section-title">Skinnende ren. Fra top til hjul.</h2>
+            <ul className="mt-7 space-y-3.5">
+              {[
+                "Komplet udvendig vask og skyl",
+                "Fælge, hjulbuer og dæksider rengjort",
+                "Ruder, spejle og lister aftørret",
+                "Miljøvenligt udstyr og teknikker",
+                "Vi kommer til dig — ingen kø eller ventetid",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-[var(--muted)]">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d6f5e8] text-[#1a7a4e]">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <Link
+                href="/booking"
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#0d1f19] px-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(8,27,21,0.22)] transition hover:bg-[#162e24] hover:shadow-[0_14px_36px_rgba(8,27,21,0.3)]"
+              >
+                Book udvendig bilvask
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* 02 — Indvendig bilrengøring */}
+        <div className="grid items-center gap-10 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="lg:pr-6">
+            <span className="eyebrow">Indvendig bilrengøring</span>
+            <h2 className="mt-3 section-title">Ren kabine. Frisk fornemmelse.</h2>
+            <ul className="mt-7 space-y-3.5">
+              {[
+                "Grundig støvsugning af kabine og bagagerum",
+                "Paneler, instrumentbræt og rat aftørret",
+                "Måtter og gulve rengjort i bunden",
+                "Sæder og rygstød behandlet",
+                "Frisk og lugtfri kabine ved aflevering",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-3 text-[var(--muted)]">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#d6f5e8] text-[#1a7a4e]">
+                    <Check className="h-3 w-3" />
+                  </span>
+                  {item}
+                </li>
+              ))}
+            </ul>
+            <div className="mt-8">
+              <Link
+                href="/booking"
+                className="inline-flex h-11 items-center gap-2 rounded-lg bg-[#0d1f19] px-5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(8,27,21,0.22)] transition hover:bg-[#162e24] hover:shadow-[0_14px_36px_rgba(8,27,21,0.3)]"
+              >
+                Book indvendig rengøring
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+          <div className="group relative overflow-hidden rounded-3xl shadow-[0_24px_80px_rgba(8,27,21,0.18)]">
+            <div className="relative aspect-[4/3]">
+              <Image
+                src="/service/inside.jpg"
+                alt="Indvendig bilrengøring udført af CleanWash"
+                fill
+                sizes="(min-width: 1024px) 55vw, 100vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/30" />
+              <span className="absolute left-5 top-5 rounded-full bg-white/90 px-3 py-1.5 text-xs font-bold tracking-wide text-[#0d1f19] backdrop-blur-sm">
+                02
+              </span>
+              <div className="absolute bottom-5 left-5 flex items-center gap-2 rounded-xl bg-black/50 px-4 py-2.5 backdrop-blur-sm">
+                <ShieldCheck className="h-4 w-4 text-[#8ce7ff]" />
+                <span className="text-sm font-semibold text-white">Synligt resultat garanteret</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 03 — Komplet bilvask (dark featured card) */}
+        <div className="overflow-hidden rounded-3xl bg-[#0d1f19] shadow-[0_32px_100px_rgba(8,27,21,0.35)]">
+          <div className="grid lg:grid-cols-2">
+            <div className="p-8 text-white sm:p-10 lg:p-14">
+              <span className="inline-flex rounded-full bg-[#8ce7ff]/15 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.18em] text-[#8ce7ff]">
+                03 — Anbefalet
+              </span>
+              <h2 className="mt-4 section-title text-white">Alt i én. Komplet bilvask.</h2>
+              <ul className="mt-7 space-y-3.5">
+                {[
+                  "Udvendig vask + indvendig rengøring",
+                  "Fælge, ruder og kabine behandlet",
+                  "Klar pris — ingen skjulte tillæg",
+                  "Professionelt udstyr og erfarne vaskere",
+                  "Perfekt til private og virksomheder",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-3 text-white/78">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#8ce7ff]/20 text-[#8ce7ff]">
+                      <Check className="h-3 w-3" />
+                    </span>
+                    {item}
+                  </li>
+                ))}
+              </ul>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/booking"
+                  className="inline-flex h-11 items-center gap-2 rounded-lg bg-white px-5 text-sm font-semibold text-[#0d1f19] shadow-[0_8px_24px_rgba(0,0,0,0.22)] transition hover:bg-[#eef8ff] hover:shadow-[0_14px_36px_rgba(0,0,0,0.32)]"
+                >
+                  Book komplet bilvask
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <a
+                  href={siteConfig.phoneHref}
+                  className="inline-flex h-11 items-center gap-2 rounded-lg border border-white/20 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  <Phone className="h-4 w-4" />
+                  Ring til os
+                </a>
+              </div>
+            </div>
+            <div className="group relative min-h-72 overflow-hidden">
+              <Image
+                src="/service/helebil.jpg"
+                alt="Komplet bilvask udvendig og indvendig hos CleanWash"
+                fill
+                sizes="(min-width: 1024px) 50vw, 100vw"
+                className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0d1f19]/50 via-[#0d1f19]/10 to-transparent" />
+            </div>
+          </div>
+        </div>
+
       </section>
 
       <section id="koebenhavn" className="mx-auto mt-16 max-w-7xl">
@@ -537,29 +679,6 @@ export default function HomePage() {
   );
 }
 
-function ImagePanel({
-  src,
-  alt,
-  title,
-  text,
-}: {
-  src: string;
-  alt: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <article className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white/88 shadow-[0_18px_50px_rgba(8,27,21,0.1)]">
-      <div className="relative aspect-[16/10] bg-[#e9f8ff]">
-        <Image src={src} alt={alt} fill sizes="(min-width: 1024px) 33vw, 100vw" className="object-cover" />
-      </div>
-      <div className="p-5">
-        <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">{title}</h3>
-        <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{text}</p>
-      </div>
-    </article>
-  );
-}
 
 function LocalSeoSection({
   eyebrow,
