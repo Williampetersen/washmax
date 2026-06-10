@@ -43,6 +43,9 @@ export const bookingRequestSchema = z
     appointmentDate: z.string().trim().min(1),
     appointmentTime: z.string().trim().min(1),
     idempotencyKey: z.string().trim().min(8).max(120).optional(),
+    discountDkk: z.number().nonnegative().optional().default(0),
+    secondCarPlate: z.string().trim().optional().default(""),
+    couponCode: z.string().trim().optional().default(""),
     customer: bookingCustomerSchema,
   })
   .superRefine((value, ctx) => {

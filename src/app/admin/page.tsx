@@ -23,6 +23,7 @@ import {
   Settings2,
   ShieldCheck,
   Sparkles,
+  Tag,
   UserRound,
   Users,
   Wrench,
@@ -45,7 +46,7 @@ import {
   type DashboardBooking,
   type DashboardData,
 } from "@/lib/server/bookings";
-import { isDatabaseConfigured } from "@/lib/server/db";
+import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
   formatPrice,
   formatShortPrice,
@@ -83,6 +84,35 @@ export const metadata: Metadata = {
   },
 };
 
+type Coupon = {
+  id: string;
+  code: string;
+  description: string | null;
+  discount_type: "percent" | "fixed";
+  discount_value: number;
+  min_order_dkk: number;
+  max_uses: number | null;
+  uses_count: number;
+  is_active: boolean;
+  expires_at: string | null;
+  created_at: string;
+};
+
+async function listCoupons(): Promise<Coupon[]> {
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const rows = await sql<Coupon[]>`
+      SELECT id, code, description, discount_type, discount_value, min_order_dkk, max_uses, uses_count, is_active, expires_at, created_at
+      FROM coupons
+      ORDER BY created_at DESC
+    `;
+    return rows;
+  } catch {
+    return [];
+  }
+}
+
 const navItems = [
   { id: "overview", label: "Overblik", icon: BarChart3 },
   { id: "calendar", label: "Kalender", icon: Calendar },
@@ -95,8 +125,9 @@ const navItems = [
   { id: "emails", label: "E-mails", icon: Mail },
   { id: "invoices", label: "Fakturaer", icon: ReceiptText },
   { id: "areas", label: "Områder", icon: MapPinned },
-  { id: "payments", label: "Betalinger", icon: CreditCard },
-  { id: "settings", label: "Indstillinger", icon: Settings2 },
+  { id: "payments",  label: "Betalinger",    icon: CreditCard },
+  { id: "coupons",   label: "Rabatkoder",   icon: Tag },
+  { id: "settings",  label: "Indstillinger", icon: Settings2 },
 ] as const;
 
 const INITIAL_BOOKING_LIMIT = 30;
@@ -122,6 +153,7 @@ const statusMessages: Record<string, string> = {
   deleted: "Bookingen er slettet.",
   settings: "Indstillingerne er gemt.",
   customer: "Kunden er opdateret.",
+  coupon: "Rabatkoden er gemt.",
   availability: "Kalenderblokken er opdateret.",
   email: "E-mailen er sendt igen.",
 };
@@ -170,11 +202,12 @@ export default async function AdminPage({
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
   const searchQuery = Array.isArray(params.q) ? params.q[0] || "" : params.q || "";
   const hasDatabase = isDatabaseConfigured();
-  const [dashboard, agentsData, bookingSetupData, adminInvoices] = await Promise.all([
+  const [dashboard, agentsData, bookingSetupData, adminInvoices, adminCoupons] = await Promise.all([
     getAdminDashboardData(),
     view === "agents" ? getAdminAgentsData() : Promise.resolve(undefined),
     view === "booking-setup" ? getBookingSetupData() : Promise.resolve(undefined),
     view === "invoices" && hasDatabase ? listInvoices() : Promise.resolve([]),
+    view === "coupons" && hasDatabase ? listCoupons() : Promise.resolve([]),
   ]);
   const today = getTodayDateText();
   const timeSlots = getTimeSlots(dashboard.settings);
@@ -297,6 +330,8 @@ export default async function AdminPage({
         {view === "payments" ? (
           <PaymentsView unpaidBookings={unpaidBookings} dashboard={dashboard} />
         ) : null}
+
+        {view === "coupons" ? <CouponsView coupons={adminCoupons} /> : null}
 
         {view === "settings" ? (
           <SettingsView dashboard={dashboard} smtpConfigured={Boolean(process.env.SMTP_HOST)} />
@@ -2985,6 +3020,132 @@ function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
           <div className="p-5">
             <EmptyState text="Ingen fakturaer er oprettet endnu." />
           </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function CouponsView({ coupons }: { coupons: Coupon[] }) {
+  const activeCoupons = coupons.filter((c) => c.is_active).length;
+  const totalUses = coupons.reduce((sum, c) => sum + c.uses_count, 0);
+
+  return (
+    <div className="space-y-5">
+      <ViewHeader
+        icon={Tag}
+        title="Rabatkoder"
+        description="Opret og administrer rabatkoder til kunderne"
+      />
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <MetricCard label="Aktive koder" value={activeCoupons.toString()} detail="Klar til brug" icon={Tag} tone="green" />
+        <MetricCard label="Total koder" value={coupons.length.toString()} detail="Alle rabatkoder" icon={Tag} tone="violet" />
+        <MetricCard label="Samlede anvendelser" value={totalUses.toString()} detail="Gange brugt" icon={Tag} tone="blue" />
+      </div>
+
+      {/* Create new coupon */}
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+        <div className="border-b border-[#e8ebf5] px-5 py-4">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Opret ny rabatkode</p>
+        </div>
+        <form action="/api/admin/coupons/action" method="POST" className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3">
+          <input type="hidden" name="action" value="create" />
+          <input type="hidden" name="return_view" value="coupons" />
+          <Field label="Kode (fx SUMMER10)">
+            <Input name="code" placeholder="RABAT20" className="uppercase" required />
+          </Field>
+          <Field label="Beskrivelse (valgfrit)">
+            <Input name="description" placeholder="Sommerrabat 2025" />
+          </Field>
+          <Field label="Rabattype">
+            <select name="discount_type" className={selectClassName}>
+              <option value="percent">Procent (%)</option>
+              <option value="fixed">Fast beløb (kr.)</option>
+            </select>
+          </Field>
+          <Field label="Rabatværdi">
+            <Input name="discount_value" type="number" min="1" max="100" defaultValue="10" required />
+          </Field>
+          <Field label="Min. ordrebeløb (kr.)">
+            <Input name="min_order_dkk" type="number" min="0" defaultValue="0" />
+          </Field>
+          <Field label="Maks. anvendelser (tom = ubegrænset)">
+            <Input name="max_uses" type="number" min="1" placeholder="Ubegrænset" />
+          </Field>
+          <Field label="Udløbsdato (valgfrit)" className="sm:col-span-2 lg:col-span-1">
+            <Input name="expires_at" type="date" />
+          </Field>
+          <div className="flex items-end sm:col-span-2 lg:col-span-2">
+            <Button type="submit" className="h-10">Opret rabatkode</Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Coupon list */}
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+        {coupons.length === 0 ? (
+          <div className="p-5"><EmptyState text="Ingen rabatkoder oprettet endnu." /></div>
+        ) : (
+          <>
+            <div className="hidden border-b border-[#e8ebf5] px-5 py-2.5 lg:grid lg:grid-cols-[1fr_8rem_7rem_6rem_6rem_6rem_auto] lg:gap-3">
+              {["Kode", "Type", "Rabat", "Min.", "Brug", "Status", ""].map((col) => (
+                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#8E95B5]">{col}</span>
+              ))}
+            </div>
+            <div className="divide-y divide-[#e8ebf5]">
+              {coupons.map((coupon) => (
+                <div key={coupon.id} className="grid items-center gap-3 px-5 py-3 lg:grid-cols-[1fr_8rem_7rem_6rem_6rem_6rem_auto]">
+                  <div>
+                    <p className="font-mono text-[13px] font-bold text-[#1F2340]">{coupon.code}</p>
+                    {coupon.description ? <p className="mt-0.5 text-[12px] text-[#8E95B5]">{coupon.description}</p> : null}
+                  </div>
+                  <span className="text-[12px] font-medium text-[#8E95B5]">
+                    {coupon.discount_type === "percent" ? "Procent" : "Fast beløb"}
+                  </span>
+                  <span className="text-[13px] font-semibold text-[#1F2340]">
+                    {coupon.discount_type === "percent" ? `${coupon.discount_value}%` : `${coupon.discount_value} kr.`}
+                  </span>
+                  <span className="text-[12px] text-[#8E95B5]">
+                    {coupon.min_order_dkk > 0 ? `${coupon.min_order_dkk} kr.` : "—"}
+                  </span>
+                  <span className="text-[12px] text-[#8E95B5]">
+                    {coupon.uses_count}{coupon.max_uses ? ` / ${coupon.max_uses}` : ""}
+                  </span>
+                  <span className={cn(
+                    "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                    coupon.is_active ? "bg-emerald-50 text-emerald-700" : "bg-[#f3f4f6] text-[#8E95B5]"
+                  )}>
+                    {coupon.is_active ? "Aktiv" : "Inaktiv"}
+                  </span>
+                  <div className="flex gap-2">
+                    <form action="/api/admin/coupons/action" method="POST">
+                      <input type="hidden" name="id" value={coupon.id} />
+                      <input type="hidden" name="action" value="toggle" />
+                      <input type="hidden" name="return_view" value="coupons" />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#6366F1] transition hover:border-[#6366F1] hover:bg-[#F5F5FF]"
+                      >
+                        {coupon.is_active ? "Deaktiver" : "Aktiver"}
+                      </button>
+                    </form>
+                    <form action="/api/admin/coupons/action" method="POST">
+                      <input type="hidden" name="id" value={coupon.id} />
+                      <input type="hidden" name="action" value="delete" />
+                      <input type="hidden" name="return_view" value="coupons" />
+                      <button
+                        type="submit"
+                        className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-red-500 transition hover:border-red-300 hover:bg-red-50"
+                      >
+                        Slet
+                      </button>
+                    </form>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

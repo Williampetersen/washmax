@@ -756,6 +756,35 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
       `;
 
       await sql`
+        ALTER TABLE bookings
+          ADD COLUMN IF NOT EXISTS discount_dkk INTEGER NOT NULL DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS second_car_plate TEXT,
+          ADD COLUMN IF NOT EXISTS coupon_code TEXT;
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS coupons (
+          id TEXT PRIMARY KEY,
+          code TEXT NOT NULL,
+          description TEXT,
+          discount_type TEXT NOT NULL DEFAULT 'percent',
+          discount_value INTEGER NOT NULL DEFAULT 10,
+          min_order_dkk INTEGER NOT NULL DEFAULT 0,
+          max_uses INTEGER,
+          uses_count INTEGER NOT NULL DEFAULT 0,
+          is_active BOOLEAN NOT NULL DEFAULT true,
+          expires_at DATE,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `;
+
+      await sql`
+        CREATE UNIQUE INDEX IF NOT EXISTS coupons_code_idx
+        ON coupons (UPPER(code));
+      `;
+
+      await sql`
         INSERT INTO booking_settings (
           settings_key,
           company_name,

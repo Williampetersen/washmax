@@ -9,15 +9,18 @@ import {
   ArrowLeft,
   ArrowRight,
   CalendarDays,
+  Car,
   Check,
   CheckCircle2,
   Clock3,
   LoaderCircle,
   Mail,
+  Plus,
   RotateCcw,
   Search,
   ShieldCheck,
   Sparkles,
+  Tag,
   UserRound,
   X,
 } from "lucide-react";
@@ -152,6 +155,13 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
 
+  const [hasSecondCar, setHasSecondCar] = useState(false);
+  const [secondCarPlate, setSecondCarPlate] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountDkk: number; label: string } | null>(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState("");
+
   const stepBarRef = useRef<HTMLDivElement>(null);
   const lookupControllerRef = useRef<AbortController | null>(null);
   const lookupDebounceRef = useRef<number | null>(null);
@@ -204,6 +214,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   );
   const travelSurcharge = matchedArea?.surcharge ?? 0;
   const total = useMemo(() => basePrice + addonsTotal + travelSurcharge, [addonsTotal, basePrice, travelSurcharge]);
+  const multiCarDiscount = useMemo(() => hasSecondCar ? Math.round(total * 10 / 100) : 0, [hasSecondCar, total]);
+  const couponDiscount = appliedCoupon?.discountDkk ?? 0;
+  const finalTotal = Math.max(0, total - multiCarDiscount - couponDiscount);
+  const totalDiscount = multiCarDiscount + couponDiscount;
   const appointmentDateValue = appointmentDate ? format(appointmentDate, "yyyy-MM-dd") : "";
   const availableTimeSlots = liveAvailableTimeSlots;
   const appointmentTime = useMemo(
@@ -423,6 +437,30 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     window.history.replaceState({}, "", "/booking");
   };
 
+  const validateCoupon = async () => {
+    const code = couponCode.trim().toUpperCase();
+    if (!code) return;
+    setCouponLoading(true);
+    setCouponError("");
+    try {
+      const res = await fetch(`/api/booking/coupon/validate?code=${encodeURIComponent(code)}&total=${total}`, {
+        headers: { accept: "application/json" },
+      });
+      const data = await res.json() as { valid: boolean; code?: string; discountDkk?: number; label?: string; error?: string };
+      if (data.valid && data.code && data.discountDkk !== undefined && data.label) {
+        setAppliedCoupon({ code: data.code, discountDkk: data.discountDkk, label: data.label });
+        setCouponError("");
+      } else {
+        setCouponError(data.error || "Ugyldig rabatkode.");
+        setAppliedCoupon(null);
+      }
+    } catch {
+      setCouponError("Kunne ikke validere koden. Prøv igen.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
   const [formError, setFormError] = useState<string | null>(null);
 
   const onSubmit = form.handleSubmit((values) => {
@@ -455,7 +493,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             packageLabel: activePackageData.title,
             addons: selectedAddons,
             subtotal: basePrice,
-            total,
+            total: finalTotal,
+            discountDkk: totalDiscount,
+            secondCarPlate: hasSecondCar ? secondCarPlate : "",
+            couponCode: appliedCoupon?.code || "",
             appointmentDate: appointmentDateValue,
             appointmentTime,
             idempotencyKey: nextIdempotencyKey,
@@ -479,7 +520,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           appointmentLabel,
           vehicleName,
           packageLabel: activePackageData.title,
-          total,
+          total: finalTotal,
           customerEmail: values.email,
         });
       } catch (error) {
@@ -799,7 +840,60 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   ) : null}
                 </div>
 
-                <div className="mt-8 flex flex-wrap gap-3">
+                {/* Second car upsell */}
+                <div className="mt-6">
+                  {!hasSecondCar ? (
+                    <button
+                      type="button"
+                      onClick={() => setHasSecondCar(true)}
+                      className="flex w-full items-center gap-4 rounded-2xl border border-dashed border-[#55b9df] bg-[#f6fbff] px-4 py-4 text-left transition hover:bg-[#eef8ff]"
+                    >
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2388d1] text-white">
+                        <Plus className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold text-[#1a506d]">Tilføj endnu en bil og spar 10%</p>
+                        <p className="mt-0.5 text-xs text-[var(--muted)]">1 bil valgt · klik for at tilføje en bil mere</p>
+                      </div>
+                    </button>
+                  ) : (
+                    <div className="rounded-2xl border border-[#55b9df] bg-[#eef8ff] p-4">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#2388d1] text-white">
+                            <Car className="h-4 w-4" />
+                          </span>
+                          <div>
+                            <p className="text-sm font-semibold text-[#1a506d]">2 biler — 10% rabat aktiveret</p>
+                            <p className="mt-0.5 text-xs text-[var(--muted)]">Indtast nummerplade på den anden bil</p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setHasSecondCar(false); setSecondCarPlate(""); }}
+                          className="rounded-lg p-1.5 text-[var(--muted)] transition hover:bg-white/60"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        inputMode="text"
+                        autoCapitalize="characters"
+                        placeholder="AB12345"
+                        maxLength={10}
+                        value={secondCarPlate}
+                        onChange={(e) => setSecondCarPlate(e.target.value.toUpperCase())}
+                        className="mt-3 block w-full rounded-xl border border-[#9cb0bd] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[#222] outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
+                      />
+                      <p className="mt-2 text-xs text-[#2388d1] font-semibold">
+                        Du sparer: {Math.round(total * 10 / 100).toLocaleString("da-DK")} kr.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 flex flex-wrap gap-3">
                   <button type="button" onClick={() => goToStep(1)} className="inline-flex items-center gap-2 rounded-xl border border-[#dde8ed] px-5 py-3 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9]">
                     <ArrowLeft className="h-4 w-4" /> Tilbage
                   </button>
@@ -973,6 +1067,49 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </label>
                   </div>
 
+                  {/* Coupon code */}
+                  <div className="rounded-2xl border border-[#dde8ed] bg-[#f8fafb] px-4 py-4">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+                      <Tag className="h-4 w-4 text-[#2388d1]" /> Rabatkode
+                    </p>
+                    {appliedCoupon ? (
+                      <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#c3e8d8] bg-[#f0faf6] px-3 py-2.5">
+                        <div>
+                          <p className="text-sm font-semibold text-[#0d6b47]">{appliedCoupon.code} — {appliedCoupon.label}</p>
+                          <p className="text-xs text-[#1a7a52]">Du sparer {formatShortPrice(appliedCoupon.discountDkk)}</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => { setAppliedCoupon(null); setCouponCode(""); }}
+                          className="rounded-md p-1 text-[#1a7a52] hover:bg-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="mt-3 flex gap-2">
+                        <input
+                          type="text"
+                          autoCapitalize="characters"
+                          placeholder="Indtast kode"
+                          value={couponCode}
+                          onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
+                          onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void validateCoupon(); } }}
+                          className="min-w-0 flex-1 rounded-xl border border-[#9cb0bd] bg-white px-3 py-2 text-sm font-semibold uppercase tracking-wider outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
+                        />
+                        <button
+                          type="button"
+                          onClick={validateCoupon}
+                          disabled={couponLoading || !couponCode.trim()}
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#2388d1] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a70b0] disabled:opacity-50"
+                        >
+                          {couponLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : "Anvend"}
+                        </button>
+                      </div>
+                    )}
+                    {couponError ? <p className="mt-2 text-xs text-red-600">{couponError}</p> : null}
+                  </div>
+
                   {formError ? (
                     <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{formError}</div>
                   ) : null}
@@ -983,7 +1120,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </button>
                     <Button type="submit" size="lg" className="flex-1 sm:flex-none" disabled={isSubmitting}>
                       {isSubmitting ? <LoaderCircle className="h-5 w-5 animate-spin" /> : <Check className="h-5 w-5" />}
-                      {isSubmitting ? "Sender booking..." : `Bekræft booking · ${formatShortPrice(total)}`}
+                      {isSubmitting ? "Sender booking..." : `Bekræft booking · ${formatShortPrice(finalTotal)}`}
                     </Button>
                   </div>
                 </form>
@@ -1026,10 +1163,26 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     <SummaryRow label="Kørselstillæg" value={formatPrice(travelSurcharge)} />
                   </div>
                 ) : null}
+                {totalDiscount > 0 ? (
+                  <div className="rounded-xl bg-[#f0faf6] px-4 py-3 text-sm">
+                    {multiCarDiscount > 0 ? (
+                      <div className="flex items-center justify-between gap-2 text-[#0d6b47]">
+                        <span className="font-medium">Multi-bil rabat (10%)</span>
+                        <span className="font-semibold">−{formatShortPrice(multiCarDiscount)}</span>
+                      </div>
+                    ) : null}
+                    {couponDiscount > 0 ? (
+                      <div className="flex items-center justify-between gap-2 text-[#0d6b47]">
+                        <span className="font-medium">{appliedCoupon?.code}</span>
+                        <span className="font-semibold">−{formatShortPrice(couponDiscount)}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
                 <div className="rounded-xl bg-[#eef8ff] px-4 py-4">
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-sm font-semibold text-[var(--ink)]">Total</span>
-                    <span className="text-2xl font-semibold text-[#55b9df]">{formatShortPrice(total)}</span>
+                    <span className="text-2xl font-semibold text-[#55b9df]">{formatShortPrice(finalTotal)}</span>
                   </div>
                   <p className="mt-1 text-right text-xs font-medium text-[var(--muted)]">inkl. moms</p>
                 </div>
@@ -1068,17 +1221,25 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     <p className="font-semibold text-[var(--ink)]">Tidspunkt</p>
                     <p className="mt-2 text-[var(--muted)]">{appointmentLabel}</p>
                   </div>
+                  {totalDiscount > 0 ? (
+                    <div className="rounded-xl bg-[#f0faf6] px-4 py-3 text-sm text-[#0d6b47]">
+                      <div className="flex justify-between font-medium">
+                        <span>Rabat</span>
+                        <span>−{formatShortPrice(totalDiscount)}</span>
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="rounded-xl bg-[#eef8ff] px-4 py-4">
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-lg font-semibold text-[var(--ink)]">Total</span>
-                      <span className="text-2xl font-semibold text-[#55b9df]">{formatShortPrice(total)}</span>
+                      <span className="text-2xl font-semibold text-[#55b9df]">{formatShortPrice(finalTotal)}</span>
                     </div>
                     <p className="mt-1 text-right text-xs font-medium text-[var(--muted)]">inkl. moms</p>
                   </div>
                 </div>
                 <div className="border-t border-[#e1edf2] bg-white px-5 py-4">
                   <button type="button" onClick={() => { setIsMobileSummaryOpen(false); document.getElementById("booking-details")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} className="flex h-12 w-full items-center justify-center rounded-xl bg-[#78cdea] px-4 text-sm font-semibold text-[#123549]">
-                    Fortsæt booking · {formatShortPrice(total)}
+                    Fortsæt booking · {formatShortPrice(finalTotal)}
                   </button>
                 </div>
               </div>
@@ -1090,7 +1251,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             <div className="mx-auto flex max-w-xl items-center gap-2 overflow-hidden">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9f8ff] text-[#55b9df]"><CalendarDays className="h-5 w-5" /></span>
               <div className="min-w-0 flex-1">
-                <p className="text-xl font-semibold leading-none text-[#2388d1]">{formatShortPrice(total)}</p>
+                <p className="text-xl font-semibold leading-none text-[#2388d1]">{formatShortPrice(finalTotal)}</p>
                 <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{activePackageData.title} · Trin {currentStep} af 4</p>
               </div>
               <button type="button" onClick={() => setIsMobileSummaryOpen(true)} className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-[#55b9df] px-3 text-sm font-semibold text-white">
