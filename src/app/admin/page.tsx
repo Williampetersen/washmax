@@ -204,6 +204,7 @@ export default async function AdminPage({
 
   return (
     <AdminShellLayout>
+      <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
       <AdminSidebarLayout dashboard={dashboard} sessionEmail={session.email} view={view} />
 
       <div className="space-y-4">
@@ -300,6 +301,7 @@ export default async function AdminPage({
         {view === "settings" ? (
           <SettingsView dashboard={dashboard} smtpConfigured={Boolean(process.env.SMTP_HOST)} />
         ) : null}
+      </div>
       </div>
     </AdminShellLayout>
   );
