@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         return json({ ok: false, error: "cooldown", waitSeconds: result.waitSeconds });
       }
       // Return generic success for not_found to prevent token enumeration
-      if (isDev) console.log("[send-code] No matching customer/booking found for verification email.");
+      console.log("[send-code] No matching customer/booking found (or DB error) — returning generic success.");
       return json({ ok: true });
     }
 

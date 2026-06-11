@@ -28,7 +28,7 @@ export const maskEmail = (email: string): string => {
 export const getMaskedEmailForPortalToken = async (portalToken: string): Promise<string | null> => {
   if (!isDatabaseConfigured() || !portalToken) return null;
   try {
-    await ensureSchema();
+    await ensureSchema({ force: true });
     const sql = getSql();
     const [row] = await sql<{ email: string }[]>`
       SELECT email FROM customers
@@ -52,7 +52,7 @@ export const generateVerificationCode = async (
   if (!isDatabaseConfigured()) return { ok: false, error: "not_found" };
 
   try {
-    await ensureSchema();
+    await ensureSchema({ force: true });
     const sql = getSql();
 
     const [customer] = await sql<{ id: string; email: string }[]>`
@@ -97,7 +97,11 @@ export const generateVerificationCode = async (
       customerId: customer.id,
       maskedEmail: maskEmail(customer.email),
     };
-  } catch {
+  } catch (error) {
+    console.error(
+      "[customer-auth] generateVerificationCode error:",
+      error instanceof Error ? error.message : error,
+    );
     return { ok: false, error: "not_found" };
   }
 };
@@ -116,7 +120,7 @@ export const verifyVerificationCode = async (
   if (!/^\d{6}$/.test(trimmed)) return { ok: false, error: "invalid" };
 
   try {
-    await ensureSchema();
+    await ensureSchema({ force: true });
     const sql = getSql();
 
     const [record] = await sql<{
