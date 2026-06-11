@@ -19,6 +19,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { HomePlateForm } from "@/components/home-plate-form";
+import { BookingSteps } from "@/components/sections/BookingSteps";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -114,25 +115,6 @@ const zealandAreas = [
   "Ringsted",
   "Næstved",
   "Slagelse",
-];
-
-const steps = [
-  {
-    title: "Indtast nummerplade",
-    text: "Vi finder biltypen og hjælper med den rigtige pris.",
-  },
-  {
-    title: "Vælg bilvask",
-    text: "Vælg udvendig, indvendig eller komplet bilpleje.",
-  },
-  {
-    title: "Vælg tid og adresse",
-    text: "Du vælger en ledig tid. Vi kommer til bilen.",
-  },
-  {
-    title: "Vi klarer resten",
-    text: "Professionel bilvask uden kø og uden ventetid.",
-  },
 ];
 
 const whyItems = [
@@ -236,7 +218,9 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="mx-auto -mt-8 max-w-7xl">
+      <BookingSteps />
+
+      <section className="mx-auto mt-12 max-w-7xl">
         <div className="grid gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(8,27,21,0.12)] backdrop-blur sm:grid-cols-2 lg:grid-cols-5">
           {benefits.map((item) => (
             <div key={item} className="flex items-center gap-3 rounded-xl bg-[#f4fafc] px-4 py-3">
@@ -592,27 +576,6 @@ export default function HomePage() {
             "Erhvervs bilvask og faste aftaler",
           ]}
         />
-      </section>
-
-      <section id="hvordan" className="mx-auto mt-16 max-w-7xl">
-        <div className="mb-8 max-w-2xl">
-          <span className="eyebrow">Sådan fungerer det</span>
-          <h2 className="mt-5 section-title">Fire korte trin.</h2>
-        </div>
-        <div className="grid gap-4 md:grid-cols-4">
-          {steps.map((step, index) => (
-            <article
-              key={step.title}
-              className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]"
-            >
-              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#123549] text-sm font-semibold text-white">
-                {index + 1}
-              </span>
-              <h3 className="mt-5 font-display text-2xl font-semibold">{step.title}</h3>
-              <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{step.text}</p>
-            </article>
-          ))}
-        </div>
       </section>
 
       <section className="mx-auto mt-16 grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
