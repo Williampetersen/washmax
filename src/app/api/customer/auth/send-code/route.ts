@@ -3,6 +3,10 @@ import { generateVerificationCode } from "@/lib/server/customer-auth";
 import { getBookingSettings } from "@/lib/server/bookings";
 import { sendCustomerVerificationCodeEmail } from "@/lib/server/mail";
 
+export const runtime = "nodejs";
+
+const isDev = process.env.NODE_ENV === "development";
+
 const json = (body: unknown, status = 200) =>
   NextResponse.json(body, { status, headers: { "cache-control": "no-store" } });
 
@@ -15,18 +19,26 @@ export async function POST(request: Request) {
       return json({ ok: false, error: "invalid_request" }, 400);
     }
 
+    if (isDev) console.log("[send-code] API called");
+
     const result = await generateVerificationCode(portalToken);
 
     if (!result.ok) {
       if (result.error === "cooldown") {
+        if (isDev) console.log(`[send-code] Cooldown active, waitSeconds=${result.waitSeconds}`);
         return json({ ok: false, error: "cooldown", waitSeconds: result.waitSeconds });
       }
       // Return generic success for not_found to prevent token enumeration
+      if (isDev) console.log("[send-code] No matching customer/booking found for verification email.");
       return json({ ok: true });
     }
 
+    const maskedEmail = result.email.replace(/^(.{2}).*@/, "$1***@");
+    if (isDev) console.log(`[send-code] Verification record created. Target: ${maskedEmail}`);
+
     try {
       const settings = await getBookingSettings();
+      if (isDev) console.log("[send-code] sendMail started");
       await sendCustomerVerificationCodeEmail({
         customerEmail: result.email,
         code: result.code,
@@ -36,9 +48,13 @@ export async function POST(request: Request) {
           adminNotifyEmail: settings.adminNotifyEmail,
         },
       });
+      if (isDev) console.log("[send-code] sendMail success");
     } catch (emailError) {
-      console.error("Failed to send verification code email", emailError);
-      // Don't surface the error — code is stored in DB, can be retried
+      console.error(
+        "[send-code] sendMail error:",
+        emailError instanceof Error ? emailError.message : emailError,
+      );
+      return json({ ok: false, error: "email_failed" }, 500);
     }
 
     return json({ ok: true });

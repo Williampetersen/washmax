@@ -800,7 +800,11 @@ export const sendCustomerVerificationCodeEmail = async (input: {
   settings: MailSettings;
 }) => {
   const transporter = getTransporter();
-  if (!transporter) return;
+  if (!transporter) {
+    const err = new Error("SMTP is not configured — cannot send customer verification code email.");
+    console.error("[mail]", err.message);
+    throw err;
+  }
 
   const config = getMailConfig();
   const subject = `Din bekræftelseskode til ${input.settings.companyName}`;
@@ -825,7 +829,12 @@ export const sendCustomerVerificationCodeEmail = async (input: {
     `</div>` +
     renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
 
-  await transporter.sendMail({
+  if (process.env.NODE_ENV === "development") {
+    const masked = input.customerEmail.replace(/^(.{2}).*@/, "$1***@");
+    console.log(`[mail] sendCustomerVerificationCodeEmail: sending to ${masked}`);
+  }
+
+  const info = await transporter.sendMail({
     from: config.from,
     to: input.customerEmail,
     subject,
@@ -841,6 +850,10 @@ export const sendCustomerVerificationCodeEmail = async (input: {
       `Support: ${input.settings.supportEmail}`,
     ].join("\n"),
   });
+
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[mail] sendCustomerVerificationCodeEmail: sent, messageId=${info.messageId}`);
+  }
 };
 
 export const sendAdminInvoiceNotice = async (input: {

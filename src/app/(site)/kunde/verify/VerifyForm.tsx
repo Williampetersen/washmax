@@ -42,6 +42,7 @@ export default function VerifyForm({
   const handleSendCode = async () => {
     setIsLoading(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
     try {
       const res = await fetch("/api/customer/auth/send-code", {
         method: "POST",
@@ -56,9 +57,15 @@ export default function VerifyForm({
         return;
       }
 
-      // Always transition to enter_code on success or generic ok=true
+      if (!data.ok) {
+        setErrorMsg("Vi kunne ikke sende koden lige nu. Prøv igen om lidt.");
+        return;
+      }
+
+      // Transition to enter_code and confirm the code was sent
       setPhase("enter_code");
       setCooldown(RESEND_COOLDOWN);
+      setSuccessMsg("Vi har sendt en kode til din e-mail.");
     } catch {
       setErrorMsg("Der opstod en fejl. Prøv igen.");
     } finally {
@@ -111,6 +118,7 @@ export default function VerifyForm({
   const handleResend = () => {
     setCode("");
     setErrorMsg(null);
+    setSuccessMsg(null);
     setPhase("request");
     setCooldown(0);
   };
@@ -195,6 +203,7 @@ export default function VerifyForm({
                     const val = e.target.value.replace(/\D/g, "").slice(0, 6);
                     setCode(val);
                     if (errorMsg) setErrorMsg(null);
+                    if (successMsg) setSuccessMsg(null);
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && code.length === 6) handleVerifyCode();
