@@ -44,7 +44,7 @@ export function HomePlateForm() {
       >
         <label className="block sm:flex-1">
           <span className="sr-only">Dansk nummerplade</span>
-          <span className="flex h-16 overflow-hidden rounded-xl border border-white/30 bg-white shadow-[0_16px_40px_rgba(0,0,0,0.18)] focus-within:border-[#55b9df] focus-within:ring-4 focus-within:ring-[#55b9df]/22">
+          <span className="flex h-16 overflow-hidden rounded-xl border border-[var(--line)] bg-white shadow-[0_16px_40px_rgba(11,31,58,0.12)] focus-within:border-[var(--brand)] focus-within:ring-4 focus-within:ring-[#00A7B8]/15">
             <Image
               src="/DKEU.svg"
               alt="DK"
@@ -63,7 +63,7 @@ export function HomePlateForm() {
               value={plate}
               onFocus={() => router.prefetch("/booking")}
               onChange={(event) => setPlate(sanitizePlate(event.target.value))}
-              className="min-w-0 flex-1 border-0 bg-white px-4 text-2xl font-bold uppercase tracking-[0.1em] text-[#222] outline-none placeholder:text-[#d0d0d0]"
+              className="min-w-0 flex-1 border-0 bg-white px-4 text-2xl font-bold uppercase tracking-[0.1em] text-[var(--ink)] outline-none placeholder:text-[#cbd5e1]"
             />
           </span>
         </label>
@@ -80,7 +80,7 @@ export function HomePlateForm() {
             "mt-3 max-w-2xl rounded-md border px-4 py-3 text-sm",
             status.type === "error"
               ? "border-red-200 bg-red-50 text-red-700"
-              : "border-[#2388d1]/30 bg-[#eef8ff] text-[#0d526d]",
+              : "border-[#00A7B8]/30 bg-[#eefbfc] text-[var(--accent)]",
           ].join(" ")}
         >
           {status.message}

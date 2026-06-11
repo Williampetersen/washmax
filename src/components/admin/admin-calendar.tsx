@@ -68,8 +68,8 @@ export function AdminCalendarPanel({
         <GlassCard className="overflow-hidden">
           <div className="flex flex-col gap-3 border-b border-white/55 px-4 py-4 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-[14px] font-semibold text-[#1F2340]">Calendar</p>
-              <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">
+              <p className="text-[14px] font-semibold text-[#111827]">Calendar</p>
+              <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
                 Day/week appointments, blocked time, and empty slots
               </p>
             </div>
@@ -78,9 +78,9 @@ export function AdminCalendarPanel({
                 type="date"
                 value={calendarDate}
                 onChange={(event) => setCalendarDate(event.target.value || today)}
-                className="h-9 rounded-2xl border border-[#E1E6F7] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#6366F1]/10"
+                className="h-9 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium text-[#111827] outline-none transition focus:border-[#00A7B8] focus:ring-4 focus:ring-[#00A7B8]/10"
               />
-              <div className="rounded-2xl border border-[#E1E6F7] bg-white/55 p-1">
+              <div className="rounded-2xl border border-[#DCEEF2] bg-white/55 p-1">
                 {(["day", "week"] as const).map((mode) => (
                   <button
                     key={mode}
@@ -89,8 +89,8 @@ export function AdminCalendarPanel({
                     className={cn(
                       "h-7 rounded-xl px-3 text-[12px] font-semibold capitalize transition duration-[250ms]",
                       calendarMode === mode
-                        ? "bg-[#6366F1] text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)]"
-                        : "text-[#8E95B5] hover:bg-white/70 hover:text-[#1F2340]"
+                        ? "bg-[#00A7B8] text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)]"
+                        : "text-[#6B7280] hover:bg-white/70 hover:text-[#111827]"
                     )}
                   >
                     {mode}
@@ -106,13 +106,13 @@ export function AdminCalendarPanel({
                 className="grid border-b border-white/55"
                 style={{ gridTemplateColumns: `5rem repeat(${days.length}, minmax(9rem, 1fr))` }}
               >
-                <div className="border-r border-white/55 px-3 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#8E95B5]">
+                <div className="border-r border-white/55 px-3 py-3 text-[12px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
                   Time
                 </div>
                 {days.map((day) => (
                   <div key={day.date} className="border-r border-white/55 px-3 py-3 last:border-r-0">
-                    <p className="text-[13px] font-semibold text-[#1F2340]">{day.label}</p>
-                    <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">{day.date}</p>
+                    <p className="text-[13px] font-semibold text-[#111827]">{day.label}</p>
+                    <p className="mt-1 text-[12px] font-medium text-[#6B7280]">{day.date}</p>
                   </div>
                 ))}
               </div>
@@ -123,7 +123,7 @@ export function AdminCalendarPanel({
                   className="grid border-b border-white/45 last:border-b-0"
                   style={{ gridTemplateColumns: `5rem repeat(${days.length}, minmax(9rem, 1fr))` }}
                 >
-                  <div className="border-r border-white/55 px-3 py-3 text-[12px] font-semibold text-[#8E95B5]">
+                  <div className="border-r border-white/55 px-3 py-3 text-[12px] font-semibold text-[#6B7280]">
                     {slot}
                   </div>
                   {days.map((day) => {
@@ -166,7 +166,7 @@ export function AdminCalendarPanel({
                             ))}
                           </div>
                         ) : !block ? (
-                          <span className="text-[12px] font-medium text-[#B0B6CF]">Available</span>
+                          <span className="text-[12px] font-medium text-[#94A3B8]">Available</span>
                         ) : null}
                       </div>
                     );
@@ -203,11 +203,11 @@ function CalendarMetric({
     <GlassCard className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <p className="text-[12px] font-medium text-[#8E95B5]">{label}</p>
-          <p className="mt-2 text-[22px] font-bold leading-none text-[#1F2340]">{value}</p>
-          <p className="mt-2 text-[12px] font-medium text-[#4B5563]">{detail}</p>
+          <p className="text-[12px] font-medium text-[#6B7280]">{label}</p>
+          <p className="mt-2 text-[22px] font-bold leading-none text-[#111827]">{value}</p>
+          <p className="mt-2 text-[12px] font-medium text-[#6B7280]">{detail}</p>
         </div>
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1]">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EEFBFC] text-[#00A7B8]">
           <Icon className="h-5 w-5" />
         </span>
       </div>
@@ -276,7 +276,7 @@ function getCalendarStatusClass(status: BookingStatus) {
     case "approved":
       return "border-[#10B981]/20 bg-[#10B981]/12 text-[#047857]";
     case "completed":
-      return "border-[#6366F1]/20 bg-[#6366F1]/12 text-[#4F46E5]";
+      return "border-[#00A7B8]/20 bg-[#00A7B8]/12 text-[#008A99]";
     case "cancelled":
       return "border-[#EF4444]/20 bg-[#EF4444]/12 text-[#B91C1C]";
     default:

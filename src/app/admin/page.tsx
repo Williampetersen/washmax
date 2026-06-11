@@ -145,7 +145,7 @@ const getTodayDateText = () => {
 type AdminView = (typeof navItems)[number]["id"];
 
 const selectClassName =
-  "h-10 w-full rounded-2xl border border-[#E1E6F7] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none transition focus:border-[#6366F1] focus:ring-4 focus:ring-[#6366F1]/10";
+  "h-10 w-full rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium text-[#111827] outline-none transition focus:border-[#00A7B8] focus:ring-4 focus:ring-[#00A7B8]/10";
 
 const statusMessages: Record<string, string> = {
   created: "Bookingen er oprettet.",
@@ -352,7 +352,7 @@ function GlassCard({
   return (
     <section
       className={cn(
-        "rounded-3xl border border-white/55 bg-white/[0.65] text-[#1F2340] shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl transition duration-[250ms] hover:-translate-y-0.5",
+        "rounded-3xl border border-white/55 bg-white/[0.65] text-[#111827] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl transition duration-[250ms] hover:-translate-y-0.5",
         className
       )}
     >
@@ -375,8 +375,8 @@ function KpiCard({
   tone?: "violet" | "blue" | "green" | "orange";
 }) {
   const toneClass = {
-    violet: "bg-[#EEF0FF] text-[#6366F1] ring-[#A5B4FC]/30",
-    blue: "bg-[#EEF0FF] text-[#5B5BF7] ring-[#A5B4FC]/30",
+    violet: "bg-[#EEFBFC] text-[#00A7B8] ring-[#99DFE7]/30",
+    blue: "bg-[#EEFBFC] text-[#00A7B8] ring-[#99DFE7]/30",
     green: "bg-[#10B981]/10 text-[#047857] ring-[#10B981]/20",
     orange: "bg-[#F59E0B]/10 text-[#92400E] ring-[#F59E0B]/20",
   }[tone];
@@ -385,9 +385,9 @@ function KpiCard({
     <GlassCard className="p-4">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[12px] font-medium text-[#8E95B5]">{label}</p>
-          <p className="mt-2 truncate text-[22px] font-bold leading-none text-[#1F2340]">{value}</p>
-          <p className="mt-2 truncate text-[12px] font-medium text-[#4B5563]">{detail}</p>
+          <p className="text-[12px] font-medium text-[#6B7280]">{label}</p>
+          <p className="mt-2 truncate text-[22px] font-bold leading-none text-[#111827]">{value}</p>
+          <p className="mt-2 truncate text-[12px] font-medium text-[#6B7280]">{detail}</p>
         </div>
         <span className={cn("flex h-10 w-10 items-center justify-center rounded-2xl ring-1", toneClass)}>
           <Icon className="h-5 w-5" />
@@ -401,7 +401,7 @@ function StatusBadge({ status }: { status: BookingStatus }) {
   const styles: Record<BookingStatus, string> = {
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
     approved: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
-    completed: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    completed: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
     cancelled: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
   };
 
@@ -1410,7 +1410,7 @@ function BookingsView({
         action={
           <a
             href="/admin/bookings/new"
-            className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#6366F1] px-4 text-[12.5px] font-semibold text-white shadow-[0_4px_14px_rgba(99,102,241,0.28)] transition hover:bg-[#4F46E5]"
+            className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#00A7B8] px-4 text-[12.5px] font-semibold text-white shadow-[0_4px_14px_rgba(0,167,184,0.28)] transition hover:bg-[#008A99]"
           >
             <CalendarPlus className="h-3.5 w-3.5" />
             Ny booking
@@ -1451,10 +1451,10 @@ function BookingsView({
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[12px] font-medium text-[#8E95B5]">Viser {visibleBookings.length} af {bookings.length}</p>
+          <p className="text-[12px] font-medium text-[#6B7280]">Viser {visibleBookings.length} af {bookings.length}</p>
         </div>
 
-        <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(31,35,64,0.06)]">
+        <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
           <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_2rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
             <span>Kunde og bil</span>
             <span>Tid og service</span>
@@ -1537,7 +1537,7 @@ function CustomersView({
       </div>
 
       <section className="space-y-3">
-        <p className="text-[12px] font-medium text-[#8E95B5]">Viser {visibleCustomers.length} af {customers.length}</p>
+        <p className="text-[12px] font-medium text-[#6B7280]">Viser {visibleCustomers.length} af {customers.length}</p>
         <div className="grid gap-4">
           {customers.length > 0 ? (
             visibleCustomers.map((customer) => (
@@ -1611,15 +1611,15 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
         <input type="hidden" name="return_view" value="services" />
 
         <section className="space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Servicepakker</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Servicepakker</p>
           <div className="grid gap-4 lg:grid-cols-3">
             {dashboard.settings.catalog.packages.map((pkg) => (
               <article
                 key={pkg.id}
-                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
+                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
               >
                 <div className="border-b border-[#e8ebf5] px-4 py-3">
-                  <p className="text-[13px] font-semibold text-[#1F2340]">{pkg.title}</p>
+                  <p className="text-[13px] font-semibold text-[#111827]">{pkg.title}</p>
                 </div>
                 <div className="grid gap-3 px-4 py-4">
                   <Field label="Titel">
@@ -1654,15 +1654,15 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
         </section>
 
         <section className="space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Bilkategorier & Priser</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Bilkategorier & Priser</p>
           <div className="grid gap-4 lg:grid-cols-2">
             {dashboard.settings.catalog.vehicleCategories.map((category) => (
               <article
                 key={category.id}
-                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
+                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
               >
                 <div className="border-b border-[#e8ebf5] px-4 py-3">
-                  <p className="text-[13px] font-semibold text-[#1F2340]">{category.label}</p>
+                  <p className="text-[13px] font-semibold text-[#111827]">{category.label}</p>
                 </div>
                 <div className="grid gap-3 px-4 py-4 sm:grid-cols-2">
                   <Field label="Label">
@@ -1691,11 +1691,11 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
         </section>
 
         <section className="space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Tilvalg (Add-ons)</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Tilvalg (Add-ons)</p>
           <div className="grid gap-4 xl:grid-cols-3">
-            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
               <div className="border-b border-[#e8ebf5] px-4 py-3">
-                <p className="text-[13px] font-semibold text-[#1F2340]">Indvendige tilvalg</p>
+                <p className="text-[13px] font-semibold text-[#111827]">Indvendige tilvalg</p>
               </div>
               <div className="space-y-3 px-4 py-4">
               {dashboard.settings.catalog.interiorAddOns.map((addon) => (
@@ -1713,9 +1713,9 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
               <div className="border-b border-[#e8ebf5] px-4 py-3">
-                <p className="text-[13px] font-semibold text-[#1F2340]">Udvendige tilvalg</p>
+                <p className="text-[13px] font-semibold text-[#111827]">Udvendige tilvalg</p>
               </div>
               <div className="space-y-3 px-4 py-4">
               {dashboard.settings.catalog.exteriorAddOns.map((addon) => (
@@ -1733,9 +1733,9 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
               </div>
             </div>
 
-            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
               <div className="border-b border-[#e8ebf5] px-4 py-3">
-                <p className="text-[13px] font-semibold text-[#1F2340]">Manuelle tilvalg</p>
+                <p className="text-[13px] font-semibold text-[#111827]">Manuelle tilvalg</p>
               </div>
               <div className="space-y-3 px-4 py-4">
               {dashboard.settings.catalog.quantityAddOns.map((addon) => (
@@ -1815,7 +1815,7 @@ function AvailabilityView({
           <form
             action="/api/admin/settings"
             method="POST"
-            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]"
           >
             <input type="hidden" name="section" value="availability" />
             <input type="hidden" name="return_view" value="availability" />
@@ -1890,7 +1890,7 @@ function AvailabilityView({
           <form
             action="/api/admin/availability"
             method="POST"
-            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]"
           >
             <input type="hidden" name="return_view" value="availability" />
             <div className="grid gap-4 sm:grid-cols-2">
@@ -1921,7 +1921,7 @@ function AvailabilityView({
           title="Aktive blokeringer"
           description="Alle blokeringer kan fjernes enkeltvis."
         />
-        <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+        <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
           {dashboard.availabilityBlocks.length > 0 ? (
             <div className="divide-y divide-[#e8ebf5]">
               {dashboard.availabilityBlocks.map((block) => (
@@ -1934,8 +1934,8 @@ function AvailabilityView({
                       <XCircle className="h-4 w-4" />
                     </span>
                     <div>
-                      <p className="text-[14px] font-semibold text-[#1F2340]">{block.reason}</p>
-                      <p className="mt-0.5 text-[12px] text-[#8E95B5]">
+                      <p className="text-[14px] font-semibold text-[#111827]">{block.reason}</p>
+                      <p className="mt-0.5 text-[12px] text-[#6B7280]">
                         {block.startDate} → {block.endDate} · {block.startTime}–{block.endTime}
                       </p>
                     </div>
@@ -1953,8 +1953,8 @@ function AvailabilityView({
             </div>
           ) : (
             <div className="px-5 py-8 text-center">
-              <CalendarClock className="mx-auto h-8 w-8 text-[#DDE3F5]" />
-              <p className="mt-3 text-[13px] font-medium text-[#8E95B5]">Ingen blokeringer oprettet endnu.</p>
+              <CalendarClock className="mx-auto h-8 w-8 text-[#DCEEF2]" />
+              <p className="mt-3 text-[13px] font-medium text-[#6B7280]">Ingen blokeringer oprettet endnu.</p>
             </div>
           )}
         </div>
@@ -2028,7 +2028,7 @@ function EmailsView({
           <form
             action="/api/admin/settings"
             method="POST"
-            className="grid gap-3 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+            className="grid gap-3 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]"
           >
             <input type="hidden" name="section" value="emails" />
             <input type="hidden" name="return_view" value="emails" />
@@ -2086,7 +2086,7 @@ function EmailsView({
           </form>
 
           <div className="rounded-2xl border border-white/60 bg-white/80 px-5 py-5">
-            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#6366F1]">Mailopsætning</p>
+            <p className="text-[12px] font-bold uppercase tracking-[0.14em] text-[#00A7B8]">Mailopsætning</p>
             <div className="mt-3 divide-y divide-[#e8ebf5]">
               {[
                 ["SMTP host", process.env.SMTP_HOST || "Ikke sat"],
@@ -2095,8 +2095,8 @@ function EmailsView({
                 ["Support e-mail", dashboard.settings.supportEmail],
               ].map(([label, val]) => (
                 <div key={label} className="flex items-center justify-between gap-4 py-2.5 text-[13px]">
-                  <span className="text-[#8E95B5]">{label}</span>
-                  <strong className="font-semibold text-[#1F2340]">{val}</strong>
+                  <span className="text-[#6B7280]">{label}</span>
+                  <strong className="font-semibold text-[#111827]">{val}</strong>
                 </div>
               ))}
             </div>
@@ -2179,7 +2179,7 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
           <form
             action="/api/admin/settings"
             method="POST"
-            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]"
+            className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]"
           >
             <input type="hidden" name="section" value="areas" />
             <input type="hidden" name="return_view" value="areas" />
@@ -2239,7 +2239,7 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
               dashboard.routePlan.map((day) => (
                 <article
                   key={day.date}
-                  className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
+                  className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
                 >
                   <div className="flex items-center justify-between gap-4 border-b border-[#e8ebf5] px-5 py-3.5">
                     <div className="flex items-center gap-3">
@@ -2247,11 +2247,11 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
                         <Route className="h-4 w-4" />
                       </span>
                       <div>
-                        <p className="text-[14px] font-bold text-[#1F2340]">{day.label}</p>
-                        <p className="text-[11px] text-[#8E95B5]">{day.areas.length} zone{day.areas.length !== 1 ? "r" : ""}</p>
+                        <p className="text-[14px] font-bold text-[#111827]">{day.label}</p>
+                        <p className="text-[11px] text-[#6B7280]">{day.areas.length} zone{day.areas.length !== 1 ? "r" : ""}</p>
                       </div>
                     </div>
-                    <p className="text-[13px] font-bold text-[#1F2340]">
+                    <p className="text-[13px] font-bold text-[#111827]">
                       {formatShortPrice(day.areas.reduce((s, a) => s + a.totalRevenue, 0))}
                     </p>
                   </div>
@@ -2259,15 +2259,15 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
                     {day.areas.map((area) => (
                       <div key={area.key} className="px-5 py-3">
                         <div className="flex items-center justify-between gap-3">
-                          <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[#6366F1]">
+                          <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[#00A7B8]">
                             {area.label} · {area.count} job
                           </p>
-                          <p className="text-[12px] font-semibold text-[#8E95B5]">{formatPrice(area.totalRevenue)}</p>
+                          <p className="text-[12px] font-semibold text-[#6B7280]">{formatPrice(area.totalRevenue)}</p>
                         </div>
                         <div className="mt-2 grid gap-1.5">
                           {area.bookings.map((booking) => (
                             <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12px]">
-                              <span className="font-medium text-[#1F2340]">
+                              <span className="font-medium text-[#111827]">
                                 {booking.appointmentTime} · {booking.customerName || booking.customerEmail}
                               </span>
                               <span className="font-semibold text-[#374151]">{formatPrice(booking.total)}</span>
@@ -2408,11 +2408,11 @@ function SettingsView({
 
       <div className="grid gap-5 xl:grid-cols-[1fr_0.95fr]">
         <section className="space-y-4">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Generelt</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Generelt</p>
           <form
             action="/api/admin/settings"
             method="POST"
-            className="grid gap-4 overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-5 shadow-[0_2px_12px_rgba(99,102,241,0.06)]"
+            className="grid gap-4 overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-5 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
           >
             <input type="hidden" name="section" value="general" />
             <input type="hidden" name="return_view" value="settings" />
@@ -2454,8 +2454,8 @@ function SettingsView({
                         defaultChecked={dashboard.settings.defaultBookingStatus === option.value}
                         className="peer sr-only"
                       />
-                      <span className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-white px-4 py-3 transition peer-checked:border-[#6366F1] peer-checked:bg-[#F5F5FF] peer-checked:shadow-[0_4px_16px_rgba(99,102,241,0.12)]">
-                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f2f7fa] text-[#6366F1]">
+                      <span className="flex items-start gap-3 rounded-xl border border-[var(--line)] bg-white px-4 py-3 transition peer-checked:border-[#00A7B8] peer-checked:bg-[#EEFBFC] peer-checked:shadow-[0_4px_16px_rgba(0,167,184,0.12)]">
+                        <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#f2f7fa] text-[#00A7B8]">
                           <Icon className="h-4 w-4" />
                         </span>
                         <span className="min-w-0">
@@ -2473,20 +2473,20 @@ function SettingsView({
         </section>
 
         <section className="space-y-4">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Info</p>
-          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
-            <p className="text-[13px] font-semibold text-[#1F2340]">Hvad betyder standardstatus?</p>
-            <p className="mt-2 text-[13px] leading-5 text-[#8E95B5]">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Info</p>
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+            <p className="text-[13px] font-semibold text-[#111827]">Hvad betyder standardstatus?</p>
+            <p className="mt-2 text-[13px] leading-5 text-[#6B7280]">
               {getAutoBookingStatusDescription(dashboard.settings.defaultBookingStatus)}
             </p>
-            <div className="mt-3 rounded-xl bg-[#F5F5FF] px-4 py-3 text-[12px] text-[#6366F1]">
+            <div className="mt-3 rounded-xl bg-[#EEFBFC] px-4 py-3 text-[12px] text-[#00A7B8]">
               Denne indstilling påvirker både website-bookinger og manuelle bookinger fra admin.
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
             <div className="border-b border-[#e8ebf5] px-5 py-3">
-              <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Mailmiljø</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Mailmiljø</p>
             </div>
             {[
               { label: "SMTP host", value: process.env.SMTP_HOST || "Ikke sat" },
@@ -2494,8 +2494,8 @@ function SettingsView({
               { label: "MAIL_FROM", value: process.env.MAIL_FROM || "Ikke sat" },
             ].map((row, i, arr) => (
               <div key={row.label} className={`flex items-center justify-between gap-4 px-5 py-3 ${i < arr.length - 1 ? "border-b border-[#e8ebf5]" : ""}`}>
-                <span className="text-[13px] text-[#8E95B5]">{row.label}</span>
-                <strong className="text-[13px] font-semibold text-[#1F2340]">{row.value}</strong>
+                <span className="text-[13px] text-[#6B7280]">{row.label}</span>
+                <strong className="text-[13px] font-semibold text-[#111827]">{row.value}</strong>
               </div>
             ))}
           </div>
@@ -2601,7 +2601,7 @@ function BookingActionCard({
                                       ? "bg-[#ebf8f1] text-[#1f7a4b]"
                                       : email.status === "failed"
                                         ? "bg-[#fff0f0] text-[#c43d3d]"
-                                        : "bg-[#eef8ff] text-[#1f6aa4]"
+                                        : "bg-[#EEFBFC] text-[#00A7B8]"
                                   )}
                                 >
                                   {getEmailStatusLabel(email.status)}
@@ -2825,7 +2825,7 @@ function CustomerCard({
   bookings: DashboardBooking[];
 }) {
   return (
-    <details className="group rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
+    <details className="group rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]">
       <summary className="cursor-pointer list-none">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
@@ -2834,7 +2834,7 @@ function CustomerCard({
                 {[customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email}
               </h3>
               {customer.company ? (
-                <span className="inline-flex rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-semibold text-[#1f6aa4]">
+                <span className="inline-flex rounded-full bg-[#EEFBFC] px-3 py-1 text-xs font-semibold text-[#00A7B8]">
                   {customer.customerType === "business" ? "Erhverv" : "Privat"}
                 </span>
               ) : null}
@@ -2903,7 +2903,7 @@ function CustomerCard({
 
 function AreaCard({ area }: { area: DashboardData["settings"]["serviceAreas"][number] }) {
   return (
-    <article className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(8,27,21,0.05)]">
+    <article className="rounded-[1.5rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]">
       <form action="/api/admin/settings" method="POST" className="grid gap-4">
         <input type="hidden" name="section" value="areas" />
         <input type="hidden" name="return_view" value="areas" />
@@ -2970,12 +2970,12 @@ function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
         title="Fakturaer"
         description={`${invoices.length} fakturaer i systemet`}
       />
-      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
         {invoices.length > 0 ? (
           <>
             <div className="hidden border-b border-[#e8ebf5] px-5 py-2.5 lg:grid lg:grid-cols-[1fr_1fr_9rem_auto] lg:gap-3">
               {["Faktura", "Kunde / e-mail", "Beløb", ""].map((col) => (
-                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#8E95B5]">{col}</span>
+                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">{col}</span>
               ))}
             </div>
             <div className="divide-y divide-[#e8ebf5]">
@@ -2985,32 +2985,32 @@ function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
                   className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto] lg:items-center"
                 >
                   <div>
-                    <p className="text-[13px] font-bold text-[#1F2340]">{invoice.invoiceNumber}</p>
-                    <p className="mt-0.5 text-[12px] text-[#8E95B5]">Booking {invoice.bookingId}</p>
+                    <p className="text-[13px] font-bold text-[#111827]">{invoice.invoiceNumber}</p>
+                    <p className="mt-0.5 text-[12px] text-[#6B7280]">Booking {invoice.bookingId}</p>
                   </div>
                   <div>
-                    <p className="text-[13px] font-semibold text-[#1F2340]">
+                    <p className="text-[13px] font-semibold text-[#111827]">
                       {invoice.customerEmail || invoice.sentToEmail || "Ingen e-mail"}
                     </p>
-                    <p className="mt-0.5 text-[12px] text-[#8E95B5]">
+                    <p className="mt-0.5 text-[12px] text-[#6B7280]">
                       {invoice.emailSent ? `Sendt ${invoice.emailSentAt || invoice.sentAt}` : "Ikke sendt"}
                     </p>
                   </div>
                   <div>
-                    <p className="text-[14px] font-bold text-[#1F2340]">{formatPrice(invoice.totalInclMomsDkk)}</p>
-                    <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#8E95B5]">{invoice.status}</p>
+                    <p className="text-[14px] font-bold text-[#111827]">{formatPrice(invoice.totalInclMomsDkk)}</p>
+                    <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">{invoice.status}</p>
                   </div>
                   {invoice.publicUrl ? (
                     <a
                       href={invoice.publicUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e8ebf5] bg-white px-3 text-[12px] font-semibold text-[#6366F1] transition hover:border-[#6366F1] hover:bg-[#F5F5FF]"
+                      className="inline-flex h-8 items-center justify-center rounded-lg border border-[#e8ebf5] bg-white px-3 text-[12px] font-semibold text-[#00A7B8] transition hover:border-[#00A7B8] hover:bg-[#EEFBFC]"
                     >
                       Vis / print
                     </a>
                   ) : (
-                    <span className="text-[12px] text-[#8E95B5]">Ingen visning</span>
+                    <span className="text-[12px] text-[#6B7280]">Ingen visning</span>
                   )}
                 </article>
               ))}
@@ -3045,9 +3045,9 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
       </div>
 
       {/* Create new coupon */}
-      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
         <div className="border-b border-[#e8ebf5] px-5 py-4">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#8E95B5]">Opret ny rabatkode</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Opret ny rabatkode</p>
         </div>
         <form action="/api/admin/coupons/action" method="POST" className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3">
           <input type="hidden" name="action" value="create" />
@@ -3083,38 +3083,38 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
       </div>
 
       {/* Coupon list */}
-      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
         {coupons.length === 0 ? (
           <div className="p-5"><EmptyState text="Ingen rabatkoder oprettet endnu." /></div>
         ) : (
           <>
             <div className="hidden border-b border-[#e8ebf5] px-5 py-2.5 lg:grid lg:grid-cols-[1fr_8rem_7rem_6rem_6rem_6rem_auto] lg:gap-3">
               {["Kode", "Type", "Rabat", "Min.", "Brug", "Status", ""].map((col) => (
-                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#8E95B5]">{col}</span>
+                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">{col}</span>
               ))}
             </div>
             <div className="divide-y divide-[#e8ebf5]">
               {coupons.map((coupon) => (
                 <div key={coupon.id} className="grid items-center gap-3 px-5 py-3 lg:grid-cols-[1fr_8rem_7rem_6rem_6rem_6rem_auto]">
                   <div>
-                    <p className="font-mono text-[13px] font-bold text-[#1F2340]">{coupon.code}</p>
-                    {coupon.description ? <p className="mt-0.5 text-[12px] text-[#8E95B5]">{coupon.description}</p> : null}
+                    <p className="font-mono text-[13px] font-bold text-[#111827]">{coupon.code}</p>
+                    {coupon.description ? <p className="mt-0.5 text-[12px] text-[#6B7280]">{coupon.description}</p> : null}
                   </div>
-                  <span className="text-[12px] font-medium text-[#8E95B5]">
+                  <span className="text-[12px] font-medium text-[#6B7280]">
                     {coupon.discount_type === "percent" ? "Procent" : "Fast beløb"}
                   </span>
-                  <span className="text-[13px] font-semibold text-[#1F2340]">
+                  <span className="text-[13px] font-semibold text-[#111827]">
                     {coupon.discount_type === "percent" ? `${coupon.discount_value}%` : `${coupon.discount_value} kr.`}
                   </span>
-                  <span className="text-[12px] text-[#8E95B5]">
+                  <span className="text-[12px] text-[#6B7280]">
                     {coupon.min_order_dkk > 0 ? `${coupon.min_order_dkk} kr.` : "—"}
                   </span>
-                  <span className="text-[12px] text-[#8E95B5]">
+                  <span className="text-[12px] text-[#6B7280]">
                     {coupon.uses_count}{coupon.max_uses ? ` / ${coupon.max_uses}` : ""}
                   </span>
                   <span className={cn(
                     "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
-                    coupon.is_active ? "bg-emerald-50 text-emerald-700" : "bg-[#f3f4f6] text-[#8E95B5]"
+                    coupon.is_active ? "bg-emerald-50 text-emerald-700" : "bg-[#f3f4f6] text-[#6B7280]"
                   )}>
                     {coupon.is_active ? "Aktiv" : "Inaktiv"}
                   </span>
@@ -3125,7 +3125,7 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
                       <input type="hidden" name="return_view" value="coupons" />
                       <button
                         type="submit"
-                        className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#6366F1] transition hover:border-[#6366F1] hover:bg-[#F5F5FF]"
+                        className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#00A7B8] transition hover:border-[#00A7B8] hover:bg-[#EEFBFC]"
                       >
                         {coupon.is_active ? "Deaktiver" : "Aktiver"}
                       </button>
@@ -3154,16 +3154,16 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
 
 function PaymentCard({ booking }: { booking: DashboardBooking }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(99,102,241,0.06)]">
+    <article className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e8ebf5] px-5 py-4">
         <div className="flex flex-wrap items-center gap-3">
-          <p className="text-[14px] font-bold text-[#1F2340]">{booking.customerName || booking.customerEmail}</p>
+          <p className="text-[14px] font-bold text-[#111827]">{booking.customerName || booking.customerEmail}</p>
           <PaymentPill status={booking.paymentStatus} />
           <InvoicePill status={booking.invoiceStatus} />
         </div>
         <div className="text-right">
-          <p className="text-[18px] font-bold text-[#1F2340]">{formatPrice(booking.total)}</p>
-          <p className="text-[11px] text-[#8E95B5]">{booking.appointmentLabel}</p>
+          <p className="text-[18px] font-bold text-[#111827]">{formatPrice(booking.total)}</p>
+          <p className="text-[11px] text-[#6B7280]">{booking.appointmentLabel}</p>
         </div>
       </div>
 
@@ -3235,8 +3235,8 @@ function EmailLogCard({ email }: { email: BookingEmailLog }) {
           {email.status === "sent" ? "✓" : isFailed ? "✗" : "…"}
         </span>
         <div>
-          <p className="text-[13px] font-semibold text-[#1F2340]">{email.subject}</p>
-          <p className="mt-0.5 text-[11px] text-[#8E95B5]">
+          <p className="text-[13px] font-semibold text-[#111827]">{email.subject}</p>
+          <p className="mt-0.5 text-[11px] text-[#6B7280]">
             {getEmailRecipientLabel(email.recipientRole)} · {email.recipient} · {email.sentAt || email.createdAt}
           </p>
           {email.errorMessage ? (
@@ -3272,7 +3272,7 @@ function MetricCard({
   tone?: "violet" | "green" | "orange" | "red" | "blue";
 }) {
   const iconStyles = {
-    violet: "bg-[#EEF0FF] text-[#6366F1]",
+    violet: "bg-[#EEFBFC] text-[#00A7B8]",
     green: "bg-[#ECFDF5] text-[#059669]",
     orange: "bg-[#FFF7ED] text-[#D97706]",
     red: "bg-[#FEF2F2] text-[#DC2626]",
@@ -3280,11 +3280,11 @@ function MetricCard({
   }[tone];
 
   return (
-    <article className="rounded-2xl border border-white/60 bg-white/80 px-4 py-4 shadow-[0_2px_12px_rgba(99,102,241,0.07)] backdrop-blur-xl transition hover:-translate-y-0.5">
+    <article className="rounded-2xl border border-white/60 bg-white/80 px-4 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.07)] backdrop-blur-xl transition hover:-translate-y-0.5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8E95B5]">{label}</p>
-          <p className="mt-2 break-words text-[22px] font-bold leading-none text-[#1F2340]">{value}</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">{label}</p>
+          <p className="mt-2 break-words text-[22px] font-bold leading-none text-[#111827]">{value}</p>
           <p className="mt-2 truncate text-[12px] font-medium leading-5 text-[#6B7280]">{detail}</p>
         </div>
         <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", iconStyles)}>
@@ -3306,10 +3306,10 @@ function SectionHeading({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#6366F1]">{eyebrow}</p>
-      <h2 className="mt-1 text-lg font-bold text-[#1F2340] sm:text-xl">{title}</h2>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#00A7B8]">{eyebrow}</p>
+      <h2 className="mt-1 text-lg font-bold text-[#111827] sm:text-xl">{title}</h2>
       {description ? (
-        <p className="mt-1 max-w-2xl text-[12px] font-medium leading-5 text-[#8E95B5]">{description}</p>
+        <p className="mt-1 max-w-2xl text-[12px] font-medium leading-5 text-[#6B7280]">{description}</p>
       ) : null}
     </div>
   );
@@ -3327,14 +3327,14 @@ function ViewHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(99,102,241,0.06)] backdrop-blur-xl">
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.06)] backdrop-blur-xl">
       <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEF0FF] text-[#6366F1]">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEFBFC] text-[#00A7B8]">
           <Icon className="h-5 w-5" />
         </div>
         <div>
-          <h1 className="text-base font-bold text-[#1F2340] sm:text-lg">{title}</h1>
-          {description ? <p className="text-[12px] font-medium text-[#8E95B5]">{description}</p> : null}
+          <h1 className="text-base font-bold text-[#111827] sm:text-lg">{title}</h1>
+          {description ? <p className="text-[12px] font-medium text-[#6B7280]">{description}</p> : null}
         </div>
       </div>
       {action ? <div>{action}</div> : null}
@@ -3352,7 +3352,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className={cn("grid gap-1.5 text-[13px] font-medium text-[#1F2340]", className)}>
+    <label className={cn("grid gap-1.5 text-[13px] font-medium text-[#111827]", className)}>
       <span className="font-medium">{label}</span>
       {children}
     </label>
@@ -3361,8 +3361,8 @@ function Field({
 
 function InfoPanel({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.65] px-4 py-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">{title}</p>
+    <section className="rounded-3xl border border-white/55 bg-white/[0.65] px-4 py-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">{title}</p>
       <div className="mt-3">{children}</div>
     </section>
   );
@@ -3370,9 +3370,9 @@ function InfoPanel({ title, children }: { title: string; children: ReactNode }) 
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/55 bg-white/60 px-3 py-2.5 shadow-[0_8px_24px_rgba(99,102,241,0.06)]">
-      <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#8E95B5]">{label}</p>
-      <p className="mt-1 text-[13px] font-medium text-[#1F2340]">{value || "-"}</p>
+    <div className="rounded-2xl border border-white/55 bg-white/60 px-3 py-2.5 shadow-[0_8px_24px_rgba(0,167,184,0.06)]">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">{label}</p>
+      <p className="mt-1 text-[13px] font-medium text-[#111827]">{value || "-"}</p>
     </div>
   );
 }
@@ -3381,7 +3381,7 @@ function StatusPill({ status }: { status: BookingStatus }) {
   const styles: Record<BookingStatus, string> = {
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
     approved: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
-    completed: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    completed: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
     cancelled: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
   };
 
@@ -3402,7 +3402,7 @@ function PaymentPill({ status }: { status: (typeof paymentStatuses)[number] }) {
     unpaid: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
     paid: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
-    refunded: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    refunded: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
   };
 
   return (
@@ -3419,9 +3419,9 @@ function PaymentPill({ status }: { status: (typeof paymentStatuses)[number] }) {
 
 function InvoicePill({ status }: { status: (typeof invoiceStatuses)[number] }) {
   const styles: Record<(typeof invoiceStatuses)[number], string> = {
-    not_requested: "border-[#DDE3F5] bg-white/60 text-[#4B5563]",
+    not_requested: "border-[#DCEEF2] bg-white/60 text-[#6B7280]",
     ready: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
-    sent: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    sent: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
     paid: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
   };
 
@@ -3454,7 +3454,7 @@ function getEmailRecipientLabel(role: string) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-[#DDE3F5] bg-white/55 px-4 py-4 text-[13px] font-medium text-[#8E95B5]">
+    <div className="rounded-3xl border border-dashed border-[#DCEEF2] bg-white/55 px-4 py-4 text-[13px] font-medium text-[#6B7280]">
       {text}
     </div>
   );

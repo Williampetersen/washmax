@@ -61,15 +61,15 @@ export function AdminAgentsView({
         <AgentOverviewPanel data={data} />
       </div>
 
-      <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
+      <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
               Assignment
             </p>
-            <h2 className="mt-1.5 text-xl font-bold text-[#1F2340]">Assign bookings to agents</h2>
+            <h2 className="mt-1.5 text-xl font-bold text-[#111827]">Assign bookings to agents</h2>
           </div>
-          <span className="rounded-full border border-[#DDE3F5] bg-white/60 px-3 py-1 text-[12px] font-semibold text-[#4B5563]">
+          <span className="rounded-full border border-[#DCEEF2] bg-white/60 px-3 py-1 text-[12px] font-semibold text-[#6B7280]">
             {assignableBookings.length} active bookings
           </span>
         </div>
@@ -97,14 +97,14 @@ export function AdminAgentsView({
 
 function CreateAgentCard() {
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1]">
+        <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#EEFBFC] text-[#00A7B8]">
           <UserRound className="h-5 w-5" />
         </span>
         <div>
-          <p className="text-[14px] font-semibold text-[#1F2340]">Create agent</p>
-          <p className="text-[12px] font-medium text-[#8E95B5]">Separate login and scoped dashboard access.</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Create agent</p>
+          <p className="text-[12px] font-medium text-[#6B7280]">Separate login and scoped dashboard access.</p>
         </div>
       </div>
       <form action="/api/admin/agents" method="POST" className="mt-4 grid gap-3">
@@ -154,7 +154,7 @@ function AgentOverviewPanel({ data }: { data: AdminAgentsData }) {
   ];
 
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map((item) => {
           const Icon = item.icon;
@@ -162,11 +162,11 @@ function AgentOverviewPanel({ data }: { data: AdminAgentsData }) {
             <div key={item.label} className="rounded-2xl border border-white/55 bg-white/55 px-3 py-3">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[12px] font-medium text-[#8E95B5]">{item.label}</p>
-                  <p className="mt-1 text-2xl font-bold text-[#1F2340]">{item.value}</p>
-                  <p className="text-[12px] font-medium text-[#4B5563]">{item.detail}</p>
+                  <p className="text-[12px] font-medium text-[#6B7280]">{item.label}</p>
+                  <p className="mt-1 text-2xl font-bold text-[#111827]">{item.value}</p>
+                  <p className="text-[12px] font-medium text-[#6B7280]">{item.detail}</p>
                 </div>
-                <Icon className="h-5 w-5 text-[#6366F1]" />
+                <Icon className="h-5 w-5 text-[#00A7B8]" />
               </div>
             </div>
           );
@@ -174,19 +174,19 @@ function AgentOverviewPanel({ data }: { data: AdminAgentsData }) {
       </div>
       <div className="mt-4 rounded-2xl border border-white/55 bg-white/50 p-3">
         <div className="mb-3 flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-[#6366F1]" />
-          <p className="text-[14px] font-semibold text-[#1F2340]">Agent workload</p>
+          <BarChart3 className="h-5 w-5 text-[#00A7B8]" />
+          <p className="text-[14px] font-semibold text-[#111827]">Agent workload</p>
         </div>
         <div className="grid gap-2">
           {data.agents.slice(0, 8).map((agent) => (
             <div key={agent.id} className="grid gap-1">
-              <div className="flex justify-between gap-3 text-[12px] font-semibold text-[#4B5563]">
+              <div className="flex justify-between gap-3 text-[12px] font-semibold text-[#6B7280]">
                 <span>{agent.fullName}</span>
                 <span>{agent.stats.totalAssigned}</span>
               </div>
-              <div className="h-2 overflow-hidden rounded-full bg-[#E7EAF6]">
+              <div className="h-2 overflow-hidden rounded-full bg-[#DCEEF2]">
                 <div
-                  className="h-full rounded-full bg-[#6366F1]"
+                  className="h-full rounded-full bg-[#00A7B8]"
                   style={{ width: `${Math.min(100, agent.stats.totalAssigned * 12)}%` }}
                 />
               </div>
@@ -214,20 +214,20 @@ function AssignmentRow({
       className="grid gap-3 rounded-2xl border border-white/55 bg-white/55 px-3 py-3 lg:grid-cols-[minmax(0,1fr)_14rem_minmax(10rem,0.35fr)_auto] lg:items-center"
     >
       <div className="min-w-0">
-        <p className="truncate text-[13px] font-semibold text-[#1F2340]">
+        <p className="truncate text-[13px] font-semibold text-[#111827]">
           {booking.customerName || booking.customerEmail} | {booking.packageLabel}
         </p>
-        <p className="mt-1 truncate text-[12px] font-medium text-[#8E95B5]">
+        <p className="mt-1 truncate text-[12px] font-medium text-[#6B7280]">
           {booking.appointmentLabel} | {formatPrice(booking.total)}
         </p>
-        <p className="mt-1 text-[12px] font-semibold text-[#6366F1]">
+        <p className="mt-1 text-[12px] font-semibold text-[#00A7B8]">
           {booking.assignedAgentName ? `Assigned to ${booking.assignedAgentName}` : "Unassigned"}
         </p>
       </div>
       <select
         name="agent_id"
         defaultValue={booking.assignedAgentId}
-        className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none"
+        className="h-10 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium text-[#111827] outline-none"
         required
       >
         <option value="">Choose agent</option>
@@ -247,19 +247,19 @@ function AssignmentRow({
 
 function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
   return (
-    <article className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl">
+    <article className="rounded-3xl border border-white/55 bg-white/[0.65] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex min-w-0 gap-3">
           <AgentAvatar agent={agent} />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="truncate text-xl font-bold text-[#1F2340]">{agent.fullName}</h3>
+              <h3 className="truncate text-xl font-bold text-[#111827]">{agent.fullName}</h3>
               <StatusPill status={agent.status} />
             </div>
-            <p className="mt-1 truncate text-[13px] font-medium text-[#8E95B5]">
+            <p className="mt-1 truncate text-[13px] font-medium text-[#6B7280]">
               {agent.email} | {agent.phone || "No phone"}
             </p>
-            <p className="mt-1 text-[13px] font-medium text-[#4B5563]">
+            <p className="mt-1 text-[13px] font-medium text-[#6B7280]">
               {agent.workingArea || "No working area"} | Last login: {agent.lastLoginAt || "-"}
             </p>
           </div>
@@ -290,7 +290,7 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
               <select
                 name="status"
                 defaultValue={agent.status}
-                className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium text-[#1F2340] outline-none"
+                className="h-10 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium text-[#111827] outline-none"
               >
                 <option value="active">Active</option>
                 <option value="disabled">Disabled</option>
@@ -326,8 +326,8 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
         <div className="grid gap-3">
           <form action={`/api/admin/agents/${agent.id}/avatar`} method="POST" encType="multipart/form-data" className="rounded-2xl border border-white/55 bg-white/50 p-3">
             <div className="flex items-center gap-2">
-              <ImageIcon className="h-5 w-5 text-[#6366F1]" />
-              <p className="text-[13px] font-semibold text-[#1F2340]">Avatar upload</p>
+              <ImageIcon className="h-5 w-5 text-[#00A7B8]" />
+              <p className="text-[13px] font-semibold text-[#111827]">Avatar upload</p>
             </div>
             <Input type="file" name="avatar" accept="image/png,image/jpeg,image/webp" className="mt-3" />
             <Button type="submit" variant="outline" className="mt-3 w-full">
@@ -336,7 +336,7 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
           </form>
 
           <div className="rounded-2xl border border-white/55 bg-white/50 p-3">
-            <p className="text-[13px] font-semibold text-[#1F2340]">Services</p>
+            <p className="text-[13px] font-semibold text-[#111827]">Services</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {agent.services.length > 0 ? (
                 agent.services.map((service) => (
@@ -346,37 +346,37 @@ function AgentAdminCard({ agent }: { agent: AdminAgentSummary }) {
                       "rounded-full border px-2.5 py-1 text-[12px] font-semibold",
                       service.isEnabled
                         ? "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]"
-                        : "border-[#DDE3F5] bg-white/60 text-[#8E95B5]"
+                        : "border-[#DCEEF2] bg-white/60 text-[#6B7280]"
                     )}
                   >
                     {service.serviceName}
                   </span>
                 ))
               ) : (
-                <span className="text-[12px] font-medium text-[#8E95B5]">No services yet.</span>
+                <span className="text-[12px] font-medium text-[#6B7280]">No services yet.</span>
               )}
             </div>
           </div>
 
           <div className="rounded-2xl border border-white/55 bg-white/50 p-3">
-            <p className="text-[13px] font-semibold text-[#1F2340]">Availability</p>
+            <p className="text-[13px] font-semibold text-[#111827]">Availability</p>
             <div className="mt-2 grid gap-1.5">
               {agent.availability.length > 0 ? (
                 agent.availability.map((item) => (
-                  <div key={item.id} className="flex justify-between gap-3 text-[12px] font-medium text-[#4B5563]">
+                  <div key={item.id} className="flex justify-between gap-3 text-[12px] font-medium text-[#6B7280]">
                     <span>{weekdays[item.weekday] || `Day ${item.weekday}`}</span>
                     <span>{item.isAvailable ? `${item.startTime} - ${item.endTime}` : "Not available"}</span>
                   </div>
                 ))
               ) : (
-                <span className="text-[12px] font-medium text-[#8E95B5]">Agent has not set availability.</span>
+                <span className="text-[12px] font-medium text-[#6B7280]">Agent has not set availability.</span>
               )}
             </div>
           </div>
 
           <form action={`/api/admin/agents/${agent.id}/chat`} method="POST" className="rounded-2xl border border-white/55 bg-white/50 p-3">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-[13px] font-semibold text-[#1F2340]">Chat with admin</p>
+              <p className="text-[13px] font-semibold text-[#111827]">Chat with admin</p>
               <span className="rounded-full bg-[#F59E0B]/10 px-2.5 py-1 text-[12px] font-semibold text-[#92400E]">
                 {agent.unreadAdminMessages} unread
               </span>
@@ -406,7 +406,7 @@ function AgentAvatar({ agent }: { agent: AdminAgentSummary }) {
   }
 
   return (
-    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] text-lg font-bold text-[#6366F1]">
+    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#EEFBFC] text-lg font-bold text-[#00A7B8]">
       {(agent.fullName || agent.email || "A").slice(0, 2).toUpperCase()}
     </span>
   );
@@ -431,8 +431,8 @@ function StatusPill({ status }: { status: string }) {
 function SmallStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/55 bg-white/55 px-2.5 py-2">
-      <span className="block truncate text-[11px] font-medium text-[#8E95B5]">{label}</span>
-      <strong className="mt-1 block truncate text-[13px] text-[#1F2340]">{value}</strong>
+      <span className="block truncate text-[11px] font-medium text-[#6B7280]">{label}</span>
+      <strong className="mt-1 block truncate text-[13px] text-[#111827]">{value}</strong>
     </div>
   );
 }
@@ -445,7 +445,7 @@ function Field({
   children: ReactNode;
 }) {
   return (
-    <label className="grid gap-1.5 text-[13px] font-medium text-[#1F2340]">
+    <label className="grid gap-1.5 text-[13px] font-medium text-[#111827]">
       <span>{label}</span>
       {children}
     </label>
@@ -454,7 +454,7 @@ function Field({
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-[#DDE3F5] bg-white/55 px-4 py-5 text-[13px] font-medium text-[#8E95B5]">
+    <div className="rounded-3xl border border-dashed border-[#DCEEF2] bg-white/55 px-4 py-5 text-[13px] font-medium text-[#6B7280]">
       {text}
     </div>
   );

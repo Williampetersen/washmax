@@ -284,7 +284,7 @@ export function HtmlInvoiceManager({
           <a
             href={invoice.publicUrl}
             target="_blank"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-[#DDE3F5] bg-white px-3 text-[13px] font-semibold text-[#1F2340]"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-[#DCEEF2] bg-white px-3 text-[13px] font-semibold text-[#111827]"
           >
             {t.preview}
           </a>
@@ -306,14 +306,14 @@ export function HtmlInvoiceManager({
       ) : null}
 
       {pending === "send" || sendProgress > 0 ? (
-        <div className="grid gap-2 rounded-lg border border-[#dce8ec] bg-white p-3">
-          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-[#48616b]">
+        <div className="grid gap-2 rounded-lg border border-[#DCEEF2] bg-white p-3">
+          <div className="flex items-center justify-between gap-3 text-xs font-semibold text-[#6B7280]">
             <span>{sendStage}</span>
             <span>{sendProgress}%</span>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-[#e8f1f4]">
+          <div className="h-2 overflow-hidden rounded-full bg-[#EEFBFC]">
             <div
-              className="h-full rounded-full bg-[#55b9df] transition-all duration-300"
+              className="h-full rounded-full bg-[#00A7B8] transition-all duration-300"
               style={{ width: `${sendProgress}%` }}
             />
           </div>
@@ -321,9 +321,9 @@ export function HtmlInvoiceManager({
       ) : null}
 
       {invoice ? (
-        <div className="grid gap-3 rounded-lg border border-[#dce8ec] bg-[#f8fbfb] p-4">
+        <div className="grid gap-3 rounded-lg border border-[#DCEEF2] bg-[#F6FBFC] p-4">
           <div className="grid gap-3 md:grid-cols-[1fr_12rem]">
-            <label className="grid gap-1 text-xs font-semibold text-[#48616b]">
+            <label className="grid gap-1 text-xs font-semibold text-[#6B7280]">
               {t.email}
               <Input
                 type="email"
@@ -332,12 +332,12 @@ export function HtmlInvoiceManager({
                 disabled={locked}
               />
             </label>
-            <label className="grid gap-1 text-xs font-semibold text-[#48616b]">
+            <label className="grid gap-1 text-xs font-semibold text-[#6B7280]">
               {t.status}
               <select
                 value={status}
                 onChange={(event) => setStatus(event.target.value as InvoiceStatus)}
-                className="h-10 rounded-md border border-[#dce8ec] bg-white px-3 text-sm"
+                className="h-10 rounded-md border border-[#DCEEF2] bg-white px-3 text-sm"
               >
                 <option value="draft">Draft</option>
                 <option value="ready">Ready</option>
@@ -352,7 +352,7 @@ export function HtmlInvoiceManager({
 
           {!locked ? (
             <div className="grid gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#0c7a61]">
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#00A7B8]">
                 {t.lines}
               </p>
               {lines.map((line, index) => (
@@ -416,7 +416,7 @@ export function HtmlInvoiceManager({
             </div>
           ) : null}
 
-          <label className="grid gap-1 text-xs font-semibold text-[#48616b]">
+          <label className="grid gap-1 text-xs font-semibold text-[#6B7280]">
             {t.notes}
             <Textarea
               value={notes}
@@ -439,7 +439,7 @@ export function HtmlInvoiceManager({
         <p
           className={`text-xs font-medium ${
             feedback.tone === "success"
-              ? "text-[#08745a]"
+              ? "text-[#00A7B8]"
               : feedback.tone === "warning"
                 ? "text-[#9a6700]"
                 : "text-red-600"

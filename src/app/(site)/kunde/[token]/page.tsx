@@ -54,8 +54,8 @@ export default async function CustomerPortalPage({
 
   if (!portalData) {
     return (
-      <main className="min-h-screen bg-[#f5f8fb] px-4 py-10 sm:px-6">
-        <section className="mx-auto max-w-2xl rounded-lg border border-[#dbe6ee] bg-white p-6 text-center shadow-[0_16px_42px_rgba(8,27,21,0.08)] sm:p-8">
+      <main className="min-h-screen bg-[var(--page-bg)] px-4 py-10 sm:px-6">
+        <section className="mx-auto max-w-2xl rounded-lg border border-[var(--line)] bg-white p-6 text-center shadow-[0_16px_42px_rgba(11,31,58,0.08)] sm:p-8">
           <h1 className="font-display text-3xl font-semibold text-[var(--ink)]">
             Linket er udlobet eller ugyldigt
           </h1>
@@ -64,7 +64,7 @@ export default async function CustomerPortalPage({
           </p>
           <Link
             href="/booking"
-            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[#12b886] px-5 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
+            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
           >
             <CalendarPlus className="h-5 w-5" />
             Gaa til booking
@@ -88,9 +88,9 @@ export default async function CustomerPortalPage({
     .reduce((sum, booking) => sum + booking.total, 0);
 
   return (
-    <main className="min-h-screen bg-[#f5f8fb] px-4 pb-12 pt-6 sm:px-6">
+    <main className="min-h-screen bg-[var(--page-bg)] px-4 pb-12 pt-6 sm:px-6">
       <section className="mx-auto grid max-w-7xl gap-6">
-        <nav className="flex flex-wrap items-center gap-2 rounded-lg border border-[#dbe6ee] bg-white p-2 shadow-[0_10px_30px_rgba(8,27,21,0.05)]">
+        <nav className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--line)] bg-white p-2 shadow-[0_10px_30px_rgba(11,31,58,0.05)]">
           <PortalTabLink href={`/kunde/${token}?tab=bookings`} active={portalTab === "bookings"}>
             Bookinger
           </PortalTabLink>
@@ -102,7 +102,7 @@ export default async function CustomerPortalPage({
           </PortalTabLink>
           <Link
             href="/booking"
-            className="ml-auto inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[#12b886] px-4 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
+            className="ml-auto inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
           >
             <CalendarPlus className="h-4 w-4" />
             Ny booking
@@ -136,7 +136,7 @@ export default async function CustomerPortalPage({
               <Card className="rounded-lg p-5 sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
                     Fakturaer
                   </p>
                   <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -150,7 +150,7 @@ export default async function CustomerPortalPage({
                   invoices.map((invoice) => (
                     <article
                       key={invoice.id}
-                      className="flex flex-col gap-3 rounded-lg border border-[#dbe6ee] bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                      className="flex flex-col gap-3 rounded-lg border border-[var(--line)] bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
                     >
                       <div>
                         <p className="font-semibold text-[var(--ink)]">
@@ -166,7 +166,7 @@ export default async function CustomerPortalPage({
                       <a
                         href={invoice.publicUrl}
                         target="_blank"
-                        className="inline-flex h-10 items-center justify-center rounded-md border border-[#b7e6cb] bg-[#effaf4] px-4 text-sm font-semibold text-[#08745a] transition hover:bg-[#e2f7eb]"
+                        className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--line)] bg-[#eefbfc] px-4 text-sm font-semibold text-[var(--brand)] transition hover:bg-[#dff7fa]"
                       >
                         Vis / print faktura
                       </a>
@@ -186,7 +186,7 @@ export default async function CustomerPortalPage({
               <Card className="rounded-lg p-5 sm:p-6">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
                 <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
                     Bookinghistorik
                   </p>
                   <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -196,9 +196,9 @@ export default async function CustomerPortalPage({
                 <p className="text-sm text-[var(--muted)]">{bookings.length} i alt</p>
               </div>
 
-              <div className="mt-5 overflow-hidden rounded-lg border border-[#dbe6ee]">
+              <div className="mt-5 overflow-hidden rounded-lg border border-[var(--line)]">
                 {bookings.length > 0 ? (
-                  <div className="divide-y divide-[#dbe6ee]">
+                  <div className="divide-y divide-[var(--line)]">
                     {bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)}
                   </div>
                 ) : (
@@ -224,7 +224,7 @@ export default async function CustomerPortalPage({
 
             {portalTab === "profile" ? (
               <Card className="rounded-lg p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
                 Opdater profil
               </p>
               <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -268,7 +268,7 @@ export default async function CustomerPortalPage({
             ) : null}
 
             <Card className="rounded-lg p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
                 Support
               </p>
               <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -302,10 +302,10 @@ function NextBookingCard({ booking }: { booking?: DashboardBooking }) {
 
   return (
     <Card className="overflow-hidden rounded-lg">
-      <div className="border-b border-[#dbe6ee] bg-[#eef8ff] px-5 py-5 sm:px-6">
+      <div className="border-b border-[var(--line)] bg-[#eefbfc] px-5 py-5 sm:px-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
               Næste aftale
             </p>
             <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">
@@ -331,7 +331,7 @@ function NextBookingCard({ booking }: { booking?: DashboardBooking }) {
 function BookingCard({ booking }: { booking: DashboardBooking }) {
   return (
     <details className="group bg-white">
-      <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-[#f8fbfd]">
+      <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-[#f6fbfc]">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
           <div className="flex flex-wrap items-center gap-2">
@@ -350,13 +350,13 @@ function BookingCard({ booking }: { booking: DashboardBooking }) {
             </p>
           ) : null}
         </div>
-        <div className="shrink-0 rounded-md bg-[#f4f8f7] px-4 py-3 lg:text-right">
+        <div className="shrink-0 rounded-md bg-[#eefbfc] px-4 py-3 lg:text-right">
           <p className="text-xs text-[var(--muted)]">Total</p>
           <p className="text-xl font-semibold text-[var(--ink)]">{formatPrice(booking.total)}</p>
         </div>
         </div>
       </summary>
-      <div className="grid gap-3 border-t border-[#dbe6ee] bg-[#f8fbfd] p-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 border-t border-[var(--line)] bg-[#f6fbfc] p-4 sm:grid-cols-2 lg:grid-cols-4">
         <Fact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
         <Fact icon={MapPin} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
         <Fact icon={ReceiptText} label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
@@ -385,8 +385,8 @@ function PortalTabLink({
       className={cn(
         "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-semibold transition",
         active
-          ? "bg-[#102d38] text-white"
-          : "text-[#536873] hover:bg-[#f1f6f7] hover:text-[#102d38]"
+          ? "bg-[var(--accent)] text-white"
+          : "text-[var(--muted)] hover:bg-[#eefbfc] hover:text-[var(--accent)]"
       )}
     >
       {children}
@@ -408,11 +408,11 @@ function ContactCard({
   return (
     <Card className="rounded-lg p-5 sm:p-6">
       <div className="flex items-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-md bg-[#e9fbf5] text-[#08745a]">
+        <span className="flex h-12 w-12 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
           <UserRound className="h-6 w-6" />
         </span>
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0c7a61]">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
             Kunde
           </p>
           <h2 className="truncate text-xl font-semibold text-[var(--ink)]">{customerName}</h2>
@@ -443,7 +443,7 @@ function SummaryCard({
           <p className="text-sm text-[var(--muted)]">{label}</p>
           <p className="mt-2 truncate text-2xl font-semibold text-[var(--ink)]">{value}</p>
         </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#e9fbf5] text-[#08745a]">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
           <Icon className="h-5 w-5" />
         </span>
       </div>
@@ -461,9 +461,9 @@ function Fact({
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-md border border-[#dbe6ee] bg-white px-3 py-3">
+    <div className="min-w-0 rounded-md border border-[var(--line)] bg-white px-3 py-3">
       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-        <Icon className="h-4 w-4 shrink-0 text-[#0c7a61]" />
+        <Icon className="h-4 w-4 shrink-0 text-[var(--brand)]" />
         {label}
       </div>
       <p className="mt-2 break-words text-sm font-semibold text-[var(--ink)]">{value}</p>
@@ -492,7 +492,7 @@ function Alert({ children, tone }: { children: ReactNode; tone: "success" | "err
       className={cn(
         "rounded-lg border px-4 py-3 text-sm",
         tone === "success"
-          ? "border-[#b7e6cb] bg-[#effaf4] text-[#16643f]"
+          ? "border-[var(--line)] bg-[#eefbfc] text-[var(--accent)]"
           : "border-red-200 bg-red-50 text-red-700"
       )}
     >
@@ -513,13 +513,13 @@ function EmptyState({
   actionLabel?: string;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-[#c8d7e0] bg-[#f8fbfd] px-5 py-6 text-center">
+    <div className="rounded-lg border border-dashed border-[var(--line)] bg-[#f6fbfc] px-5 py-6 text-center">
       <p className="font-semibold text-[var(--ink)]">{title}</p>
       <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">{text}</p>
       {actionHref && actionLabel ? (
         <Link
           href={actionHref}
-          className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-[#12b886] px-4 text-sm font-semibold text-white transition hover:bg-[#0ca678]"
+          className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-[var(--cta)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
         >
           {actionLabel}
         </Link>
@@ -540,9 +540,9 @@ function SupportLink({
   return (
     <a
       href={href}
-      className="flex min-w-0 items-center gap-3 rounded-md border border-[#dbe6ee] bg-[#f8fbfd] px-3 py-3 font-semibold text-[var(--ink)] transition hover:border-[#12b886]"
+      className="flex min-w-0 items-center gap-3 rounded-md border border-[var(--line)] bg-[#f6fbfc] px-3 py-3 font-semibold text-[var(--ink)] transition hover:border-[var(--brand)]"
     >
-      <Icon className="h-4 w-4 shrink-0 text-[#0c7a61]" />
+      <Icon className="h-4 w-4 shrink-0 text-[var(--brand)]" />
       <span className="truncate">{text}</span>
     </a>
   );

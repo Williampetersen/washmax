@@ -22,9 +22,9 @@ export function AdminTopbar({
     <GlassCard className="px-4 py-4 sm:px-5">
       <div className="grid gap-4 lg:grid-cols-[minmax(18rem,1fr)_auto] lg:items-center">
         <AdminSearch query={searchQuery} />
-        <div className="flex flex-wrap items-center gap-3 text-[12px] text-[#4B5563]">
+        <div className="flex flex-wrap items-center gap-3 text-[12px] text-[#6B7280]">
           <span className="inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/55 px-3 py-2 font-medium">
-            <CalendarDays className="h-5 w-5 text-[#8E95B5]" />
+            <CalendarDays className="h-5 w-5 text-[#6B7280]" />
             {dateLabel}
           </span>
           <span className="inline-flex items-center gap-2 rounded-full border border-white/55 bg-white/55 px-3 py-2 font-medium">
@@ -47,7 +47,7 @@ export function AdminSearch({ query }: { query: string }) {
         name="q"
         defaultValue={query}
         placeholder="Search bookings, customers, plates..."
-        className="h-10 rounded-2xl border-white/55 bg-white/60 pl-9 text-[13px] font-medium text-[#1F2340] placeholder:text-[#8E95B5] focus:border-[#6366F1] focus:ring-[#6366F1]/10"
+        className="h-10 rounded-2xl border-white/55 bg-white/60 pl-9 text-[13px] font-medium text-[#111827] placeholder:text-[#6B7280] focus:border-[#00A7B8] focus:ring-[#00A7B8]/10"
       />
     </form>
   );

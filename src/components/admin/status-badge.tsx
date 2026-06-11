@@ -5,7 +5,7 @@ export function StatusBadge({ status }: { status: BookingStatus }) {
   const styles: Record<BookingStatus, string> = {
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
     approved: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
-    completed: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    completed: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
     cancelled: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
   };
 
@@ -26,7 +26,7 @@ export function PaymentBadge({ status }: { status: PaymentStatus }) {
     unpaid: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
     pending: "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
     paid: "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
-    refunded: "border-[#6366F1]/20 bg-[#6366F1]/10 text-[#4F46E5]",
+    refunded: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
   };
 
   return (

@@ -136,12 +136,12 @@ export default function AboutPage() {
         </ol>
       </nav>
 
-      <section className="mx-auto mt-6 max-w-7xl overflow-hidden rounded-[2rem] bg-[#071611] shadow-[0_28px_90px_rgba(8,27,21,0.22)]">
+      <section className="mx-auto mt-6 max-w-7xl overflow-hidden rounded-[2rem] bg-[var(--accent)] shadow-[0_28px_90px_rgba(11,31,58,0.22)]">
         <div className="grid lg:grid-cols-[1.02fr_0.98fr]">
           <div className="relative px-6 py-12 text-white sm:px-10 lg:px-12 lg:py-16">
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(25,175,132,0.2),transparent_48%,rgba(85,185,223,0.12))]" />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,167,184,0.20),transparent_48%,rgba(245,158,11,0.10))]" />
             <div className="relative">
-              <span className="inline-flex rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8ce7ff]">
+              <span className="inline-flex rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">
                 Om Clean Wash
               </span>
               <h1 className="mt-5 max-w-3xl font-display text-[clamp(2.35rem,5vw,4.8rem)] font-semibold leading-[0.98] text-white">
@@ -154,7 +154,7 @@ export default function AboutPage() {
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
                   href="/booking"
-                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#0d1f19] shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition hover:bg-[#eef8ff]"
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(245,158,11,0.26)] transition hover:bg-[var(--cta-hover)]"
                 >
                   Book bilvask
                   <ArrowRight className="h-4 w-4" />
@@ -212,7 +212,7 @@ export default function AboutPage() {
             <p>
               Vi holder kommunikationen konkret. Du vælger service, oplyser bilens detaljer og
               booker online via{" "}
-              <Link href="/booking" className="font-semibold text-[#1f6aa4]">
+              <Link href="/booking" className="font-semibold text-[var(--brand)]">
                 booking-siden
               </Link>
               . Hvis adresse, serviceområde eller særlige behov skal afklares, er det bedre at
@@ -230,9 +230,9 @@ export default function AboutPage() {
             {services.map((service) => (
               <div
                 key={service}
-                className="flex items-center gap-3 rounded-lg border border-[var(--line)] bg-white/88 px-5 py-4 shadow-[0_14px_32px_rgba(8,27,21,0.06)]"
+                className="flex items-center gap-3 rounded-lg border border-[var(--line)] bg-white/88 px-5 py-4 shadow-[0_14px_32px_rgba(11,31,58,0.06)]"
               >
-                <Check className="h-5 w-5 shrink-0 text-[#19af84]" />
+                <Check className="h-5 w-5 shrink-0 text-[var(--brand)]" />
                 <span className="text-sm font-semibold text-[var(--ink)]">{service}</span>
               </div>
             ))}
@@ -243,9 +243,9 @@ export default function AboutPage() {
           {values.map((value) => (
             <article
               key={value.title}
-              className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]"
+              className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(11,31,58,0.08)]"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-md bg-[#e9f8ff] text-[#1f6aa4]">
+              <span className="flex h-11 w-11 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
                 <ShieldCheck className="h-5 w-5" />
               </span>
               <h3 className="mt-4 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -270,9 +270,9 @@ export default function AboutPage() {
               {areas.map((area) => (
                 <div
                   key={area}
-                  className="flex items-center gap-3 rounded-xl bg-[#f4fafc] px-4 py-4"
+                  className="flex items-center gap-3 rounded-xl bg-[#eefbfc] px-4 py-4"
                 >
-                  <MapPinned className="h-5 w-5 text-[#1f6aa4]" />
+                  <MapPinned className="h-5 w-5 text-[var(--brand)]" />
                   <span className="font-semibold text-[var(--ink)]">{area}</span>
                 </div>
               ))}
@@ -281,8 +281,8 @@ export default function AboutPage() {
         </section>
 
         <section className="grid gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
-          <div className="rounded-[2rem] bg-[#0d1f19] p-6 text-white shadow-[0_24px_70px_rgba(8,27,21,0.2)] sm:p-8">
-            <span className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8ce7ff]">
+          <div className="rounded-[2rem] bg-[var(--accent)] p-6 text-white shadow-[0_24px_70px_rgba(11,31,58,0.2)] sm:p-8">
+            <span className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">
               Vores tilgang
             </span>
             <h2 className="mt-5 font-display text-4xl font-semibold leading-none sm:text-5xl">
@@ -300,15 +300,15 @@ export default function AboutPage() {
               <h2 className="mt-5 section-title">Tal med Clean Wash</h2>
               <div className="mt-6 grid gap-4 text-sm font-semibold text-[var(--ink)]">
                 <a href={siteConfig.phoneHref} className="flex items-center gap-3">
-                  <Sparkles className="h-5 w-5 text-[#19af84]" />
+                  <Sparkles className="h-5 w-5 text-[var(--brand)]" />
                   {siteConfig.phoneDisplay}
                 </a>
                 <a href={`mailto:${siteConfig.email}`} className="flex items-center gap-3">
-                  <Sparkles className="h-5 w-5 text-[#19af84]" />
+                  <Sparkles className="h-5 w-5 text-[var(--brand)]" />
                   {siteConfig.email}
                 </a>
                 <p className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-[#19af84]" />
+                  <Clock className="h-5 w-5 text-[var(--brand)]" />
                   Alle ugens dage kl. 08-17
                 </p>
               </div>
@@ -316,7 +316,7 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-[linear-gradient(135deg,#123549,#1f6aa4)] px-6 py-10 text-white shadow-[0_24px_80px_rgba(31,106,164,0.22)] sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
+        <section className="rounded-[2rem] bg-[linear-gradient(135deg,#0B1F3A,#00A7B8)] px-6 py-10 text-white shadow-[0_24px_80px_rgba(11,31,58,0.22)] sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/65">
               Book din bilvask
@@ -332,7 +332,7 @@ export default function AboutPage() {
           <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:mt-0">
             <Link
               href="/booking"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#123549] transition hover:bg-[#eef8ff]"
+              className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(245,158,11,0.26)] transition hover:bg-[var(--cta-hover)]"
             >
               Book bilvask
               <ArrowRight className="h-4 w-4" />

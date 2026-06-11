@@ -5,7 +5,7 @@ import { navItems, siteConfig } from "@/lib/site";
 export function SiteFooter() {
   return (
     <footer className="px-4 pb-8 pt-16 sm:px-6">
-      <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[var(--line)] bg-[#081a14] px-6 py-10 text-white shadow-[0_24px_80px_rgba(6,18,15,0.22)] sm:px-10">
+      <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-white/10 bg-[var(--accent)] px-6 py-10 text-white shadow-[0_24px_80px_rgba(11,31,58,0.22)] sm:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.3fr_0.8fr_0.8fr]">
           <div className="max-w-xl">
             <Image
@@ -59,7 +59,7 @@ export function SiteFooter() {
             </div>
             <Link
               href="/booking"
-              className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[linear-gradient(135deg,#2cd2a6,#15946f)] px-5 text-sm font-semibold text-[#04150f] shadow-[0_18px_40px_rgba(17,148,111,0.22)] transition hover:brightness-105"
+              className="mt-6 inline-flex h-11 items-center justify-center rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(245,158,11,0.24)] transition hover:bg-[var(--cta-hover)]"
             >
               Book bilvask
             </Link>

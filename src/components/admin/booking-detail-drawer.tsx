@@ -48,7 +48,7 @@ export function BookingDetailDrawer({
       />
       <aside
         className={cn(
-          "absolute right-0 top-0 flex h-full w-full max-w-[29rem] flex-col border-l border-white/55 bg-white/[0.82] text-[#1F2340] shadow-[0_8px_32px_rgba(99,102,241,0.16)] backdrop-blur-2xl transition-transform duration-200",
+          "absolute right-0 top-0 flex h-full w-full max-w-[29rem] flex-col border-l border-white/55 bg-white/[0.82] text-[#111827] shadow-[0_8px_32px_rgba(0,167,184,0.16)] backdrop-blur-2xl transition-transform duration-200",
           open ? "translate-x-0" : "translate-x-full"
         )}
         role="dialog"
@@ -59,7 +59,7 @@ export function BookingDetailDrawer({
           <>
             <div className="flex items-start justify-between gap-4 border-b border-white/55 px-5 py-5">
               <div className="min-w-0">
-                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
                   Booking detail
                 </p>
                 <h2 className="mt-2 truncate text-xl font-bold">
@@ -73,7 +73,7 @@ export function BookingDetailDrawer({
               <button
                 type="button"
                 onClick={onClose}
-                className="rounded-2xl border border-white/55 bg-white/60 p-2 text-[#8E95B5] transition hover:bg-white hover:text-[#1F2340]"
+                className="rounded-2xl border border-white/55 bg-white/60 p-2 text-[#6B7280] transition hover:bg-white hover:text-[#111827]"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
@@ -138,21 +138,21 @@ export function BookingDetailDrawer({
                 <input type="hidden" name="return_view" value="overview" />
                 <p className="text-[14px] font-semibold">Reschedule</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1.5 text-[12px] font-medium text-[#4B5563]">
+                  <label className="grid gap-1.5 text-[12px] font-medium text-[#6B7280]">
                     Date
                     <Input
                       type="date"
                       name="appointment_date"
                       defaultValue={booking.appointmentDate}
-                      className="rounded-2xl border-white/55 bg-white/65 text-[#1F2340]"
+                      className="rounded-2xl border-white/55 bg-white/65 text-[#111827]"
                     />
                   </label>
-                  <label className="grid gap-1.5 text-[12px] font-medium text-[#4B5563]">
+                  <label className="grid gap-1.5 text-[12px] font-medium text-[#6B7280]">
                     Time
                     <select
                       name="appointment_time"
                       defaultValue={booking.appointmentTime}
-                      className="h-10 rounded-2xl border border-white/55 bg-white/65 px-3 text-[13px] font-medium text-[#1F2340] outline-none"
+                      className="h-10 rounded-2xl border border-white/55 bg-white/65 px-3 text-[13px] font-medium text-[#111827] outline-none"
                     >
                       {timeSlots.map((slot) => (
                         <option key={slot} value={slot}>
@@ -161,21 +161,21 @@ export function BookingDetailDrawer({
                       ))}
                     </select>
                   </label>
-                  <label className="grid gap-1.5 text-[12px] font-medium text-[#4B5563] sm:col-span-2">
+                  <label className="grid gap-1.5 text-[12px] font-medium text-[#6B7280] sm:col-span-2">
                     Admin notes
                     <Textarea
                       name="admin_notes"
                       defaultValue={booking.adminNotes}
-                      className="min-h-20 rounded-2xl border-white/55 bg-white/65 text-[#1F2340]"
+                      className="min-h-20 rounded-2xl border-white/55 bg-white/65 text-[#111827]"
                     />
                   </label>
                 </div>
-                <label className="mt-3 flex items-center gap-2 text-[12px] font-medium text-[#4B5563]">
+                <label className="mt-3 flex items-center gap-2 text-[12px] font-medium text-[#6B7280]">
                   <input
                     type="checkbox"
                     name="notify_customer"
                     defaultChecked
-                    className="h-4 w-4 rounded border-[#DDE3F5] bg-white"
+                    className="h-4 w-4 rounded border-[#DCEEF2] bg-white"
                   />
                   Notify customer
                 </label>
@@ -213,7 +213,7 @@ function BookingActionForm({
           "h-10 w-full rounded-2xl border px-3 text-[12px] font-semibold transition duration-[250ms] hover:-translate-y-0.5",
           danger
             ? "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C] hover:bg-[#EF4444]/15"
-            : "border-white/55 bg-white/65 text-[#1F2340] hover:bg-white"
+            : "border-white/55 bg-white/65 text-[#111827] hover:bg-white"
         )}
       >
         {label}
@@ -235,15 +235,15 @@ function DrawerInfo({
 }) {
   return (
     <div className="flex min-w-0 gap-3 rounded-3xl border border-white/55 bg-white/50 px-4 py-3">
-      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1]">
+      <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#EEFBFC] text-[#00A7B8]">
         <Icon className="h-5 w-5" />
       </span>
       <div className="min-w-0">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#8E95B5]">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">
           {label}
         </p>
-        <p className="mt-1 truncate text-[13px] font-semibold text-[#1F2340]">{value}</p>
-        <p className="mt-0.5 truncate text-[12px] font-medium text-[#8E95B5]">{detail}</p>
+        <p className="mt-1 truncate text-[13px] font-semibold text-[#111827]">{value}</p>
+        <p className="mt-0.5 truncate text-[12px] font-medium text-[#6B7280]">{detail}</p>
       </div>
     </div>
   );

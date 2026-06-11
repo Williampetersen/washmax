@@ -47,12 +47,12 @@ export function Breadcrumbs({ page }: { page: SeoPageConfig }) {
 
 export function SEOHero({ page }: { page: SeoPageConfig }) {
   return (
-    <section className="mx-auto mt-6 max-w-7xl overflow-hidden rounded-[2rem] bg-[#071611] shadow-[0_28px_90px_rgba(8,27,21,0.22)]">
+    <section className="mx-auto mt-6 max-w-7xl overflow-hidden rounded-[2rem] bg-[var(--accent)] shadow-[0_28px_90px_rgba(11,31,58,0.22)]">
       <div className="grid lg:grid-cols-[1.04fr_0.96fr]">
         <div className="relative px-6 py-12 text-white sm:px-10 lg:px-12 lg:py-16">
-          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(25,175,132,0.18),transparent_48%,rgba(85,185,223,0.12))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,167,184,0.18),transparent_48%,rgba(245,158,11,0.10))]" />
           <div className="relative">
-            <span className="inline-flex rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#8ce7ff]">
+            <span className="inline-flex rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">
               {page.eyebrow}
             </span>
             <h1 className="mt-5 max-w-3xl font-display text-[clamp(2.35rem,5vw,4.8rem)] font-semibold leading-[0.98] text-white">
@@ -64,7 +64,7 @@ export function SEOHero({ page }: { page: SeoPageConfig }) {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/booking"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-5 text-sm font-semibold text-[#0d1f19] shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition hover:bg-[#eef8ff]"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_16px_40px_rgba(245,158,11,0.26)] transition hover:bg-[var(--cta-hover)]"
               >
                 <Search className="h-5 w-5" />
                 Book bilvask
@@ -105,7 +105,7 @@ function ShortSummary({ items }: { items: string[] }) {
         {items.map((item) => (
           <p
             key={item}
-            className="rounded-lg border border-[var(--line)] bg-white/82 px-5 py-4 text-sm font-medium leading-7 text-[var(--ink)] shadow-[0_14px_34px_rgba(8,27,21,0.06)]"
+            className="rounded-lg border border-[var(--line)] bg-white/82 px-5 py-4 text-sm font-medium leading-7 text-[var(--ink)] shadow-[0_14px_34px_rgba(11,31,58,0.06)]"
           >
             {item}
           </p>
@@ -129,7 +129,7 @@ function ContentSections({ page }: { page: SeoPageConfig }) {
           <div className="mt-6">
             <Link
               href="/booking"
-              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#123549] px-5 text-sm font-semibold text-white transition hover:bg-[#0b2634]"
+              className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(245,158,11,0.22)] transition hover:bg-[var(--cta-hover)]"
             >
               Book tid
               <ArrowRight className="h-4 w-4" />
@@ -186,7 +186,7 @@ function LocalServiceArea({ page }: { page: SeoPageConfig }) {
                 key={area}
                 className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/78 px-4 py-2 text-sm font-semibold text-[var(--ink)]"
               >
-                <MapPinned className="h-4 w-4 text-[#1f6aa4]" />
+                <MapPinned className="h-4 w-4 text-[var(--brand)]" />
                 {area}
               </span>
             ))}
@@ -212,9 +212,9 @@ export function ServiceBenefits({
         {benefits.map((benefit) => (
           <article
             key={benefit.title}
-            className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]"
+            className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(11,31,58,0.08)]"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-md bg-[#e9f8ff] text-[#1f6aa4]">
+            <span className="flex h-11 w-11 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
               <ShieldCheck className="h-5 w-5" />
             </span>
             <h3 className="mt-4 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -239,9 +239,9 @@ export function ServiceProcess({ steps }: { steps: SeoPageConfig["process"] }) {
         {steps.map((step, index) => (
           <article
             key={step.title}
-            className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(8,27,21,0.08)]"
+            className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(11,31,58,0.08)]"
           >
-            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[#123549] text-sm font-semibold text-white">
+            <span className="flex h-10 w-10 items-center justify-center rounded-md bg-[var(--accent)] text-sm font-semibold text-white">
               {index + 1}
             </span>
             <h3 className="mt-5 font-display text-2xl font-semibold text-[var(--ink)]">
@@ -266,11 +266,11 @@ export function FAQ({ faqs }: { faqs: SeoPageConfig["faqs"] }) {
         {faqs.map((faq) => (
           <details
             key={faq.question}
-            className="group rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_14px_32px_rgba(8,27,21,0.06)]"
+            className="group rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_14px_32px_rgba(11,31,58,0.06)]"
           >
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-[var(--ink)]">
               {faq.question}
-              <span className="text-[#1f6aa4] transition group-open:rotate-45">+</span>
+              <span className="text-[var(--brand)] transition group-open:rotate-45">+</span>
             </summary>
             <p className="mt-4 text-sm leading-6 text-[var(--muted)]">{faq.answer}</p>
           </details>
@@ -292,10 +292,10 @@ export function InternalLinks({ links }: { links: SeoPageConfig["relatedLinks"] 
           <Link
             key={link.href}
             href={link.href}
-            className="flex min-h-16 items-center justify-between gap-4 rounded-lg border border-[var(--line)] bg-white/88 px-5 py-4 text-sm font-semibold text-[var(--ink)] shadow-[0_14px_32px_rgba(8,27,21,0.06)] transition hover:-translate-y-0.5 hover:bg-white"
+            className="flex min-h-16 items-center justify-between gap-4 rounded-lg border border-[var(--line)] bg-white/88 px-5 py-4 text-sm font-semibold text-[var(--ink)] shadow-[0_14px_32px_rgba(11,31,58,0.06)] transition hover:-translate-y-0.5 hover:bg-white"
           >
             {link.label}
-            <ArrowRight className="h-4 w-4 shrink-0 text-[#1f6aa4]" />
+            <ArrowRight className="h-4 w-4 shrink-0 text-[var(--brand)]" />
           </Link>
         ))}
       </div>
@@ -305,7 +305,7 @@ export function InternalLinks({ links }: { links: SeoPageConfig["relatedLinks"] 
 
 function BottomCta({ page }: { page: SeoPageConfig }) {
   return (
-    <section className="rounded-[2rem] bg-[linear-gradient(135deg,#123549,#1f6aa4)] px-6 py-10 text-white shadow-[0_24px_80px_rgba(31,106,164,0.22)] sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
+    <section className="rounded-[2rem] bg-[linear-gradient(135deg,#0B1F3A,#00A7B8)] px-6 py-10 text-white shadow-[0_24px_80px_rgba(11,31,58,0.22)] sm:px-10 lg:flex lg:items-center lg:justify-between lg:gap-8">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/65">
           Book online
@@ -321,7 +321,7 @@ function BottomCta({ page }: { page: SeoPageConfig }) {
       <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:mt-0">
         <Link
           href="/booking"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-white px-5 text-sm font-semibold text-[#123549] transition hover:bg-[#eef8ff]"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(245,158,11,0.26)] transition hover:bg-[var(--cta-hover)]"
         >
           <Sparkles className="h-5 w-5" />
           Book bilvask

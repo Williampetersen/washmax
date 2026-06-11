@@ -58,19 +58,19 @@ export function AgentDashboard({
   const unread = data.notifications.filter((item) => !item.isRead).length;
 
   return (
-    <main className="min-h-screen bg-[#F6F8FE] px-4 py-5 text-[#1F2340] sm:px-6">
+    <main className="min-h-screen bg-[#F6FBFC] px-4 py-5 text-[#111827] sm:px-6">
       <section className="mx-auto max-w-7xl">
         <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
-          <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.72] shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl xl:sticky xl:top-5 xl:self-start">
+          <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.72] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl xl:sticky xl:top-5 xl:self-start">
             <div className="border-b border-white/55 px-4 py-5">
               <div className="flex items-center gap-3">
                 <AgentAvatar name={data.agent.fullName} avatarUrl={data.agent.avatarUrl} />
                 <div className="min-w-0">
-                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
                     Agent
                   </p>
                   <p className="mt-1 truncate text-[13px] font-semibold">{data.agent.fullName}</p>
-                  <p className="truncate text-[12px] font-medium text-[#8E95B5]">{data.agent.email}</p>
+                  <p className="truncate text-[12px] font-medium text-[#6B7280]">{data.agent.email}</p>
                 </div>
               </div>
             </div>
@@ -87,8 +87,8 @@ export function AgentDashboard({
                     className={cn(
                       "flex min-w-[8.75rem] items-center gap-2 rounded-2xl px-3 py-2.5 text-[13px] font-semibold transition xl:min-w-0",
                       active
-                        ? "bg-[#6366F1] text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)]"
-                        : "text-[#8E95B5] hover:bg-white/70 hover:text-[#1F2340]"
+                        ? "bg-[#00A7B8] text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)]"
+                        : "text-[#6B7280] hover:bg-white/70 hover:text-[#111827]"
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
@@ -118,7 +118,7 @@ export function AgentDashboard({
               <div
                 className={cn(
                   "rounded-3xl border px-4 py-4 text-[13px] font-medium",
-                  error ? "border-red-200 bg-red-50 text-red-700" : "border-[#CDE6F6] bg-[#F6FBFF] text-[#1A506D]"
+                  error ? "border-red-200 bg-red-50 text-red-700" : "border-[#DCEEF2] bg-[#EEFBFC] text-[#0B1F3A]"
                 )}
               >
                 {error ? "Handlingen kunne ikke gennemføres." : "Ændringen er gemt."}
@@ -169,20 +169,20 @@ function Overview({ data }: { data: AgentDashboardData }) {
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <section key={card.label} className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+            <section key={card.label} className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="text-[12px] font-medium text-[#8E95B5]">{card.label}</p>
+                  <p className="text-[12px] font-medium text-[#6B7280]">{card.label}</p>
                   <p className="mt-2 text-2xl font-bold">{card.value}</p>
                   <p className="mt-1 text-[12px] font-medium text-[#4B5563]">{card.detail}</p>
                 </div>
-                <Icon className="h-5 w-5 text-[#6366F1]" />
+                <Icon className="h-5 w-5 text-[#00A7B8]" />
               </div>
             </section>
           );
         })}
       </div>
-      <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+      <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
         <p className="text-[14px] font-semibold">Status chart</p>
         <div className="mt-4 grid gap-3">
           {data.stats.byStatus.map((item) => (
@@ -211,8 +211,8 @@ function Overview({ data }: { data: AgentDashboardData }) {
 function NextAgentJobCard({ booking }: { booking?: AgentBooking }) {
   if (!booking) {
     return (
-      <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-5 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
-        <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+      <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-5 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
+        <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
           Next job
         </p>
         <h2 className="mt-2 text-2xl font-bold">No active jobs</h2>
@@ -224,13 +224,13 @@ function NextAgentJobCard({ booking }: { booking?: AgentBooking }) {
   }
 
   return (
-    <section className="rounded-3xl border border-[#DDE3F5] bg-white p-5 shadow-[0_12px_36px_rgba(99,102,241,0.1)]">
+    <section className="rounded-3xl border border-[#DCEEF2] bg-white p-5 shadow-[0_12px_36px_rgba(0,167,184,0.1)]">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="min-w-0">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
             Next job
           </p>
-          <h2 className="mt-2 text-2xl font-bold text-[#1F2340]">
+          <h2 className="mt-2 text-2xl font-bold text-[#111827]">
             {booking.appointmentLabel}
           </h2>
           <p className="mt-1 text-[13px] font-semibold text-[#4B5563]">
@@ -251,7 +251,7 @@ function NextAgentJobCard({ booking }: { booking?: AgentBooking }) {
         {booking.customerPhone ? (
           <a
             href={`tel:${booking.customerPhone.replace(/\s+/g, "")}`}
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#6366F1] px-4 text-[13px] font-semibold text-white"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl bg-[#00A7B8] px-4 text-[13px] font-semibold text-white"
           >
             <Phone className="h-5 w-5" />
             Call customer
@@ -262,7 +262,7 @@ function NextAgentJobCard({ booking }: { booking?: AgentBooking }) {
             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(booking.customerAddress)}`}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#DDE3F5] bg-white px-4 text-[13px] font-semibold text-[#1F2340]"
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-2xl border border-[#DCEEF2] bg-white px-4 text-[13px] font-semibold text-[#111827]"
           >
             <MapPin className="h-5 w-5" />
             Open route
@@ -270,7 +270,7 @@ function NextAgentJobCard({ booking }: { booking?: AgentBooking }) {
         ) : null}
         <Link
           href={`/agent?view=tasks#booking-${booking.id}`}
-          className="inline-flex h-11 items-center justify-center rounded-2xl border border-[#DDE3F5] bg-white px-4 text-[13px] font-semibold text-[#1F2340]"
+          className="inline-flex h-11 items-center justify-center rounded-2xl border border-[#DCEEF2] bg-white px-4 text-[13px] font-semibold text-[#111827]"
         >
           Open task
         </Link>
@@ -290,7 +290,7 @@ function CalendarView({ bookings }: { bookings: AgentBooking[] }) {
   ).sort(([left], [right]) => left.localeCompare(right));
 
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {days.length > 0 ? (
           days.map(([date, items]) => (
@@ -403,7 +403,7 @@ function TaskCard({
                   {booking.addons.length > 0 ? (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {booking.addons.map((addon) => (
-                        <span key={addon.id} className="rounded-full border border-[#DDE3F5] bg-white/60 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
+                        <span key={addon.id} className="rounded-full border border-[#DCEEF2] bg-white/60 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
                           {addon.label}
                         </span>
                       ))}
@@ -428,7 +428,7 @@ function TaskCard({
                     </form>
                   </div>
                   <form action={`/api/agent/bookings/${booking.id}/status`} method="POST" className="grid gap-3 rounded-2xl border border-white/55 bg-white/50 p-3 md:grid-cols-[12rem_minmax(0,1fr)_auto]">
-                    <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
+                    <select name="status" defaultValue={booking.agentStatus || "accepted"} className="h-10 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium outline-none">
                       <option value="accepted">Accepted</option>
                       <option value="in_progress">In progress</option>
                       <option value="done">Done</option>
@@ -453,7 +453,7 @@ function TaskCard({
                     >
                       <input type="hidden" name="item_type" value="existing_extra_service" />
                       <p className="text-[13px] font-semibold">Add existing service</p>
-                      <select name="description" className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
+                      <select name="description" className="h-10 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium outline-none">
                         {services.length > 0 ? (
                           services.map((service) => (
                             <option key={service.id} value={service.serviceName}>
@@ -502,7 +502,7 @@ function TaskCard({
 
 function InvoiceBadge({ status }: { status: string }) {
   return (
-    <span className="rounded-full border border-[#DDE3F5] bg-white/70 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
+    <span className="rounded-full border border-[#DCEEF2] bg-white/70 px-2.5 py-1 text-[12px] font-semibold text-[#4B5563]">
       {status}
     </span>
   );
@@ -542,7 +542,7 @@ function AgentInvoicesView({ invoices }: { invoices: Invoice[] }) {
                   href={invoice.publicUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex h-10 items-center justify-center rounded-xl border border-[#d4e3ed] bg-white px-4 text-[13px] font-semibold text-[#08745a]"
+                  className="inline-flex h-10 items-center justify-center rounded-xl border border-[#DCEEF2] bg-white px-4 text-[13px] font-semibold text-[#00A7B8]"
                 >
                   View / print
                 </a>
@@ -563,7 +563,7 @@ function AvailabilityView({ availability }: { availability: AgentAvailability[] 
   const byWeekday = new Map(availability.map((item) => [item.weekday, item]));
 
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
       <form action="/api/agent/availability" method="POST" className="grid gap-3">
         {weekdays.map((day, index) => {
           const item = byWeekday.get(index);
@@ -595,7 +595,7 @@ function AvailabilityView({ availability }: { availability: AgentAvailability[] 
 
 function ServicesView({ services }: { services: AgentService[] }) {
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
       <form action="/api/agent/services" method="POST" className="grid gap-3 sm:grid-cols-[1fr_auto]">
         <Input name="service_name" placeholder="Add service name" required />
         <Button type="submit">Add service</Button>
@@ -627,7 +627,7 @@ function ServicesView({ services }: { services: AgentService[] }) {
 
 function ChatView({ data }: { data: AgentDashboardData }) {
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
       <div className="grid gap-3">
         {data.chatMessages.length > 0 ? (
           data.chatMessages.map((message) => (
@@ -636,7 +636,7 @@ function ChatView({ data }: { data: AgentDashboardData }) {
               className={cn(
                 "max-w-[42rem] rounded-2xl border px-3 py-3 text-[13px] font-medium",
                 message.senderType === "agent"
-                  ? "ml-auto border-[#6366F1]/20 bg-[#6366F1]/10 text-[#312E81]"
+                  ? "ml-auto border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#0B1F3A]"
                   : "border-white/55 bg-white/60 text-[#4B5563]"
               )}
             >
@@ -649,7 +649,7 @@ function ChatView({ data }: { data: AgentDashboardData }) {
         )}
       </div>
       <form action="/api/agent/chat" method="POST" className="mt-4 grid gap-3">
-        <select name="booking_id" className="h-10 rounded-2xl border border-[#DDE3F5] bg-white/70 px-3 text-[13px] font-medium outline-none">
+        <select name="booking_id" className="h-10 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium outline-none">
           <option value="">General message</option>
           {data.bookings.map((booking) => (
             <option key={booking.id} value={booking.id}>
@@ -669,12 +669,12 @@ function ChatView({ data }: { data: AgentDashboardData }) {
 
 function ProfileView({ data }: { data: AgentDashboardData }) {
   return (
-    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(99,102,241,0.08)]">
+    <section className="rounded-3xl border border-white/55 bg-white/[0.72] p-4 shadow-[0_8px_32px_rgba(0,167,184,0.08)]">
       <div className="flex items-center gap-3">
         <AgentAvatar name={data.agent.fullName} avatarUrl={data.agent.avatarUrl} large />
         <div>
           <h2 className="text-2xl font-bold">{data.agent.fullName}</h2>
-          <p className="text-[13px] font-medium text-[#8E95B5]">{data.agent.email}</p>
+          <p className="text-[13px] font-medium text-[#6B7280]">{data.agent.email}</p>
         </div>
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
@@ -708,7 +708,7 @@ function AgentAvatar({
   }
 
   return (
-    <span className={cn(size, "flex shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] font-bold text-[#6366F1]")}>
+    <span className={cn(size, "flex shrink-0 items-center justify-center rounded-2xl bg-[#EEFBFC] font-bold text-[#00A7B8]")}>
       {(name || "A").slice(0, 2).toUpperCase()}
     </span>
   );
@@ -742,8 +742,8 @@ function getAgentStatusTone(status: string) {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/55 bg-white/55 px-3 py-2.5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8E95B5]">{label}</p>
-      <p className="mt-1 break-words text-[13px] font-semibold text-[#1F2340]">{value || "-"}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">{label}</p>
+      <p className="mt-1 break-words text-[13px] font-semibold text-[#111827]">{value || "-"}</p>
     </div>
   );
 }
@@ -751,15 +751,15 @@ function Info({ label, value }: { label: string; value: string }) {
 function SmallStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/55 bg-white/55 px-2.5 py-2">
-      <span className="block truncate text-[11px] font-medium text-[#8E95B5]">{label}</span>
-      <strong className="mt-1 block truncate text-[12px] text-[#1F2340]">{value}</strong>
+      <span className="block truncate text-[11px] font-medium text-[#6B7280]">{label}</span>
+      <strong className="mt-1 block truncate text-[12px] text-[#111827]">{value}</strong>
     </div>
   );
 }
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="rounded-3xl border border-dashed border-[#DDE3F5] bg-white/55 px-4 py-5 text-[13px] font-medium text-[#8E95B5]">
+    <div className="rounded-3xl border border-dashed border-[#DCEEF2] bg-white/55 px-4 py-5 text-[13px] font-medium text-[#6B7280]">
       {text}
     </div>
   );

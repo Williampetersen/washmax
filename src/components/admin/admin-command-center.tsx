@@ -38,8 +38,8 @@ import {
   type BookingStatus,
 } from "@/lib/shared/booking";
 
-const chartPrimary = "#6366F1";
-const chartSecondary = "#A5B4FC";
+const chartPrimary = "#00A7B8";
+const chartSecondary = "#99DFE7";
 
 export function AdminCommandCenter({
   dashboard,
@@ -159,12 +159,12 @@ function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
     <GlassCard className="p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-[14px] font-semibold text-[#1F2340]">Revenue and bookings</p>
-          <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">
+          <p className="text-[14px] font-semibold text-[#111827]">Revenue and bookings</p>
+          <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
             Monthly totals from booking records
           </p>
         </div>
-        <span className="rounded-full border border-[#E6E9F7] bg-white/60 px-3 py-1 text-[12px] font-semibold text-[#6366F1]">
+        <span className="rounded-full border border-[#DCEEF2] bg-white/60 px-3 py-1 text-[12px] font-semibold text-[#00A7B8]">
           {getRevenueTrendLabel(bookings)}
         </span>
       </div>
@@ -177,22 +177,22 @@ function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
                 <stop offset="95%" stopColor={chartPrimary} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="#E7EAF6" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke="#DCEEF2" strokeDasharray="3 3" vertical={false} />
             <XAxis
               axisLine={false}
               dataKey="label"
-              tick={{ fill: "#8E95B5", fontSize: 11, fontWeight: 600 }}
+              tick={{ fill: "#6B7280", fontSize: 11, fontWeight: 600 }}
               tickLine={false}
             />
             <YAxis
               axisLine={false}
-              tick={{ fill: "#8E95B5", fontSize: 11 }}
+              tick={{ fill: "#6B7280", fontSize: 11 }}
               tickFormatter={(value: number) => formatShortPrice(value)}
               tickLine={false}
               width={54}
             />
             <Tooltip
-              cursor={{ stroke: "#A5B4FC", strokeWidth: 1 }}
+              cursor={{ stroke: "#99DFE7", strokeWidth: 1 }}
               formatter={(value, name) => {
                 const metricName = String(name);
                 const numericValue =
@@ -202,12 +202,12 @@ function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
                   metricName === "revenue" ? "Revenue" : "Bookings",
                 ];
               }}
-              labelStyle={{ color: "#1F2340", fontWeight: 700 }}
+              labelStyle={{ color: "#111827", fontWeight: 700 }}
               contentStyle={{
                 background: "rgba(255,255,255,0.92)",
                 border: "1px solid rgba(255,255,255,0.7)",
                 borderRadius: "18px",
-                boxShadow: "0 8px 32px rgba(99,102,241,0.12)",
+                boxShadow: "0 8px 32px rgba(0,167,184,0.12)",
               }}
             />
             <Area
@@ -246,12 +246,12 @@ function StatusDistributionCard({ bookings }: { bookings: DashboardBooking[] }) 
     <GlassCard className="p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[14px] font-semibold text-[#1F2340]">Status distribution</p>
-          <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">
+          <p className="text-[14px] font-semibold text-[#111827]">Status distribution</p>
+          <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
             {activeBookings.length} active bookings
           </p>
         </div>
-        <ShieldCheck className="h-5 w-5 text-[#8E95B5]" />
+        <ShieldCheck className="h-5 w-5 text-[#6B7280]" />
       </div>
       <div className="mt-4 h-40">
         <ResponsiveContainer width="100%" height="100%">
@@ -259,17 +259,17 @@ function StatusDistributionCard({ bookings }: { bookings: DashboardBooking[] }) 
             <XAxis
               axisLine={false}
               dataKey="label"
-              tick={{ fill: "#8E95B5", fontSize: 11, fontWeight: 600 }}
+              tick={{ fill: "#6B7280", fontSize: 11, fontWeight: 600 }}
               tickLine={false}
             />
             <YAxis allowDecimals={false} axisLine={false} tick={false} tickLine={false} />
             <Tooltip
-              cursor={{ fill: "rgba(99,102,241,0.06)" }}
+              cursor={{ fill: "rgba(0,167,184,0.06)" }}
               contentStyle={{
                 background: "rgba(255,255,255,0.92)",
                 border: "1px solid rgba(255,255,255,0.7)",
                 borderRadius: "16px",
-                boxShadow: "0 8px 32px rgba(99,102,241,0.12)",
+                boxShadow: "0 8px 32px rgba(0,167,184,0.12)",
               }}
             />
             <Bar dataKey="count" radius={[10, 10, 10, 10]}>
@@ -284,7 +284,7 @@ function StatusDistributionCard({ bookings }: { bookings: DashboardBooking[] }) 
         {data.map((item) => (
           <div key={item.status} className="flex items-center justify-between gap-2 text-[12px]">
             <StatusBadge status={item.status} />
-            <span className="font-semibold text-[#4B5563]">{item.count}</span>
+            <span className="font-semibold text-[#6B7280]">{item.count}</span>
           </div>
         ))}
       </div>
@@ -320,10 +320,10 @@ function BusinessSnapshotCard({
     <GlassCard className="p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-[14px] font-semibold text-[#1F2340]">Business snapshot</p>
-          <p className="mt-1 text-[12px] font-medium text-[#8E95B5]">What needs attention now</p>
+          <p className="text-[14px] font-semibold text-[#111827]">Business snapshot</p>
+          <p className="mt-1 text-[12px] font-medium text-[#6B7280]">What needs attention now</p>
         </div>
-        <Settings2 className="h-5 w-5 text-[#8E95B5]" />
+        <Settings2 className="h-5 w-5 text-[#6B7280]" />
       </div>
       <div className="mt-4 grid gap-2">
         {items.map((item) => {
@@ -333,12 +333,12 @@ function BusinessSnapshotCard({
               key={item.label}
               className="flex items-center gap-3 rounded-2xl border border-white/55 bg-white/50 px-3 py-3"
             >
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#EEFBFC] text-[#00A7B8]">
                 <Icon className="h-5 w-5" />
               </span>
               <span className="min-w-0">
-                <span className="block text-[12px] font-medium text-[#8E95B5]">{item.label}</span>
-                <span className="block truncate text-[13px] font-semibold text-[#1F2340]">
+                <span className="block text-[12px] font-medium text-[#6B7280]">{item.label}</span>
+                <span className="block truncate text-[13px] font-semibold text-[#111827]">
                   {item.value}
                 </span>
               </span>
@@ -402,7 +402,7 @@ function getStatusColor(status: BookingStatus) {
     case "approved":
       return "#10B981";
     case "completed":
-      return "#6366F1";
+      return "#00A7B8";
     case "cancelled":
       return "#EF4444";
     default:

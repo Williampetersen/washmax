@@ -38,8 +38,8 @@ export default async function AgentLoginPage({
     <main className="px-4 pb-12 pt-10 sm:px-6">
       <section className="mx-auto max-w-5xl">
         <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="rounded-[2rem] bg-[linear-gradient(155deg,#1F2340,#3730A3_52%,#0F766E)] p-8 text-white shadow-[0_30px_80px_rgba(31,35,64,0.2)]">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#C7D2FE]">
+          <div className="rounded-[2rem] bg-[linear-gradient(155deg,#0B1F3A,#12345A_52%,#00A7B8)] p-8 text-white shadow-[0_30px_80px_rgba(11,31,58,0.2)]">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">
               CleanWash Agents
             </p>
             <h1 className="mt-4 font-display text-4xl font-semibold leading-tight">
@@ -52,7 +52,7 @@ export default async function AgentLoginPage({
 
           <Card className="p-8">
             <div className="flex items-center gap-3">
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#EEF0FF] text-[#6366F1]">
+              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#eefbfc] text-[var(--brand)]">
                 <LockKeyhole className="h-6 w-6" />
               </span>
               <div>
@@ -88,7 +88,7 @@ export default async function AgentLoginPage({
               </Button>
             </form>
 
-            <div className="mt-6 flex items-center gap-2 rounded-2xl bg-[#F6FBFF] px-4 py-3 text-sm text-[#1A506D]">
+            <div className="mt-6 flex items-center gap-2 rounded-2xl bg-[#eefbfc] px-4 py-3 text-sm text-[var(--accent)]">
               <ShieldCheck className="h-4 w-4" />
               Agentadgang er separat fra admin-login.
             </div>

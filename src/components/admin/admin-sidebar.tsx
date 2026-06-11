@@ -34,18 +34,18 @@ export function AdminSidebar({
   view: AdminSidebarView;
 }) {
   return (
-    <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] text-[#1F2340] shadow-[0_8px_32px_rgba(99,102,241,0.08)] backdrop-blur-2xl xl:sticky xl:top-4 xl:self-start">
+    <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] text-[#111827] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl xl:sticky xl:top-4 xl:self-start">
       <div className="border-b border-white/55 px-4 py-5">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#6366F1] text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)]">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#00A7B8] text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)]">
             CW
           </div>
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
               CleanWash
             </p>
             <p className="mt-1 text-[13px] font-semibold">Admin Panel</p>
-            <p className="truncate text-[12px] font-medium text-[#8E95B5]">{sessionEmail}</p>
+            <p className="truncate text-[12px] font-medium text-[#6B7280]">{sessionEmail}</p>
           </div>
         </div>
       </div>
@@ -62,8 +62,8 @@ export function AdminSidebar({
               className={cn(
                 "flex min-w-[8.75rem] snap-start items-center gap-2 rounded-2xl px-3 py-2.5 text-[13px] font-semibold transition duration-[250ms] xl:min-w-0",
                 isActive
-                  ? "bg-[#6366F1] text-white shadow-[0_8px_20px_rgba(99,102,241,0.18)]"
-                  : "text-[#8E95B5] hover:-translate-y-0.5 hover:bg-white/70 hover:text-[#1F2340]"
+                  ? "bg-[#00A7B8] text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)]"
+                  : "text-[#6B7280] hover:-translate-y-0.5 hover:bg-white/70 hover:text-[#111827]"
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
@@ -75,14 +75,14 @@ export function AdminSidebar({
 
       <div className="border-t border-white/55 px-4 py-4">
         <div className="mb-3 flex items-center justify-between gap-3">
-          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#6366F1]">
+          <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
             I dag
           </p>
           <span className="rounded-full border border-[#10B981]/20 bg-[#10B981]/10 px-2.5 py-1 text-[12px] font-semibold text-[#047857]">
             Live
           </span>
         </div>
-        <div className="grid grid-cols-3 gap-2 text-[13px] text-[#1F2340]">
+        <div className="grid grid-cols-3 gap-2 text-[13px] text-[#111827]">
           <SidebarStat label="Jobs" value={dashboard.stats.todayBookings.toString()} />
           <SidebarStat label="Afventer" value={dashboard.stats.pendingBookings.toString()} />
           <SidebarStat label="Åbne" value={formatShortPrice(dashboard.stats.outstandingRevenue)} />
@@ -94,7 +94,7 @@ export function AdminSidebar({
           <Button
             type="submit"
             variant="ghost"
-            className="w-full justify-start rounded-2xl text-[13px] font-semibold text-[#8E95B5] hover:bg-white/70 hover:text-[#1F2340]"
+            className="w-full justify-start rounded-2xl text-[13px] font-semibold text-[#6B7280] hover:bg-white/70 hover:text-[#111827]"
           >
             <LogOut className="h-5 w-5" />
             Log ud
@@ -108,8 +108,8 @@ export function AdminSidebar({
 function SidebarStat({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-2xl border border-white/55 bg-white/55 px-2.5 py-2">
-      <span className="block truncate text-[11px] font-medium text-[#8E95B5]">{label}</span>
-      <strong className="mt-1 block truncate text-[12px] text-[#1F2340]">{value}</strong>
+      <span className="block truncate text-[11px] font-medium text-[#6B7280]">{label}</span>
+      <strong className="mt-1 block truncate text-[12px] text-[#111827]">{value}</strong>
     </div>
   );
 }

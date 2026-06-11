@@ -546,7 +546,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             {/* Header */}
             <div className="bg-gradient-to-br from-[#102d38] to-[#1a6080] px-8 py-10 text-center text-white">
               <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-white/15 ring-4 ring-white/25">
-                <CheckCircle2 className="h-10 w-10 text-[#78cdea]" />
+                <CheckCircle2 className="h-10 w-10 text-[#67e8f9]" />
               </div>
               <h1 className="font-display text-3xl font-bold sm:text-4xl">Tak for din booking!</h1>
               <p className="mt-3 text-[#a8d8eb]">
@@ -558,7 +558,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
             {/* Summary */}
             <div className="space-y-4 px-8 py-8">
-              <div className="grid gap-3 rounded-2xl bg-[#f4f9fb] p-5 text-sm">
+              <div className="grid gap-3 rounded-2xl bg-[#f6fbfc] p-5 text-sm">
                 <ConfirmRow icon="🚗" label="Bil" value={confirmation.vehicleName} />
                 <ConfirmRow icon="✨" label="Pakke" value={confirmation.packageLabel} />
                 <ConfirmRow icon="📅" label="Tidspunkt" value={confirmation.appointmentLabel} />
@@ -567,7 +567,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
               {/* Email notice */}
               <div className="flex items-start gap-3 rounded-2xl border border-[#c3e8d8] bg-[#f0faf6] p-4 text-sm">
-                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[#12b886]" />
+                <Mail className="mt-0.5 h-5 w-5 shrink-0 text-[var(--color-success)]" />
                 <div>
                   <p className="font-semibold text-[#0d6b47]">
                     {confirmation.emailSent ? "Bekræftelse sendt!" : "Booking registreret"}
@@ -589,7 +589,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               <div className="flex flex-col gap-3 pt-2 sm:flex-row">
                 <a
                   href={(() => { try { const u = new URL(confirmation.portalUrl, window.location.origin); u.searchParams.set("booking", "confirmed"); return u.toString(); } catch { return confirmation.portalUrl; } })()}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2388d1] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--brand)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#008a99]"
                 >
                   <CalendarDays className="h-4 w-4" />
                   Se mine bookinger
@@ -597,7 +597,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 <button
                   type="button"
                   onClick={handleChangeVehicle}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#dde8ed] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)] transition hover:bg-[#f4f9fb]"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--ink)] transition hover:bg-[#f6fbfc]"
                 >
                   <RotateCcw className="h-4 w-4" />
                   Ny booking
@@ -621,7 +621,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       <form onSubmit={(event) => { event.preventDefault(); submitPlateLookup(); }} className="mt-6 grid max-w-xl gap-3">
         <label className="block">
           <span className="sr-only">Dansk nummerplade</span>
-          <div className="flex w-full max-w-full overflow-hidden rounded-md border border-[#9cb0bd] bg-white focus-within:border-[#2388d1] focus-within:ring-4 focus-within:ring-[#2388d1]/16">
+          <div className="flex w-full max-w-full overflow-hidden rounded-md border border-[var(--line)] bg-white focus-within:border-[var(--brand)] focus-within:ring-4 focus-within:ring-[#00A7B8]/15">
             <Image src="/DKEU.svg" alt="DK" width={48} height={54} className="h-[4.35rem] w-14 shrink-0 object-cover" />
             <input
               name="plate"
@@ -633,7 +633,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               maxLength={10}
               value={plate}
               onChange={(event) => schedulePlateLookup(event.target.value)}
-              className="w-0 min-w-0 flex-1 border-0 bg-white px-4 text-[clamp(1.5rem,7vw,3rem)] font-semibold uppercase tracking-[0.08em] text-[#222] outline-none placeholder:text-[#d7d7d7]"
+              className="w-0 min-w-0 flex-1 border-0 bg-white px-4 text-[clamp(1.5rem,7vw,3rem)] font-semibold uppercase tracking-[0.08em] text-[var(--ink)] outline-none placeholder:text-[#cbd5e1]"
             />
           </div>
         </label>
@@ -643,7 +643,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
         </Button>
       </form>
       {lookupStatus ? (
-        <div className={cn("mt-4 rounded-md border px-4 py-3 text-sm", lookupStatus.type === "error" ? "border-red-200 bg-red-50 text-red-700" : "border-[#2388d1]/30 bg-[#eef8ff] text-[#0d526d]")}>
+        <div className={cn("mt-4 rounded-md border px-4 py-3 text-sm", lookupStatus.type === "error" ? "border-red-200 bg-red-50 text-red-700" : "border-[#00A7B8]/30 bg-[#eefbfc] text-[var(--accent)]")}>
           {lookupStatus.message}
         </div>
       ) : null}
@@ -657,9 +657,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           <div className="space-y-3">
 
             {/* Vehicle bar */}
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#dde8ed] bg-white px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--line)] bg-white px-4 py-3">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e9f8ff] text-[#2388d1]">🚗</span>
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eefbfc] text-[var(--brand)]">🚗</span>
                 <div>
                   <p className="font-semibold text-[var(--ink)]">{vehicleName}</p>
                   <p className="text-xs text-[var(--muted)]">{vehicle.registration_number} · {vehicle.type || "Bil"} · {vehicle.model_year || "-"}</p>
@@ -667,7 +667,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               </div>
               <div className="flex items-center gap-2">
                 {isLookupPending ? (
-                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#2388d1]">
+                  <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--brand)]">
                     <LoaderCircle className="h-4 w-4 animate-spin" /> Tjekker...
                   </span>
                 ) : null}
@@ -740,7 +740,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   <button
                     type="button"
                     onClick={() => goToStep(3)}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#2388d1] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0]"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[var(--cta)] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(245,158,11,0.22)] transition hover:bg-[var(--cta-hover)]"
                   >
                     Videre til dato og tid <ArrowRight className="h-4 w-4" />
                   </button>
@@ -750,15 +750,15 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
             {/* ── Second car inline option (not a step) ───────────── */}
             {openStep >= 2 ? (
-              <div className="overflow-hidden rounded-2xl border border-[#dde8ed] bg-white">
+              <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
                 <button
                   type="button"
                   onClick={() => { setHasSecondCar(!hasSecondCar); if (hasSecondCar) setSecondCarPlate(""); }}
-                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-[#f8fafb]"
+                  className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-[#f6fbfc]"
                 >
                   <span className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition",
-                    hasSecondCar ? "bg-[#2388d1] text-white" : "bg-[#f0f6f9] text-[#9ab0bc]"
+                    hasSecondCar ? "bg-[var(--brand)] text-white" : "bg-[#eefbfc] text-[var(--muted)]"
                   )}>
                     <Car className="h-4 w-4" />
                   </span>
@@ -771,15 +771,15 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     )}
                   </div>
                   {hasSecondCar ? (
-                    <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[#2388d1]">
+                    <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--brand)]">
                       <Sparkles className="h-3.5 w-3.5" />
                       Sparer {Math.round(total * 15 / 100).toLocaleString("da-DK")} kr
                     </span>
                   ) : null}
                 </button>
                 {hasSecondCar ? (
-                  <div className="border-t border-[#e5edf1] px-4 pb-4 pt-3">
-                    <label className="mb-1.5 block text-xs font-semibold text-[#2388d1]">Nummerplade på den anden bil</label>
+                  <div className="border-t border-[var(--line)] px-4 pb-4 pt-3">
+                    <label className="mb-1.5 block text-xs font-semibold text-[var(--brand)]">Nummerplade på den anden bil</label>
                     <input
                       type="text"
                       inputMode="text"
@@ -788,7 +788,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       maxLength={10}
                       value={secondCarPlate}
                       onChange={(e) => setSecondCarPlate(e.target.value.toUpperCase())}
-                      className="block w-full rounded-xl border border-[#9cb0bd] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[#222] outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
+                      className="block w-full rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[var(--ink)] outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[#00A7B8]/15"
                     />
                   </div>
                 ) : null}
@@ -834,13 +834,13 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     {appointmentDate ? (
                       <>
                         <p className="font-semibold text-[var(--ink)]">{appointmentDateLabel}</p>
-                        <p className={cn("mt-1 text-sm", isAvailabilityLoading ? "text-[#2388d1]" : "text-[var(--muted)]")}>
+                        <p className={cn("mt-1 text-sm", isAvailabilityLoading ? "text-[var(--brand)]" : "text-[var(--muted)]")}>
                           {isAvailabilityLoading ? "Henter ledige tider…" : "Ledige tider"}
                         </p>
                         {isAvailabilityLoading ? (
                           <div className="mt-4 grid gap-3 sm:grid-cols-2">
                             {[1, 2, 3].map((n) => (
-                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[#e5edf1] bg-[#f0f6f9]" />
+                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[var(--line)] bg-[#eefbfc]" />
                             ))}
                           </div>
                         ) : availabilityError ? (
@@ -859,8 +859,8 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                                   className={cn(
                                     "rounded-xl border px-4 py-3 text-sm font-semibold transition",
                                     isActive
-                                      ? "border-[#55b9df] bg-[#6ec7eb] text-[#083047] shadow-md"
-                                      : "border-[var(--line)] bg-[#f6f8fa] text-[var(--ink)] hover:border-[#8bd4ef]"
+                                      ? "border-[var(--brand)] bg-[var(--brand)] text-white shadow-md"
+                                      : "border-[var(--line)] bg-[#f6f8fa] text-[var(--ink)] hover:border-[var(--brand)]"
                                   )}
                                 >
                                   {slot}
@@ -874,12 +874,12 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       </>
                     ) : (
                       <div className="flex h-full flex-col items-center justify-center py-10 text-center text-[var(--muted)]">
-                        <CalendarDays className="mb-3 h-8 w-8 text-[#b3d8e8]" />
+                        <CalendarDays className="mb-3 h-8 w-8 text-[#99dfe7]" />
                         <p className="text-sm font-semibold">Vælg en dag i kalenderen</p>
                         <p className="mt-1 text-xs">Derefter vises ledige tider her.</p>
                       </div>
                     )}
-                    <div className="mt-5 space-y-2 border-t border-[#e8f0f4] pt-4 text-xs text-[var(--muted)]">
+                    <div className="mt-5 space-y-2 border-t border-[var(--line)] pt-4 text-xs text-[var(--muted)]">
                       <p>{settings.defaultBookingStatus === "approved" ? "Booking godkendes automatisk — du får bekræftelse på email med det samme." : "Booking starter som afventer — vi godkender og sender bekræftelse."}</p>
                       <p>{areaCoverageHint}</p>
                     </div>
@@ -890,7 +890,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     type="button"
                     onClick={() => goToStep(4)}
                     disabled={!appointmentTime}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#2388d1] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#1a70b0] disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 rounded-xl bg-[var(--cta)] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(245,158,11,0.22)] transition hover:bg-[var(--cta-hover)] disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     Videre til dine oplysninger <ArrowRight className="h-4 w-4" />
                   </button>
@@ -909,10 +909,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               >
                 <form id="booking-details" onSubmit={onSubmit} className="space-y-6">
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <button type="button" onClick={() => form.setValue("customerType", "private")} className={cn("rounded-2xl border px-4 py-4 text-sm font-semibold transition", customerType === "private" ? "border-[#55b9df] bg-[#eef8ff] text-[#2388d1]" : "border-[var(--line)] bg-white text-[var(--ink)]")}>
+                    <button type="button" onClick={() => form.setValue("customerType", "private")} className={cn("rounded-2xl border px-4 py-4 text-sm font-semibold transition", customerType === "private" ? "border-[var(--brand)] bg-[#eefbfc] text-[var(--brand)]" : "border-[var(--line)] bg-white text-[var(--ink)]")}>
                       Privat
                     </button>
-                    <button type="button" onClick={() => form.setValue("customerType", "business")} className={cn("rounded-2xl border px-4 py-4 text-sm font-semibold transition", customerType === "business" ? "border-[#55b9df] bg-[#eef8ff] text-[#2388d1]" : "border-[var(--line)] bg-white text-[var(--ink)]")}>
+                    <button type="button" onClick={() => form.setValue("customerType", "business")} className={cn("rounded-2xl border px-4 py-4 text-sm font-semibold transition", customerType === "business" ? "border-[var(--brand)] bg-[#eefbfc] text-[var(--brand)]" : "border-[var(--line)] bg-white text-[var(--ink)]")}>
                       Erhverv
                     </button>
                   </div>
@@ -937,7 +937,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   <div className="space-y-3 text-sm">
                     <div className="rounded-[1.5rem] border border-[#cde6f6] bg-[#f6fbff] px-4 py-4 text-[#1a506d]">
                       <p className="flex items-center gap-2 font-semibold text-[var(--ink)]">
-                        <Mail className="h-4 w-4 text-[#2388d1]" /> Emailopdateringer
+                        <Mail className="h-4 w-4 text-[var(--brand)]" /> Emailopdateringer
                       </p>
                       <p className="mt-2 leading-6">
                         {settings.defaultBookingStatus === "approved"
@@ -946,20 +946,20 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       </p>
                     </div>
                     <label className="flex items-start gap-3">
-                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-[#9cb0bd]" {...form.register("acceptsTerms")} />
+                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-[var(--line)]" {...form.register("acceptsTerms")} />
                       <span>Jeg accepterer handelsbetingelserne og persondatapolitikken</span>
                     </label>
                     {form.formState.errors.acceptsTerms?.message ? (
                       <p className="-mt-1 text-sm text-red-600">{form.formState.errors.acceptsTerms.message}</p>
                     ) : null}
                     <label className="flex items-start gap-3">
-                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-[#9cb0bd]" {...form.register("wantsMarketing")} />
+                      <input type="checkbox" className="mt-1 h-4 w-4 rounded border-[var(--line)]" {...form.register("wantsMarketing")} />
                       <span>Ja tak, jeg vil gerne modtage tilbud og nyheder</span>
                     </label>
                   </div>
-                  <div className="rounded-2xl border border-[#dde8ed] bg-[#f8fafb] px-4 py-4">
+                  <div className="rounded-2xl border border-[var(--line)] bg-[#f6fbfc] px-4 py-4">
                     <p className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
-                      <Tag className="h-4 w-4 text-[#2388d1]" /> Rabatkode
+                      <Tag className="h-4 w-4 text-[var(--brand)]" /> Rabatkode
                     </p>
                     {appliedCoupon ? (
                       <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#c3e8d8] bg-[#f0faf6] px-3 py-2.5">
@@ -980,13 +980,13 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                           value={couponCode}
                           onChange={(e) => { setCouponCode(e.target.value.toUpperCase()); setCouponError(""); }}
                           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void validateCoupon(); } }}
-                          className="min-w-0 flex-1 rounded-xl border border-[#9cb0bd] bg-white px-3 py-2 text-sm font-semibold uppercase tracking-wider outline-none focus:border-[#2388d1] focus:ring-2 focus:ring-[#2388d1]/16"
+                          className="min-w-0 flex-1 rounded-xl border border-[var(--line)] bg-white px-3 py-2 text-sm font-semibold uppercase tracking-wider outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[#00A7B8]/15"
                         />
                         <button
                           type="button"
                           onClick={validateCoupon}
                           disabled={couponLoading || !couponCode.trim()}
-                          className="inline-flex items-center gap-1.5 rounded-xl bg-[#2388d1] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1a70b0] disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 rounded-xl bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-soft)] disabled:opacity-50"
                         >
                           {couponLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : "Anvend"}
                         </button>
@@ -1009,23 +1009,23 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
           {/* ── Desktop sidebar ──────────────────────────────────── */}
           <aside className="hidden xl:sticky xl:top-28 xl:block">
-            <Card className="rounded-[1.5rem] border-[#d8e5ea] p-6 shadow-none">
+            <Card className="rounded-[1.5rem] border-[var(--line)] p-6 shadow-none">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#e9f8ff] text-[#2388d1]">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eefbfc] text-[var(--brand)]">
                   <CalendarDays className="h-5 w-5" />
                 </span>
                 <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Din booking</h3>
               </div>
               <div className="mt-6 space-y-3">
-                <div className="rounded-xl bg-[#f8fafb] px-4 py-4">
+                <div className="rounded-xl bg-[#f6fbfc] px-4 py-4">
                   <SummaryRow label="Bil" value={vehicleName} />
-                  <div className="mt-3 border-t border-[#dce8ed] pt-3">
+                  <div className="mt-3 border-t border-[var(--line)] pt-3">
                     <SummaryRow label={activePackageData.title} value={formatPrice(basePrice)} />
                   </div>
                   <p className="mt-2 text-xs font-medium text-[var(--muted)]">{vehicle.registration_number} · {vehicleTypeLabel}</p>
                 </div>
                 {selectedAddons.length > 0 ? (
-                  <div className="rounded-xl bg-[#f8fafb] px-4 py-4 text-sm">
+                  <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
                     <p className="font-semibold text-[var(--ink)]">Tilvalg</p>
                     <div className="mt-2 space-y-2">
                       {selectedAddons.map((addon) => (
@@ -1034,11 +1034,11 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </div>
                   </div>
                 ) : null}
-                <div className="rounded-xl bg-[#f8fafb] px-4 py-4">
+                <div className="rounded-xl bg-[#f6fbfc] px-4 py-4">
                   <SummaryRow label="Dato og tid" value={appointmentLabel} />
                 </div>
                 {travelSurcharge > 0 ? (
-                  <div className="rounded-xl bg-[#f8fafb] px-4 py-4">
+                  <div className="rounded-xl bg-[#f6fbfc] px-4 py-4">
                     <SummaryRow label="Kørselstillæg" value={formatPrice(travelSurcharge)} />
                   </div>
                 ) : null}
@@ -1058,10 +1058,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     ) : null}
                   </div>
                 ) : null}
-                <div className="rounded-xl bg-[#eef8ff] px-4 py-4">
+                <div className="rounded-xl bg-[#eefbfc] px-4 py-4">
                   <div className="flex items-center justify-between gap-4">
                     <span className="text-sm font-semibold text-[var(--ink)]">Total</span>
-                    <span className="text-2xl font-semibold text-[#55b9df]">{formatShortPrice(finalTotal)}</span>
+                    <span className="text-2xl font-semibold text-[var(--brand)]">{formatShortPrice(finalTotal)}</span>
                   </div>
                   <p className="mt-1 text-right text-xs font-medium text-[var(--muted)]">inkl. moms</p>
                 </div>
@@ -1073,9 +1073,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           {isMobileSummaryOpen ? (
             <div className="fixed inset-0 z-[60] flex items-end bg-black/55 px-3 xl:hidden">
               <div role="dialog" aria-modal="true" aria-labelledby="mobile-booking-summary-title" className="mx-auto flex max-h-[calc(100dvh-3rem)] max-w-xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-[0_-20px_60px_rgba(0,0,0,0.22)]">
-                <div className="flex items-start justify-between gap-4 border-b border-[#e1edf2] px-5 py-4">
+                <div className="flex items-start justify-between gap-4 border-b border-[var(--line)] px-5 py-4">
                   <div className="flex items-center gap-2">
-                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#e9f8ff] text-[#55b9df]"><CalendarDays className="h-4 w-4" /></span>
+                    <span className="flex h-7 w-7 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]"><CalendarDays className="h-4 w-4" /></span>
                     <h3 id="mobile-booking-summary-title" className="font-display text-xl font-semibold text-[var(--ink)]">Din booking</h3>
                   </div>
                   <button type="button" onClick={() => setIsMobileSummaryOpen(false)} aria-label="Luk" className="rounded-md p-2 text-[var(--muted)] transition hover:bg-[#f2f7f9]">
@@ -1083,10 +1083,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   </button>
                 </div>
                 <div className="space-y-4 overflow-y-auto px-5 py-4">
-                  <div className="rounded-xl bg-[#f8fafb] px-4 py-4 text-sm">
+                  <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
                     <p className="font-semibold text-[var(--ink)]">{vehicleName}</p>
                     <p className="mt-1 text-[var(--muted)]">{vehicle.registration_number}</p>
-                    <div className="mt-3 border-t border-[#dce8ed] pt-3">
+                    <div className="mt-3 border-t border-[var(--line)] pt-3">
                       <div className="flex justify-between"><span className="text-[var(--muted)]">{activePackageData.title}</span><strong>{formatPrice(basePrice)}</strong></div>
                     </div>
                     {selectedAddons.map((addon) => (
@@ -1096,7 +1096,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       </div>
                     ))}
                   </div>
-                  <div className="rounded-xl bg-[#f8fafb] px-4 py-4 text-sm">
+                  <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
                     <p className="font-semibold text-[var(--ink)]">Tidspunkt</p>
                     <p className="mt-2 text-[var(--muted)]">{appointmentLabel}</p>
                   </div>
@@ -1108,16 +1108,16 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       </div>
                     </div>
                   ) : null}
-                  <div className="rounded-xl bg-[#eef8ff] px-4 py-4">
+                  <div className="rounded-xl bg-[#eefbfc] px-4 py-4">
                     <div className="flex items-center justify-between gap-4">
                       <span className="text-lg font-semibold text-[var(--ink)]">Total</span>
-                      <span className="text-2xl font-semibold text-[#55b9df]">{formatShortPrice(finalTotal)}</span>
+                      <span className="text-2xl font-semibold text-[var(--brand)]">{formatShortPrice(finalTotal)}</span>
                     </div>
                     <p className="mt-1 text-right text-xs font-medium text-[var(--muted)]">inkl. moms</p>
                   </div>
                 </div>
-                <div className="border-t border-[#e1edf2] bg-white px-5 py-4">
-                  <button type="button" onClick={() => { setIsMobileSummaryOpen(false); document.getElementById("booking-details")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} className="flex h-12 w-full items-center justify-center rounded-xl bg-[#78cdea] px-4 text-sm font-semibold text-[#123549]">
+                <div className="border-t border-[var(--line)] bg-white px-5 py-4">
+                  <button type="button" onClick={() => { setIsMobileSummaryOpen(false); document.getElementById("booking-details")?.scrollIntoView({ behavior: "smooth", block: "start" }); }} className="flex h-12 w-full items-center justify-center rounded-xl bg-[var(--cta)] px-4 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(245,158,11,0.24)]">
                     Fortsæt booking · {formatShortPrice(finalTotal)}
                   </button>
                 </div>
@@ -1126,14 +1126,14 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           ) : null}
 
           {/* ── Mobile bottom bar ────────────────────────────────── */}
-          <div className={cn("fixed inset-x-0 bottom-0 z-50 border-t border-[#d8e5ea] bg-white/95 px-4 py-3 shadow-[0_-16px_40px_rgba(8,27,21,0.12)] backdrop-blur xl:hidden", isMobileSummaryOpen && "hidden")}>
+          <div className={cn("fixed inset-x-0 bottom-0 z-50 border-t border-[var(--line)] bg-white/95 px-4 py-3 shadow-[0_-16px_40px_rgba(8,27,21,0.12)] backdrop-blur xl:hidden", isMobileSummaryOpen && "hidden")}>
             <div className="mx-auto flex max-w-xl items-center gap-2 overflow-hidden">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#e9f8ff] text-[#55b9df]"><CalendarDays className="h-5 w-5" /></span>
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eefbfc] text-[var(--brand)]"><CalendarDays className="h-5 w-5" /></span>
               <div className="min-w-0 flex-1">
-                <p className="text-xl font-semibold leading-none text-[#2388d1]">{formatShortPrice(finalTotal)}</p>
+                <p className="text-xl font-semibold leading-none text-[var(--brand)]">{formatShortPrice(finalTotal)}</p>
                 <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{activePackageData.title} · Trin {openStep} af 4</p>
               </div>
-              <button type="button" onClick={() => setIsMobileSummaryOpen(true)} className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-[#55b9df] px-3 text-sm font-semibold text-white">
+              <button type="button" onClick={() => setIsMobileSummaryOpen(true)} className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-[var(--cta)] px-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(245,158,11,0.22)]">
                 Se oversigt
               </button>
             </div>
@@ -1167,8 +1167,8 @@ function PackageCard({
       className={cn(
         "flex flex-col overflow-hidden rounded-2xl border text-left transition",
         isActive
-          ? "border-[#55b9df] shadow-[0_8px_32px_rgba(35,136,209,0.18)]"
-          : "border-[#e5edf1] bg-white hover:border-[#8bd4ef] hover:shadow-md"
+          ? "border-[var(--brand)] shadow-[0_8px_32px_rgba(0,167,184,0.18)]"
+          : "border-[var(--line)] bg-white hover:border-[var(--brand)] hover:shadow-md"
       )}
     >
       {/* Image */}
@@ -1176,14 +1176,14 @@ function PackageCard({
         <div className="relative h-44 w-full overflow-hidden">
           <Image src={item.imageUrl} alt="" fill sizes="(max-width:640px) 100vw,33vw" className="object-cover" />
           {isActive ? (
-            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[#2388d1] text-white shadow-md">
+            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md">
               <Check className="h-4 w-4" />
             </span>
           ) : null}
         </div>
       ) : (
-        <div className={cn("flex h-32 items-center justify-center", isActive ? "bg-[#e8f5fd]" : "bg-[#f0f6f9]")}>
-          <Sparkles className={cn("h-10 w-10", isActive ? "text-[#2388d1]" : "text-[#b3d8e8]")} />
+        <div className="flex h-32 items-center justify-center bg-[#eefbfc]">
+          <Sparkles className={cn("h-10 w-10", isActive ? "text-[var(--brand)]" : "text-[#99dfe7]")} />
         </div>
       )}
 
@@ -1196,17 +1196,17 @@ function PackageCard({
             {item.duration}
           </span>
           <span className="text-sm text-[var(--muted)]">
-            Fra <strong className="text-base text-[#2388d1]">{formatShortPrice(price)}</strong>
+            Fra <strong className="text-base text-[var(--brand)]">{formatShortPrice(price)}</strong>
           </span>
         </div>
 
         {features.length > 0 ? (
           <div className="mt-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#2388d1]">Dette er inkluderet</p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Dette er inkluderet</p>
             <ul className="mt-2 space-y-1.5">
               {visibleFeatures.map((f, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-[var(--muted)]">
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#2388d1]" />
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" />
                   {f}
                 </li>
               ))}
@@ -1215,7 +1215,7 @@ function PackageCard({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[#2388d1] hover:underline"
+                className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
               >
                 {expanded ? `Se mindre ▲` : `Se mere (+${features.length - 4}) ▼`}
               </button>
@@ -1245,8 +1245,8 @@ function AddonCard({
       className={cn(
         "relative flex flex-col overflow-hidden rounded-2xl border text-left transition",
         isSelected
-          ? "border-[#0d9e72] shadow-[0_4px_16px_rgba(13,158,114,0.18)]"
-          : "border-[#e5edf1] bg-white hover:border-[#8bd4ef] hover:shadow-sm"
+          ? "border-[var(--brand)] shadow-[0_4px_16px_rgba(0,167,184,0.18)]"
+          : "border-[var(--line)] bg-white hover:border-[var(--brand)] hover:shadow-sm"
       )}
     >
       {/* Image */}
@@ -1254,32 +1254,32 @@ function AddonCard({
         {addon.imageUrl ? (
           <Image src={addon.imageUrl} alt="" fill sizes="(max-width:640px) 50vw,25vw" className="object-cover" />
         ) : (
-          <div className={cn("h-full w-full", isSelected ? "bg-[#0a6b4e]" : "bg-[#f0f6f9]")} />
+          <div className={cn("h-full w-full", isSelected ? "bg-[var(--accent)]" : "bg-[#eefbfc]")} />
         )}
         {/* Price badge */}
         {addon.price ? (
           <span className={cn(
             "absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-bold shadow-sm",
-            isSelected ? "bg-[#12b886] text-white" : "bg-white/90 text-[var(--ink)]"
+            isSelected ? "bg-[var(--color-success)] text-white" : "bg-white/90 text-[var(--ink)]"
           )}>
             {formatShortPrice(Number(addon.price))}
           </span>
         ) : null}
         {/* Check badge */}
         {isSelected ? (
-          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[#12b886] text-white shadow-sm">
+          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-success)] text-white shadow-sm">
             <Check className="h-3.5 w-3.5" />
           </span>
         ) : null}
       </div>
 
       {/* Content */}
-      <div className={cn("p-2.5", isSelected ? "bg-[#0d4f38]" : "bg-white")}>
+      <div className={cn("p-2.5", isSelected ? "bg-[var(--accent)]" : "bg-white")}>
         <p className={cn("text-xs font-semibold leading-tight", isSelected ? "text-white" : "text-[var(--ink)]")}>
           {addon.label}
         </p>
         {isSelected && addon.description ? (
-          <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#8fe8ca]">{addon.description}</p>
+          <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#99f6e4]">{addon.description}</p>
         ) : null}
       </div>
     </button>
@@ -1292,7 +1292,7 @@ function ConfirmRow({ icon, label, value, highlight }: { icon: string; label: st
       <span className="flex items-center gap-2 text-sm text-[var(--muted)]">
         <span>{icon}</span> {label}
       </span>
-      <span className={cn("text-sm font-semibold", highlight ? "text-lg text-[#2388d1]" : "text-[var(--ink)]")}>{value}</span>
+      <span className={cn("text-sm font-semibold", highlight ? "text-lg text-[var(--brand)]" : "text-[var(--ink)]")}>{value}</span>
     </div>
   );
 }
@@ -1342,10 +1342,10 @@ function BookingAccordion({
       className={cn(
         "overflow-hidden rounded-2xl border transition-all",
         isOpen
-          ? "border-[#b3dff0] bg-white shadow-[0_8px_32px_rgba(35,136,209,0.10)]"
+          ? "border-[var(--brand)] bg-white shadow-[0_8px_32px_rgba(0,167,184,0.12)]"
           : isCompleted
-          ? "border-[#dde8ed] bg-white"
-          : "border-[#e8eff3] bg-[#f9fafb]"
+          ? "border-[var(--line)] bg-white"
+          : "border-[var(--line)] bg-[#f6fbfc]"
       )}
     >
       <div
@@ -1364,7 +1364,7 @@ function BookingAccordion({
         }
         className={cn(
           "flex items-center justify-between gap-3 px-5 py-4",
-          isCompleted && !isOpen && "cursor-pointer select-none hover:bg-[#f8fafb]"
+          isCompleted && !isOpen && "cursor-pointer select-none hover:bg-[#f6fbfc]"
         )}
       >
         <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2.5">
@@ -1372,10 +1372,10 @@ function BookingAccordion({
             className={cn(
               "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
               isOpen
-                ? "bg-[#2388d1] text-white"
+                ? "bg-[var(--brand)] text-white"
                 : isCompleted
-                ? "bg-[#12b886] text-white"
-                : "bg-[#e8eff3] text-[#9ab0bc]"
+                ? "bg-[var(--color-success)] text-white"
+                : "bg-[#eefbfc] text-[var(--muted)]"
             )}
           >
             {isCompleted && !isOpen ? <Check className="h-3.5 w-3.5" /> : step}
@@ -1383,28 +1383,28 @@ function BookingAccordion({
           <span
             className={cn(
               "font-semibold",
-              isOpen ? "text-[#2388d1]" : isCompleted ? "text-[var(--ink)]" : "text-[#9ab0bc]"
+              isOpen ? "text-[var(--brand)]" : isCompleted ? "text-[var(--ink)]" : "text-[var(--muted)]"
             )}
           >
             {title}
           </span>
           {summary && !isOpen ? (
-            <span className="rounded-full bg-[#eef8ff] px-3 py-1 text-xs font-semibold text-[#2388d1]">
+            <span className="rounded-full bg-[#eefbfc] px-3 py-1 text-xs font-semibold text-[var(--brand)]">
               {summary}
             </span>
           ) : null}
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {!isOpen && !isLocked && icon ? (
-            <span className="text-[#b3dff0]">{icon}</span>
+            <span className="text-[#99dfe7]">{icon}</span>
           ) : null}
           {isCompleted && !isOpen && onEdit ? (
-            <span className="text-xs font-semibold text-[#2388d1]">Rediger</span>
+            <span className="text-xs font-semibold text-[var(--brand)]">Rediger</span>
           ) : null}
         </div>
       </div>
       {isOpen ? (
-        <div className="border-t border-[#e8f0f4] px-5 py-5">{children}</div>
+        <div className="border-t border-[var(--line)] px-5 py-5">{children}</div>
       ) : null}
     </div>
   );

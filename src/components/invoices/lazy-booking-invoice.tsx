@@ -63,7 +63,7 @@ export function LazyBookingInvoice({
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-[#dbe6ee] bg-[#f8fbfd] px-4 py-5 text-sm text-[#64748b]">
+      <div className="rounded-2xl border border-[#DCEEF2] bg-[#F6FBFC] px-4 py-5 text-sm text-[#6B7280]">
         {locale === "da" ? "Indlæser faktura..." : "Loading invoice..."}
       </div>
     );

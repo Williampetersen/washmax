@@ -12,14 +12,14 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 
 const variants: Record<ButtonVariant, string> = {
   primary:
-    "bg-[#12b886] text-white shadow-[0_14px_32px_rgba(18,184,134,0.2)] hover:bg-[#0ca678]",
+    "bg-[var(--cta)] text-white shadow-[0_14px_32px_rgba(245,158,11,0.24)] hover:bg-[var(--cta-hover)]",
   secondary:
-    "bg-[#e9fbf5] text-[#08745a] shadow-[inset_0_0_0_1px_rgba(18,184,134,0.1)] hover:bg-[#dff8ef]",
-  ghost: "bg-transparent text-[var(--ink)] hover:bg-black/4",
+    "bg-[#eefbfc] text-[var(--accent)] shadow-[inset_0_0_0_1px_rgba(0,167,184,0.16)] hover:bg-[#dff7fa]",
+  ghost: "bg-transparent text-[var(--ink)] hover:bg-[#eef8fa]",
   outline:
-    "border border-[#d4e3ed] bg-white text-[var(--ink)] shadow-[0_8px_20px_rgba(7,38,63,0.035)] hover:border-[#16b88f] hover:text-[#08745a]",
+    "border border-[var(--line)] bg-white text-[var(--accent)] shadow-[0_8px_20px_rgba(11,31,58,0.04)] hover:border-[var(--brand)] hover:bg-[#f6fbfc]",
   success:
-    "bg-[#08745a] text-white shadow-[0_14px_32px_rgba(8,116,90,0.2)] hover:bg-[#06634d]",
+    "bg-[var(--color-success)] text-white shadow-[0_14px_32px_rgba(16,185,129,0.22)] hover:bg-[#059669]",
 };
 
 const sizes: Record<ButtonSize, string> = {
