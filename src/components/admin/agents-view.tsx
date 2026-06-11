@@ -555,7 +555,6 @@ function ProfileTab({ agent }: { agent: AdminAgentSummary }) {
           Rediger oplysninger
         </p>
         <form action={`/api/admin/agents/${agent.id}`} method="POST" className="grid gap-3">
-          <input type="hidden" name="action" value="update" />
           <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Fuldt navn">
               <Input name="full_name" defaultValue={agent.fullName} required />
@@ -604,6 +603,11 @@ function ProfileTab({ agent }: { agent: AdminAgentSummary }) {
               value="delete"
               variant="outline"
               className="border-red-200 text-red-600 hover:bg-red-50"
+              onClick={(e) => {
+                if (!window.confirm(`Slet ${agent.fullName}? Denne handling kan ikke fortrydes.`)) {
+                  e.preventDefault();
+                }
+              }}
             >
               Slet
             </Button>

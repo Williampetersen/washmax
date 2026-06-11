@@ -133,6 +133,54 @@ const navItems = [
 const INITIAL_BOOKING_LIMIT = 30;
 const INITIAL_CUSTOMER_LIMIT = 40;
 const INITIAL_PAYMENT_LIMIT = 30;
+const PAGE_SIZE = 10;
+
+function PaginationBar({
+  currentPage,
+  totalPages,
+  buildHref,
+}: {
+  currentPage: number;
+  totalPages: number;
+  buildHref: (page: number) => string;
+}) {
+  if (totalPages <= 1) return null;
+  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  return (
+    <div className="flex items-center justify-center gap-1.5 pt-1">
+      {currentPage > 1 ? (
+        <a
+          href={buildHref(currentPage - 1)}
+          className="flex h-8 items-center justify-center rounded-xl border border-[#e8ebf5] bg-white px-3 text-[12px] font-semibold text-[#374151] shadow-sm transition hover:border-[#00A7B8] hover:text-[#00A7B8]"
+        >
+          ← Forrige
+        </a>
+      ) : null}
+      {pages.map((p) => (
+        <a
+          key={p}
+          href={buildHref(p)}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-xl text-[12px] font-bold transition",
+            p === currentPage
+              ? "bg-[#00A7B8] text-white shadow-[0_2px_8px_rgba(0,167,184,0.3)]"
+              : "border border-[#e8ebf5] bg-white text-[#374151] hover:border-[#00A7B8] hover:text-[#00A7B8]"
+          )}
+        >
+          {p}
+        </a>
+      ))}
+      {currentPage < totalPages ? (
+        <a
+          href={buildHref(currentPage + 1)}
+          className="flex h-8 items-center justify-center rounded-xl border border-[#e8ebf5] bg-white px-3 text-[12px] font-semibold text-[#374151] shadow-sm transition hover:border-[#00A7B8] hover:text-[#00A7B8]"
+        >
+          Næste →
+        </a>
+      ) : null}
+    </div>
+  );
+}
 
 const getTodayDateText = () => {
   const today = new Date();
@@ -201,6 +249,9 @@ export default async function AdminPage({
   const saved = Array.isArray(params.saved) ? params.saved[0] : params.saved || "";
   const error = Array.isArray(params.error) ? params.error[0] : params.error || "";
   const searchQuery = Array.isArray(params.q) ? params.q[0] || "" : params.q || "";
+  const page = Math.max(1, parseInt((Array.isArray(params.page) ? params.page[0] : params.page) ?? "1", 10) || 1);
+  const statusFilter = (Array.isArray(params.status) ? params.status[0] : params.status) ?? "";
+  const pageTab = (Array.isArray(params.tab) ? params.tab[0] : params.tab) ?? "";
   const hasDatabase = isDatabaseConfigured();
   const [dashboard, agentsData, bookingSetupData, adminInvoices, adminCoupons] = await Promise.all([
     getAdminDashboardData(),
@@ -295,6 +346,8 @@ export default async function AdminPage({
             pendingBookings={pendingBookings}
             upcomingBookings={upcomingBookings}
             timeSlots={timeSlots}
+            page={page}
+            statusFilter={statusFilter}
           />
         ) : null}
 
@@ -302,6 +355,7 @@ export default async function AdminPage({
           <CustomersView
             customers={dashboard.customers}
             bookingsByCustomer={bookingsByCustomer}
+            page={page}
           />
         ) : null}
 
@@ -313,7 +367,7 @@ export default async function AdminPage({
           <BookingSetupView data={bookingSetupData} saved={saved} error={error} setupTab={setupTab} />
         ) : null}
 
-        {view === "services" ? <ServicesView dashboard={dashboard} /> : null}
+        {view === "services" ? <ServicesView dashboard={dashboard} tab={pageTab || "packages"} /> : null}
 
         {view === "availability" ? (
           <AvailabilityView dashboard={dashboard} timeSlots={timeSlots} />
@@ -323,12 +377,12 @@ export default async function AdminPage({
           <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs.slice(0, 30)} />
         ) : null}
 
-        {view === "invoices" ? <AdminInvoicesView invoices={adminInvoices} /> : null}
+        {view === "invoices" ? <AdminInvoicesView invoices={adminInvoices} page={page} /> : null}
 
-        {view === "areas" ? <AreasView dashboard={dashboard} /> : null}
+        {view === "areas" ? <AreasView dashboard={dashboard} page={page} tab={pageTab || "areas"} /> : null}
 
         {view === "payments" ? (
-          <PaymentsView unpaidBookings={unpaidBookings} dashboard={dashboard} />
+          <PaymentsView unpaidBookings={unpaidBookings} dashboard={dashboard} page={page} />
         ) : null}
 
         {view === "coupons" ? <CouponsView coupons={adminCoupons} /> : null}
@@ -627,45 +681,48 @@ function StatusDistributionCard({ bookings }: { bookings: DashboardBooking[] }) 
   const activeBookings = bookings.filter((booking) => booking.status !== "cancelled");
   const statuses: BookingStatus[] = ["pending", "approved", "completed", "cancelled"];
   const total = Math.max(1, bookings.length);
+  const barColor: Record<BookingStatus, string> = {
+    pending: "bg-[#F59E0B]",
+    approved: "bg-[#10B981]",
+    completed: "bg-[#00A7B8]",
+    cancelled: "bg-[#EF4444]",
+  };
 
   return (
     <GlassCard className="p-4">
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-white">Status distribution</p>
-          <p className="mt-1 text-xs text-slate-400">{activeBookings.length} active bookings</p>
+          <p className="mt-1 text-xs text-slate-400">{activeBookings.length} aktive bookinger</p>
         </div>
         <ShieldCheck className="h-4 w-4 text-slate-400" />
       </div>
-      <div className="mt-4 grid gap-3">
+      <div className="mt-4 grid gap-2.5">
         {statuses.map((status) => {
-          const count = bookings.filter((booking) => booking.status === status).length;
+          const count = bookings.filter((b) => b.status === status).length;
           const width = Math.max(4, Math.round((count / total) * 100));
           return (
-            <div key={status}>
+            <a
+              key={status}
+              href={`?view=bookings&status=${status}&page=1`}
+              className="group block rounded-xl px-2 py-1.5 transition hover:bg-white/8"
+              title={`Vis alle ${getStatusLabel(status)}-bookinger`}
+            >
               <div className="mb-1.5 flex items-center justify-between text-xs">
                 <StatusBadge status={status} />
-                <span className="font-semibold text-slate-300">{count}</span>
+                <span className="font-bold text-white transition group-hover:text-[#00A7B8]">{count}</span>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-white/8">
+              <div className="h-2 overflow-hidden rounded-full bg-white/10">
                 <div
-                  className={cn(
-                    "h-full rounded-full",
-                    status === "pending"
-                      ? "bg-orange-300"
-                      : status === "approved"
-                        ? "bg-emerald-300"
-                        : status === "completed"
-                          ? "bg-sky-300"
-                          : "bg-red-300"
-                  )}
+                  className={cn("h-full rounded-full transition-all duration-500", barColor[status])}
                   style={{ width: `${width}%` }}
                 />
               </div>
-            </div>
+            </a>
           );
         })}
       </div>
+      <p className="mt-3 text-center text-[10px] text-slate-500">Klik på en status for at filtrere bookinger</p>
     </GlassCard>
   );
 }
@@ -1392,14 +1449,24 @@ function BookingsView({
   pendingBookings,
   upcomingBookings,
   timeSlots,
+  page,
+  statusFilter,
 }: {
   dashboard: DashboardData;
   bookings: DashboardBooking[];
   pendingBookings: DashboardBooking[];
   upcomingBookings: DashboardBooking[];
   timeSlots: string[];
+  page: number;
+  statusFilter: string;
 }) {
-  const visibleBookings = [...bookings].sort(sortBookings).slice(0, INITIAL_BOOKING_LIMIT);
+  const statuses: BookingStatus[] = ["pending", "approved", "completed", "cancelled"];
+  const filtered = statusFilter && statuses.includes(statusFilter as BookingStatus)
+    ? [...bookings].filter((b) => b.status === statusFilter).sort(sortBookings)
+    : [...bookings].sort(sortBookings);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -1419,39 +1486,57 @@ function BookingsView({
       />
 
       <div className="grid gap-3 md:grid-cols-4">
-        <MetricCard
-          label="Alle bookinger"
-          value={dashboard.stats.totalBookings.toString()}
-          detail={`${dashboard.stats.cancelledBookings} annullerede`}
-          icon={ListFilter}
-          tone="blue"
-        />
-        <MetricCard
-          label="Ventende"
-          value={pendingBookings.length.toString()}
-          detail="Kræver hurtig handling"
-          icon={Clock3}
-          tone={pendingBookings.length > 0 ? "orange" : "violet"}
-        />
-        <MetricCard
-          label="Kommende"
-          value={upcomingBookings.length.toString()}
-          detail={`${dashboard.stats.todayBookings} i dag`}
-          icon={CalendarClock}
-          tone="violet"
-        />
-        <MetricCard
-          label="Afsluttede"
-          value={dashboard.stats.completedBookings.toString()}
-          detail="Bevares i historikken"
-          icon={CheckCircle2}
-          tone="green"
-        />
+        {([
+          { label: "Alle", status: "", count: bookings.length, icon: ListFilter, tone: "blue" as const },
+          { label: "Afventer", status: "pending", count: pendingBookings.length, icon: Clock3, tone: (pendingBookings.length > 0 ? "orange" : "violet") as "orange" | "violet" },
+          { label: "Kommende", status: "approved", count: upcomingBookings.length, icon: CalendarClock, tone: "violet" as const },
+          { label: "Afsluttede", status: "completed", count: dashboard.stats.completedBookings, icon: CheckCircle2, tone: "green" as const },
+        ] as const).map((item) => (
+          <a
+            key={item.label}
+            href={item.status ? `?view=bookings&status=${item.status}&page=1` : "?view=bookings&page=1"}
+            className={cn(
+              "block rounded-2xl border px-4 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.07)] backdrop-blur-xl transition hover:-translate-y-0.5",
+              statusFilter === item.status
+                ? "border-[#00A7B8] bg-[#EEFBFC]"
+                : "border-white/60 bg-white/80"
+            )}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">{item.label}</p>
+                <p className="mt-2 text-[22px] font-bold leading-none text-[#111827]">{item.count}</p>
+              </div>
+              <span className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-xl", {
+                blue: "bg-[#EFF6FF] text-[#2563EB]",
+                orange: "bg-[#FFF7ED] text-[#D97706]",
+                violet: "bg-[#EEFBFC] text-[#00A7B8]",
+                green: "bg-[#ECFDF5] text-[#059669]",
+              }[item.tone])}>
+                <item.icon className="h-[18px] w-[18px]" />
+              </span>
+            </div>
+          </a>
+        ))}
       </div>
+
+      {statusFilter ? (
+        <div className="flex items-center gap-3 rounded-2xl border border-[#00A7B8]/20 bg-[#EEFBFC] px-4 py-3">
+          <StatusPill status={statusFilter as BookingStatus} />
+          <p className="flex-1 text-[13px] font-semibold text-[#00A7B8]">
+            Filtreret: {filtered.length} booking{filtered.length !== 1 ? "er" : ""}
+          </p>
+          <a href="?view=bookings&page=1" className="text-[12px] font-semibold text-[#6B7280] underline-offset-2 hover:underline">
+            Ryd filter ×
+          </a>
+        </div>
+      ) : null}
 
       <section className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[12px] font-medium text-[#6B7280]">Viser {visibleBookings.length} af {bookings.length}</p>
+          <p className="text-[12px] font-medium text-[#6B7280]">
+            Side {currentPage} af {totalPages} · {filtered.length} booking{filtered.length !== 1 ? "er" : ""}
+          </p>
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
@@ -1463,26 +1548,28 @@ function BookingsView({
             <span />
           </div>
           <div className="divide-y divide-[#e8ebf5]">
-            {bookings.length > 0 ? (
-              visibleBookings.map((booking) => (
+            {pageItems.length > 0 ? (
+              pageItems.map((booking) => (
                 <BookingActionCard
                   key={booking.id}
                   booking={booking}
-                  returnView="bookings"
+                  returnView={statusFilter ? `bookings&status=${statusFilter}` : "bookings"}
                   timeSlots={timeSlots}
                 />
               ))
             ) : (
               <div className="p-4">
-                <EmptyState text="Ingen bookinger endnu." />
+                <EmptyState text="Ingen bookinger fundet." />
               </div>
             )}
           </div>
         </div>
 
-        {bookings.length > visibleBookings.length ? (
-          <EmptyState text={`Viser de første ${visibleBookings.length} for hurtig indlæsning.`} />
-        ) : null}
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          buildHref={(p) => `?view=bookings&page=${p}${statusFilter ? `&status=${statusFilter}` : ""}`}
+        />
       </section>
     </div>
   );
@@ -1491,11 +1578,15 @@ function BookingsView({
 function CustomersView({
   customers,
   bookingsByCustomer,
+  page,
 }: {
   customers: CustomerSummary[];
   bookingsByCustomer: Map<string, DashboardBooking[]>;
+  page: number;
 }) {
-  const visibleCustomers = customers.slice(0, INITIAL_CUSTOMER_LIMIT);
+  const totalPages = Math.max(1, Math.ceil(customers.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = customers.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -1537,29 +1628,52 @@ function CustomersView({
       </div>
 
       <section className="space-y-3">
-        <p className="text-[12px] font-medium text-[#6B7280]">Viser {visibleCustomers.length} af {customers.length}</p>
-        <div className="grid gap-4">
-          {customers.length > 0 ? (
-            visibleCustomers.map((customer) => (
-              <CustomerCard
-                key={customer.id}
-                customer={customer}
-                bookings={bookingsByCustomer.get(customer.id) || []}
-              />
-            ))
-          ) : (
-            <EmptyState text="Ingen kunder endnu." />
-          )}
-          {customers.length > visibleCustomers.length ? (
-            <EmptyState text={`Viser de første ${visibleCustomers.length} for hurtig indlæsning.`} />
-          ) : null}
+        <p className="text-[12px] font-medium text-[#6B7280]">
+          Side {currentPage} af {totalPages} · {customers.length} kunder
+        </p>
+        <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_8rem_8rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
+            <span>Kunde</span>
+            <span>Kontakt</span>
+            <span>Bookinger</span>
+            <span className="text-right">Forbrug</span>
+          </div>
+          <div className="divide-y divide-[#e8ebf5]">
+            {pageItems.length > 0 ? (
+              pageItems.map((customer) => (
+                <CustomerCard
+                  key={customer.id}
+                  customer={customer}
+                  bookings={bookingsByCustomer.get(customer.id) || []}
+                />
+              ))
+            ) : (
+              <div className="p-4">
+                <EmptyState text="Ingen kunder endnu." />
+              </div>
+            )}
+          </div>
         </div>
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          buildHref={(p) => `?view=customers&page=${p}`}
+        />
       </section>
     </div>
   );
 }
 
-function ServicesView({ dashboard }: { dashboard: DashboardData }) {
+function ServicesView({ dashboard, tab }: { dashboard: DashboardData; tab: string }) {
+  const serviceTabs = ["packages", "vehicles", "addons"] as const;
+  type ServiceTab = typeof serviceTabs[number];
+  const activeTab: ServiceTab = serviceTabs.includes(tab as ServiceTab) ? (tab as ServiceTab) : "packages";
+  const tabLabels: Record<ServiceTab, string> = {
+    packages: `Pakker (${dashboard.settings.catalog.packages.length})`,
+    vehicles: `Bilkategorier (${dashboard.settings.catalog.vehicleCategories.length})`,
+    addons: `Tilvalg (${dashboard.settings.catalog.interiorAddOns.length + dashboard.settings.catalog.exteriorAddOns.length + dashboard.settings.catalog.quantityAddOns.length})`,
+  };
+
   return (
     <div className="space-y-5">
       <ViewHeader
@@ -1602,153 +1716,166 @@ function ServicesView({ dashboard }: { dashboard: DashboardData }) {
         />
       </div>
 
-      <form
-        action="/api/admin/settings"
-        method="POST"
-        className="space-y-5"
-      >
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-2xl border border-[#e8ebf5] bg-white/70 p-1">
+        {serviceTabs.map((t) => (
+          <a
+            key={t}
+            href={`?view=services&tab=${t}`}
+            className={cn(
+              "flex-1 rounded-xl py-2.5 text-center text-[13px] font-semibold transition",
+              activeTab === t
+                ? "bg-[#00A7B8] text-white shadow-[0_2px_8px_rgba(0,167,184,0.25)]"
+                : "text-[#6B7280] hover:text-[#111827]"
+            )}
+          >
+            {tabLabels[t]}
+          </a>
+        ))}
+      </div>
+
+      <form action="/api/admin/settings" method="POST" className="space-y-5">
         <input type="hidden" name="section" value="services" />
         <input type="hidden" name="return_view" value="services" />
 
-        <section className="space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Servicepakker</p>
-          <div className="grid gap-4 lg:grid-cols-3">
-            {dashboard.settings.catalog.packages.map((pkg) => (
-              <article
-                key={pkg.id}
-                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
-              >
+        {activeTab === "packages" ? (
+          <section className="space-y-3">
+            <div className="grid gap-4 lg:grid-cols-3">
+              {dashboard.settings.catalog.packages.map((pkg) => (
+                <article
+                  key={pkg.id}
+                  className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
+                >
+                  <div className="border-b border-[#e8ebf5] px-4 py-3">
+                    <p className="text-[13px] font-semibold text-[#111827]">{pkg.title}</p>
+                  </div>
+                  <div className="grid gap-3 px-4 py-4">
+                    <Field label="Titel">
+                      <Input name={`package_title_${pkg.id}`} defaultValue={pkg.title} />
+                    </Field>
+                    <Field label="Badge">
+                      <Input name={`package_badge_${pkg.id}`} defaultValue={pkg.badge} />
+                    </Field>
+                    <Field label="Varighedstekst">
+                      <Input name={`package_duration_${pkg.id}`} defaultValue={pkg.duration} />
+                    </Field>
+                    <Field label="Estimerede minutter">
+                      <Input
+                        name={`package_estimated_minutes_${pkg.id}`}
+                        type="number"
+                        min="15"
+                        step="5"
+                        defaultValue={pkg.estimatedMinutes}
+                      />
+                    </Field>
+                    <Field label="Beskrivelse">
+                      <Textarea
+                        name={`package_description_${pkg.id}`}
+                        defaultValue={pkg.description}
+                        className="min-h-24"
+                      />
+                    </Field>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : activeTab === "vehicles" ? (
+          <section className="space-y-3">
+            <div className="grid gap-4 lg:grid-cols-2">
+              {dashboard.settings.catalog.vehicleCategories.map((category) => (
+                <article
+                  key={category.id}
+                  className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
+                >
+                  <div className="border-b border-[#e8ebf5] px-4 py-3">
+                    <p className="text-[13px] font-semibold text-[#111827]">{category.label}</p>
+                  </div>
+                  <div className="grid gap-3 px-4 py-4 sm:grid-cols-2">
+                    <Field label="Label">
+                      <Input name={`vehicle_label_${category.id}`} defaultValue={category.label} />
+                    </Field>
+                    <Field label="Pris">
+                      <Input
+                        name={`vehicle_price_${category.id}`}
+                        type="number"
+                        min="0"
+                        step="1"
+                        defaultValue={category.price}
+                      />
+                    </Field>
+                    <Field label="Beskrivelse" className="sm:col-span-2">
+                      <Textarea
+                        name={`vehicle_description_${category.id}`}
+                        defaultValue={category.description}
+                        className="min-h-20"
+                      />
+                    </Field>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </section>
+        ) : (
+          <section className="space-y-3">
+            <div className="grid gap-4 xl:grid-cols-3">
+              <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
                 <div className="border-b border-[#e8ebf5] px-4 py-3">
-                  <p className="text-[13px] font-semibold text-[#111827]">{pkg.title}</p>
+                  <p className="text-[13px] font-semibold text-[#111827]">Indvendige tilvalg</p>
                 </div>
-                <div className="grid gap-3 px-4 py-4">
-                  <Field label="Titel">
-                    <Input name={`package_title_${pkg.id}`} defaultValue={pkg.title} />
-                  </Field>
-                  <Field label="Badge">
-                    <Input name={`package_badge_${pkg.id}`} defaultValue={pkg.badge} />
-                  </Field>
-                  <Field label="Varighedstekst">
-                    <Input name={`package_duration_${pkg.id}`} defaultValue={pkg.duration} />
-                  </Field>
-                  <Field label="Estimerede minutter">
-                    <Input
-                      name={`package_estimated_minutes_${pkg.id}`}
-                      type="number"
-                      min="15"
-                      step="5"
-                      defaultValue={pkg.estimatedMinutes}
-                    />
-                  </Field>
-                  <Field label="Beskrivelse">
-                    <Textarea
-                      name={`package_description_${pkg.id}`}
-                      defaultValue={pkg.description}
-                      className="min-h-24"
-                    />
-                  </Field>
+                <div className="space-y-3 px-4 py-4">
+                  {dashboard.settings.catalog.interiorAddOns.map((addon) => (
+                    <div key={addon.id} className="grid gap-3 sm:grid-cols-[1fr_9rem]">
+                      <Input name={`interior_label_${addon.id}`} defaultValue={addon.label} />
+                      <Input
+                        name={`interior_price_${addon.id}`}
+                        type="number"
+                        min="0"
+                        step="1"
+                        defaultValue={addon.price}
+                      />
+                    </div>
+                  ))}
                 </div>
-              </article>
-            ))}
-          </div>
-        </section>
+              </div>
 
-        <section className="space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Bilkategorier & Priser</p>
-          <div className="grid gap-4 lg:grid-cols-2">
-            {dashboard.settings.catalog.vehicleCategories.map((category) => (
-              <article
-                key={category.id}
-                className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
-              >
+              <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
                 <div className="border-b border-[#e8ebf5] px-4 py-3">
-                  <p className="text-[13px] font-semibold text-[#111827]">{category.label}</p>
+                  <p className="text-[13px] font-semibold text-[#111827]">Udvendige tilvalg</p>
                 </div>
-                <div className="grid gap-3 px-4 py-4 sm:grid-cols-2">
-                  <Field label="Label">
-                    <Input name={`vehicle_label_${category.id}`} defaultValue={category.label} />
-                  </Field>
-                  <Field label="Pris">
+                <div className="space-y-3 px-4 py-4">
+                  {dashboard.settings.catalog.exteriorAddOns.map((addon) => (
+                    <div key={addon.id} className="grid gap-3 sm:grid-cols-[1fr_9rem]">
+                      <Input name={`exterior_label_${addon.id}`} defaultValue={addon.label} />
+                      <Input
+                        name={`exterior_price_${addon.id}`}
+                        type="number"
+                        min="0"
+                        step="1"
+                        defaultValue={addon.price}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+                <div className="border-b border-[#e8ebf5] px-4 py-3">
+                  <p className="text-[13px] font-semibold text-[#111827]">Manuelle tilvalg</p>
+                </div>
+                <div className="space-y-3 px-4 py-4">
+                  {dashboard.settings.catalog.quantityAddOns.map((addon) => (
                     <Input
-                      name={`vehicle_price_${category.id}`}
-                      type="number"
-                      min="0"
-                      step="1"
-                      defaultValue={category.price}
+                      key={addon.id}
+                      name={`quantity_label_${addon.id}`}
+                      defaultValue={addon.label}
                     />
-                  </Field>
-                  <Field label="Beskrivelse" className="sm:col-span-2">
-                    <Textarea
-                      name={`vehicle_description_${category.id}`}
-                      defaultValue={category.description}
-                      className="min-h-20"
-                    />
-                  </Field>
+                  ))}
                 </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="space-y-3">
-          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Tilvalg (Add-ons)</p>
-          <div className="grid gap-4 xl:grid-cols-3">
-            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
-              <div className="border-b border-[#e8ebf5] px-4 py-3">
-                <p className="text-[13px] font-semibold text-[#111827]">Indvendige tilvalg</p>
-              </div>
-              <div className="space-y-3 px-4 py-4">
-              {dashboard.settings.catalog.interiorAddOns.map((addon) => (
-                <div key={addon.id} className="grid gap-3 sm:grid-cols-[1fr_9rem]">
-                  <Input name={`interior_label_${addon.id}`} defaultValue={addon.label} />
-                  <Input
-                    name={`interior_price_${addon.id}`}
-                    type="number"
-                    min="0"
-                    step="1"
-                    defaultValue={addon.price}
-                  />
-                </div>
-              ))}
               </div>
             </div>
-
-            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
-              <div className="border-b border-[#e8ebf5] px-4 py-3">
-                <p className="text-[13px] font-semibold text-[#111827]">Udvendige tilvalg</p>
-              </div>
-              <div className="space-y-3 px-4 py-4">
-              {dashboard.settings.catalog.exteriorAddOns.map((addon) => (
-                <div key={addon.id} className="grid gap-3 sm:grid-cols-[1fr_9rem]">
-                  <Input name={`exterior_label_${addon.id}`} defaultValue={addon.label} />
-                  <Input
-                    name={`exterior_price_${addon.id}`}
-                    type="number"
-                    min="0"
-                    step="1"
-                    defaultValue={addon.price}
-                  />
-                </div>
-              ))}
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
-              <div className="border-b border-[#e8ebf5] px-4 py-3">
-                <p className="text-[13px] font-semibold text-[#111827]">Manuelle tilvalg</p>
-              </div>
-              <div className="space-y-3 px-4 py-4">
-              {dashboard.settings.catalog.quantityAddOns.map((addon) => (
-                <Input
-                  key={addon.id}
-                  name={`quantity_label_${addon.id}`}
-                  defaultValue={addon.label}
-                />
-              ))}
-              </div>
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         <Button type="submit">Gem services og priser</Button>
       </form>
@@ -2122,7 +2249,27 @@ function EmailsView({
   );
 }
 
-function AreasView({ dashboard }: { dashboard: DashboardData }) {
+function AreasView({
+  dashboard,
+  page,
+  tab,
+}: {
+  dashboard: DashboardData;
+  page: number;
+  tab: string;
+}) {
+  const activeTab = tab === "routes" ? "routes" : "areas";
+  const areas = dashboard.settings.serviceAreas;
+  const routePlan = dashboard.routePlan;
+  const totalAreas = areas.length;
+  const totalRoutes = routePlan.length;
+  const areasTotalPages = Math.max(1, Math.ceil(totalAreas / PAGE_SIZE));
+  const areasCurrentPage = Math.min(page, areasTotalPages);
+  const areasPageItems = areas.slice((areasCurrentPage - 1) * PAGE_SIZE, areasCurrentPage * PAGE_SIZE);
+  const routesTotalPages = Math.max(1, Math.ceil(totalRoutes / PAGE_SIZE));
+  const routesCurrentPage = Math.min(page, routesTotalPages);
+  const routesPageItems = routePlan.slice((routesCurrentPage - 1) * PAGE_SIZE, routesCurrentPage * PAGE_SIZE);
+
   return (
     <div className="space-y-5">
       <ViewHeader
@@ -2134,21 +2281,21 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
       <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Aktive områder"
-          value={dashboard.settings.serviceAreas.filter((item) => item.isActive).length.toString()}
-          detail={`${dashboard.settings.serviceAreas.length} samlet`}
+          value={areas.filter((item) => item.isActive).length.toString()}
+          detail={`${totalAreas} samlet`}
           icon={MapPinned}
           tone="blue"
         />
         <MetricCard
           label="Rutedage"
-          value={dashboard.routePlan.length.toString()}
+          value={totalRoutes.toString()}
           detail="Med mindst én kommende booking"
           icon={Route}
           tone="violet"
         />
         <MetricCard
           label="Zoner med tillæg"
-          value={dashboard.settings.serviceAreas.filter((item) => item.surcharge > 0).length.toString()}
+          value={areas.filter((item) => item.surcharge > 0).length.toString()}
           detail="Bruges i kundeprisen"
           icon={CreditCard}
           tone="orange"
@@ -2156,7 +2303,7 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
         <MetricCard
           label="Kørselstillæg i alt"
           value={formatShortPrice(
-            dashboard.routePlan.reduce(
+            routePlan.reduce(
               (sum, day) =>
                 sum + day.areas.reduce((areaSum, area) => areaSum + area.travelSurcharge, 0),
               0
@@ -2168,19 +2315,32 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
         />
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[1fr_1fr]">
-        <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Zoner"
-            title="Serviceområder"
-            description="Postnumre og tillæg bruges direkte i bookingflowet."
-          />
+      {/* Tabs */}
+      <div className="flex gap-1 rounded-2xl border border-[#e8ebf5] bg-white/70 p-1">
+        {(["areas", "routes"] as const).map((t) => (
+          <a
+            key={t}
+            href={`?view=areas&tab=${t}&page=1`}
+            className={cn(
+              "flex-1 rounded-xl py-2.5 text-center text-[13px] font-semibold transition",
+              activeTab === t
+                ? "bg-[#00A7B8] text-white shadow-[0_2px_8px_rgba(0,167,184,0.25)]"
+                : "text-[#6B7280] hover:text-[#111827]"
+            )}
+          >
+            {t === "areas" ? `Serviceområder (${totalAreas})` : `Ruteplan (${totalRoutes} dage)`}
+          </a>
+        ))}
+      </div>
 
+      {activeTab === "areas" ? (
+        <section className="space-y-4">
           <form
             action="/api/admin/settings"
             method="POST"
             className="grid gap-4 rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]"
           >
+            <p className="text-[13px] font-semibold text-[#374151]">Tilføj nyt serviceområde</p>
             <input type="hidden" name="section" value="areas" />
             <input type="hidden" name="return_view" value="areas" />
             <input type="hidden" name="area_action" value="add" />
@@ -2217,74 +2377,86 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
             <Button type="submit">Tilføj område</Button>
           </form>
 
+          <p className="text-[12px] font-medium text-[#6B7280]">
+            Side {areasCurrentPage} af {areasTotalPages} · {totalAreas} områder
+          </p>
           <div className="grid gap-4">
-            {dashboard.settings.serviceAreas.length > 0 ? (
-              dashboard.settings.serviceAreas.map((area) => (
+            {areasPageItems.length > 0 ? (
+              areasPageItems.map((area) => (
                 <AreaCard key={area.id} area={area} />
               ))
             ) : (
               <EmptyState text="Ingen serviceområder oprettet endnu." />
             )}
           </div>
-        </section>
-
-        <section className="space-y-4">
-          <SectionHeading
-            eyebrow="Ruteplan"
-            title="Kommende områdegrupper"
-            description="Næste jobs er samlet pr. dag og zone, så admin hurtigt kan se belastning og omsætning."
+          <PaginationBar
+            currentPage={areasCurrentPage}
+            totalPages={areasTotalPages}
+            buildHref={(p) => `?view=areas&tab=areas&page=${p}`}
           />
-          <div className="grid gap-3">
-            {dashboard.routePlan.length > 0 ? (
-              dashboard.routePlan.map((day) => (
-                <article
-                  key={day.date}
-                  className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]"
-                >
-                  <div className="flex items-center justify-between gap-4 border-b border-[#e8ebf5] px-5 py-3.5">
-                    <div className="flex items-center gap-3">
-                      <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#2563EB]">
-                        <Route className="h-4 w-4" />
-                      </span>
-                      <div>
-                        <p className="text-[14px] font-bold text-[#111827]">{day.label}</p>
-                        <p className="text-[11px] text-[#6B7280]">{day.areas.length} zone{day.areas.length !== 1 ? "r" : ""}</p>
-                      </div>
-                    </div>
-                    <p className="text-[13px] font-bold text-[#111827]">
-                      {formatShortPrice(day.areas.reduce((s, a) => s + a.totalRevenue, 0))}
-                    </p>
-                  </div>
-                  <div className="divide-y divide-[#e8ebf5]">
-                    {day.areas.map((area) => (
-                      <div key={area.key} className="px-5 py-3">
-                        <div className="flex items-center justify-between gap-3">
-                          <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[#00A7B8]">
-                            {area.label} · {area.count} job
-                          </p>
-                          <p className="text-[12px] font-semibold text-[#6B7280]">{formatPrice(area.totalRevenue)}</p>
-                        </div>
-                        <div className="mt-2 grid gap-1.5">
-                          {area.bookings.map((booking) => (
-                            <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12px]">
-                              <span className="font-medium text-[#111827]">
-                                {booking.appointmentTime} · {booking.customerName || booking.customerEmail}
-                              </span>
-                              <span className="font-semibold text-[#374151]">{formatPrice(booking.total)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </article>
-              ))
-            ) : (
-              <EmptyState text="Ingen ruteplan endnu. Den fyldes automatisk af kommende bookinger." />
-            )}
-          </div>
         </section>
-      </div>
+      ) : (
+        <section className="space-y-3">
+          <p className="text-[12px] font-medium text-[#6B7280]">
+            Side {routesCurrentPage} af {routesTotalPages} · {totalRoutes} rutedage
+          </p>
+          <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
+            <div className="divide-y divide-[#e8ebf5]">
+              {routesPageItems.length > 0 ? (
+                routesPageItems.map((day) => (
+                  <article key={day.date}>
+                    <div className="flex items-center justify-between gap-4 px-5 py-3.5">
+                      <div className="flex items-center gap-3">
+                        <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#EFF6FF] text-[#2563EB]">
+                          <Route className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <p className="text-[14px] font-bold text-[#111827]">{day.label}</p>
+                          <p className="text-[11px] text-[#6B7280]">{day.areas.length} zone{day.areas.length !== 1 ? "r" : ""}</p>
+                        </div>
+                      </div>
+                      <p className="text-[13px] font-bold text-[#111827]">
+                        {formatShortPrice(day.areas.reduce((s, a) => s + a.totalRevenue, 0))}
+                      </p>
+                    </div>
+                    <div className="divide-y divide-[#f0f4f8] border-t border-[#e8ebf5]">
+                      {day.areas.map((area) => (
+                        <div key={area.key} className="px-5 py-3">
+                          <div className="flex items-center justify-between gap-3">
+                            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-[#00A7B8]">
+                              {area.label} · {area.count} job
+                            </p>
+                            <p className="text-[12px] font-semibold text-[#6B7280]">{formatPrice(area.totalRevenue)}</p>
+                          </div>
+                          <div className="mt-2 grid gap-1.5">
+                            {area.bookings.map((booking) => (
+                              <div key={booking.id} className="flex items-center justify-between gap-3 rounded-lg bg-[#F7F8FC] px-3 py-2 text-[12px]">
+                                <span className="font-medium text-[#111827]">
+                                  {booking.appointmentTime} · {booking.customerName || booking.customerEmail}
+                                </span>
+                                <span className="font-semibold text-[#374151]">{formatPrice(booking.total)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </article>
+                ))
+              ) : (
+                <div className="p-4">
+                  <EmptyState text="Ingen ruteplan endnu. Den fyldes automatisk af kommende bookinger." />
+                </div>
+              )}
+            </div>
+          </div>
+          <PaginationBar
+            currentPage={routesCurrentPage}
+            totalPages={routesTotalPages}
+            buildHref={(p) => `?view=areas&tab=routes&page=${p}`}
+          />
+        </section>
+      )}
     </div>
   );
 }
@@ -2292,11 +2464,15 @@ function AreasView({ dashboard }: { dashboard: DashboardData }) {
 function PaymentsView({
   unpaidBookings,
   dashboard,
+  page,
 }: {
   unpaidBookings: DashboardBooking[];
   dashboard: DashboardData;
+  page: number;
 }) {
-  const visibleUnpaidBookings = unpaidBookings.slice(0, INITIAL_PAYMENT_LIMIT);
+  const totalPages = Math.max(1, Math.ceil(unpaidBookings.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = unpaidBookings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <div className="space-y-5">
@@ -2337,24 +2513,34 @@ function PaymentsView({
         />
       </div>
 
-      <section className="space-y-4">
-        <SectionHeading
-          eyebrow="Opfølgning"
-          title="Betalinger og fakturaer"
-          description={`Viser ${visibleUnpaidBookings.length} af ${unpaidBookings.length}.`}
-        />
-        <div className="grid gap-4">
-          {unpaidBookings.length > 0 ? (
-            visibleUnpaidBookings.map((booking) => (
-              <PaymentCard key={booking.id} booking={booking} />
-            ))
-          ) : (
-            <EmptyState text="Ingen ubetalte eller delvist betalte bookinger lige nu." />
-          )}
-          {unpaidBookings.length > visibleUnpaidBookings.length ? (
-            <EmptyState text={`Viser de første ${visibleUnpaidBookings.length} for hurtig indlæsning.`} />
-          ) : null}
+      <section className="space-y-3">
+        <p className="text-[12px] font-medium text-[#6B7280]">
+          Side {currentPage} af {totalPages} · {unpaidBookings.length} betalinger
+        </p>
+        <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
+          <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
+            <span>Kunde</span>
+            <span>Dato</span>
+            <span>Betalingsstatus</span>
+            <span className="text-right">Beløb</span>
+          </div>
+          <div className="divide-y divide-[#e8ebf5]">
+            {pageItems.length > 0 ? (
+              pageItems.map((booking) => (
+                <PaymentCard key={booking.id} booking={booking} />
+              ))
+            ) : (
+              <div className="p-4">
+                <EmptyState text="Ingen ubetalte eller delvist betalte bookinger." />
+              </div>
+            )}
+          </div>
         </div>
+        <PaginationBar
+          currentPage={currentPage}
+          totalPages={totalPages}
+          buildHref={(p) => `?view=payments&page=${p}`}
+        />
       </section>
     </div>
   );
@@ -2824,78 +3010,76 @@ function CustomerCard({
   customer: CustomerSummary;
   bookings: DashboardBooking[];
 }) {
+  const name = [customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email;
   return (
-    <details className="group rounded-[1.6rem] border border-[#d9e7f0] bg-white px-5 py-5 shadow-[0_14px_40px_rgba(11,31,58,0.05)]">
-      <summary className="cursor-pointer list-none">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <details className="group">
+      <summary className="cursor-pointer list-none px-5 py-4 transition hover:bg-white/80">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)_8rem_8rem] lg:items-center lg:gap-4">
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-bold text-[#1f2340]">{name}</p>
+            <p className="mt-0.5 truncate text-[12px] font-medium text-[#7b829f]">{customer.email}</p>
+          </div>
+          <div className="min-w-0">
+            <p className="truncate text-[13px] font-medium text-[#374151]">{customer.phone || "–"}</p>
+            <p className="mt-0.5 truncate text-[12px] text-[#7b829f]">
+              {customer.postalCode} {customer.city}
+            </p>
+          </div>
           <div>
-            <div className="flex flex-wrap items-center gap-3">
-              <h3 className="text-xl font-semibold text-[var(--ink)]">
-                {[customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email}
-              </h3>
-              {customer.company ? (
-                <span className="inline-flex rounded-full bg-[#EEFBFC] px-3 py-1 text-xs font-semibold text-[#00A7B8]">
-                  {customer.customerType === "business" ? "Erhverv" : "Privat"}
-                </span>
-              ) : null}
-            </div>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {customer.email} | {customer.phone}
-            </p>
-            <p className="mt-1 text-sm text-[var(--muted)]">
-              {customer.address}, {customer.postalCode} {customer.city}
-            </p>
+            <span className="inline-flex rounded-full bg-[#EEFBFC] px-2.5 py-1 text-[11px] font-semibold text-[#00A7B8]">
+              {customer.bookingsCount} booking{customer.bookingsCount !== 1 ? "er" : ""}
+            </span>
           </div>
-          <div className="grid gap-2 text-right text-sm">
-            <p className="font-semibold text-[var(--ink)]">{customer.bookingsCount} booking(er)</p>
-            <p className="text-[var(--muted)]">{formatPrice(customer.totalSpent)}</p>
-            <p className="text-[var(--muted)]">{customer.lastBookingLabel || "Ingen historik"}</p>
-          </div>
+          <p className="text-[14px] font-bold text-[#1f2340] lg:text-right">
+            {formatPrice(customer.totalSpent)}
+          </p>
         </div>
       </summary>
 
-      <div className="mt-6 grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
-        <InfoPanel title="Kundenoter og tags">
-          <form action={`/api/admin/customers/${customer.id}`} method="POST" className="grid gap-3">
-            <input type="hidden" name="return_view" value="customers" />
-            <Field label="Tags">
-              <Input
-                name="tags"
-                defaultValue={customer.tags.join(", ")}
-                placeholder="Fx VIP, no-show, fleet, firmakunde"
-              />
-            </Field>
-            <Field label="Noter">
-              <Textarea name="notes" defaultValue={customer.notes} className="min-h-28" />
-            </Field>
-            <Button type="submit">Gem kundeinfo</Button>
-          </form>
-        </InfoPanel>
+      <div className="border-t border-[#e8ebf5] px-5 py-5">
+        <div className="grid gap-6 xl:grid-cols-[0.92fr_1.08fr]">
+          <InfoPanel title="Kundenoter og tags">
+            <form action={`/api/admin/customers/${customer.id}`} method="POST" className="grid gap-3">
+              <input type="hidden" name="return_view" value="customers" />
+              <Field label="Tags">
+                <Input
+                  name="tags"
+                  defaultValue={customer.tags.join(", ")}
+                  placeholder="Fx VIP, no-show, fleet, firmakunde"
+                />
+              </Field>
+              <Field label="Noter">
+                <Textarea name="notes" defaultValue={customer.notes} className="min-h-28" />
+              </Field>
+              <Button type="submit">Gem kundeinfo</Button>
+            </form>
+          </InfoPanel>
 
-        <InfoPanel title="Bookinghistorik">
-          {bookings.length > 0 ? (
-            <div className="grid gap-3">
-              {bookings.slice(0, 6).map((booking) => (
-                <div
-                  key={booking.id}
-                  className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4 text-sm"
-                >
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span className="font-semibold text-[var(--ink)]">{booking.packageLabel}</span>
-                    <StatusPill status={booking.status} />
-                    <PaymentPill status={booking.paymentStatus} />
+          <InfoPanel title="Bookinghistorik">
+            {bookings.length > 0 ? (
+              <div className="grid gap-3">
+                {bookings.slice(0, 6).map((booking) => (
+                  <div
+                    key={booking.id}
+                    className="rounded-2xl border border-[#e4edf3] bg-[#fbfdff] px-4 py-4 text-sm"
+                  >
+                    <div className="flex flex-wrap items-center gap-3">
+                      <span className="font-semibold text-[var(--ink)]">{booking.packageLabel}</span>
+                      <StatusPill status={booking.status} />
+                      <PaymentPill status={booking.paymentStatus} />
+                    </div>
+                    <p className="mt-2 text-[var(--muted)]">{booking.appointmentLabel}</p>
+                    <p className="mt-1 text-[var(--muted)]">
+                      {booking.vehicleName} | {booking.registrationNumber}
+                    </p>
                   </div>
-                  <p className="mt-2 text-[var(--muted)]">{booking.appointmentLabel}</p>
-                  <p className="mt-1 text-[var(--muted)]">
-                    {booking.vehicleName} | {booking.registrationNumber}
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <EmptyState text="Kunden har ingen bookinger endnu." />
-          )}
-        </InfoPanel>
+                ))}
+              </div>
+            ) : (
+              <EmptyState text="Kunden har ingen bookinger endnu." />
+            )}
+          </InfoPanel>
+        </div>
       </div>
     </details>
   );
@@ -2962,7 +3146,11 @@ function AreaCard({ area }: { area: DashboardData["settings"]["serviceAreas"][nu
   );
 }
 
-function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
+function AdminInvoicesView({ invoices, page }: { invoices: Invoice[]; page: number }) {
+  const totalPages = Math.max(1, Math.ceil(invoices.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageItems = invoices.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
   return (
     <div className="space-y-5">
       <ViewHeader
@@ -2970,16 +3158,19 @@ function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
         title="Fakturaer"
         description={`${invoices.length} fakturaer i systemet`}
       />
-      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
-        {invoices.length > 0 ? (
+      <p className="text-[12px] font-medium text-[#6B7280]">
+        Side {currentPage} af {totalPages} · {invoices.length} fakturaer
+      </p>
+      <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
+        {pageItems.length > 0 ? (
           <>
-            <div className="hidden border-b border-[#e8ebf5] px-5 py-2.5 lg:grid lg:grid-cols-[1fr_1fr_9rem_auto] lg:gap-3">
+            <div className="hidden border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid lg:grid-cols-[1fr_1fr_9rem_auto] lg:gap-4">
               {["Faktura", "Kunde / e-mail", "Beløb", ""].map((col) => (
-                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">{col}</span>
+                <span key={col}>{col}</span>
               ))}
             </div>
             <div className="divide-y divide-[#e8ebf5]">
-              {invoices.map((invoice) => (
+              {pageItems.map((invoice) => (
                 <article
                   key={invoice.id}
                   className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto] lg:items-center"
@@ -3022,6 +3213,11 @@ function AdminInvoicesView({ invoices }: { invoices: Invoice[] }) {
           </div>
         )}
       </div>
+      <PaginationBar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        buildHref={(p) => `?view=invoices&page=${p}`}
+      />
     </div>
   );
 }
@@ -3154,63 +3350,77 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
 
 function PaymentCard({ booking }: { booking: DashboardBooking }) {
   return (
-    <article className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e8ebf5] px-5 py-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <p className="text-[14px] font-bold text-[#111827]">{booking.customerName || booking.customerEmail}</p>
-          <PaymentPill status={booking.paymentStatus} />
-          <InvoicePill status={booking.invoiceStatus} />
+    <details className="group">
+      <summary className="cursor-pointer list-none px-5 py-4 transition hover:bg-white/80">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem] lg:items-center lg:gap-4">
+          <div className="min-w-0">
+            <p className="truncate text-[14px] font-bold text-[#1f2340]">
+              {booking.customerName || booking.customerEmail}
+            </p>
+            <p className="mt-0.5 truncate text-[12px] font-medium text-[#7b829f]">
+              {booking.packageLabel}
+            </p>
+          </div>
+          <div>
+            <p className="text-[13px] font-medium text-[#374151]">{booking.appointmentLabel}</p>
+            <p className="mt-0.5 text-[12px] text-[#7b829f]">{booking.vehicleName}</p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <PaymentPill status={booking.paymentStatus} />
+            <InvoicePill status={booking.invoiceStatus} />
+          </div>
+          <p className="text-[14px] font-bold text-[#1f2340] lg:text-right">
+            {formatPrice(booking.total)}
+          </p>
         </div>
-        <div className="text-right">
-          <p className="text-[18px] font-bold text-[#111827]">{formatPrice(booking.total)}</p>
-          <p className="text-[11px] text-[#6B7280]">{booking.appointmentLabel}</p>
-        </div>
-      </div>
+      </summary>
 
-      <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="grid gap-4 px-5 py-4 sm:grid-cols-2">
-        <input type="hidden" name="action" value="financial" />
-        <input type="hidden" name="return_view" value="payments" />
-        <Field label="Betalingsstatus">
-          <select name="payment_status" defaultValue={booking.paymentStatus} className={selectClassName}>
-            {paymentStatuses.map((status) => (
-              <option key={status} value={status}>
-                {getPaymentStatusLabel(status)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Betalingsmetode">
-          <Input name="payment_method" defaultValue={booking.paymentMethod} />
-        </Field>
-        <Field label="Fakturastatus">
-          <select name="invoice_status" defaultValue={booking.invoiceStatus} className={selectClassName}>
-            {invoiceStatuses.map((status) => (
-              <option key={status} value={status}>
-                {getInvoiceStatusLabel(status)}
-              </option>
-            ))}
-          </select>
-        </Field>
-        <Field label="Fakturanummer">
-          <Input name="invoice_number" defaultValue={booking.invoiceNumber} />
-        </Field>
-        <Field label="Admin-noter" className="sm:col-span-2">
-          <Textarea name="admin_notes" defaultValue={booking.adminNotes} className="min-h-24" />
-        </Field>
-        <label className="flex items-center gap-3 text-sm text-[var(--ink)] sm:col-span-2">
-          <input
-            type="checkbox"
-            name="invoice_requested"
-            defaultChecked={booking.invoiceRequested}
-            className="h-4 w-4 rounded border-[#9cb0bd]"
-          />
-          Faktura ønskes eller skal udsendes
-        </label>
-        <div className="sm:col-span-2">
-          <Button type="submit">Gem betaling</Button>
-        </div>
-      </form>
-    </article>
+      <div className="border-t border-[#e8ebf5] px-5 py-5">
+        <form action={`/api/admin/bookings/${booking.id}`} method="POST" className="grid gap-4 sm:grid-cols-2">
+          <input type="hidden" name="action" value="financial" />
+          <input type="hidden" name="return_view" value="payments" />
+          <Field label="Betalingsstatus">
+            <select name="payment_status" defaultValue={booking.paymentStatus} className={selectClassName}>
+              {paymentStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {getPaymentStatusLabel(status)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Betalingsmetode">
+            <Input name="payment_method" defaultValue={booking.paymentMethod} />
+          </Field>
+          <Field label="Fakturastatus">
+            <select name="invoice_status" defaultValue={booking.invoiceStatus} className={selectClassName}>
+              {invoiceStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {getInvoiceStatusLabel(status)}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Fakturanummer">
+            <Input name="invoice_number" defaultValue={booking.invoiceNumber} />
+          </Field>
+          <Field label="Admin-noter" className="sm:col-span-2">
+            <Textarea name="admin_notes" defaultValue={booking.adminNotes} className="min-h-24" />
+          </Field>
+          <label className="flex items-center gap-3 text-sm text-[var(--ink)] sm:col-span-2">
+            <input
+              type="checkbox"
+              name="invoice_requested"
+              defaultChecked={booking.invoiceRequested}
+              className="h-4 w-4 rounded border-[#9cb0bd]"
+            />
+            Faktura ønskes eller skal udsendes
+          </label>
+          <div className="sm:col-span-2">
+            <Button type="submit">Gem betaling</Button>
+          </div>
+        </form>
+      </div>
+    </details>
   );
 }
 
