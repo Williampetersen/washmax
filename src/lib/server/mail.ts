@@ -794,6 +794,55 @@ export const sendCustomerInvoiceEmail = async (input: {
   });
 };
 
+export const sendCustomerVerificationCodeEmail = async (input: {
+  customerEmail: string;
+  code: string;
+  settings: MailSettings;
+}) => {
+  const transporter = getTransporter();
+  if (!transporter) return;
+
+  const config = getMailConfig();
+  const subject = `Din bekræftelseskode til ${input.settings.companyName}`;
+
+  const codeDigits = input.code.split("").join(" ");
+
+  const content =
+    renderEmailHeader(input.settings.companyName) +
+    `<div style="padding:32px 32px 8px;">` +
+    renderStatusBadge("Bekræftelseskode", "modtaget") +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Bekræft din e-mail</h1>` +
+    `<p style="margin:0 0 24px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">Brug koden herunder for at få adgang til din booking og kundeprofil.</p>` +
+    `</div>` +
+    `<div style="padding:0 32px 32px;">` +
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:28px 20px;margin-bottom:20px;text-align:center;">` +
+    `<p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Din kode</p>` +
+    `<p style="margin:0;font-size:40px;font-weight:700;letter-spacing:0.22em;color:#0B1F3A;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(codeDigits)}</p>` +
+    `</div>` +
+    `<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:14px 18px;margin-bottom:8px;">` +
+    `<p style="margin:0;font-size:13px;color:#92400E;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">Koden udløber om <strong>10 minutter</strong>. Hvis du ikke har bedt om denne kode, kan du ignorere denne e-mail.</p>` +
+    `</div>` +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
+
+  await transporter.sendMail({
+    from: config.from,
+    to: input.customerEmail,
+    subject,
+    html: renderEmailWrapper(content),
+    text: [
+      subject,
+      "",
+      `Din bekræftelseskode: ${input.code}`,
+      "",
+      `Koden udløber om 10 minutter.`,
+      `Hvis du ikke har bedt om denne kode, kan du ignorere denne e-mail.`,
+      "",
+      `Support: ${input.settings.supportEmail}`,
+    ].join("\n"),
+  });
+};
+
 export const sendAdminInvoiceNotice = async (input: {
   bookingId: string;
   agentName: string;

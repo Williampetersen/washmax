@@ -224,7 +224,7 @@ export async function POST(request: Request) {
 
     const requestOrigin = new URL(request.url).origin;
     const portalBaseUrl = process.env.APP_URL || requestOrigin;
-    const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
+    const portalUrl = `${portalBaseUrl}/kunde/verify?t=${bookingResult.customer.portalToken}`;
 
     let confirmationEmailSent = false;
     try {

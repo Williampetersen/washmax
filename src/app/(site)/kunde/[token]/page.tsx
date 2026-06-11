@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ComponentType, ReactNode } from "react";
 import Link from "next/link";
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import {
   Calendar,
   CalendarPlus,
@@ -13,6 +15,7 @@ import {
   ReceiptText,
   UserRound,
 } from "lucide-react";
+import LogoutButton from "./LogoutButton";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +30,10 @@ import {
   getStatusTone,
 } from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
+import {
+  CUSTOMER_COOKIE_NAME,
+  verifyCustomerSessionToken,
+} from "@/lib/server/customer-session";
 
 export const metadata: Metadata = {
   title: "Kundeportal",
@@ -42,6 +49,23 @@ export default async function CustomerPortalPage({
 }) {
   const { token } = await params;
   const query = await searchParams;
+
+  // ── Session guard ──────────────────────────────────────────────────────────
+  // Verify the customer has completed email verification before showing data.
+  const cookieStore = await cookies();
+  const session = verifyCustomerSessionToken(cookieStore.get(CUSTOMER_COOKIE_NAME)?.value);
+  if (!session) {
+    redirect(`/kunde/verify?t=${token}`);
+  }
+
+  const portalData = token ? await getPortalData(token) : null;
+
+  // Verify the verified email matches the customer for this portal token.
+  if (!portalData || session.email.toLowerCase() !== portalData.customer.email.toLowerCase()) {
+    redirect(`/kunde/verify?t=${token}`);
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   const saved = (Array.isArray(query.saved) ? query.saved[0] : query.saved) === "1";
   const bookingConfirmed =
     (Array.isArray(query.booking) ? query.booking[0] : query.booking) === "confirmed";
@@ -50,7 +74,6 @@ export default async function CustomerPortalPage({
     requestedTab === "invoices" || requestedTab === "profile"
       ? requestedTab
       : "bookings";
-  const portalData = token ? await getPortalData(token) : null;
 
   if (!portalData) {
     return (
@@ -100,13 +123,16 @@ export default async function CustomerPortalPage({
           <PortalTabLink href={`/kunde/${token}?tab=profile`} active={portalTab === "profile"}>
             Profil
           </PortalTabLink>
-          <Link
-            href="/booking"
-            className="ml-auto inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
-          >
-            <CalendarPlus className="h-4 w-4" />
-            Ny booking
-          </Link>
+          <div className="ml-auto flex items-center gap-2">
+            <Link
+              href="/booking"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
+            >
+              <CalendarPlus className="h-4 w-4" />
+              Ny booking
+            </Link>
+            <LogoutButton />
+          </div>
         </nav>
 
         {saved ? (

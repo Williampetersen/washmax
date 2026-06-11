@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     if (settings.emailAutomation.customerOnCreate && formData.get("send_email")) {
       try {
         const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
-        const portalUrl = `${portalBaseUrl}/kunde/${bookingResult.customer.portalToken}`;
+        const portalUrl = `${portalBaseUrl}/kunde/verify?t=${bookingResult.customer.portalToken}`;
         await sendCustomerBookingCreatedEmail({
           booking: bookingResult.booking,
           customer: bookingResult.customer,

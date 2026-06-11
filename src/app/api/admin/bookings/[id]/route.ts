@@ -57,7 +57,7 @@ export async function POST(
       try {
         const settings = await getBookingSettings();
         const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
-        const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
+        const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
         await sendCustomerBookingStatusEmail({
           booking: result.booking,
           customer: result.customer,
@@ -103,7 +103,7 @@ export async function POST(
 
     const settings = await getBookingSettings();
     const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
-    const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
+    const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
     if (result.booking.status === "pending") {
       await sendCustomerBookingCreatedEmail({
         booking: result.booking,
@@ -131,7 +131,7 @@ export async function POST(
 
     const settings = await getBookingSettings();
     const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
-    const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
+    const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
     await sendAdminNewBookingAlert({
       booking: result.booking,
       customer: result.customer,
@@ -151,7 +151,7 @@ export async function POST(
   if (result) {
     const settings = await getBookingSettings();
     const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
-    const portalUrl = `${portalBaseUrl}/kunde/${result.customer.portalToken}`;
+    const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
     const shouldSendStatusEmail =
       (status === "approved" && settings.emailAutomation.customerOnApprove) ||
       (status === "completed" && settings.emailAutomation.customerOnComplete) ||

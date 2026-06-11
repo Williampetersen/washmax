@@ -819,6 +819,32 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
         )
         ON CONFLICT (settings_key) DO NOTHING;
       `;
+
+      // Customer email verification codes (one-time, 10-minute, hashed)
+      await sql`
+        CREATE TABLE IF NOT EXISTS customer_email_verifications (
+          id TEXT PRIMARY KEY,
+          email TEXT NOT NULL,
+          portal_token TEXT NOT NULL,
+          code_hash TEXT NOT NULL,
+          expires_at TIMESTAMPTZ NOT NULL,
+          used_at TIMESTAMPTZ,
+          attempts INTEGER NOT NULL DEFAULT 0,
+          last_attempt_at TIMESTAMPTZ,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS cev_portal_token_idx
+        ON customer_email_verifications (portal_token, created_at DESC);
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS cev_expires_idx
+        ON customer_email_verifications (expires_at)
+        WHERE used_at IS NULL;
+      `;
     })();
     globalThis.CleanWashSchemaPromise = schemaPromise;
   }
