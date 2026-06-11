@@ -6,7 +6,7 @@ import {
   calculateBookingPriceFromSetup,
   getBookingSettingsFromSetup,
 } from "@/lib/server/booking-setup";
-import { isDatabaseConfigured } from "@/lib/server/db";
+import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
   sendAdminNewBookingAlert,
   sendCustomerBookingCreatedEmail,
@@ -27,6 +27,37 @@ const shouldLogTiming = () =>
 const logTiming = (label: string, startedAt: number) => {
   if (!shouldLogTiming()) return;
   console.info(`[perf] ${label} ${Math.round(performance.now() - startedAt)}ms`);
+};
+
+const calculateCouponDiscount = async (code: string, totalDkk: number) => {
+  const normalizedCode = code.trim().toUpperCase();
+  if (!normalizedCode) return 0;
+
+  await ensureSchema();
+  const sql = getSql();
+  const [coupon] = await sql<{
+    discount_type: string;
+    discount_value: number;
+    min_order_dkk: number;
+    max_uses: number | null;
+    uses_count: number;
+    is_active: boolean;
+    expires_at: string | null;
+  }[]>`
+    SELECT discount_type, discount_value, min_order_dkk, max_uses, uses_count, is_active, expires_at
+    FROM coupons
+    WHERE UPPER(code) = ${normalizedCode}
+    LIMIT 1;
+  `;
+
+  if (!coupon || !coupon.is_active) return 0;
+  if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return 0;
+  if (coupon.max_uses !== null && coupon.uses_count >= coupon.max_uses) return 0;
+  if (coupon.min_order_dkk > 0 && totalDkk < coupon.min_order_dkk) return 0;
+
+  return coupon.discount_type === "percent"
+    ? Math.round((totalDkk * Number(coupon.discount_value || 0)) / 100)
+    : Math.max(0, Math.round(Number(coupon.discount_value || 0)));
 };
 
 export async function POST(request: Request) {
@@ -55,27 +86,122 @@ export async function POST(request: Request) {
     }
 
     const settings = await getBookingSettingsFromSetup();
-    const { customer, total: _quotedTotal, subtotal: _quotedSubtotal, addons: quotedAddons, ...bookingInput } = parsed.data;
-    const pricing = await calculateBookingPriceFromSetup({
-      packageId: bookingInput.packageId,
-      addonIds: quotedAddons.map((addon) => addon.id),
-      categoryLabel: bookingInput.category,
+    const {
+      customer,
+      total: _quotedTotal,
+      subtotal: _quotedSubtotal,
+      addons: quotedAddons,
+      vehicles: quotedVehicles,
+      ...bookingInput
+    } = parsed.data;
+    const submittedVehicles =
+      quotedVehicles && quotedVehicles.length > 0
+        ? quotedVehicles
+        : [
+            {
+              id: "car-1",
+              plate: bookingInput.plate,
+              registrationNumber: bookingInput.registrationNumber,
+              vehicleName: bookingInput.vehicleName,
+              vehicleYear: bookingInput.vehicleYear,
+              vehicleType: bookingInput.vehicleType,
+              category: bookingInput.category,
+              packageId: bookingInput.packageId,
+              packageLabel: bookingInput.packageLabel,
+              addonIds: quotedAddons.map((addon) => addon.id),
+              addons: quotedAddons,
+              discountPercent: 0,
+            },
+          ];
+
+    if (submittedVehicles.length < 1 || submittedVehicles.length > 2) {
+      return json({ error: "Bookingen skal indeholde én eller to biler." }, 400);
+    }
+
+    const normalizedPlates = submittedVehicles.map((vehicle) =>
+      sanitizePlate(vehicle.registrationNumber || vehicle.plate)
+    );
+    if (new Set(normalizedPlates).size !== normalizedPlates.length) {
+      return json({ error: "Denne bil er allerede tilføjet." }, 400);
+    }
+
+    const pricedVehicles = await Promise.all(
+      submittedVehicles.map(async (vehicle, index) => {
+        const addonIds =
+          vehicle.addonIds.length > 0 ? vehicle.addonIds : vehicle.addons.map((addon) => addon.id);
+        const pricing = await calculateBookingPriceFromSetup({
+          packageId: vehicle.packageId,
+          addonIds,
+          categoryLabel: vehicle.category,
+          postalCode: customer.postalCode,
+          settings,
+        });
+        const addonsPrice = pricing.addons.reduce((sum, addon) => sum + Number(addon.price || 0), 0);
+        const discountPercent = index === 1 ? 15 : 0;
+        const discountAmount = Math.round((pricing.subtotal * discountPercent) / 100);
+
+        return {
+          id: vehicle.id || `car-${index + 1}`,
+          label: `Bil ${index + 1}`,
+          plate: normalizedPlates[index] || sanitizePlate(vehicle.plate),
+          registrationNumber: normalizedPlates[index] || sanitizePlate(vehicle.registrationNumber),
+          vehicleName: vehicle.vehicleName,
+          vehicleYear: vehicle.vehicleYear ?? null,
+          vehicleType: vehicle.vehicleType || "",
+          category: pricing.category,
+          packageId: pricing.packageId,
+          packageLabel: pricing.packageLabel,
+          addons: pricing.addons,
+          basePrice: pricing.subtotal,
+          addonsPrice,
+          discountPercent,
+          discountAmount,
+          totalPrice: pricing.subtotal + addonsPrice - discountAmount,
+          estimatedMinutes: pricing.estimatedMinutes,
+        };
+      })
+    );
+    const primaryPricing = pricedVehicles[0];
+    if (!primaryPricing) {
+      return json({ error: "Bookingen skal indeholde mindst én bil." }, 400);
+    }
+    const travelSurcharge = await calculateBookingPriceFromSetup({
+      packageId: primaryPricing.packageId,
+      addonIds: primaryPricing.addons.map((addon) => addon.id),
+      categoryLabel: primaryPricing.category,
       postalCode: customer.postalCode,
       settings,
     });
+    const subtotal = pricedVehicles.reduce((sum, item) => sum + item.basePrice + item.addonsPrice, 0);
+    const multiCarDiscount = pricedVehicles.reduce((sum, item) => sum + item.discountAmount, 0);
+    const totalBeforeCoupon = Math.max(0, subtotal + travelSurcharge.travelSurcharge - multiCarDiscount);
+    const couponDiscount = await calculateCouponDiscount(bookingInput.couponCode || "", totalBeforeCoupon);
+    const total = Math.max(0, totalBeforeCoupon - couponDiscount);
+    const estimatedMinutes = pricedVehicles.reduce(
+      (sum, item) => sum + Math.max(1, Number(item.estimatedMinutes || settings.slotMinutes)),
+      0
+    );
     const dbStartedAt = performance.now();
     const bookingResult = await createBooking({
       ...bookingInput,
       idempotencyKey: parsed.data.idempotencyKey,
-      plate: sanitizePlate(bookingInput.plate),
-      category: pricing.category,
-      packageId: pricing.packageId,
-      packageLabel: pricing.packageLabel,
-      addons: pricing.addons,
-      subtotal: pricing.subtotal,
-      manualTotal: pricing.total,
-      travelSurcharge: pricing.travelSurcharge,
-      estimatedMinutes: pricing.estimatedMinutes,
+      plate: primaryPricing.plate,
+      registrationNumber: primaryPricing.registrationNumber,
+      vehicleName: primaryPricing.vehicleName,
+      vehicleYear: primaryPricing.vehicleYear,
+      vehicleType: primaryPricing.vehicleType,
+      category: primaryPricing.category,
+      packageId: primaryPricing.packageId,
+      packageLabel: primaryPricing.packageLabel,
+      addons: primaryPricing.addons,
+      vehicles: pricedVehicles,
+      subtotal,
+      manualTotal: total,
+      discountDkk: multiCarDiscount + couponDiscount,
+      secondCarPlate: pricedVehicles[1]?.registrationNumber || "",
+      couponCode: bookingInput.couponCode || "",
+      travelSurcharge: travelSurcharge.travelSurcharge,
+      estimatedMinutes,
       status: settings.defaultBookingStatus,
       customer: {
         firstName: customer.firstName,
@@ -162,6 +288,7 @@ export async function POST(request: Request) {
       bookingId: bookingResult.booking.id,
       bookingStatus: bookingResult.booking.status,
       portalUrl,
+      total: bookingResult.booking.total,
       confirmationEmailSent,
     });
   } catch (error) {

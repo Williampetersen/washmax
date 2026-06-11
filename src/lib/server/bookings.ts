@@ -61,9 +61,13 @@ type RawBooking = {
   package_id: string | null;
   package_label: string | null;
   addons_json: Array<{ id: string; label: string; price: number }>;
+  vehicles_json: BookingVehicle[] | null;
   subtotal: number;
   total: number;
   travel_surcharge: number;
+  discount_dkk: number;
+  second_car_plate: string | null;
+  coupon_code: string | null;
   area_name: string | null;
   estimated_duration_minutes: number;
   appointment_date: string | Date;
@@ -194,9 +198,13 @@ export type BookingItem = {
   packageId: string;
   packageLabel: string;
   addons: Array<{ id: string; label: string; price: number }>;
+  vehicles: BookingVehicle[];
   subtotal: number;
   total: number;
   travelSurcharge: number;
+  discountDkk: number;
+  secondCarPlate: string;
+  couponCode: string;
   areaName: string;
   estimatedMinutes: number;
   appointmentDate: string;
@@ -220,6 +228,26 @@ export type BookingItem = {
   source: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type BookingVehicle = {
+  id: string;
+  label: string;
+  plate: string;
+  registrationNumber: string;
+  vehicleName: string;
+  vehicleYear: number | null;
+  vehicleType: string;
+  category: string;
+  packageId: string;
+  packageLabel: string;
+  addons: Array<{ id: string; label: string; price: number }>;
+  basePrice: number;
+  addonsPrice: number;
+  discountPercent: number;
+  discountAmount: number;
+  totalPrice: number;
+  estimatedMinutes: number;
 };
 
 export type DashboardBooking = BookingItem & {
@@ -313,6 +341,7 @@ type CreateBookingInput = {
   packageId: string;
   packageLabel: string;
   addons: AddOn[];
+  vehicles?: BookingVehicle[];
   subtotal: number;
   appointmentDate: string;
   appointmentTime: string;
@@ -320,6 +349,9 @@ type CreateBookingInput = {
   status?: BookingStatus;
   adminNotes?: string;
   manualTotal?: number;
+  discountDkk?: number;
+  secondCarPlate?: string;
+  couponCode?: string;
   travelSurcharge?: number;
   estimatedMinutes?: number;
   paymentStatus?: PaymentStatus;
@@ -554,6 +586,75 @@ const activityFromRow = (row: RawActivity): BookingActivityItem => ({
   createdAt: toDateTimeText(row.created_at),
 });
 
+const normalizeBookingVehicles = (row: RawBooking): BookingVehicle[] => {
+  const fromJson = Array.isArray(row.vehicles_json)
+    ? row.vehicles_json
+        .slice(0, 2)
+        .map((item, index) => ({
+          id: String(item.id || `car-${index + 1}`),
+          label: String(item.label || `Bil ${index + 1}`),
+          plate: String(item.plate || item.registrationNumber || row.plate || ""),
+          registrationNumber: String(item.registrationNumber || item.plate || row.registration_number || row.plate || ""),
+          vehicleName: String(item.vehicleName || row.vehicle_name || "Din bil"),
+          vehicleYear: item.vehicleYear === null ? null : Number(item.vehicleYear || 0) || null,
+          vehicleType: String(item.vehicleType || ""),
+          category: String(item.category || row.category || ""),
+          packageId: String(item.packageId || row.package_id || ""),
+          packageLabel: String(item.packageLabel || row.package_label || ""),
+          addons: Array.isArray(item.addons)
+            ? item.addons.map((addon) => ({
+                id: String(addon.id || ""),
+                label: String(addon.label || ""),
+                price: Number(addon.price || 0),
+              }))
+            : [],
+          basePrice: Number(item.basePrice || 0),
+          addonsPrice: Number(item.addonsPrice || 0),
+          discountPercent: Number(item.discountPercent || 0),
+          discountAmount: Number(item.discountAmount || 0),
+          totalPrice: Number(item.totalPrice || 0),
+          estimatedMinutes: Number(item.estimatedMinutes || row.estimated_duration_minutes || 0),
+        }))
+        .filter((item) => item.registrationNumber || item.plate)
+    : [];
+
+  if (fromJson.length > 0) {
+    return fromJson;
+  }
+
+  const addons = Array.isArray(row.addons_json)
+    ? row.addons_json.map((item) => ({
+        id: String(item.id ?? ""),
+        label: String(item.label ?? ""),
+        price: Number(item.price || 0),
+      }))
+    : [];
+  const addonsPrice = addons.reduce((sum, item) => sum + item.price, 0);
+  const basePrice = Number(row.subtotal || 0);
+
+  return [
+    {
+      id: "car-1",
+      label: "Bil 1",
+      plate: String(row.plate ?? ""),
+      registrationNumber: String(row.registration_number ?? row.plate ?? ""),
+      vehicleName: String(row.vehicle_name ?? "Din bil"),
+      vehicleYear: row.vehicle_year,
+      vehicleType: String(row.vehicle_type ?? ""),
+      category: String(row.category ?? ""),
+      packageId: String(row.package_id ?? ""),
+      packageLabel: String(row.package_label ?? ""),
+      addons,
+      basePrice,
+      addonsPrice,
+      discountPercent: 0,
+      discountAmount: 0,
+      totalPrice: Number(row.total || basePrice + addonsPrice),
+      estimatedMinutes: Number(row.estimated_duration_minutes || 0),
+    },
+  ];
+};
+
 const bookingFromRow = (
   row: RawBooking,
   customer?: BookingCustomer,
@@ -563,6 +664,7 @@ const bookingFromRow = (
   const appointmentDate = toDateText(row.appointment_date);
   const appointmentTime = toTimeText(row.appointment_time, "08:00");
   const estimatedMinutes = Number(row.estimated_duration_minutes || 0);
+  const vehicles = normalizeBookingVehicles(row);
 
   return {
     id: String(row.id ?? ""),
@@ -581,9 +683,13 @@ const bookingFromRow = (
           price: Number(item.price || 0),
         }))
       : [],
+    vehicles,
     subtotal: Number(row.subtotal || 0),
     total: Number(row.total || 0),
     travelSurcharge: Number(row.travel_surcharge || 0),
+    discountDkk: Number(row.discount_dkk || 0),
+    secondCarPlate: String(row.second_car_plate || ""),
+    couponCode: String(row.coupon_code || ""),
     areaName: String(row.area_name ?? ""),
     estimatedMinutes,
     appointmentDate,
@@ -1023,15 +1129,91 @@ export const createBooking = async (input: CreateBookingInput) => {
     label: item.label,
     price: Number(item.price || 0),
   }));
+  const legacyBasePrice = Number(input.subtotal || 0);
+  const legacyAddonsPrice = addons.reduce((sum, item) => sum + Number(item.price || 0), 0);
+  const bookingVehicles = (input.vehicles?.length
+    ? input.vehicles
+    : [
+        {
+          id: "car-1",
+          label: "Bil 1",
+          plate: input.plate,
+          registrationNumber: input.registrationNumber,
+          vehicleName: input.vehicleName,
+          vehicleYear: input.vehicleYear,
+          vehicleType: input.vehicleType,
+          category: input.category,
+          packageId: input.packageId,
+          packageLabel: input.packageLabel,
+          addons,
+          basePrice: legacyBasePrice,
+          addonsPrice: legacyAddonsPrice,
+          discountPercent: 0,
+          discountAmount: 0,
+          totalPrice: legacyBasePrice + legacyAddonsPrice,
+          estimatedMinutes: Number(catalogPackage?.estimatedMinutes || settings.slotMinutes),
+        },
+      ])
+    .slice(0, 2)
+    .map((item, index) => ({
+      id: String(item.id || `car-${index + 1}`),
+      label: String(item.label || `Bil ${index + 1}`),
+      plate: String(item.plate || item.registrationNumber || "").trim(),
+      registrationNumber: String(item.registrationNumber || item.plate || "").trim(),
+      vehicleName: String(item.vehicleName || "Din bil").trim(),
+      vehicleYear: item.vehicleYear === null ? null : Number(item.vehicleYear || 0) || null,
+      vehicleType: String(item.vehicleType || "").trim(),
+      category: String(item.category || "").trim(),
+      packageId: String(item.packageId || "").trim(),
+      packageLabel: String(item.packageLabel || "").trim(),
+      addons: (item.addons || []).map((addon) => ({
+        id: addon.id,
+        label: addon.label,
+        price: Number(addon.price || 0),
+      })),
+      basePrice: Math.max(0, Math.round(Number(item.basePrice || 0))),
+      addonsPrice: Math.max(0, Math.round(Number(item.addonsPrice || 0))),
+      discountPercent: Math.max(0, Math.round(Number(item.discountPercent || 0))),
+      discountAmount: Math.max(0, Math.round(Number(item.discountAmount || 0))),
+      totalPrice: Math.max(0, Math.round(Number(item.totalPrice || 0))),
+      estimatedMinutes: Math.max(1, Math.round(Number(item.estimatedMinutes || settings.slotMinutes))),
+    }));
+  const primaryVehicle =
+    bookingVehicles[0] ?? ({
+      id: "car-1",
+      label: "Bil 1",
+      plate: input.plate,
+      registrationNumber: input.registrationNumber,
+      vehicleName: input.vehicleName || "Din bil",
+      vehicleYear: input.vehicleYear,
+      vehicleType: input.vehicleType,
+      category: input.category,
+      packageId: input.packageId,
+      packageLabel: input.packageLabel,
+      addons,
+      basePrice: legacyBasePrice,
+      addonsPrice: legacyAddonsPrice,
+      discountPercent: 0,
+      discountAmount: 0,
+      totalPrice: legacyBasePrice + legacyAddonsPrice,
+      estimatedMinutes: Number(catalogPackage?.estimatedMinutes || settings.slotMinutes),
+    } satisfies BookingVehicle);
   const travelSurcharge =
     input.travelSurcharge ?? (matchedArea?.surcharge && input.source === "website" ? matchedArea.surcharge : 0);
+  const discountDkk =
+    input.discountDkk ??
+    bookingVehicles.reduce((sum, item) => sum + Number(item.discountAmount || 0), 0);
   const total =
     input.manualTotal ??
-    Number(input.subtotal || 0) +
-      addons.reduce((sum, item) => sum + Number(item.price || 0), 0) +
-      Number(travelSurcharge || 0);
+    bookingVehicles.reduce((sum, item) => sum + item.basePrice + item.addonsPrice, 0) +
+      Number(travelSurcharge || 0) -
+      Number(discountDkk || 0);
   const estimatedMinutes =
-    input.estimatedMinutes ?? Number(catalogPackage?.estimatedMinutes || settings.slotMinutes);
+    input.estimatedMinutes ??
+    bookingVehicles.reduce(
+      (sum, item) => sum + Math.max(1, Number(item.estimatedMinutes || settings.slotMinutes)),
+      0
+    );
   const invoiceRequested = Boolean(input.invoiceRequested);
   const invoiceStatus =
     input.invoiceStatus ?? (invoiceRequested ? "ready" : "not_requested");
@@ -1105,9 +1287,13 @@ export const createBooking = async (input: CreateBookingInput) => {
         package_id,
         package_label,
         addons_json,
+        vehicles_json,
         subtotal,
         total,
         travel_surcharge,
+        discount_dkk,
+        second_car_plate,
+        coupon_code,
         area_name,
         estimated_duration_minutes,
         appointment_date,
@@ -1128,18 +1314,22 @@ export const createBooking = async (input: CreateBookingInput) => {
       VALUES (
         ${createId("bok")},
         ${customer.id},
-        ${input.plate},
-        ${input.registrationNumber},
-        ${input.vehicleName},
-        ${input.vehicleYear},
-        ${input.vehicleType},
-        ${input.category},
-        ${input.packageId},
-        ${input.packageLabel},
-        ${tx.json(addons)},
-        ${Number(input.subtotal || 0)},
+        ${primaryVehicle.plate || input.plate},
+        ${primaryVehicle.registrationNumber || input.registrationNumber},
+        ${primaryVehicle.vehicleName || input.vehicleName},
+        ${primaryVehicle.vehicleYear},
+        ${primaryVehicle.vehicleType || input.vehicleType},
+        ${primaryVehicle.category || input.category},
+        ${primaryVehicle.packageId || input.packageId},
+        ${primaryVehicle.packageLabel || input.packageLabel},
+        ${tx.json(primaryVehicle.addons || addons)},
+        ${tx.json(bookingVehicles)},
+        ${bookingVehicles.reduce((sum, item) => sum + item.basePrice + item.addonsPrice, 0)},
         ${Math.round(total)},
         ${Math.round(travelSurcharge || 0)},
+        ${Math.round(discountDkk || 0)},
+        ${input.secondCarPlate || bookingVehicles[1]?.registrationNumber || ""},
+        ${input.couponCode || ""},
         ${matchedArea?.label || ""},
         ${estimatedMinutes},
         ${input.appointmentDate},

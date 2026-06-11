@@ -15,6 +15,19 @@ type MailBooking = {
   packageLabel: string;
   category: string;
   addons: Array<{ label: string; price: number }>;
+  vehicles?: Array<{
+    label: string;
+    registrationNumber: string;
+    vehicleName: string;
+    packageLabel: string;
+    category: string;
+    addons: Array<{ label: string; price: number }>;
+    basePrice: number;
+    addonsPrice: number;
+    discountAmount: number;
+    totalPrice: number;
+  }>;
+  discountDkk?: number;
   total: number;
   appointmentDate: string;
   appointmentTime: string;
@@ -124,23 +137,66 @@ const getAddressLine = (customer: MailCustomer) =>
     .filter(Boolean)
     .join(", ");
 
-const getAddonMarkup = (addons: MailBooking["addons"]) => {
-  if (addons.length === 0) {
-    return '<p style="margin:0;color:#5b6b75;">Ingen tilvalg</p>';
-  }
-
-  return `<ul style="margin:0;padding-left:18px;color:#16303a;">${addons
-    .map(
-      (item) =>
-        `<li>${escapeHtml(item.label)} (${escapeHtml(formatPrice(item.price))})</li>`
-    )
-    .join("")}</ul>`;
-};
-
 const getAddonText = (addons: MailBooking["addons"]) =>
   addons.length > 0
     ? addons.map((item) => `${item.label} (${formatPrice(item.price)})`).join(", ")
     : "Ingen tilvalg";
+
+const getBookingVehicles = (booking: MailBooking) =>
+  booking.vehicles && booking.vehicles.length > 0
+    ? booking.vehicles
+    : [
+        {
+          label: "Bil 1",
+          registrationNumber: booking.registrationNumber,
+          vehicleName: booking.vehicleName,
+          packageLabel: booking.packageLabel,
+          category: booking.category,
+          addons: booking.addons,
+          basePrice: booking.total,
+          addonsPrice: 0,
+          discountAmount: 0,
+          totalPrice: booking.total,
+        },
+      ];
+
+const renderVehicleDetailsHtml = (booking: MailBooking) => {
+  const vehicles = getBookingVehicles(booking);
+
+  return vehicles
+    .map(
+      (vehicle) => `
+        <div style="margin-top:12px;padding:14px 16px;border-radius:14px;background:#f6fbfc;border:1px solid #dceef2;">
+          <p style="margin:0 0 4px;font-weight:800;color:#0b1f3a;">${escapeHtml(vehicle.label)} · ${escapeHtml(vehicle.registrationNumber)}</p>
+          <p style="margin:0;color:#36505d;">${escapeHtml(vehicle.vehicleName)}</p>
+          <p style="margin:8px 0 0;color:#36505d;">${escapeHtml(vehicle.packageLabel)}${vehicle.category ? ` - ${escapeHtml(vehicle.category)}` : ""}</p>
+          <p style="margin:8px 0 0;color:#36505d;">Tilvalg: ${escapeHtml(getAddonText(vehicle.addons))}</p>
+          ${
+            vehicle.discountAmount > 0
+              ? `<p style="margin:8px 0 0;color:#0d6b47;font-weight:700;">15% rabat på bil 2: -${escapeHtml(formatPrice(vehicle.discountAmount))}</p>`
+              : ""
+          }
+          <p style="margin:8px 0 0;font-weight:800;color:#0b1f3a;">Pris: ${escapeHtml(formatPrice(vehicle.totalPrice))}</p>
+        </div>
+      `
+    )
+    .join("");
+};
+
+const getVehicleDetailsText = (booking: MailBooking) =>
+  getBookingVehicles(booking)
+    .map((vehicle) =>
+      [
+        `${vehicle.label}: ${vehicle.vehicleName} (${vehicle.registrationNumber})`,
+        `Service: ${vehicle.packageLabel}${vehicle.category ? ` - ${vehicle.category}` : ""}`,
+        `Tilvalg: ${getAddonText(vehicle.addons)}`,
+        vehicle.discountAmount > 0 ? `15% rabat på bil 2: -${formatPrice(vehicle.discountAmount)}` : "",
+        `Pris: ${formatPrice(vehicle.totalPrice)}`,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    )
+    .join("\n\n");
 
 const renderRows = (rows: Array<[string, string]>) =>
   `<table style="border-collapse:collapse;width:100%;margin-top:18px;">${rows
@@ -202,16 +258,16 @@ const renderCustomerEmailHtml = (input: {
       ${renderRows([
         ["Status", getStatusLabel(input.booking.status)],
         ["Tid", appointmentLabel],
-        ["Bil", input.booking.vehicleName],
-        ["Regnr.", input.booking.registrationNumber],
-        ["Pakke", `${input.booking.packageLabel} - ${input.booking.category}`],
+        ["Biler", `${getBookingVehicles(input.booking).length}`],
         ["Adresse", addressLine],
         ["Total", formatPrice(input.booking.total)],
       ])}
-      <div style="margin-top:16px;">
-        <strong>Tilvalg</strong>
-        ${getAddonMarkup(input.booking.addons)}
-      </div>
+      <div style="margin-top:16px;"><strong>Bookingdetaljer</strong>${renderVehicleDetailsHtml(input.booking)}</div>
+      ${
+        input.booking.discountDkk && input.booking.discountDkk > 0
+          ? `<p style="margin:14px 0 0;color:#0d6b47;font-weight:700;">Samlet rabat: -${escapeHtml(formatPrice(input.booking.discountDkk))}</p>`
+          : ""
+      }
       ${renderAdminNote(input.booking.adminNotes)}
       <p style="margin-top:20px;color:#36505d;">${escapeHtml(input.footer)}</p>
       <p style="margin-top:10px;color:#36505d;">Support: ${escapeHtml(input.settings.supportEmail)}</p>
@@ -239,12 +295,14 @@ const renderCustomerEmailText = (input: {
     "",
     `Status: ${getStatusLabel(input.booking.status)}`,
     `Tid: ${appointmentLabel}`,
-    `Bil: ${input.booking.vehicleName}`,
-    `Regnr.: ${input.booking.registrationNumber}`,
-    `Pakke: ${input.booking.packageLabel} - ${input.booking.category}`,
+    `Biler: ${getBookingVehicles(input.booking).length}`,
+    "",
+    getVehicleDetailsText(input.booking),
     `Adresse: ${addressLine}`,
     `Total: ${formatPrice(input.booking.total)}`,
-    `Tilvalg: ${getAddonText(input.booking.addons)}`,
+    input.booking.discountDkk && input.booking.discountDkk > 0
+      ? `Samlet rabat: -${formatPrice(input.booking.discountDkk)}`
+      : "",
   ];
 
   if (input.booking.adminNotes?.trim()) {
@@ -507,7 +565,7 @@ export const sendAdminNewBookingAlert = async (input: {
     recipient: adminEmail,
     recipientRole: "admin",
     templateKey: "admin_new_booking",
-    subject: `${input.settings.companyName}: ny booking ${input.booking.registrationNumber}`,
+    subject: `${input.settings.companyName}: ny booking ${getBookingVehicles(input.booking).length > 1 ? "2 biler" : input.booking.registrationNumber}`,
     html: `
       <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
         <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Ny booking</p>
@@ -523,14 +581,10 @@ export const sendAdminNewBookingAlert = async (input: {
           ["Telefon", input.customer.phone],
           ["Email", input.customer.email],
           ["Adresse", getAddressLine(input.customer)],
-          ["Bil", `${input.booking.vehicleName} (${input.booking.registrationNumber})`],
-          ["Service", `${input.booking.packageLabel} - ${input.booking.category}`],
+          ["Biler", `${getBookingVehicles(input.booking).length}`],
           ["Pris", formatPrice(input.booking.total)],
         ])}
-        <div style="margin-top:16px;">
-          <strong>Tilvalg</strong>
-          ${getAddonMarkup(input.booking.addons)}
-        </div>
+        <div style="margin-top:16px;"><strong>Bookingdetaljer</strong>${renderVehicleDetailsHtml(input.booking)}</div>
         ${
           input.customer.notes
             ? `<p style="margin-top:16px;"><strong>Bemaerkninger:</strong><br />${escapeHtml(
@@ -549,10 +603,10 @@ export const sendAdminNewBookingAlert = async (input: {
       `Telefon: ${input.customer.phone}`,
       `Email: ${input.customer.email}`,
       `Adresse: ${getAddressLine(input.customer)}`,
-      `Bil: ${input.booking.vehicleName} (${input.booking.registrationNumber})`,
-      `Service: ${input.booking.packageLabel} - ${input.booking.category}`,
+      `Biler: ${getBookingVehicles(input.booking).length}`,
+      "",
+      getVehicleDetailsText(input.booking),
       `Pris: ${formatPrice(input.booking.total)}`,
-      `Tilvalg: ${getAddonText(input.booking.addons)}`,
       `Kundeportal: ${input.portalUrl}`,
       input.customer.notes ? `Bemaerkninger: ${input.customer.notes}` : "",
     ]

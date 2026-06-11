@@ -43,6 +43,7 @@ import {
   type BookingStatus,
   type VehicleLookupResult,
 } from "@/lib/shared/booking";
+import { AddExtraCarModal } from "@/components/booking/add-extra-car-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -65,12 +66,33 @@ type BookingFormValues = z.input<typeof bookingFormSchema>;
 type AddOnSelection = { id: string; label: string; price: number };
 type LookupStatus = { message: string; type: "error" | "info" };
 type VehicleCacheEntry = { vehicle: VehicleLookupResult; cachedAt: number };
+type ActiveVehicleIndex = 0 | 1;
+type BookingVehicleSummary = {
+  id: string;
+  label: string;
+  plate: string;
+  vehicle: VehicleLookupResult;
+  vehicleName: string;
+  vehicleTypeLabel: string;
+  category: NonNullable<ReturnType<typeof getVehicleCategory>>;
+  packageId: string;
+  packageLabel: string;
+  addonIds: string[];
+  addons: AddOnSelection[];
+  basePrice: number;
+  addonsPrice: number;
+  discountPercent: number;
+  discountAmount: number;
+  totalPrice: number;
+  estimatedMinutes: number;
+};
 type BookingConfirmation = {
   portalUrl: string;
   emailSent: boolean;
   status: BookingStatus;
   appointmentLabel: string;
   vehicleName: string;
+  vehicleCount: number;
   packageLabel: string;
   total: number;
   customerEmail: string;
@@ -85,6 +107,7 @@ const platePattern = /^[A-Z0-9]{2,10}$/;
 const lookupDebounceMs = 400;
 const minAutoLookupPlateLength = 5;
 const clientVehicleCacheTtlMs = 5 * 60 * 1000;
+const secondCarDiscountPercent = 15;
 const vehicleLookupCache = new Map<string, VehicleCacheEntry>();
 
 const createManualVehicle = (plate: string): VehicleLookupResult => ({
@@ -139,6 +162,11 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(null);
   const [activePackage, setActivePackage] = useState(settings.catalog.packages[0]?.id || "");
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
+  const [secondVehicle, setSecondVehicle] = useState<VehicleLookupResult | null>(null);
+  const [secondPackage, setSecondPackage] = useState("");
+  const [secondAddonIds, setSecondAddonIds] = useState<string[]>([]);
+  const [activeVehicleIndex, setActiveVehicleIndex] = useState<ActiveVehicleIndex>(0);
+  const [isAddCarModalOpen, setIsAddCarModalOpen] = useState(false);
   const [appointmentDate, setAppointmentDate] = useState<Date | undefined>(initialBookableDate);
   const [selectedAppointmentTime, setSelectedAppointmentTime] = useState("");
   const [liveAvailableTimeSlots, setLiveAvailableTimeSlots] = useState<string[]>([]);
@@ -151,8 +179,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [openStep, setOpenStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
 
-  const [hasSecondCar, setHasSecondCar] = useState(false);
-  const [secondCarPlate, setSecondCarPlate] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountDkk: number; label: string } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
@@ -162,6 +188,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
   const step4Ref = useRef<HTMLDivElement>(null);
+  const addCarButtonRef = useRef<HTMLButtonElement>(null);
   const lookupControllerRef = useRef<AbortController | null>(null);
   const lookupDebounceRef = useRef<number | null>(null);
   const latestLookupPlateRef = useRef("");
@@ -185,35 +212,167 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     },
   });
 
-  const selectedAddons = useMemo(() => {
-    const available = [...settings.catalog.interiorAddOns, ...settings.catalog.exteriorAddOns];
-    return selectedAddonIds
-      .map((id) => available.find((item) => item.id === id))
-      .filter(Boolean)
-      .map((item) => ({ id: item!.id, label: item!.label, price: Number(item!.price || 0) }));
-  }, [selectedAddonIds, settings.catalog.exteriorAddOns, settings.catalog.interiorAddOns]);
+  const allAddons = useMemo(
+    () => [
+      ...settings.catalog.interiorAddOns,
+      ...settings.catalog.exteriorAddOns,
+      ...settings.catalog.quantityAddOns,
+    ],
+    [
+      settings.catalog.exteriorAddOns,
+      settings.catalog.interiorAddOns,
+      settings.catalog.quantityAddOns,
+    ]
+  );
+  const selectedAddons = useMemo(
+    () =>
+      selectedAddonIds
+        .map((id) => allAddons.find((item) => item.id === id))
+        .filter(Boolean)
+        .map((item) => ({ id: item!.id, label: item!.label, price: Number(item!.price || 0) })),
+    [allAddons, selectedAddonIds]
+  );
+  const secondSelectedAddons = useMemo(
+    () =>
+      secondAddonIds
+        .map((id) => allAddons.find((item) => item.id === id))
+        .filter(Boolean)
+        .map((item) => ({ id: item!.id, label: item!.label, price: Number(item!.price || 0) })),
+    [allAddons, secondAddonIds]
+  );
 
   const category = useMemo(
     () => (vehicle ? getVehicleCategory(vehicle, settings.catalog.vehicleCategories) : null),
     [settings.catalog.vehicleCategories, vehicle]
   );
+  const secondCategory = useMemo(
+    () => (secondVehicle ? getVehicleCategory(secondVehicle, settings.catalog.vehicleCategories) : null),
+    [secondVehicle, settings.catalog.vehicleCategories]
+  );
   const activePackageData = useMemo(
     () => getCatalogPackage(settings.catalog, activePackage),
     [activePackage, settings.catalog]
+  );
+  const secondPackageData = useMemo(
+    () => (secondPackage ? getCatalogPackage(settings.catalog, secondPackage) : undefined),
+    [secondPackage, settings.catalog]
   );
   const vehicleName = useMemo(() => buildVehicleName(vehicle), [vehicle]);
   const vehicleTypeLabel = vehicle?.type ? `Biltype: ${vehicle.type}` : "Biltype: -";
   const activePackagePrice = Number(activePackageData?.price || 0);
   const basePrice = activePackagePrice > 0 ? activePackagePrice : category?.price ?? 0;
+  const hasSecondCar = Boolean(secondVehicle);
+  const secondVehicleName = useMemo(() => buildVehicleName(secondVehicle), [secondVehicle]);
+  const secondPackagePrice = Number(secondPackageData?.price || 0);
+  const secondBasePrice = secondPackageData
+    ? secondPackagePrice > 0
+      ? secondPackagePrice
+      : secondCategory?.price ?? 0
+    : 0;
   const postalCodeValue = useWatch({ control: form.control, name: "postalCode" });
   const addonsTotal = useMemo(() => selectedAddons.reduce((sum, item) => sum + item.price, 0), [selectedAddons]);
+  const secondAddonsTotal = useMemo(
+    () => secondSelectedAddons.reduce((sum, item) => sum + item.price, 0),
+    [secondSelectedAddons]
+  );
   const matchedArea = useMemo(
     () => findMatchingServiceArea(postalCodeValue || "", settings.serviceAreas),
     [postalCodeValue, settings.serviceAreas]
   );
   const travelSurcharge = matchedArea?.surcharge ?? 0;
-  const total = useMemo(() => basePrice + addonsTotal + travelSurcharge, [addonsTotal, basePrice, travelSurcharge]);
-  const multiCarDiscount = useMemo(() => hasSecondCar ? Math.round(total * 15 / 100) : 0, [hasSecondCar, total]);
+  const bookingVehicles = useMemo(() => {
+    const items: BookingVehicleSummary[] = [];
+
+    if (vehicle && category && activePackageData?.id) {
+      items.push({
+        id: "car-1",
+        label: "Bil 1",
+        plate: sanitizePlate(vehicle.registration_number || plate),
+        vehicle,
+        vehicleName,
+        vehicleTypeLabel,
+        category,
+        packageId: activePackageData.id,
+        packageLabel: activePackageData.title,
+        addonIds: selectedAddonIds,
+        addons: selectedAddons,
+        basePrice,
+        addonsPrice: addonsTotal,
+        discountPercent: 0,
+        discountAmount: 0,
+        totalPrice: basePrice + addonsTotal,
+        estimatedMinutes: Number(activePackageData.estimatedMinutes || settings.slotMinutes),
+      });
+    }
+
+    if (secondVehicle && secondCategory && secondPackageData?.id) {
+      const discountAmount = Math.round((secondBasePrice * secondCarDiscountPercent) / 100);
+      items.push({
+        id: "car-2",
+        label: "Bil 2",
+        plate: sanitizePlate(secondVehicle.registration_number),
+        vehicle: secondVehicle,
+        vehicleName: secondVehicleName,
+        vehicleTypeLabel: secondVehicle.type ? `Biltype: ${secondVehicle.type}` : "Biltype: -",
+        category: secondCategory,
+        packageId: secondPackageData.id,
+        packageLabel: secondPackageData.title,
+        addonIds: secondAddonIds,
+        addons: secondSelectedAddons,
+        basePrice: secondBasePrice,
+        addonsPrice: secondAddonsTotal,
+        // TODO: Confirm whether two-car discounts should include add-ons. Current rule discounts only Bil 2's main package/base price.
+        discountPercent: secondCarDiscountPercent,
+        discountAmount,
+        totalPrice: secondBasePrice + secondAddonsTotal - discountAmount,
+        estimatedMinutes: Number(secondPackageData.estimatedMinutes || settings.slotMinutes),
+      });
+    }
+
+    return items;
+  }, [
+    activePackageData,
+    addonsTotal,
+    basePrice,
+    category,
+    plate,
+    secondAddonsTotal,
+    secondBasePrice,
+    secondCategory,
+    secondPackageData,
+    secondSelectedAddons,
+    secondAddonIds,
+    secondVehicle,
+    secondVehicleName,
+    selectedAddonIds,
+    selectedAddons,
+    settings.slotMinutes,
+    vehicle,
+    vehicleName,
+    vehicleTypeLabel,
+  ]);
+  const activeSelectionPackageId = activeVehicleIndex === 1 ? secondPackage : activePackage;
+  const activeSelectionPackageData =
+    activeVehicleIndex === 1 ? secondPackageData : activePackageData;
+  const activeSelectionCategory = activeVehicleIndex === 1 ? secondCategory : category;
+  const activeSelectionVehicle = activeVehicleIndex === 1 ? secondVehicle : vehicle;
+  const activeSelectionVehicleName =
+    activeVehicleIndex === 1 ? secondVehicleName : vehicleName;
+  const activeSelectionAddonIds = activeVehicleIndex === 1 ? secondAddonIds : selectedAddonIds;
+  const activeSelectionAddons =
+    activeVehicleIndex === 1 ? secondSelectedAddons : selectedAddons;
+  const activeVehicleLabel = activeVehicleIndex === 1 ? "Bil 2" : "Bil 1";
+  const bookingSubtotal = useMemo(
+    () =>
+      bookingVehicles.reduce((sum, item) => sum + item.basePrice + item.addonsPrice, 0) +
+      travelSurcharge,
+    [bookingVehicles, travelSurcharge]
+  );
+  const multiCarDiscount = useMemo(
+    () => bookingVehicles.reduce((sum, item) => sum + item.discountAmount, 0),
+    [bookingVehicles]
+  );
+  const total = bookingSubtotal;
   const couponDiscount = appliedCoupon?.discountDkk ?? 0;
   const finalTotal = Math.max(0, total - multiCarDiscount - couponDiscount);
   const totalDiscount = multiCarDiscount + couponDiscount;
@@ -244,9 +403,20 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       : settings.serviceAreas.length > 0
         ? "Dit postnummer ligger uden for de faste zoner. Vi gennemgår bookingen manuelt, hvis kørsel skal justeres."
         : "Vi dækker fortsat din adresse uden registreret zonetillæg.";
+  const availabilityVehiclesPayload = useMemo(
+    () =>
+      JSON.stringify(
+        bookingVehicles.map((item) => ({
+          packageId: item.packageId,
+          addonIds: item.addonIds,
+          category: item.category.label,
+        }))
+      ),
+    [bookingVehicles]
+  );
 
   useEffect(() => {
-    if (!appointmentDateValue || !activePackageData?.id) {
+    if (!appointmentDateValue || bookingVehicles.length === 0 || (hasSecondCar && !secondPackageData?.id)) {
       queueMicrotask(() => {
         setLiveAvailableTimeSlots([]);
         setAvailabilityError("");
@@ -257,14 +427,17 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     const controller = new AbortController();
     const params = new URLSearchParams({
       date: appointmentDateValue,
-      packageId: activePackageData.id,
+      packageId: bookingVehicles[0]?.packageId || "",
     });
 
-    if (selectedAddonIds.length > 0) {
-      params.set("addonIds", selectedAddonIds.join(","));
+    if (bookingVehicles[0]?.addonIds.length) {
+      params.set("addonIds", bookingVehicles[0].addonIds.join(","));
     }
-    if (category?.label) {
-      params.set("category", category.label);
+    if (bookingVehicles[0]?.category.label) {
+      params.set("category", bookingVehicles[0].category.label);
+    }
+    if (bookingVehicles.length > 1) {
+      params.set("vehicles", availabilityVehiclesPayload);
     }
     if (postalCodeValue) {
       params.set("postalCode", postalCodeValue);
@@ -307,11 +480,12 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
     return () => controller.abort();
   }, [
-    activePackageData?.id,
+    availabilityVehiclesPayload,
     appointmentDateValue,
-    category?.label,
+    bookingVehicles,
+    hasSecondCar,
     postalCodeValue,
-    selectedAddonIds,
+    secondPackageData?.id,
   ]);
 
   const goToStep = useCallback((step: 1 | 2 | 3 | 4) => {
@@ -413,8 +587,67 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     void lookupVehicle(plate);
   }, [lookupVehicle, plate]);
 
+  const clearSelectedAppointmentTime = () => {
+    setSelectedAppointmentTime("");
+    setLiveAvailableTimeSlots([]);
+  };
+
+  const handlePackageSelect = (packageId: string) => {
+    if (activeVehicleIndex === 1) {
+      setSecondPackage(packageId);
+    } else {
+      setActivePackage(packageId);
+    }
+    clearSelectedAppointmentTime();
+    window.setTimeout(() => goToStep(2), 280);
+  };
+
   const handleAddonToggle = (addon: AddOnSelection) => {
-    setSelectedAddonIds((current) => current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]);
+    if (activeVehicleIndex === 1) {
+      setSecondAddonIds((current) =>
+        current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
+      );
+    } else {
+      setSelectedAddonIds((current) =>
+        current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
+      );
+    }
+    clearSelectedAppointmentTime();
+  };
+
+  const handleConfirmSecondCar = (nextVehicle: VehicleLookupResult) => {
+    setSecondVehicle(nextVehicle);
+    setSecondPackage("");
+    setSecondAddonIds([]);
+    setActiveVehicleIndex(1);
+    setIsAddCarModalOpen(false);
+    clearSelectedAppointmentTime();
+    goToStep(1);
+    window.setTimeout(() => step1Ref.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120);
+  };
+
+  const handleRemoveSecondCar = () => {
+    setSecondVehicle(null);
+    setSecondPackage("");
+    setSecondAddonIds([]);
+    setActiveVehicleIndex(0);
+    clearSelectedAppointmentTime();
+    setIsMobileSummaryOpen(false);
+  };
+
+  const handleEditSecondCar = () => {
+    if (!secondVehicle) return;
+    setActiveVehicleIndex(1);
+    goToStep(secondPackage ? 2 : 1);
+  };
+
+  const handleContinueAfterAddons = () => {
+    if (hasSecondCar && !secondPackageData) {
+      setActiveVehicleIndex(1);
+      goToStep(1);
+      return;
+    }
+    goToStep(3);
   };
 
   const handleChangeVehicle = () => {
@@ -424,6 +657,11 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     setVehicle(null);
     setPlate("");
     setLookupStatus(null);
+    setSecondVehicle(null);
+    setSecondPackage("");
+    setSecondAddonIds([]);
+    setActiveVehicleIndex(0);
+    clearSelectedAppointmentTime();
     setIdempotencyKey("");
     setOpenStep(1);
     setConfirmation(null);
@@ -436,7 +674,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     setCouponLoading(true);
     setCouponError("");
     try {
-      const res = await fetch(`/api/booking/coupon/validate?code=${encodeURIComponent(code)}&total=${total}`, {
+      const res = await fetch(`/api/booking/coupon/validate?code=${encodeURIComponent(code)}&total=${Math.max(0, total - multiCarDiscount)}`, {
         headers: { accept: "application/json" },
       });
       const data = await res.json() as { valid: boolean; code?: string; discountDkk?: number; label?: string; error?: string };
@@ -461,12 +699,22 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       setFormError("Vi mangler stadig biloplysninger for at oprette bookingen.");
       return;
     }
+    if (hasSecondCar && (!secondVehicle || !secondPackageData || !secondCategory)) {
+      setFormError("Vælg bilvask til bil 2, før du fortsætter til bekræftelse.");
+      setActiveVehicleIndex(1);
+      setOpenStep(1);
+      return;
+    }
     if (!appointmentDateValue || !appointmentTime) {
       setFormError("Vælg en dag med ledige tider for bookingen.");
       return;
     }
+    if (bookingVehicles.length < 1 || bookingVehicles.length > 2) {
+      setFormError("Bookingen skal indeholde én eller to biler.");
+      return;
+    }
     setFormError(null);
-    const nextIdempotencyKey = idempotencyKey || createIdempotencyKey({ plate, email: values.email, appointmentDate: appointmentDateValue, appointmentTime, packageId: activePackageData.id });
+    const nextIdempotencyKey = idempotencyKey || createIdempotencyKey({ plate, email: values.email, appointmentDate: appointmentDateValue, appointmentTime, packageId: activePackageData?.id || bookingVehicles[0]?.packageId || "" });
     if (!idempotencyKey) setIdempotencyKey(nextIdempotencyKey);
     setIsSubmitting(true);
 
@@ -482,14 +730,28 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             vehicleYear: vehicle.model_year,
             vehicleType: vehicle.type || "",
             category: category.label,
-            packageId: activePackageData.id,
-            packageLabel: activePackageData.title,
+            packageId: activePackageData?.id || bookingVehicles[0]?.packageId,
+            packageLabel: activePackageData?.title || bookingVehicles[0]?.packageLabel,
             addons: selectedAddons,
             subtotal: basePrice,
             total: finalTotal,
             discountDkk: totalDiscount,
-            secondCarPlate: hasSecondCar ? secondCarPlate : "",
+            secondCarPlate: secondVehicle ? sanitizePlate(secondVehicle.registration_number) : "",
             couponCode: appliedCoupon?.code || "",
+            vehicles: bookingVehicles.map((item) => ({
+              id: item.id,
+              plate: item.plate,
+              registrationNumber: item.vehicle.registration_number || item.plate,
+              vehicleName: item.vehicleName,
+              vehicleYear: item.vehicle.model_year,
+              vehicleType: item.vehicle.type || "",
+              category: item.category.label,
+              packageId: item.packageId,
+              packageLabel: item.packageLabel,
+              addonIds: item.addonIds,
+              addons: item.addons,
+              discountPercent: item.discountPercent,
+            })),
             appointmentDate: appointmentDateValue,
             appointmentTime,
             idempotencyKey: nextIdempotencyKey,
@@ -501,6 +763,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           error?: string;
           portalUrl?: string;
           bookingStatus?: BookingStatus;
+          total?: number;
           confirmationEmailSent?: boolean;
         };
         if (!response.ok || !payload?.ok || !payload.portalUrl) {
@@ -511,9 +774,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           emailSent: Boolean(payload.confirmationEmailSent),
           status: payload.bookingStatus || "pending",
           appointmentLabel,
-          vehicleName,
-          packageLabel: activePackageData.title,
-          total: finalTotal,
+          vehicleName: bookingVehicles.length > 1 ? "2 biler" : vehicleName,
+          vehicleCount: bookingVehicles.length,
+          packageLabel: bookingVehicles.length > 1 ? "Bilvask til 2 biler" : activePackageData?.title || bookingVehicles[0]?.packageLabel || "Bilvask",
+          total: typeof payload.total === "number" ? payload.total : finalTotal,
           customerEmail: values.email,
         });
       } catch (error) {
@@ -559,7 +823,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             {/* Summary */}
             <div className="space-y-4 px-8 py-8">
               <div className="grid gap-3 rounded-2xl bg-[#f6fbfc] p-5 text-sm">
-                <ConfirmRow icon="🚗" label="Bil" value={confirmation.vehicleName} />
+                <ConfirmRow icon="🚗" label="Biler" value={confirmation.vehicleCount > 1 ? "2 biler i samme besøg" : confirmation.vehicleName} />
                 <ConfirmRow icon="✨" label="Pakke" value={confirmation.packageLabel} />
                 <ConfirmRow icon="📅" label="Tidspunkt" value={confirmation.appointmentLabel} />
                 <ConfirmRow icon="💳" label="Total" value={formatPrice(confirmation.total) + " inkl. moms"} highlight />
@@ -661,11 +925,35 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eefbfc] text-[var(--brand)]">🚗</span>
                 <div>
-                  <p className="font-semibold text-[var(--ink)]">{vehicleName}</p>
-                  <p className="text-xs text-[var(--muted)]">{vehicle.registration_number} · {vehicle.type || "Bil"} · {vehicle.model_year || "-"}</p>
+                  <p className="font-semibold text-[var(--ink)]">
+                    Du vælger service til: {activeVehicleLabel}
+                  </p>
+                  <p className="text-xs text-[var(--muted)]">
+                    {activeSelectionVehicleName} · {activeSelectionVehicle?.registration_number || "-"}
+                    {hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}
+                  </p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                {hasSecondCar ? (
+                  <div className="flex rounded-xl bg-[#eefbfc] p-1">
+                    {(["Bil 1", "Bil 2"] as const).map((label, index) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={() => setActiveVehicleIndex(index as ActiveVehicleIndex)}
+                        className={cn(
+                          "rounded-lg px-3 py-1.5 text-xs font-semibold transition",
+                          activeVehicleIndex === index
+                            ? "bg-white text-[var(--brand)] shadow-sm"
+                            : "text-[var(--muted)] hover:text-[var(--ink)]"
+                        )}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
                 {isLookupPending ? (
                   <span className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--brand)]">
                     <LoaderCircle className="h-4 w-4 animate-spin" /> Tjekker...
@@ -681,28 +969,39 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             <div ref={step1Ref} className="scroll-mt-6">
               <BookingAccordion
                 step={1}
-                title="Vælg din service"
+                title={activeVehicleIndex === 1 ? "Vælg bilvask til bil 2" : "Vælg din service"}
                 icon={<Sparkles className="h-5 w-5" />}
-                summary={openStep > 1 ? activePackageData.title : undefined}
+                summary={openStep > 1 ? activeSelectionPackageData?.title : undefined}
                 isOpen={openStep === 1}
                 isCompleted={openStep > 1}
                 onEdit={() => goToStep(1)}
               >
-                <p className="mb-5 text-sm text-[var(--muted)]">Det tager under 1 minut at booke</p>
+                <ActiveVehicleHeader
+                  label={activeVehicleLabel}
+                  total={hasSecondCar ? 2 : 1}
+                  plate={activeSelectionVehicle?.registration_number || ""}
+                  title={
+                    activeVehicleIndex === 1
+                      ? "Vælg bilvask til bil 2"
+                      : "Vælg bilvask til bil 1"
+                  }
+                  text={
+                    activeVehicleIndex === 1
+                      ? "Du vælger nu service og tilvalg for den ekstra bil. Begge biler bliver booket til samme besøg."
+                      : "Vælg den løsning, der passer bedst til bilen."
+                  }
+                />
                 <div className="grid gap-4 sm:grid-cols-3">
                   {settings.catalog.packages.map((item) => {
-                    const isActive = item.id === activePackage;
-                    const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : category.price;
+                    const isActive = item.id === activeSelectionPackageId;
+                    const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : activeSelectionCategory?.price ?? 0;
                     return (
                       <PackageCard
                         key={item.id}
                         item={item}
                         isActive={isActive}
                         price={itemPrice}
-                        onClick={() => {
-                          setActivePackage(item.id);
-                          window.setTimeout(() => goToStep(2), 280);
-                        }}
+                        onClick={() => handlePackageSelect(item.id)}
                       />
                     );
                   })}
@@ -714,18 +1013,24 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             <div ref={step2Ref} className="scroll-mt-6">
               <BookingAccordion
                 step={2}
-                title="Tilvalg"
+                title={`Tilvalg til ${activeVehicleLabel.toLowerCase()}`}
                 icon={<ShieldCheck className="h-5 w-5" />}
-                summary={openStep > 2 ? (selectedAddons.length > 0 ? `${selectedAddons.length} tilvalg valgt` : "Ingen tilvalg") : undefined}
+                summary={openStep > 2 ? (activeSelectionAddons.length > 0 ? `${activeSelectionAddons.length} tilvalg valgt` : "Ingen tilvalg") : undefined}
                 isOpen={openStep === 2}
                 isCompleted={openStep > 2}
                 onEdit={() => goToStep(2)}
                 isLocked={openStep < 2}
               >
-                <p className="mb-5 text-sm text-[var(--muted)]">Du kan altid fjerne tilvalg senere</p>
+                <ActiveVehicleHeader
+                  label={activeVehicleLabel}
+                  total={hasSecondCar ? 2 : 1}
+                  plate={activeSelectionVehicle?.registration_number || ""}
+                  title={`Tilvalg til ${activeVehicleLabel.toLowerCase()}`}
+                  text="Tilvalg er valgfrie. Du kan fortsætte uden tilvalg, hvis bilen kun skal have den valgte pakke."
+                />
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                  {[...settings.catalog.interiorAddOns, ...settings.catalog.exteriorAddOns, ...settings.catalog.quantityAddOns].map((addon) => {
-                    const isSelected = selectedAddonIds.includes(addon.id);
+                  {allAddons.map((addon) => {
+                    const isSelected = activeSelectionAddonIds.includes(addon.id);
                     return (
                       <AddonCard
                         key={addon.id}
@@ -739,57 +1044,71 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 <div className="mt-6 flex justify-end">
                   <button
                     type="button"
-                    onClick={() => goToStep(3)}
+                    onClick={handleContinueAfterAddons}
                     className="inline-flex items-center gap-2 rounded-xl bg-[var(--cta)] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(245,158,11,0.22)] transition hover:bg-[var(--cta-hover)]"
                   >
-                    Videre til dato og tid <ArrowRight className="h-4 w-4" />
+                    {hasSecondCar && !secondPackageData ? "Vælg bilvask til bil 2" : "Videre til dato og tid"} <ArrowRight className="h-4 w-4" />
                   </button>
                 </div>
               </BookingAccordion>
             </div>
 
-            {/* ── Second car inline option (not a step) ───────────── */}
+            {/* ── Second car optional flow ────────────────────────── */}
             {openStep >= 2 ? (
-              <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white">
+              <div className="overflow-hidden rounded-2xl border border-[var(--line)] bg-white shadow-[0_16px_40px_rgba(11,31,58,0.06)]">
                 <button
+                  ref={addCarButtonRef}
                   type="button"
-                  onClick={() => { setHasSecondCar(!hasSecondCar); if (hasSecondCar) setSecondCarPlate(""); }}
+                  onClick={() => {
+                    if (secondVehicle) {
+                      handleEditSecondCar();
+                      return;
+                    }
+                    setIsAddCarModalOpen(true);
+                  }}
                   className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition hover:bg-[#f6fbfc]"
                 >
                   <span className={cn(
                     "flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition",
-                    hasSecondCar ? "bg-[var(--brand)] text-white" : "bg-[#eefbfc] text-[var(--muted)]"
+                    hasSecondCar ? "bg-[var(--brand)] text-white" : "bg-[#eefbfc] text-[var(--brand)]"
                   )}>
                     <Car className="h-4 w-4" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold text-[var(--ink)]">Tilføj endnu en bil og spar 15%</p>
                     {hasSecondCar ? (
-                      <p className="text-xs text-[var(--muted)]">2 biler valgt</p>
+                      <p className="text-xs text-[var(--muted)]">
+                        Bil 2 er tilføjet: {secondVehicleName} · {secondVehicle?.registration_number}
+                      </p>
                     ) : (
-                      <p className="text-xs text-[var(--muted)]">Begge biler vaskes i samme besøg</p>
+                      <p className="text-xs text-[var(--muted)]">
+                        Begge biler vaskes i samme besøg – perfekt til familie, partner eller firmabil.
+                      </p>
                     )}
                   </div>
                   {hasSecondCar ? (
                     <span className="flex shrink-0 items-center gap-1 text-xs font-semibold text-[var(--brand)]">
                       <Sparkles className="h-3.5 w-3.5" />
-                      Sparer {Math.round(total * 15 / 100).toLocaleString("da-DK")} kr
+                      {multiCarDiscount > 0 ? `Sparer ${formatShortPrice(multiCarDiscount)}` : "Bil 2 af 2"}
                     </span>
                   ) : null}
                 </button>
                 {hasSecondCar ? (
-                  <div className="border-t border-[var(--line)] px-4 pb-4 pt-3">
-                    <label className="mb-1.5 block text-xs font-semibold text-[var(--brand)]">Nummerplade på den anden bil</label>
-                    <input
-                      type="text"
-                      inputMode="text"
-                      autoCapitalize="characters"
-                      placeholder="AB12345"
-                      maxLength={10}
-                      value={secondCarPlate}
-                      onChange={(e) => setSecondCarPlate(e.target.value.toUpperCase())}
-                      className="block w-full rounded-xl border border-[var(--line)] bg-white px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-[var(--ink)] outline-none focus:border-[var(--brand)] focus:ring-2 focus:ring-[#00A7B8]/15"
-                    />
+                  <div className="flex flex-wrap gap-2 border-t border-[var(--line)] px-4 pb-4 pt-3">
+                    <button
+                      type="button"
+                      onClick={handleEditSecondCar}
+                      className="inline-flex h-10 items-center justify-center rounded-xl bg-[#eefbfc] px-4 text-sm font-semibold text-[var(--brand)] transition hover:bg-[#dff7fa]"
+                    >
+                      Rediger bil 2
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveSecondCar}
+                      className="inline-flex h-10 items-center justify-center rounded-xl border border-red-200 bg-white px-4 text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                    >
+                      Fjern bil 2
+                    </button>
                   </div>
                 ) : null}
               </div>
@@ -1017,23 +1336,19 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                 <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Din booking</h3>
               </div>
               <div className="mt-6 space-y-3">
-                <div className="rounded-xl bg-[#f6fbfc] px-4 py-4">
-                  <SummaryRow label="Bil" value={vehicleName} />
-                  <div className="mt-3 border-t border-[var(--line)] pt-3">
-                    <SummaryRow label={activePackageData.title} value={formatPrice(basePrice)} />
-                  </div>
-                  <p className="mt-2 text-xs font-medium text-[var(--muted)]">{vehicle.registration_number} · {vehicleTypeLabel}</p>
-                </div>
-                {selectedAddons.length > 0 ? (
-                  <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
-                    <p className="font-semibold text-[var(--ink)]">Tilvalg</p>
-                    <div className="mt-2 space-y-2">
-                      {selectedAddons.map((addon) => (
-                        <SummaryRow key={addon.id} label={addon.label} value={formatPrice(addon.price)} />
-                      ))}
-                    </div>
+                {bookingVehicles.length > 1 ? (
+                  <div className="rounded-xl bg-[#eefbfc] px-4 py-3 text-sm font-semibold text-[var(--accent)]">
+                    Din booking indeholder 2 biler
                   </div>
                 ) : null}
+                {bookingVehicles.map((item) => (
+                  <BookingVehicleSummaryCard
+                    key={item.id}
+                    item={item}
+                    onEdit={item.id === "car-2" ? handleEditSecondCar : undefined}
+                    onRemove={item.id === "car-2" ? handleRemoveSecondCar : undefined}
+                  />
+                ))}
                 <div className="rounded-xl bg-[#f6fbfc] px-4 py-4">
                   <SummaryRow label="Dato og tid" value={appointmentLabel} />
                 </div>
@@ -1046,7 +1361,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   <div className="rounded-xl bg-[#f0faf6] px-4 py-3 text-sm">
                     {multiCarDiscount > 0 ? (
                       <div className="flex items-center justify-between gap-2 text-[#0d6b47]">
-                        <span className="font-medium">Multi-bil rabat (15%)</span>
+                        <span className="font-medium">15% rabat på bil 2</span>
                         <span className="font-semibold">−{formatShortPrice(multiCarDiscount)}</span>
                       </div>
                     ) : null}
@@ -1069,6 +1384,16 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             </Card>
           </aside>
 
+          <AddExtraCarModal
+            open={isAddCarModalOpen}
+            firstPlate={plate}
+            onClose={() => {
+              setIsAddCarModalOpen(false);
+              window.setTimeout(() => addCarButtonRef.current?.focus(), 0);
+            }}
+            onConfirm={handleConfirmSecondCar}
+          />
+
           {/* ── Mobile summary modal ─────────────────────────────── */}
           {isMobileSummaryOpen ? (
             <div className="fixed inset-0 z-[60] flex items-end bg-black/55 px-3 xl:hidden">
@@ -1083,19 +1408,20 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   </button>
                 </div>
                 <div className="space-y-4 overflow-y-auto px-5 py-4">
-                  <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
-                    <p className="font-semibold text-[var(--ink)]">{vehicleName}</p>
-                    <p className="mt-1 text-[var(--muted)]">{vehicle.registration_number}</p>
-                    <div className="mt-3 border-t border-[var(--line)] pt-3">
-                      <div className="flex justify-between"><span className="text-[var(--muted)]">{activePackageData.title}</span><strong>{formatPrice(basePrice)}</strong></div>
+                  {bookingVehicles.length > 1 ? (
+                    <div className="rounded-xl bg-[#eefbfc] px-4 py-3 text-sm font-semibold text-[var(--accent)]">
+                      Din booking indeholder 2 biler
                     </div>
-                    {selectedAddons.map((addon) => (
-                      <div key={addon.id} className="mt-2 flex justify-between">
-                        <span className="text-[var(--muted)]">+ {addon.label}</span>
-                        <strong>+{formatPrice(addon.price)}</strong>
-                      </div>
-                    ))}
-                  </div>
+                  ) : null}
+                  {bookingVehicles.map((item) => (
+                    <BookingVehicleSummaryCard
+                      key={item.id}
+                      item={item}
+                      compact
+                      onEdit={item.id === "car-2" ? handleEditSecondCar : undefined}
+                      onRemove={item.id === "car-2" ? handleRemoveSecondCar : undefined}
+                    />
+                  ))}
                   <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
                     <p className="font-semibold text-[var(--ink)]">Tidspunkt</p>
                     <p className="mt-2 text-[var(--muted)]">{appointmentLabel}</p>
@@ -1103,7 +1429,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   {totalDiscount > 0 ? (
                     <div className="rounded-xl bg-[#f0faf6] px-4 py-3 text-sm text-[#0d6b47]">
                       <div className="flex justify-between font-medium">
-                        <span>Rabat</span>
+                        <span>{multiCarDiscount > 0 ? "15% rabat på bil 2" : "Rabat"}</span>
                         <span>−{formatShortPrice(totalDiscount)}</span>
                       </div>
                     </div>
@@ -1131,7 +1457,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#eefbfc] text-[var(--brand)]"><CalendarDays className="h-5 w-5" /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-xl font-semibold leading-none text-[var(--brand)]">{formatShortPrice(finalTotal)}</p>
-                <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">{activePackageData.title} · Trin {openStep} af 4</p>
+                <p className="mt-1 truncate text-xs font-medium text-[var(--muted)]">
+                  {bookingVehicles.length > 1 ? "2 biler" : activePackageData?.title || "Bilvask"} · Trin {openStep} af 4
+                </p>
               </div>
               <button type="button" onClick={() => setIsMobileSummaryOpen(true)} className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl bg-[var(--cta)] px-3 text-sm font-semibold text-white shadow-[0_10px_24px_rgba(245,158,11,0.22)]">
                 Se oversigt
@@ -1145,6 +1473,108 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
     </main>
   );
 }
+
+function ActiveVehicleHeader({
+  label,
+  total,
+  plate,
+  title,
+  text,
+}: {
+  label: string;
+  total: number;
+  plate: string;
+  title: string;
+  text: string;
+}) {
+  return (
+    <div className="mb-5 rounded-2xl border border-[#00A7B8]/20 bg-[#eefbfc] px-4 py-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-semibold text-[var(--accent)]">{title}</p>
+          <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{text}</p>
+          {plate ? (
+            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand)]">
+              Nummerplade: {plate}
+            </p>
+          ) : null}
+        </div>
+        <span className="inline-flex shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--brand)] shadow-sm">
+          {label} af {total}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function BookingVehicleSummaryCard({
+  item,
+  compact = false,
+  onEdit,
+  onRemove,
+}: {
+  item: BookingVehicleSummary;
+  compact?: boolean;
+  onEdit?: () => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <div className="rounded-xl bg-[#f6fbfc] px-4 py-4 text-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="font-semibold text-[var(--ink)]">{item.label}</p>
+          <p className="mt-1 font-medium text-[var(--muted)]">
+            {item.vehicleName} · {item.plate}
+          </p>
+          {!compact ? (
+            <p className="mt-1 text-xs text-[var(--muted)]">{item.vehicleTypeLabel}</p>
+          ) : null}
+        </div>
+        {(onEdit || onRemove) ? (
+          <div className="flex shrink-0 gap-2">
+            {onEdit ? (
+              <button
+                type="button"
+                onClick={onEdit}
+                className="text-xs font-semibold text-[var(--brand)] hover:underline"
+              >
+                Rediger
+              </button>
+            ) : null}
+            {onRemove ? (
+              <button
+                type="button"
+                onClick={onRemove}
+                className="text-xs font-semibold text-red-700 hover:underline"
+              >
+                Fjern
+              </button>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
+      <div className="mt-3 space-y-2 border-t border-[var(--line)] pt-3">
+        <SummaryRow label={item.packageLabel} value={formatPrice(item.basePrice)} />
+        {item.addons.map((addon) => (
+          <SummaryRow key={addon.id} label={`+ ${addon.label}`} value={formatPrice(addon.price)} />
+        ))}
+        {item.discountAmount > 0 ? (
+          <div className="flex items-start justify-between gap-4 text-sm text-[#0d6b47]">
+            <span>15% rabat på bil 2</span>
+            <strong className="text-right">−{formatShortPrice(item.discountAmount)}</strong>
+          </div>
+        ) : null}
+      </div>
+      <div className="mt-3 flex items-center justify-between gap-4">
+        <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
+          Pris
+        </span>
+        <strong className="text-[var(--accent)]">{formatShortPrice(item.totalPrice)}</strong>
+      </div>
+    </div>
+  );
+}
+
 function PackageCard({
   item,
   isActive,

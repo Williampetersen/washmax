@@ -751,11 +751,23 @@ const ensureOriginalLineItem = async (bookingId: string) => {
     throw new InvoiceWorkflowError("Booking was not found.", 404, "BOOKING_NOT_FOUND");
   }
   const { booking } = result;
-  const addonText = booking.addons.length
-    ? ` inkl. ${booking.addons.map((item) => item.label).join(", ")}`
-    : "";
   const description =
-    `${booking.packageLabel || "Original booking"}${booking.category ? ` - ${booking.category}` : ""}${addonText}`.trim();
+    booking.vehicles.length > 1
+      ? booking.vehicles
+          .map((vehicle) => {
+            const addonText = vehicle.addons.length
+              ? ` inkl. ${vehicle.addons.map((item) => item.label).join(", ")}`
+              : "";
+            const discountText = vehicle.discountAmount > 0 ? " (15% rabat på bil 2)" : "";
+            return `${vehicle.label}: ${vehicle.packageLabel || "Bilvask"}${vehicle.category ? ` - ${vehicle.category}` : ""}${addonText}${discountText}`;
+          })
+          .join(" | ")
+      : (() => {
+          const addonText = booking.addons.length
+            ? ` inkl. ${booking.addons.map((item) => item.label).join(", ")}`
+            : "";
+          return `${booking.packageLabel || "Original booking"}${booking.category ? ` - ${booking.category}` : ""}${addonText}`.trim();
+        })();
   await sql`
     INSERT INTO booking_line_items (
       id, booking_id, created_by_type, item_type, service_id, description,

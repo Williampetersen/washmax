@@ -120,6 +120,46 @@ export function BookingDetailDrawer({
                 />
               </div>
 
+              {booking.vehicles.length > 1 ? (
+                <div className="mt-4 rounded-3xl border border-white/55 bg-white/50 p-4">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.1em] text-[#00A7B8]">
+                    Biler i bookingen
+                  </p>
+                  <div className="mt-3 grid gap-3">
+                    {booking.vehicles.map((vehicle) => (
+                      <div key={vehicle.id} className="rounded-2xl bg-white/70 px-4 py-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-[13px] font-bold text-[#111827]">
+                              {vehicle.label} · {vehicle.registrationNumber}
+                            </p>
+                            <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
+                              {vehicle.vehicleName}
+                            </p>
+                          </div>
+                          <span className="text-[12px] font-bold text-[#00A7B8]">
+                            {formatPrice(vehicle.totalPrice)}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-[12px] text-[#6B7280]">
+                          {vehicle.packageLabel} {vehicle.category ? `· ${vehicle.category}` : ""}
+                        </p>
+                        {vehicle.addons.length > 0 ? (
+                          <p className="mt-1 text-[12px] text-[#6B7280]">
+                            Tilvalg: {vehicle.addons.map((item) => item.label).join(", ")}
+                          </p>
+                        ) : null}
+                        {vehicle.discountAmount > 0 ? (
+                          <p className="mt-1 text-[12px] font-semibold text-[#047857]">
+                            15% rabat på bil 2: -{formatPrice(vehicle.discountAmount)}
+                          </p>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="mt-6 rounded-3xl border border-white/55 bg-white/50 p-4">
                 <p className="text-[14px] font-semibold">Status actions</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3">

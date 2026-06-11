@@ -6,6 +6,21 @@ const addonSchema = z.object({
   price: z.number().nonnegative(),
 });
 
+const bookingVehicleSchema = z.object({
+  id: z.string().trim().optional(),
+  plate: z.string().trim().min(2),
+  registrationNumber: z.string().trim().min(2),
+  vehicleName: z.string().trim().min(1),
+  vehicleYear: z.number().nullable().optional().default(null),
+  vehicleType: z.string().trim().optional().default(""),
+  category: z.string().trim().min(1),
+  packageId: z.string().trim().min(1),
+  packageLabel: z.string().trim().optional().default(""),
+  addonIds: z.array(z.string().trim().min(1)).optional().default([]),
+  addons: z.array(addonSchema).optional().default([]),
+  discountPercent: z.number().min(0).max(100).optional().default(0),
+});
+
 export const bookingCustomerSchema = z.object({
   firstName: z.string().trim().min(1, "Indtast fornavn."),
   lastName: z.string().trim().min(1, "Indtast efternavn."),
@@ -46,6 +61,7 @@ export const bookingRequestSchema = z
     discountDkk: z.number().nonnegative().optional().default(0),
     secondCarPlate: z.string().trim().optional().default(""),
     couponCode: z.string().trim().optional().default(""),
+    vehicles: z.array(bookingVehicleSchema).min(1).max(2).optional(),
     customer: bookingCustomerSchema,
   })
   .superRefine((value, ctx) => {
@@ -54,6 +70,14 @@ export const bookingRequestSchema = z
         code: "custom",
         path: ["customer", "company"],
         message: "Indtast firmanavn for erhvervsbookingen.",
+      });
+    }
+
+    if (value.vehicles && value.vehicles.length > 2) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["vehicles"],
+        message: "Du kan maksimalt booke to biler ad gangen.",
       });
     }
   });
