@@ -12,6 +12,7 @@ import {
   sendCustomerBookingCreatedEmail,
 } from "@/lib/server/mail";
 import { sanitizePlate } from "@/lib/shared/booking";
+import { autoAssignAgent } from "@/lib/assignmentService";
 
 const json = (body: unknown, status = 200) =>
   NextResponse.json(body, {
@@ -221,6 +222,14 @@ export async function POST(request: Request) {
       settings,
     });
     logTiming("booking.db", dbStartedAt);
+
+    // Auto-assign an agent immediately after booking creation.
+    // Never throw — booking confirmation must succeed regardless.
+    try {
+      await autoAssignAgent(bookingResult.booking.id);
+    } catch (assignError) {
+      console.error("Auto-assignment failed for new booking", assignError);
+    }
 
     const requestOrigin = new URL(request.url).origin;
     const portalBaseUrl = process.env.APP_URL || requestOrigin;

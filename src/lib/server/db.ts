@@ -845,6 +845,61 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
         ON customer_email_verifications (expires_at)
         WHERE used_at IS NULL;
       `;
+
+      // ----------------------------------------------------------
+      // Auto-assignment system tables (added by migration 20260611)
+      // ----------------------------------------------------------
+      await sql`
+        ALTER TABLE agents
+          ADD COLUMN IF NOT EXISTS total_assigned INTEGER DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS last_assigned_at TIMESTAMPTZ,
+          ADD COLUMN IF NOT EXISTS postal_code TEXT;
+      `;
+
+      await sql`
+        ALTER TABLE bookings
+          ADD COLUMN IF NOT EXISTS assignment_attempts INTEGER DEFAULT 0,
+          ADD COLUMN IF NOT EXISTS pending_assignment BOOLEAN DEFAULT false;
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS agent_schedules (
+          id TEXT PRIMARY KEY,
+          agent_id TEXT NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+          day_of_week INTEGER NOT NULL CHECK (day_of_week BETWEEN 0 AND 6),
+          start_time TEXT NOT NULL DEFAULT '09:00',
+          end_time TEXT NOT NULL DEFAULT '17:00',
+          is_active BOOLEAN DEFAULT true,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(agent_id, day_of_week)
+        );
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS agent_schedules_agent_idx
+        ON agent_schedules (agent_id, is_active);
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS assignment_log (
+          id TEXT PRIMARY KEY,
+          booking_id TEXT NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
+          agent_id TEXT REFERENCES agents(id) ON DELETE SET NULL,
+          assigned_at TIMESTAMPTZ DEFAULT NOW(),
+          assigned_by TEXT DEFAULT 'system' CHECK (assigned_by IN ('system', 'admin')),
+          reason TEXT
+        );
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS assignment_log_booking_idx
+        ON assignment_log (booking_id, assigned_at DESC);
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS assignment_log_agent_idx
+        ON assignment_log (agent_id, assigned_at DESC);
+      `;
     })();
     globalThis.CleanWashSchemaPromise = schemaPromise;
   }
