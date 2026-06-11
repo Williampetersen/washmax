@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { seoPages } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -17,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    ...seoPages.map((page) => ({
+      url: `${siteConfig.url}/${page.slug}`,
+      lastModified: now,
+      changeFrequency: "monthly" as const,
+      priority: page.priority,
+    })),
     {
       url: `${siteConfig.url}/admin/login`,
       lastModified: now,
