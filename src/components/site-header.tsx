@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Menu } from "lucide-react";
+import { Menu, UserRound } from "lucide-react";
 import { navItems, siteConfig } from "@/lib/site";
 
 export function SiteHeader() {
@@ -33,12 +33,13 @@ export function SiteHeader() {
             </nav>
 
             <div className="hidden items-center gap-3 lg:flex">
-              <a
-                href={siteConfig.phoneHref}
-                className="rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--brand)] hover:text-[var(--accent)]"
+              <Link
+                href="/min-konto"
+                className="flex items-center gap-2 rounded-full border border-[var(--line)] px-4 py-2 text-sm text-[var(--muted)] transition hover:border-[var(--brand)] hover:text-[var(--accent)]"
               >
-                {siteConfig.phoneDisplay}
-              </a>
+                <UserRound className="h-4 w-4" />
+                Min konto
+              </Link>
               <Link
                 href="/booking"
                 className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(245,158,11,0.24)] transition hover:bg-[var(--cta-hover)]"
@@ -65,12 +66,13 @@ export function SiteHeader() {
                   ))}
                 </div>
                 <div className="mt-4 grid gap-3">
-                  <a
-                    href={siteConfig.phoneHref}
-                    className="rounded-2xl border border-[var(--line)] px-4 py-3 text-center text-sm text-[var(--ink)]"
+                  <Link
+                    href="/min-konto"
+                    className="flex items-center justify-center gap-2 rounded-2xl border border-[var(--line)] px-4 py-3 text-sm font-semibold text-[var(--ink)]"
                   >
-                    Ring: {siteConfig.phoneDisplay}
-                  </a>
+                    <UserRound className="h-4 w-4" />
+                    Min konto
+                  </Link>
                   <Link
                     href="/booking"
                     className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(245,158,11,0.24)] transition hover:bg-[var(--cta-hover)]"
@@ -78,10 +80,10 @@ export function SiteHeader() {
                     Book bilvask
                   </Link>
                   <a
-                    href={`mailto:${siteConfig.email}`}
+                    href={siteConfig.phoneHref}
                     className="rounded-2xl border border-[var(--line)] px-4 py-3 text-center text-sm text-[var(--ink)]"
                   >
-                    {siteConfig.email}
+                    Ring: {siteConfig.phoneDisplay}
                   </a>
                 </div>
               </div>

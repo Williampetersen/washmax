@@ -209,7 +209,7 @@ export default function VerifyForm({
                     if (e.key === "Enter" && code.length === 6) handleVerifyCode();
                   }}
                   className="h-12 text-center text-xl tracking-[0.25em] font-semibold"
-                  disabled={isLoading || Boolean(successMsg)}
+                  disabled={isLoading}
                 />
               </label>
 
