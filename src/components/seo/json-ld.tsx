@@ -1,7 +1,7 @@
 import { absoluteUrl, type SeoPageConfig } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
-type JsonValue =
+export type JsonValue =
   | string
   | number
   | boolean

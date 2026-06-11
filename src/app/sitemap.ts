@@ -18,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+      url: `${siteConfig.url}/om-os`,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 0.75,
+    },
     ...seoPages.map((page) => ({
       url: `${siteConfig.url}/${page.slug}`,
       lastModified: now,

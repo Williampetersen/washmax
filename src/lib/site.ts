@@ -16,5 +16,6 @@ export const navItems = [
   { label: "København", href: "/#koebenhavn" },
   { label: "Sjælland", href: "/#sjaelland" },
   { label: "Erhverv", href: "/#erhverv" },
+  { label: "Om os", href: "/om-os" },
   { label: "FAQ", href: "/#faq" },
 ] as const;
