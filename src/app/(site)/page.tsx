@@ -3,20 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  BadgeCheck,
-  BriefcaseBusiness,
-  BrushCleaning,
   Building2,
-  Car,
   Check,
-  MapPinned,
   Phone,
   Search,
   ShieldCheck,
   Sparkles,
-  SprayCan,
   Star,
-  WandSparkles,
 } from "lucide-react";
 import { HomePlateForm } from "@/components/home-plate-form";
 import { BookingSteps } from "@/components/sections/BookingSteps";
@@ -64,71 +57,6 @@ const heroCities = [
   "Hellerup",
   "Gentofte",
   "Lyngby",
-];
-
-const services = [
-  {
-    title: "Udvendig bilvask",
-    text: "Skånsom vask, fælge, ruder og finish. Bilen står skarp igen.",
-    icon: SprayCan,
-  },
-  {
-    title: "Indvendig bilvask",
-    text: "Støvsugning, aftørring, måtter og kabine. Godt til hverdagsbiler.",
-    icon: BrushCleaning,
-  },
-  {
-    title: "Komplet bilpleje",
-    text: "Indvendig og udvendig bilrengøring samlet i én nem booking.",
-    icon: Sparkles,
-  },
-  {
-    title: "Sæderens og støvsugning",
-    text: "Grundig behandling af sæder, gulve og svært tilgængelige områder.",
-    icon: WandSparkles,
-  },
-  {
-    title: "Fælgrens",
-    text: "Målrettet rens af fælge, bremsestøv og snavs omkring hjul.",
-    icon: Star,
-  },
-  {
-    title: "Erhvervsaftaler",
-    text: "Fast bilvask til firmabiler, flåder, taxa og transport.",
-    icon: BriefcaseBusiness,
-  },
-  {
-    title: "Klargøring før salg",
-    text: "Gør bilen klar til billeder, fremvisning, leasingretur eller salg.",
-    icon: BadgeCheck,
-  },
-];
-
-const copenhagenAreas = [
-  "København",
-  "Frederiksberg",
-  "Amager",
-  "Østerbro",
-  "Nørrebro",
-  "Vesterbro",
-  "Valby",
-  "Hvidovre",
-  "Rødovre",
-  "Glostrup",
-  "Gentofte",
-];
-
-const zealandAreas = [
-  "Sjælland",
-  "Storkøbenhavn",
-  "Roskilde",
-  "Køge",
-  "Hillerød",
-  "Helsingør",
-  "Holbæk",
-  "Ringsted",
-  "Næstved",
-  "Slagelse",
 ];
 
 const whyItems = [
@@ -250,52 +178,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="services" className="mx-auto mt-16 max-w-7xl">
-        <div className="grid gap-8 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
-          <div className="section-shell px-6 py-8 sm:px-8">
-            <span className="eyebrow">Services</span>
-            <h2 className="mt-5 section-title">Bilvask uden turen til vaskehallen.</h2>
-            <p className="mt-5 support-copy">
-              CleanWash leverer professionel bilvask, indvendig bilrengøring og bilpleje på
-              adressen. Du vælger service. Vi møder op.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              <Link
-                href="/booking"
-                className="inline-flex h-11 items-center justify-center rounded-md bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_14px_32px_rgba(245,158,11,0.22)] transition hover:bg-[var(--cta-hover)]"
-              >
-                Book bilvask
-              </Link>
-              <a
-                href={siteConfig.phoneHref}
-                className="inline-flex h-11 items-center justify-center rounded-md border border-[var(--line)] px-5 text-sm font-semibold text-[var(--ink)] transition hover:bg-white"
-              >
-                Ring {siteConfig.phoneDisplay}
-              </a>
-            </div>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            {services.map((service) => {
-              const Icon = service.icon;
-              return (
-                <article
-                  key={service.title}
-                  className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_18px_40px_rgba(11,31,58,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_60px_rgba(11,31,58,0.12)]"
-                >
-                  <span className="flex h-11 w-11 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
-                    <Icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="mt-4 font-display text-2xl font-semibold text-[var(--ink)]">
-                    {service.title}
-                  </h3>
-                  <p className="mt-3 text-sm leading-6 text-[var(--muted)]">{service.text}</p>
-                </article>
-              );
-            })}
-          </div>
-        </div>
-      </section>
 
       {/* ── Feature sections ── */}
       <section className="mx-auto mt-20 max-w-7xl space-y-24">
@@ -567,35 +449,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section id="koebenhavn" className="mx-auto mt-16 max-w-7xl">
-        <LocalSeoSection
-          eyebrow="Bilvask København"
-          title="Mobil bilvask i København."
-          text="CleanWash gør bilvask i København enkel. Du slipper for kø, kørsel og ventetid. Vi kommer til adressen og udfører professionel bilvask, når bilen alligevel holder stille."
-          areas={copenhagenAreas}
-          bullets={[
-            "Bilvask på adressen i København",
-            "Indvendig og udvendig bilrengøring",
-            "Fleksibel bilvask til private og erhverv",
-            "Nem online booking med nummerpladeopslag",
-          ]}
-        />
-      </section>
-
-      <section id="sjaelland" className="mx-auto mt-8 max-w-7xl">
-        <LocalSeoSection
-          eyebrow="Bilvask Sjælland"
-          title="Bilvask på Sjælland uden besvær."
-          text="Har du brug for bilvask på Sjælland, kan CleanWash hjælpe med mobil bilvask, bilpleje og klargøring af bil. Perfekt til hjemmet, arbejdspladsen og virksomheder med flere biler."
-          areas={zealandAreas}
-          bullets={[
-            "Mobil bilvask på Sjælland",
-            "Bilpleje Sjælland og Storkøbenhavn",
-            "Klargøring af bil før salg eller leasingretur",
-            "Erhvervs bilvask og faste aftaler",
-          ]}
-        />
-      </section>
 
       <section className="mx-auto mt-16 grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
         <div className="rounded-[2rem] bg-[var(--accent)] p-6 text-white shadow-[0_24px_70px_rgba(11,31,58,0.2)] sm:p-8">
@@ -724,63 +577,5 @@ export default function HomePage() {
         </div>
       </section>
     </main>
-  );
-}
-
-
-function LocalSeoSection({
-  eyebrow,
-  title,
-  text,
-  areas,
-  bullets,
-}: {
-  eyebrow: string;
-  title: string;
-  text: string;
-  areas: string[];
-  bullets: string[];
-}) {
-  return (
-    <div className="section-shell px-6 py-8 sm:px-8">
-      <div className="relative grid gap-8 lg:grid-cols-[0.9fr_1.1fr] lg:items-start">
-        <div>
-          <span className="eyebrow">{eyebrow}</span>
-          <h2 className="mt-5 section-title">{title}</h2>
-          <p className="mt-5 support-copy">{text}</p>
-          <ul className="mt-6 grid gap-3">
-            {bullets.map((bullet) => (
-              <li key={bullet} className="flex gap-3 text-sm font-semibold text-[var(--ink)]">
-                <MapPinned className="h-5 w-5 shrink-0 text-[var(--brand)]" />
-                {bullet}
-              </li>
-            ))}
-          </ul>
-        </div>
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-            Områder
-          </p>
-          <div className="mt-4 flex flex-wrap gap-2">
-            {areas.map((area) => (
-              <span
-                key={area}
-                className="rounded-full border border-[var(--line)] bg-white/78 px-4 py-2 text-sm font-semibold text-[var(--ink)]"
-              >
-                {area}
-              </span>
-            ))}
-          </div>
-          <div className="mt-6 rounded-2xl bg-[#eefbfc] p-5">
-            <div className="flex items-center gap-3">
-              <Car className="h-6 w-6 text-[var(--brand)]" />
-              <p className="font-semibold text-[var(--ink)]">
-                Book mobil bilvask, bilrengøring og bilpleje direkte online.
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

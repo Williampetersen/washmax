@@ -22,10 +22,9 @@ export default function LogoutButton() {
       type="button"
       onClick={handleLogout}
       disabled={loading}
-      className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-[var(--line)] px-4 text-sm font-semibold text-[var(--muted)] transition hover:border-red-300 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
-      title="Log ud"
+      className="flex w-full items-center gap-2 rounded-2xl px-3 py-2.5 text-[13px] font-semibold text-[#6B7280] transition hover:bg-white/70 hover:text-[#111827] disabled:opacity-50"
     >
-      <LogOut className="h-4 w-4" />
+      <LogOut className="h-5 w-5 shrink-0" />
       {loading ? "Logger ud…" : "Log ud"}
     </button>
   );

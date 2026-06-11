@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { ComponentType, ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -14,20 +14,20 @@ import {
   Phone,
   ReceiptText,
   UserRound,
+  type LucideIcon,
 } from "lucide-react";
 import LogoutButton from "./LogoutButton";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPortalData, type DashboardBooking } from "@/lib/server/bookings";
 import { listInvoicesForCustomer } from "@/lib/server/invoices";
 import {
   formatPrice,
+  formatShortPrice,
   getPaymentStatusLabel,
   getPaymentStatusTone,
   getStatusLabel,
-  getStatusTone,
 } from "@/lib/shared/booking";
 import { cn } from "@/lib/utils";
 import {
@@ -51,7 +51,6 @@ export default async function CustomerPortalPage({
   const query = await searchParams;
 
   // ── Session guard ──────────────────────────────────────────────────────────
-  // Verify the customer has completed email verification before showing data.
   const cookieStore = await cookies();
   const session = verifyCustomerSessionToken(cookieStore.get(CUSTOMER_COOKIE_NAME)?.value);
   if (!session) {
@@ -60,7 +59,6 @@ export default async function CustomerPortalPage({
 
   const portalData = token ? await getPortalData(token) : null;
 
-  // Verify the verified email matches the customer for this portal token.
   if (!portalData || session.email.toLowerCase() !== portalData.customer.email.toLowerCase()) {
     redirect(`/kunde/verify?t=${token}`);
   }
@@ -71,25 +69,21 @@ export default async function CustomerPortalPage({
     (Array.isArray(query.booking) ? query.booking[0] : query.booking) === "confirmed";
   const requestedTab = Array.isArray(query.tab) ? query.tab[0] : query.tab;
   const portalTab =
-    requestedTab === "invoices" || requestedTab === "profile"
-      ? requestedTab
-      : "bookings";
+    requestedTab === "invoices" || requestedTab === "profile" ? requestedTab : "bookings";
 
   if (!portalData) {
     return (
-      <main className="min-h-screen bg-[var(--page-bg)] px-4 py-10 sm:px-6">
-        <section className="mx-auto max-w-2xl rounded-lg border border-[var(--line)] bg-white p-6 text-center shadow-[0_16px_42px_rgba(11,31,58,0.08)] sm:p-8">
-          <h1 className="font-display text-3xl font-semibold text-[var(--ink)]">
-            Linket er udlobet eller ugyldigt
-          </h1>
-          <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
+      <main className="min-h-screen bg-[linear-gradient(135deg,#F7F8FC_0%,#F5F7FF_48%,#F1F3FA_100%)] px-4 py-10 sm:px-6">
+        <section className="mx-auto max-w-2xl overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] p-8 text-center shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+          <h1 className="text-2xl font-bold text-[#111827]">Linket er udlobet eller ugyldigt</h1>
+          <p className="mt-3 text-sm font-medium text-[#6B7280]">
             Brug det seneste link fra din bookingmail, eller opret en ny booking.
           </p>
           <Link
             href="/booking"
-            className="mt-6 inline-flex h-11 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-5 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
+            className="mt-6 inline-flex h-10 items-center gap-2 rounded-2xl bg-[#00A7B8] px-5 text-sm font-semibold text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)] transition hover:bg-[#008A99]"
           >
-            <CalendarPlus className="h-5 w-5" />
+            <CalendarPlus className="h-4 w-4" />
             Gaa til booking
           </Link>
         </section>
@@ -101,456 +95,606 @@ export default async function CustomerPortalPage({
   const invoices = await listInvoicesForCustomer(customer.id);
   const customerName =
     [customer.firstName, customer.lastName].filter(Boolean).join(" ") || customer.email;
+
   const activeBookings = bookings
-    .filter((booking) => booking.status === "pending" || booking.status === "approved")
+    .filter((b) => b.status === "pending" || b.status === "approved")
     .sort(sortBookings);
-  const completedBookings = bookings.filter((booking) => booking.status === "completed");
+  const completedBookings = bookings.filter((b) => b.status === "completed");
   const nextBooking = activeBookings[0];
   const totalValue = bookings
-    .filter((booking) => booking.status !== "cancelled")
-    .reduce((sum, booking) => sum + booking.total, 0);
+    .filter((b) => b.status !== "cancelled")
+    .reduce((sum, b) => sum + b.total, 0);
+
+  const sidebarTabs = [
+    { id: "bookings", label: "Bookinger", icon: ReceiptText },
+    { id: "invoices", label: "Fakturaer", icon: CreditCard },
+    { id: "profile", label: "Profil", icon: UserRound },
+  ] as const;
 
   return (
-    <main className="min-h-screen bg-[var(--page-bg)] px-4 pb-12 pt-6 sm:px-6">
-      <section className="mx-auto grid max-w-7xl gap-6">
-        <nav className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--line)] bg-white p-2 shadow-[0_10px_30px_rgba(11,31,58,0.05)]">
-          <PortalTabLink href={`/kunde/${token}?tab=bookings`} active={portalTab === "bookings"}>
-            Bookinger
-          </PortalTabLink>
-          <PortalTabLink href={`/kunde/${token}?tab=invoices`} active={portalTab === "invoices"}>
-            Fakturaer
-          </PortalTabLink>
-          <PortalTabLink href={`/kunde/${token}?tab=profile`} active={portalTab === "profile"}>
-            Profil
-          </PortalTabLink>
-          <div className="ml-auto flex items-center gap-2">
-            <Link
-              href="/booking"
-              className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-[var(--cta)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
-            >
-              <CalendarPlus className="h-4 w-4" />
-              Ny booking
-            </Link>
-            <LogoutButton />
-          </div>
-        </nav>
+    <main className="min-h-screen bg-[linear-gradient(135deg,#F7F8FC_0%,#F5F7FF_48%,#F1F3FA_100%)] px-3 pb-8 pt-3 font-sans text-[#111827] sm:px-5 sm:pb-10">
+      <section className="mx-auto max-w-[1480px]">
+        <div className="grid gap-4 xl:grid-cols-[16rem_minmax(0,1fr)]">
 
-        {saved ? (
-          <Alert tone="success">Dine kontaktoplysninger er gemt.</Alert>
-        ) : null}
-        {bookingConfirmed ? (
-          <Alert tone="success">
-            Din booking er bekræftet. Tjek din e-mail for bekræftelse og bookingdetaljer.
-          </Alert>
-        ) : null}
+          {/* ── Sidebar ── */}
+          <aside className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] text-[#111827] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl xl:sticky xl:top-4 xl:self-start">
 
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-          <div className="space-y-6">
-            {portalTab === "bookings" ? (
-              <>
-                <NextBookingCard booking={nextBooking} />
-                <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <SummaryCard label="Bookinger" value={bookings.length.toString()} icon={ReceiptText} />
-                  <SummaryCard label="Kommende" value={activeBookings.length.toString()} icon={Calendar} />
-                  <SummaryCard label="Afsluttede" value={completedBookings.length.toString()} icon={CheckCircle2} />
-                  <SummaryCard label="Samlet værdi" value={formatPrice(totalValue)} icon={CreditCard} />
-                </section>
-              </>
-            ) : null}
-
-            {portalTab === "invoices" ? (
-              <Card className="rounded-lg p-5 sm:p-6">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
-                    Fakturaer
+            {/* Brand + customer */}
+            <div className="border-b border-white/55 px-4 py-5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#00A7B8] text-[13px] font-bold text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)]">
+                  CW
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
+                    CleanWash
                   </p>
-                  <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
-                    Se og print dine fakturaer
-                  </h2>
-                </div>
-                <p className="text-sm text-[var(--muted)]">{invoices.length} i alt</p>
-              </div>
-              <div className="mt-5 grid gap-3">
-                {invoices.length > 0 ? (
-                  invoices.map((invoice) => (
-                    <article
-                      key={invoice.id}
-                      className="flex flex-col gap-3 rounded-lg border border-[var(--line)] bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
-                    >
-                      <div>
-                        <p className="font-semibold text-[var(--ink)]">
-                          {invoice.invoiceNumber}
-                        </p>
-                        <p className="mt-1 text-sm text-[var(--muted)]">
-                          {formatPrice(invoice.totalInclMomsDkk)} · {invoice.status}
-                          {invoice.sentAt
-                            ? ` · Sendt ${invoice.sentAt.slice(0, 10)}`
-                            : ""}
-                        </p>
-                      </div>
-                      <a
-                        href={invoice.publicUrl}
-                        target="_blank"
-                        className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--line)] bg-[#eefbfc] px-4 text-sm font-semibold text-[var(--brand)] transition hover:bg-[#dff7fa]"
-                      >
-                        Vis / print faktura
-                      </a>
-                    </article>
-                  ))
-                ) : (
-                  <EmptyState
-                    title="Ingen fakturaer endnu"
-                    text="Når en faktura er oprettet, vises den her."
-                  />
-                )}
-              </div>
-              </Card>
-            ) : null}
-
-            {portalTab === "bookings" ? (
-              <Card className="rounded-lg p-5 sm:p-6">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
-                    Bookinghistorik
+                  <p className="mt-0.5 truncate text-[13px] font-semibold text-[#111827]">
+                    {customerName}
                   </p>
-                  <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
-                    Alle bookinger
-                  </h2>
+                  <p className="truncate text-[12px] font-medium text-[#6B7280]">
+                    {customer.email}
+                  </p>
                 </div>
-                <p className="text-sm text-[var(--muted)]">{bookings.length} i alt</p>
               </div>
+            </div>
 
-              <div className="mt-5 overflow-hidden rounded-lg border border-[var(--line)]">
-                {bookings.length > 0 ? (
-                  <div className="divide-y divide-[var(--line)]">
-                    {bookings.map((booking) => <BookingCard key={booking.id} booking={booking} />)}
-                  </div>
-                ) : (
-                  <EmptyState
-                    title="Ingen bookinger endnu"
-                    text="Når du opretter en booking, vises den her med status, tid og pris."
-                  />
-                )}
+            {/* Nav tabs */}
+            <nav className="flex snap-x gap-2 overflow-x-auto px-3 py-3 xl:grid xl:grid-cols-1 xl:overflow-visible">
+              {sidebarTabs.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = portalTab === tab.id;
+                return (
+                  <a
+                    key={tab.id}
+                    href={`/kunde/${token}?tab=${tab.id}`}
+                    className={cn(
+                      "flex min-w-[8.75rem] snap-start items-center gap-2 rounded-2xl px-3 py-2.5 text-[13px] font-semibold transition duration-[250ms] xl:min-w-0",
+                      isActive
+                        ? "bg-[#00A7B8] text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)]"
+                        : "text-[#6B7280] hover:-translate-y-0.5 hover:bg-white/70 hover:text-[#111827]"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    <span className="truncate">{tab.label}</span>
+                  </a>
+                );
+              })}
+            </nav>
+
+            {/* Stats */}
+            <div className="border-t border-white/55 px-4 py-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
+                  Oversigt
+                </p>
+                {activeBookings.length > 0 ? (
+                  <span className="rounded-full border border-[#10B981]/20 bg-[#10B981]/10 px-2.5 py-1 text-[12px] font-semibold text-[#047857]">
+                    Aktiv
+                  </span>
+                ) : null}
               </div>
-              </Card>
-            ) : null}
-          </div>
-
-          <aside className="space-y-6 xl:sticky xl:top-24 xl:self-start">
-            <ContactCard
-              customerName={customerName}
-              email={customer.email}
-              phone={customer.phone}
-              address={[customer.address, [customer.postalCode, customer.city].filter(Boolean).join(" ")]
-                .filter(Boolean)
-                .join(", ")}
-            />
-
-            {portalTab === "profile" ? (
-              <Card className="rounded-lg p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
-                Opdater profil
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
-                Kontaktoplysninger
-              </h2>
-              <form action={`/api/customer/${token}`} method="POST" className="mt-5 grid gap-4">
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
-                  <Field label="Fornavn">
-                    <Input name="first_name" defaultValue={customer.firstName} autoComplete="given-name" />
-                  </Field>
-                  <Field label="Efternavn">
-                    <Input name="last_name" defaultValue={customer.lastName} autoComplete="family-name" />
-                  </Field>
-                  <Field label="E-mail">
-                    <Input value={customer.email} disabled aria-describedby="email-help" />
-                    <span id="email-help" className="text-xs text-[var(--muted)]">
-                      Kontakt os, hvis e-mailen skal ændres.
-                    </span>
-                  </Field>
-                  <Field label="Telefon">
-                    <Input name="phone" defaultValue={customer.phone} autoComplete="tel" />
-                  </Field>
-                  <Field label="Adresse">
-                    <Input name="address" defaultValue={customer.address} autoComplete="street-address" />
-                  </Field>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="Postnr.">
-                      <Input name="postal_code" defaultValue={customer.postalCode} autoComplete="postal-code" />
-                    </Field>
-                    <Field label="By">
-                      <Input name="city" defaultValue={customer.city} autoComplete="address-level2" />
-                    </Field>
-                  </div>
-                  <Field label="Noter">
-                    <Textarea name="notes" defaultValue={customer.notes} />
-                  </Field>
-                </div>
-                <Button type="submit" className="w-full">Gem ændringer</Button>
-              </form>
-              </Card>
-            ) : null}
-
-            <Card className="rounded-lg p-5 sm:p-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
-                Support
-              </p>
-              <h2 className="mt-2 font-display text-2xl font-semibold text-[var(--ink)]">
-                Brug for hjælp?
-              </h2>
-              <div className="mt-4 grid gap-3 text-sm">
-                <SupportLink icon={Mail} href={`mailto:${settings.supportEmail}`} text={settings.supportEmail} />
-                <SupportLink icon={Phone} href="tel:+4542504551" text="42 50 45 51" />
+              <div className="grid grid-cols-3 gap-2">
+                <SidebarStat label="Bookinger" value={bookings.length.toString()} />
+                <SidebarStat label="Kommende" value={activeBookings.length.toString()} />
+                <SidebarStat label="Samlet" value={formatShortPrice(totalValue)} />
               </div>
-            </Card>
+            </div>
+
+            {/* Actions */}
+            <div className="space-y-2 border-t border-white/55 px-4 py-4">
+              <Link
+                href="/booking"
+                className="flex items-center gap-2 rounded-2xl bg-[#00A7B8] px-3 py-2.5 text-[13px] font-semibold text-white shadow-[0_8px_20px_rgba(0,167,184,0.18)] transition hover:bg-[#008A99]"
+              >
+                <CalendarPlus className="h-5 w-5 shrink-0" />
+                Ny booking
+              </Link>
+              <LogoutButton />
+            </div>
           </aside>
+
+          {/* ── Main content ── */}
+          <div className="space-y-4">
+
+            {/* Status banners */}
+            {saved ? (
+              <div className="rounded-2xl border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm font-medium text-[#1a506d]">
+                Dine kontaktoplysninger er gemt.
+              </div>
+            ) : null}
+            {bookingConfirmed ? (
+              <div className="rounded-2xl border border-[#cde6f6] bg-[#f6fbff] px-5 py-4 text-sm font-medium text-[#1a506d]">
+                Din booking er bekræftet. Tjek din e-mail for bekræftelse og bookingdetaljer.
+              </div>
+            ) : null}
+
+            {/* ── Bookings view ── */}
+            {portalTab === "bookings" ? (
+              <div className="space-y-4">
+                <ViewHeader
+                  icon={ReceiptText}
+                  title="Bookinger"
+                  description={`${bookings.length} bookinger i alt · ${activeBookings.length} kommende`}
+                  action={
+                    <a
+                      href="/booking"
+                      className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#00A7B8] px-4 text-[12.5px] font-semibold text-white shadow-[0_4px_14px_rgba(0,167,184,0.28)] transition hover:bg-[#008A99]"
+                    >
+                      <CalendarPlus className="h-3.5 w-3.5" />
+                      Ny booking
+                    </a>
+                  }
+                />
+
+                {/* Metric cards */}
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <MetricCard
+                    label="Alle bookinger"
+                    value={bookings.length.toString()}
+                    detail={`${completedBookings.length} afsluttede`}
+                    icon={ReceiptText}
+                    tone="blue"
+                  />
+                  <MetricCard
+                    label="Kommende"
+                    value={activeBookings.length.toString()}
+                    detail="Aktive aftaler"
+                    icon={Calendar}
+                    tone={activeBookings.length > 0 ? "green" : "violet"}
+                  />
+                  <MetricCard
+                    label="Afsluttede"
+                    value={completedBookings.length.toString()}
+                    detail="Gennemført"
+                    icon={CheckCircle2}
+                    tone="violet"
+                  />
+                  <MetricCard
+                    label="Samlet værdi"
+                    value={formatShortPrice(totalValue)}
+                    detail={formatPrice(totalValue)}
+                    icon={CreditCard}
+                    tone="orange"
+                  />
+                </div>
+
+                {/* Next booking */}
+                {nextBooking ? (
+                  <NextBookingCard booking={nextBooking} />
+                ) : (
+                  <section className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] p-6 shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+                    <EmptyState text="Ingen kommende booking. Book en ny tid, når bilen trænger til en grundig rengøring." />
+                  </section>
+                )}
+
+                {/* All bookings */}
+                <section className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/55 px-5 py-4">
+                    <div>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#00A7B8]">
+                        Historik
+                      </p>
+                      <h2 className="mt-0.5 text-base font-bold text-[#111827]">Alle bookinger</h2>
+                    </div>
+                    <span className="text-[12px] font-medium text-[#6B7280]">
+                      {bookings.length} i alt
+                    </span>
+                  </div>
+                  <div className="divide-y divide-white/55">
+                    {bookings.length > 0 ? (
+                      bookings.map((booking) => (
+                        <BookingCard key={booking.id} booking={booking} />
+                      ))
+                    ) : (
+                      <div className="p-4">
+                        <EmptyState text="Ingen bookinger endnu." />
+                      </div>
+                    )}
+                  </div>
+                </section>
+              </div>
+            ) : null}
+
+            {/* ── Invoices view ── */}
+            {portalTab === "invoices" ? (
+              <div className="space-y-4">
+                <ViewHeader
+                  icon={CreditCard}
+                  title="Fakturaer"
+                  description={`${invoices.length} faktura${invoices.length !== 1 ? "er" : ""} i alt`}
+                />
+
+                <section className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+                  <div className="divide-y divide-white/55">
+                    {invoices.length > 0 ? (
+                      invoices.map((invoice) => (
+                        <article
+                          key={invoice.id}
+                          className="flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between"
+                        >
+                          <div>
+                            <p className="text-[13px] font-semibold text-[#111827]">
+                              {invoice.invoiceNumber}
+                            </p>
+                            <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
+                              {formatPrice(invoice.totalInclMomsDkk)} · {invoice.status}
+                              {invoice.sentAt ? ` · Sendt ${invoice.sentAt.slice(0, 10)}` : ""}
+                            </p>
+                          </div>
+                          <a
+                            href={invoice.publicUrl}
+                            target="_blank"
+                            className="inline-flex h-9 items-center gap-2 rounded-xl border border-[#DCEEF2] bg-[#EEFBFC] px-4 text-[12.5px] font-semibold text-[#00A7B8] transition hover:bg-[#dff7fa]"
+                          >
+                            Vis / print faktura
+                          </a>
+                        </article>
+                      ))
+                    ) : (
+                      <div className="p-4">
+                        <EmptyState text="Ingen fakturaer endnu. Når en faktura er oprettet, vises den her." />
+                      </div>
+                    )}
+                  </div>
+                </section>
+              </div>
+            ) : null}
+
+            {/* ── Profile view ── */}
+            {portalTab === "profile" ? (
+              <div className="space-y-4">
+                <ViewHeader
+                  icon={UserRound}
+                  title="Profil"
+                  description="Opdater dine kontaktoplysninger"
+                />
+
+                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_18rem]">
+                  {/* Edit form */}
+                  <section className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+                    <div className="border-b border-white/55 px-5 py-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#00A7B8]">
+                        Kontaktoplysninger
+                      </p>
+                      <h2 className="mt-0.5 text-base font-bold text-[#111827]">Rediger profil</h2>
+                    </div>
+                    <form action={`/api/customer/${token}`} method="POST" className="px-5 py-5">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <Field label="Fornavn">
+                          <Input
+                            name="first_name"
+                            defaultValue={customer.firstName}
+                            autoComplete="given-name"
+                          />
+                        </Field>
+                        <Field label="Efternavn">
+                          <Input
+                            name="last_name"
+                            defaultValue={customer.lastName}
+                            autoComplete="family-name"
+                          />
+                        </Field>
+                        <Field label="E-mail">
+                          <Input
+                            value={customer.email}
+                            disabled
+                            aria-describedby="email-help"
+                          />
+                          <span id="email-help" className="text-[12px] text-[#6B7280]">
+                            Kontakt os, hvis e-mailen skal ændres.
+                          </span>
+                        </Field>
+                        <Field label="Telefon">
+                          <Input
+                            name="phone"
+                            defaultValue={customer.phone}
+                            autoComplete="tel"
+                          />
+                        </Field>
+                        <Field label="Adresse" className="sm:col-span-2">
+                          <Input
+                            name="address"
+                            defaultValue={customer.address}
+                            autoComplete="street-address"
+                          />
+                        </Field>
+                        <Field label="Postnr.">
+                          <Input
+                            name="postal_code"
+                            defaultValue={customer.postalCode}
+                            autoComplete="postal-code"
+                          />
+                        </Field>
+                        <Field label="By">
+                          <Input
+                            name="city"
+                            defaultValue={customer.city}
+                            autoComplete="address-level2"
+                          />
+                        </Field>
+                        <Field label="Noter" className="sm:col-span-2">
+                          <Textarea name="notes" defaultValue={customer.notes} />
+                        </Field>
+                      </div>
+                      <div className="mt-5">
+                        <Button
+                          type="submit"
+                          className="h-10 rounded-2xl bg-[#00A7B8] px-6 font-semibold text-white hover:bg-[#008A99]"
+                        >
+                          Gem ændringer
+                        </Button>
+                      </div>
+                    </form>
+                  </section>
+
+                  {/* Support */}
+                  <section className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+                    <div className="border-b border-white/55 px-5 py-4">
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#00A7B8]">
+                        Support
+                      </p>
+                      <h2 className="mt-0.5 text-base font-bold text-[#111827]">Brug for hjælp?</h2>
+                    </div>
+                    <div className="grid gap-3 px-5 py-4">
+                      <SupportLink
+                        icon={Mail}
+                        href={`mailto:${settings.supportEmail}`}
+                        text={settings.supportEmail}
+                      />
+                      <SupportLink icon={Phone} href="tel:+4542504551" text="42 50 45 51" />
+                    </div>
+                  </section>
+                </div>
+              </div>
+            ) : null}
+
+          </div>
         </div>
       </section>
     </main>
   );
 }
 
-function NextBookingCard({ booking }: { booking?: DashboardBooking }) {
-  if (!booking) {
-    return (
-      <Card className="rounded-lg p-6">
-        <EmptyState
-          title="Ingen kommende booking"
-          text="Du har ingen aktiv aftale lige nu. Book en ny tid, når bilen trænger til en grundig rengøring."
-          actionHref="/booking"
-          actionLabel="Book ny tid"
-        />
-      </Card>
-    );
-  }
+// ── Sub-components ─────────────────────────────────────────────────────────
+
+function ViewHeader({
+  icon: Icon,
+  title,
+  description,
+  action,
+}: {
+  icon: LucideIcon;
+  title: string;
+  description?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.06)] backdrop-blur-xl">
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#EEFBFC] text-[#00A7B8]">
+          <Icon className="h-5 w-5" />
+        </div>
+        <div>
+          <h1 className="text-base font-bold text-[#111827] sm:text-lg">{title}</h1>
+          {description ? (
+            <p className="text-[12px] font-medium text-[#6B7280]">{description}</p>
+          ) : null}
+        </div>
+      </div>
+      {action ? <div>{action}</div> : null}
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  detail,
+  icon: Icon,
+  tone = "violet",
+}: {
+  label: string;
+  value: string;
+  detail: string;
+  icon: LucideIcon;
+  tone?: "violet" | "green" | "orange" | "blue";
+}) {
+  const iconStyle = {
+    violet: "bg-[#EEFBFC] text-[#00A7B8]",
+    green:  "bg-[#ECFDF5] text-[#059669]",
+    orange: "bg-[#FFF7ED] text-[#D97706]",
+    blue:   "bg-[#EFF6FF] text-[#2563EB]",
+  }[tone];
 
   return (
-    <Card className="overflow-hidden rounded-lg">
-      <div className="border-b border-[var(--line)] bg-[#eefbfc] px-5 py-5 sm:px-6">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+    <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[12px] font-medium text-[#6B7280]">{label}</p>
+            <p className="mt-2 truncate text-[22px] font-bold leading-none text-[#111827]">{value}</p>
+            <p className="mt-2 truncate text-[12px] font-medium text-[#6B7280]">{detail}</p>
+          </div>
+          <span className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl", iconStyle)}>
+            <Icon className="h-5 w-5" />
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function NextBookingCard({ booking }: { booking: DashboardBooking }) {
+  return (
+    <section className="overflow-hidden rounded-3xl border border-white/55 bg-white/[0.65] shadow-[0_8px_32px_rgba(0,167,184,0.08)] backdrop-blur-2xl">
+      <div className="border-b border-white/55 bg-[#EEFBFC] px-5 py-5">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
+            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[#00A7B8]">
               Næste aftale
             </p>
-            <h2 className="mt-2 font-display text-3xl font-semibold text-[var(--ink)]">
+            <h2 className="mt-2 text-2xl font-bold text-[#111827] sm:text-3xl">
               {booking.appointmentLabel}
             </h2>
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              {booking.packageLabel} - {booking.category}
+            <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
+              {booking.packageLabel} · {booking.category}
             </p>
           </div>
           <StatusBadge status={booking.status} />
         </div>
       </div>
-      <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4 lg:p-6">
-        <Fact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
-        <Fact icon={MapPin} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
-        <Fact icon={ReceiptText} label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-        <Fact icon={CreditCard} label="Pris" value={formatPrice(booking.total)} />
+      <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-4">
+        <FactCard
+          icon={Clock3}
+          label="Tid"
+          value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`}
+        />
+        <FactCard
+          icon={MapPin}
+          label="Adresse"
+          value={`${booking.address}, ${booking.postalCode} ${booking.city}`}
+        />
+        <FactCard
+          icon={ReceiptText}
+          label="Bil"
+          value={`${booking.vehicleName} (${booking.registrationNumber})`}
+        />
+        <FactCard icon={CreditCard} label="Pris" value={formatPrice(booking.total)} />
       </div>
-    </Card>
+    </section>
   );
 }
 
 function BookingCard({ booking }: { booking: DashboardBooking }) {
   return (
-    <details className="group bg-white">
-      <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-[#f6fbfc]">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-        <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-semibold text-[var(--ink)]">
-              {booking.packageLabel} - {booking.category}
-            </h3>
-            <StatusBadge status={booking.status} />
-            <PaymentBadge status={booking.paymentStatus} />
-          </div>
-          <p className="mt-2 text-sm text-[var(--muted)]">
-            {booking.appointmentLabel} · {booking.vehicleName} · {booking.registrationNumber}
-          </p>
-          {booking.addons.length > 0 ? (
-            <p className="mt-2 text-sm text-[var(--muted)]">
-              Tilvalg: {booking.addons.map((addon) => addon.label).join(", ")}
+    <details className="group">
+      <summary className="cursor-pointer list-none px-5 py-4 transition hover:bg-white/50">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h3 className="text-[13px] font-semibold text-[#111827]">
+                {booking.packageLabel} · {booking.category}
+              </h3>
+              <StatusBadge status={booking.status} />
+              <PaymentBadge status={booking.paymentStatus} />
+            </div>
+            <p className="mt-1.5 text-[12px] font-medium text-[#6B7280]">
+              {booking.appointmentLabel} · {booking.vehicleName} · {booking.registrationNumber}
             </p>
-          ) : null}
-        </div>
-        <div className="shrink-0 rounded-md bg-[#eefbfc] px-4 py-3 lg:text-right">
-          <p className="text-xs text-[var(--muted)]">Total</p>
-          <p className="text-xl font-semibold text-[var(--ink)]">{formatPrice(booking.total)}</p>
-        </div>
+            {booking.addons.length > 0 ? (
+              <p className="mt-1 text-[12px] text-[#6B7280]">
+                Tilvalg: {booking.addons.map((a) => a.label).join(", ")}
+              </p>
+            ) : null}
+          </div>
+          <div className="shrink-0 rounded-2xl bg-[#EEFBFC] px-4 py-2.5 lg:text-right">
+            <p className="text-[11px] font-medium text-[#6B7280]">Total</p>
+            <p className="text-[18px] font-bold text-[#111827]">{formatPrice(booking.total)}</p>
+          </div>
         </div>
       </summary>
-      <div className="grid gap-3 border-t border-[var(--line)] bg-[#f6fbfc] p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Fact icon={Clock3} label="Tid" value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`} />
-        <Fact icon={MapPin} label="Adresse" value={`${booking.address}, ${booking.postalCode} ${booking.city}`} />
-        <Fact icon={ReceiptText} label="Bil" value={`${booking.vehicleName} (${booking.registrationNumber})`} />
-        <Fact
+      <div className="grid gap-3 border-t border-white/55 bg-white/40 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <FactCard
+          icon={Clock3}
+          label="Tid"
+          value={`${booking.appointmentTime} - ${booking.appointmentEndTime}`}
+        />
+        <FactCard
+          icon={MapPin}
+          label="Adresse"
+          value={`${booking.address}, ${booking.postalCode} ${booking.city}`}
+        />
+        <FactCard
+          icon={ReceiptText}
+          label="Bil"
+          value={`${booking.vehicleName} (${booking.registrationNumber})`}
+        />
+        <FactCard
           icon={CreditCard}
           label="Tilvalg"
-          value={booking.addons.length > 0 ? booking.addons.map((addon) => addon.label).join(", ") : "Ingen"}
+          value={booking.addons.length > 0 ? booking.addons.map((a) => a.label).join(", ") : "Ingen"}
         />
       </div>
     </details>
   );
 }
 
-function PortalTabLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <a
-      href={href}
-      className={cn(
-        "inline-flex h-10 items-center justify-center rounded-md px-4 text-sm font-semibold transition",
-        active
-          ? "bg-[var(--accent)] text-white"
-          : "text-[var(--muted)] hover:bg-[#eefbfc] hover:text-[var(--accent)]"
-      )}
-    >
-      {children}
-    </a>
-  );
-}
-
-function ContactCard({
-  customerName,
-  email,
-  phone,
-  address,
-}: {
-  customerName: string;
-  email: string;
-  phone: string;
-  address: string;
-}) {
-  return (
-    <Card className="rounded-lg p-5 sm:p-6">
-      <div className="flex items-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
-          <UserRound className="h-6 w-6" />
-        </span>
-        <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--brand)]">
-            Kunde
-          </p>
-          <h2 className="truncate text-xl font-semibold text-[var(--ink)]">{customerName}</h2>
-        </div>
-      </div>
-      <div className="mt-5 grid gap-3">
-        <Fact icon={Mail} label="E-mail" value={email} />
-        <Fact icon={Phone} label="Telefon" value={phone || "Ikke angivet"} />
-        <Fact icon={MapPin} label="Adresse" value={address || "Ikke angivet"} />
-      </div>
-    </Card>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  icon: Icon,
-}: {
-  label: string;
-  value: string;
-  icon: ComponentType<{ className?: string }>;
-}) {
-  return (
-    <Card className="rounded-lg p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-sm text-[var(--muted)]">{label}</p>
-          <p className="mt-2 truncate text-2xl font-semibold text-[var(--ink)]">{value}</p>
-        </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#eefbfc] text-[var(--brand)]">
-          <Icon className="h-5 w-5" />
-        </span>
-      </div>
-    </Card>
-  );
-}
-
-function Fact({
+function FactCard({
   icon: Icon,
   label,
   value,
 }: {
-  icon: ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   label: string;
   value: string;
 }) {
   return (
-    <div className="min-w-0 rounded-md border border-[var(--line)] bg-white px-3 py-3">
-      <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-        <Icon className="h-4 w-4 shrink-0 text-[var(--brand)]" />
+    <div className="min-w-0 rounded-2xl border border-white/55 bg-white/60 px-3 py-3">
+      <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#6B7280]">
+        <Icon className="h-4 w-4 shrink-0 text-[#00A7B8]" />
         {label}
       </div>
-      <p className="mt-2 break-words text-sm font-semibold text-[var(--ink)]">{value}</p>
+      <p className="mt-2 break-words text-[13px] font-semibold text-[#111827]">{value}</p>
     </div>
+  );
+}
+
+function SidebarStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/55 bg-white/55 px-2.5 py-2">
+      <span className="block truncate text-[11px] font-medium text-[#6B7280]">{label}</span>
+      <strong className="mt-1 block truncate text-[12px] text-[#111827]">{value}</strong>
+    </div>
+  );
+}
+
+function StatusBadge({ status }: { status: DashboardBooking["status"] }) {
+  const styles: Record<string, string> = {
+    pending:   "border-[#F59E0B]/20 bg-[#F59E0B]/10 text-[#92400E]",
+    approved:  "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]",
+    completed: "border-[#00A7B8]/20 bg-[#00A7B8]/10 text-[#008A99]",
+    cancelled: "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]",
+  };
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold",
+        styles[status] ?? "border-[#DCEEF2] bg-[#EEFBFC] text-[#00A7B8]"
+      )}
+    >
+      {getStatusLabel(status)}
+    </span>
+  );
+}
+
+function PaymentBadge({ status }: { status: DashboardBooking["paymentStatus"] }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex rounded-full border px-2.5 py-1 text-[12px] font-semibold",
+        getPaymentStatusTone(status)
+      )}
+    >
+      {getPaymentStatusLabel(status)}
+    </span>
   );
 }
 
 function Field({
   label,
+  className,
   children,
 }: {
   label: string;
+  className?: string;
   children: ReactNode;
 }) {
   return (
-    <label className="grid gap-2 text-sm text-[var(--ink)]">
+    <label className={cn("grid gap-1.5 text-[13px] font-medium text-[#111827]", className)}>
       <span className="font-medium">{label}</span>
       {children}
     </label>
-  );
-}
-
-function Alert({ children, tone }: { children: ReactNode; tone: "success" | "error" }) {
-  return (
-    <div
-      className={cn(
-        "rounded-lg border px-4 py-3 text-sm",
-        tone === "success"
-          ? "border-[var(--line)] bg-[#eefbfc] text-[var(--accent)]"
-          : "border-red-200 bg-red-50 text-red-700"
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
-function EmptyState({
-  title,
-  text,
-  actionHref,
-  actionLabel,
-}: {
-  title: string;
-  text: string;
-  actionHref?: "/booking";
-  actionLabel?: string;
-}) {
-  return (
-    <div className="rounded-lg border border-dashed border-[var(--line)] bg-[#f6fbfc] px-5 py-6 text-center">
-      <p className="font-semibold text-[var(--ink)]">{title}</p>
-      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-[var(--muted)]">{text}</p>
-      {actionHref && actionLabel ? (
-        <Link
-          href={actionHref}
-          className="mt-4 inline-flex h-10 items-center justify-center rounded-md bg-[var(--cta)] px-4 text-sm font-semibold text-white transition hover:bg-[var(--cta-hover)]"
-        >
-          {actionLabel}
-        </Link>
-      ) : null}
-    </div>
   );
 }
 
@@ -559,34 +703,26 @@ function SupportLink({
   href,
   text,
 }: {
-  icon: ComponentType<{ className?: string }>;
+  icon: LucideIcon;
   href: string;
   text: string;
 }) {
   return (
     <a
       href={href}
-      className="flex min-w-0 items-center gap-3 rounded-md border border-[var(--line)] bg-[#f6fbfc] px-3 py-3 font-semibold text-[var(--ink)] transition hover:border-[var(--brand)]"
+      className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/55 bg-white/50 px-3 py-3 text-[13px] font-semibold text-[#111827] transition hover:border-[#00A7B8]/40 hover:bg-[#EEFBFC]"
     >
-      <Icon className="h-4 w-4 shrink-0 text-[var(--brand)]" />
+      <Icon className="h-4 w-4 shrink-0 text-[#00A7B8]" />
       <span className="truncate">{text}</span>
     </a>
   );
 }
 
-function StatusBadge({ status }: { status: DashboardBooking["status"] }) {
+function EmptyState({ text }: { text: string }) {
   return (
-    <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-semibold", getStatusTone(status))}>
-      {getStatusLabel(status)}
-    </span>
-  );
-}
-
-function PaymentBadge({ status }: { status: DashboardBooking["paymentStatus"] }) {
-  return (
-    <span className={cn("inline-flex rounded-full px-3 py-1 text-xs font-semibold", getPaymentStatusTone(status))}>
-      {getPaymentStatusLabel(status)}
-    </span>
+    <div className="rounded-3xl border border-dashed border-[#DCEEF2] bg-white/55 px-4 py-4 text-[13px] font-medium text-[#6B7280]">
+      {text}
+    </div>
   );
 }
 
