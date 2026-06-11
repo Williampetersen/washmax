@@ -300,68 +300,101 @@ const renderInvoiceEmailHtml = (input: {
     .join(", ");
   const rows = input.invoice.items
     .map(
-      (item) => `
-        <tr>
-          <td style="padding:12px;border-bottom:1px solid #dce8ed;">${escapeHtml(item.description)}</td>
-          <td style="padding:12px;border-bottom:1px solid #dce8ed;text-align:center;">${item.quantity}</td>
-          <td style="padding:12px;border-bottom:1px solid #dce8ed;text-align:right;white-space:nowrap;">${escapeHtml(formatDkk(item.unitPriceDkk))}</td>
-          <td style="padding:12px;border-bottom:1px solid #dce8ed;text-align:right;white-space:nowrap;">${escapeHtml(formatDkk(item.lineTotalDkk))}</td>
-        </tr>
-      `
+      (item) =>
+        `<tr>` +
+        `<td style="padding:11px 14px;border-bottom:1px solid #DCEEF2;font-size:13px;color:#111827;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(item.description)}</td>` +
+        `<td style="padding:11px 10px;border-bottom:1px solid #DCEEF2;font-size:13px;color:#111827;text-align:center;font-family:Arial,Helvetica,sans-serif;">${item.quantity}</td>` +
+        `<td style="padding:11px 10px;border-bottom:1px solid #DCEEF2;font-size:13px;color:#111827;text-align:right;white-space:nowrap;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatDkk(item.unitPriceDkk))}</td>` +
+        `<td style="padding:11px 14px;border-bottom:1px solid #DCEEF2;font-size:13px;color:#111827;text-align:right;white-space:nowrap;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatDkk(item.lineTotalDkk))}</td>` +
+        `</tr>`
     )
     .join("");
 
-  return `
-    <div style="margin:0;background:#edf4f5;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#102d38;line-height:1.55;">
-      <div style="max-width:720px;margin:0 auto;overflow:hidden;border-radius:22px;background:#ffffff;box-shadow:0 20px 60px rgba(18,61,82,.12);">
-        <div style="padding:30px;background:linear-gradient(135deg,#102d38,#174f61);color:#ffffff;">
-          <p style="margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9e8d8;">Invoice / Faktura</p>
-          <h1 style="margin:0;font-size:30px;line-height:1.2;">${escapeHtml(input.invoice.invoiceNumber)}</h1>
-          <p style="margin:10px 0 0;color:#d9eff1;">${escapeHtml(input.settings.companyName)} · ${escapeHtml(input.data.booking.appointmentLabel)}</p>
-        </div>
-        <div style="padding:28px;">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px;">
-            <div style="border:1px solid #dce8ed;border-radius:16px;padding:16px;background:#fbfdfd;">
-              <p style="margin:0 0 8px;color:#12b886;font-size:11px;font-weight:800;text-transform:uppercase;">Kunde</p>
-              <p style="margin:0;font-weight:800;">${escapeHtml(customerName)}</p>
-              <p style="margin:4px 0 0;color:#526a74;">${escapeHtml(input.data.customer.email)}</p>
-              <p style="margin:4px 0 0;color:#526a74;">${escapeHtml(input.data.customer.phone)}</p>
-              <p style="margin:4px 0 0;color:#526a74;">${escapeHtml(customerAddress)}</p>
-            </div>
-            <div style="border:1px solid #dce8ed;border-radius:16px;padding:16px;background:#fbfdfd;">
-              <p style="margin:0 0 8px;color:#12b886;font-size:11px;font-weight:800;text-transform:uppercase;">Booking</p>
-              <p style="margin:0;color:#526a74;">Booking: <strong style="color:#102d38;">${escapeHtml(input.data.booking.id)}</strong></p>
-              <p style="margin:4px 0 0;color:#526a74;">Bil: <strong style="color:#102d38;">${escapeHtml(input.data.booking.vehicleName)}</strong></p>
-              <p style="margin:4px 0 0;color:#526a74;">Regnr.: <strong style="color:#102d38;">${escapeHtml(input.data.booking.registrationNumber)}</strong></p>
-              <p style="margin:4px 0 0;color:#526a74;">Tid: <strong style="color:#102d38;">${escapeHtml(input.data.booking.appointmentLabel)}</strong></p>
-            </div>
-          </div>
-          <table style="width:100%;border-collapse:collapse;">
-            <thead>
-              <tr>
-                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:left;border-radius:10px 0 0 10px;">Beskrivelse</th>
-                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:center;">Antal</th>
-                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:right;">Stk.</th>
-                <th style="padding:11px 12px;background:#123d52;color:#fff;text-align:right;border-radius:0 10px 10px 0;">Belob</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <table style="width:100%;max-width:360px;margin:22px 0 0 auto;border-collapse:collapse;">
-            <tr><td style="padding:8px;color:#526a74;">Subtotal ekskl. moms</td><td style="padding:8px;text-align:right;font-weight:800;">${escapeHtml(formatDkk(input.invoice.subtotalExMomsDkk))}</td></tr>
-            <tr><td style="padding:8px;color:#526a74;">Moms/VAT 25%</td><td style="padding:8px;text-align:right;font-weight:800;">${escapeHtml(formatDkk(input.invoice.momsAmountDkk))}</td></tr>
-            <tr><td style="padding:14px 8px;border-top:2px solid #123d52;font-size:18px;font-weight:900;">Total inkl. moms</td><td style="padding:14px 8px;border-top:2px solid #123d52;text-align:right;font-size:22px;font-weight:900;color:#55b9df;">${escapeHtml(formatDkk(input.invoice.totalInclMomsDkk))}</td></tr>
-          </table>
-          <div style="margin-top:22px;padding:16px;border-left:4px solid #12b886;border-radius:0 14px 14px 0;background:#f0faf6;">
-            <p style="margin:0 0 6px;font-weight:800;">Betaling</p>
-            <p style="margin:0;color:#526a74;">Betaling sker efter aftale med ${escapeHtml(input.settings.companyName)}. Kontakt ${escapeHtml(input.settings.supportEmail)} ved sporgsmal.</p>
-          </div>
-          <p style="margin:22px 0 0;"><a href="${escapeHtml(input.invoiceUrl)}" style="display:inline-block;border-radius:999px;background:#12b886;color:#ffffff;padding:13px 22px;text-decoration:none;font-weight:800;">Se og print faktura</a></p>
-          <p style="margin:18px 0 0;color:#647983;font-size:12px;">${escapeHtml(input.settings.companyName)} · ${escapeHtml(input.settings.supportEmail)}</p>
-        </div>
-      </div>
-    </div>
-  `;
+  return (
+    `<div style="margin:0;padding:0;background:#F6FBFC;">` +
+    `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F6FBFC;font-family:Arial,Helvetica,sans-serif;">` +
+    `<tr><td align="center" style="padding:32px 16px;">` +
+    `<table width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;width:100%;">` +
+    `<tr><td>` +
+    `<div style="background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #DCEEF2;box-shadow:0 4px 24px rgba(11,31,58,0.07);">` +
+    // Header
+    `<div style="background:#0B1F3A;padding:26px 32px 22px;">` +
+    `<p style="margin:0;color:#FFFFFF;font-size:20px;font-weight:700;letter-spacing:-0.01em;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.settings.companyName)}</p>` +
+    `<p style="margin:5px 0 0;color:#00A7B8;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Professionel bilvask</p>` +
+    `</div>` +
+    // Title block
+    `<div style="padding:32px 32px 8px;">` +
+    `<span style="display:inline-block;background:#00A7B8;color:#FFFFFF;font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Faktura klar</span>` +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Faktura ${escapeHtml(input.invoice.invoiceNumber)}</h1>` +
+    `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.settings.companyName)} · ${escapeHtml(input.data.booking.appointmentLabel)}</p>` +
+    `</div>` +
+    // Cards
+    `<div style="padding:8px 32px 32px;">` +
+    // Customer + Booking cards side by side (stacked on mobile via table)
+    `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:16px;">` +
+    `<tr>` +
+    `<td style="padding-right:8px;vertical-align:top;width:50%;">` +
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:16px 18px;">` +
+    `<p style="margin:0 0 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Kunde</p>` +
+    `<p style="margin:0;font-size:14px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(customerName)}</p>` +
+    `<p style="margin:4px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.data.customer.email)}</p>` +
+    `<p style="margin:3px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.data.customer.phone)}</p>` +
+    (customerAddress ? `<p style="margin:3px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(customerAddress)}</p>` : "") +
+    `</div>` +
+    `</td>` +
+    `<td style="padding-left:8px;vertical-align:top;width:50%;">` +
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:16px 18px;">` +
+    `<p style="margin:0 0 10px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Booking</p>` +
+    `<p style="margin:0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">ID: <strong style="color:#111827;">${escapeHtml(input.data.booking.id)}</strong></p>` +
+    `<p style="margin:4px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Bil: <strong style="color:#111827;">${escapeHtml(input.data.booking.vehicleName)}</strong></p>` +
+    `<p style="margin:3px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Regnr.: <strong style="color:#111827;">${escapeHtml(input.data.booking.registrationNumber)}</strong></p>` +
+    `<p style="margin:3px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Tid: <strong style="color:#111827;">${escapeHtml(input.data.booking.appointmentLabel)}</strong></p>` +
+    `</div>` +
+    `</td>` +
+    `</tr></table>` +
+    // Line items table
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;overflow:hidden;margin-bottom:16px;">` +
+    `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">` +
+    `<thead>` +
+    `<tr style="background:#0B1F3A;">` +
+    `<th style="padding:11px 14px;color:#FFFFFF;text-align:left;font-size:12px;font-weight:700;font-family:Arial,Helvetica,sans-serif;">Beskrivelse</th>` +
+    `<th style="padding:11px 10px;color:#FFFFFF;text-align:center;font-size:12px;font-weight:700;font-family:Arial,Helvetica,sans-serif;">Antal</th>` +
+    `<th style="padding:11px 10px;color:#FFFFFF;text-align:right;font-size:12px;font-weight:700;font-family:Arial,Helvetica,sans-serif;">Stk.</th>` +
+    `<th style="padding:11px 14px;color:#FFFFFF;text-align:right;font-size:12px;font-weight:700;font-family:Arial,Helvetica,sans-serif;">Beløb</th>` +
+    `</tr>` +
+    `</thead>` +
+    `<tbody>${rows}</tbody>` +
+    `</table>` +
+    `</div>` +
+    // Totals
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:16px 20px;margin-bottom:16px;">` +
+    `<table width="100%" cellpadding="0" cellspacing="0">` +
+    `<tr><td style="padding:7px 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Subtotal ekskl. moms</td><td style="padding:7px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatDkk(input.invoice.subtotalExMomsDkk))}</td></tr>` +
+    `<tr><td style="padding:7px 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Moms/VAT 25%</td><td style="padding:7px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatDkk(input.invoice.momsAmountDkk))}</td></tr>` +
+    `<tr style="border-top:2px solid #0B1F3A;"><td style="padding:12px 0 4px;font-size:15px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;">Total inkl. moms</td><td style="padding:12px 0 4px;font-size:17px;font-weight:700;color:#0B1F3A;text-align:right;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatDkk(input.invoice.totalInclMomsDkk))}</td></tr>` +
+    `</table>` +
+    `</div>` +
+    // Payment info
+    `<div style="background:#F0FAFB;border-left:4px solid #00A7B8;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:24px;">` +
+    `<p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#0B1F3A;font-family:Arial,Helvetica,sans-serif;">Betaling</p>` +
+    `<p style="margin:0;font-size:13px;color:#6B7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">Betaling sker efter aftale med ${escapeHtml(input.settings.companyName)}. Kontakt <a href="mailto:${escapeHtml(input.settings.supportEmail)}" style="color:#00A7B8;text-decoration:none;">${escapeHtml(input.settings.supportEmail)}</a> ved spørgsmål.</p>` +
+    `</div>` +
+    // CTA
+    `<div style="text-align:center;margin-bottom:8px;">` +
+    `<a href="${escapeHtml(input.invoiceUrl)}" style="display:inline-block;background:#F59E0B;color:#FFFFFF;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:15px;letter-spacing:0.01em;font-family:Arial,Helvetica,sans-serif;">Se og print faktura</a>` +
+    `</div>` +
+    `</div>` +
+    // Footer
+    `<div style="background:#F6FBFC;border-top:1px solid #DCEEF2;padding:22px 32px;text-align:center;">` +
+    `<p style="margin:0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.settings.companyName)}</p>` +
+    `<p style="margin:3px 0 0;font-size:12px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Professionel bilvask</p>` +
+    (input.settings.supportEmail ? `<p style="margin:10px 0 0;font-size:12px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Support: <a href="mailto:${escapeHtml(input.settings.supportEmail)}" style="color:#00A7B8;text-decoration:none;font-weight:600;">${escapeHtml(input.settings.supportEmail)}</a></p>` : "") +
+    `</div>` +
+    `</div>` +
+    `</td></tr></table>` +
+    `</td></tr></table>` +
+    `</div>`
+  );
 };
 
 const renderInvoiceEmailText = (input: {

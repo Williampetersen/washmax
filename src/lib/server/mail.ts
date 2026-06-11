@@ -101,7 +101,6 @@ export const isMailConfigured = () => {
 const getTransporter = () => {
   if (cachedTransporter === undefined) {
     const config = getMailConfig();
-
     cachedTransporter = isMailConfigured()
       ? nodemailer.createTransport({
           host: config.host,
@@ -114,7 +113,6 @@ const getTransporter = () => {
         })
       : null;
   }
-
   return cachedTransporter;
 };
 
@@ -140,7 +138,7 @@ const getAddressLine = (customer: MailCustomer) =>
 const getAddonText = (addons: MailBooking["addons"]) =>
   addons.length > 0
     ? addons.map((item) => `${item.label} (${formatPrice(item.price)})`).join(", ")
-    : "Ingen tilvalg";
+    : "Ingen tilvalg valgt";
 
 const getBookingVehicles = (booking: MailBooking) =>
   booking.vehicles && booking.vehicles.length > 0
@@ -160,74 +158,157 @@ const getBookingVehicles = (booking: MailBooking) =>
         },
       ];
 
-const renderVehicleDetailsHtml = (booking: MailBooking) => {
-  const vehicles = getBookingVehicles(booking);
+// ============================================================
+// SHARED EMAIL DESIGN SYSTEM
+// Brand colors: navy #0B1F3A · teal #00A7B8 · orange #F59E0B
+// ============================================================
 
-  return vehicles
-    .map(
-      (vehicle) => `
-        <div style="margin-top:12px;padding:14px 16px;border-radius:14px;background:#f6fbfc;border:1px solid #dceef2;">
-          <p style="margin:0 0 4px;font-weight:800;color:#0b1f3a;">${escapeHtml(vehicle.label)} · ${escapeHtml(vehicle.registrationNumber)}</p>
-          <p style="margin:0;color:#36505d;">${escapeHtml(vehicle.vehicleName)}</p>
-          <p style="margin:8px 0 0;color:#36505d;">${escapeHtml(vehicle.packageLabel)}${vehicle.category ? ` - ${escapeHtml(vehicle.category)}` : ""}</p>
-          <p style="margin:8px 0 0;color:#36505d;">Tilvalg: ${escapeHtml(getAddonText(vehicle.addons))}</p>
-          ${
-            vehicle.discountAmount > 0
-              ? `<p style="margin:8px 0 0;color:#0d6b47;font-weight:700;">15% rabat på bil 2: -${escapeHtml(formatPrice(vehicle.discountAmount))}</p>`
-              : ""
-          }
-          <p style="margin:8px 0 0;font-weight:800;color:#0b1f3a;">Pris: ${escapeHtml(formatPrice(vehicle.totalPrice))}</p>
-        </div>
-      `
-    )
-    .join("");
+const getBadgeColors = (eyebrow: string): { bg: string; text: string } => {
+  const lower = eyebrow.toLowerCase();
+  if (lower.includes("godkendt") || lower.includes("afsluttet") || lower.includes("bekræftet")) {
+    return { bg: "#10B981", text: "#FFFFFF" };
+  }
+  if (lower.includes("annulleret")) {
+    return { bg: "#EF4444", text: "#FFFFFF" };
+  }
+  if (lower.includes("afventer")) {
+    return { bg: "#F59E0B", text: "#FFFFFF" };
+  }
+  return { bg: "#00A7B8", text: "#FFFFFF" };
 };
 
-const getVehicleDetailsText = (booking: MailBooking) =>
-  getBookingVehicles(booking)
-    .map((vehicle) =>
-      [
-        `${vehicle.label}: ${vehicle.vehicleName} (${vehicle.registrationNumber})`,
-        `Service: ${vehicle.packageLabel}${vehicle.category ? ` - ${vehicle.category}` : ""}`,
-        `Tilvalg: ${getAddonText(vehicle.addons)}`,
-        vehicle.discountAmount > 0 ? `15% rabat på bil 2: -${formatPrice(vehicle.discountAmount)}` : "",
-        `Pris: ${formatPrice(vehicle.totalPrice)}`,
-      ]
-        .filter(Boolean)
-        .join("\n")
-    )
-    .join("\n\n");
+const renderEmailWrapper = (content: string) =>
+  `<div style="margin:0;padding:0;background:#F6FBFC;">` +
+  `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F6FBFC;font-family:Arial,Helvetica,sans-serif;">` +
+  `<tr><td align="center" style="padding:32px 16px;">` +
+  `<table width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;width:100%;">` +
+  `<tr><td>` +
+  `<div style="background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #DCEEF2;box-shadow:0 4px 24px rgba(11,31,58,0.07);">` +
+  content +
+  `</div>` +
+  `</td></tr></table>` +
+  `</td></tr></table>` +
+  `</div>`;
 
-const renderRows = (rows: Array<[string, string]>) =>
-  `<table style="border-collapse:collapse;width:100%;margin-top:18px;">${rows
-    .map(
-      ([label, value]) =>
-        `<tr><td style="padding:8px 0;font-weight:700;vertical-align:top;">${escapeHtml(
-          label
-        )}</td><td style="padding:8px 0;">${escapeHtml(value)}</td></tr>`
-    )
-    .join("")}</table>`;
+const renderEmailHeader = (companyName: string) =>
+  `<div style="background:#0B1F3A;padding:26px 32px 22px;">` +
+  `<p style="margin:0;color:#FFFFFF;font-size:20px;font-weight:700;letter-spacing:-0.01em;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(companyName)}</p>` +
+  `<p style="margin:5px 0 0;color:#00A7B8;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Professionel bilvask</p>` +
+  `</div>`;
 
-const renderPortalButton = (portalUrl?: string, label = "Aabn kundeportal") =>
-  portalUrl
-    ? `<p style="margin:20px 0 0;"><a href="${escapeHtml(
-        portalUrl
-      )}" style="display:inline-block;background:#55b9df;color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700;">${escapeHtml(
-        label
-      )}</a></p>`
-    : "";
+const renderEmailFooter = (companyName: string, supportEmail: string) =>
+  `<div style="background:#F6FBFC;border-top:1px solid #DCEEF2;padding:22px 32px;text-align:center;">` +
+  `<p style="margin:0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(companyName)}</p>` +
+  `<p style="margin:3px 0 0;font-size:12px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Professionel bilvask</p>` +
+  (supportEmail
+    ? `<p style="margin:10px 0 0;font-size:12px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Support: <a href="mailto:${escapeHtml(supportEmail)}" style="color:#00A7B8;text-decoration:none;font-weight:600;">${escapeHtml(supportEmail)}</a></p>`
+    : "") +
+  `</div>`;
+
+const renderStatusBadge = (label: string, eyebrow: string) => {
+  const c = getBadgeColors(eyebrow);
+  return (
+    `<span style="display:inline-block;background:${c.bg};color:${c.text};` +
+    `font-size:11px;font-weight:700;padding:5px 14px;border-radius:999px;` +
+    `letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">` +
+    `${escapeHtml(label)}</span>`
+  );
+};
+
+const renderCTAButton = (url: string, label: string) =>
+  `<a href="${escapeHtml(url)}" ` +
+  `style="display:inline-block;background:#F59E0B;color:#FFFFFF;text-decoration:none;` +
+  `padding:14px 28px;border-radius:8px;font-weight:700;font-size:15px;` +
+  `letter-spacing:0.01em;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(label)}</a>`;
+
+const renderCardRow = (label: string, value: string) =>
+  `<table width="100%" cellpadding="0" cellspacing="0" style="border-bottom:1px solid #F3F4F6;">` +
+  `<tr>` +
+  `<td style="padding:9px 0;font-size:13px;color:#6B7280;font-weight:500;vertical-align:top;width:45%;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(label)}</td>` +
+  `<td style="padding:9px 0;font-size:13px;color:#111827;font-weight:600;text-align:right;vertical-align:top;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(value)}</td>` +
+  `</tr></table>`;
+
+const renderInfoCard = (title: string, rows: Array<[string, string]>) =>
+  `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:18px 20px;margin-bottom:16px;">` +
+  `<p style="margin:0 0 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(title)}</p>` +
+  rows.map(([l, v]) => renderCardRow(l, v)).join("") +
+  `</div>`;
+
+const renderHighlightBox = (text: string) =>
+  `<div style="background:#F0FAFB;border-left:4px solid #00A7B8;border-radius:0 8px 8px 0;padding:14px 18px;margin-bottom:20px;">` +
+  `<p style="margin:0;font-size:14px;color:#0B1F3A;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(text)}</p>` +
+  `</div>`;
 
 const renderAdminNote = (adminNotes?: string) => {
   const note = String(adminNotes || "").trim();
   if (!note) return "";
-
-  return `
-    <div style="margin-top:18px;padding:14px 16px;border-radius:14px;background:#f6fbff;border:1px solid #cde6f6;">
-      <p style="margin:0 0 6px;font-weight:700;color:#16303a;">Besked fra CleanWash</p>
-      <p style="margin:0;color:#36505d;">${escapeHtml(note)}</p>
-    </div>
-  `;
+  return (
+    `<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 20px;margin-bottom:16px;">` +
+    `<p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#D97706;font-family:Arial,Helvetica,sans-serif;">Besked fra CleanWash</p>` +
+    `<p style="margin:0;font-size:14px;color:#92400E;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(note)}</p>` +
+    `</div>`
+  );
 };
+
+const renderVehicleDetailsHtml = (booking: MailBooking) => {
+  const vehicles = getBookingVehicles(booking);
+  const cards = vehicles
+    .map(
+      (vehicle, idx) =>
+        `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:16px 20px;margin-bottom:12px;">` +
+        `<table width="100%" cellpadding="0" cellspacing="0">` +
+        `<tr>` +
+        `<td style="vertical-align:middle;">` +
+        `<span style="display:inline-block;background:#0B1F3A;color:#FFFFFF;font-size:10px;font-weight:700;padding:3px 10px;border-radius:999px;letter-spacing:0.06em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(`Bil ${idx + 1}`)}</span>` +
+        `<span style="margin-left:10px;font-size:16px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(vehicle.registrationNumber.toUpperCase())}</span>` +
+        `</td>` +
+        `<td style="text-align:right;vertical-align:middle;">` +
+        `<span style="font-size:15px;font-weight:700;color:#0B1F3A;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatPrice(vehicle.totalPrice))}</span>` +
+        `</td>` +
+        `</tr></table>` +
+        (vehicle.vehicleName
+          ? `<p style="margin:10px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(vehicle.vehicleName)}</p>`
+          : "") +
+        `<p style="margin:6px 0 0;font-size:14px;color:#111827;font-weight:600;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(vehicle.packageLabel)}${vehicle.category ? ` · ${escapeHtml(vehicle.category)}` : ""}</p>` +
+        `<p style="margin:6px 0 0;font-size:13px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Tilvalg: ${escapeHtml(getAddonText(vehicle.addons))}</p>` +
+        (vehicle.discountAmount > 0
+          ? `<p style="margin:6px 0 0;font-size:13px;font-weight:700;color:#10B981;font-family:Arial,Helvetica,sans-serif;">Rabat: -${escapeHtml(formatPrice(vehicle.discountAmount))}</p>`
+          : "") +
+        `</div>`
+    )
+    .join("");
+
+  return (
+    `<div style="margin-bottom:16px;">` +
+    `<p style="margin:0 0 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Biloplysninger</p>` +
+    cards +
+    `</div>`
+  );
+};
+
+const renderPriceSummaryCard = (booking: MailBooking) => {
+  const vehicles = getBookingVehicles(booking);
+  const vehicleRows = vehicles.map((v) => renderCardRow(v.label, formatPrice(v.totalPrice))).join("");
+  const discountRow =
+    booking.discountDkk && booking.discountDkk > 0
+      ? renderCardRow("Samlet rabat", `-${formatPrice(booking.discountDkk)}`)
+      : "";
+
+  return (
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:18px 20px;margin-bottom:16px;">` +
+    `<p style="margin:0 0 12px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Prisoversigt</p>` +
+    vehicleRows +
+    discountRow +
+    `<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-top:2px solid #0B1F3A;">` +
+    `<tr>` +
+    `<td style="padding:12px 0 4px;font-size:15px;font-weight:700;color:#111827;font-family:Arial,Helvetica,sans-serif;">Total</td>` +
+    `<td style="padding:12px 0 4px;font-size:17px;font-weight:700;color:#0B1F3A;text-align:right;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(formatPrice(booking.total))}</td>` +
+    `</tr></table>` +
+    `</div>`
+  );
+};
+
+// ============================================================
 
 const renderCustomerEmailHtml = (input: {
   eyebrow: string;
@@ -243,36 +324,40 @@ const renderCustomerEmailHtml = (input: {
 }) => {
   const appointmentLabel = getAppointmentLabel(input.booking);
   const addressLine = getAddressLine(input.customer);
+  const vehicles = getBookingVehicles(input.booking);
 
-  return `
-    <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
-      <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">${escapeHtml(
-        input.eyebrow
-      )}</p>
-      <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">${escapeHtml(input.title)}</h2>
-      <p style="margin:0;color:#36505d;">${escapeHtml(input.intro)}</p>
-      <div style="margin-top:16px;padding:14px 16px;border-radius:14px;background:#eef8ff;border:1px solid #cde6f6;color:#1a506d;">
-        ${escapeHtml(input.highlight)}
-      </div>
-      ${renderPortalButton(input.portalUrl, input.portalLabel)}
-      ${renderRows([
-        ["Status", getStatusLabel(input.booking.status)],
-        ["Tid", appointmentLabel],
-        ["Biler", `${getBookingVehicles(input.booking).length}`],
-        ["Adresse", addressLine],
-        ["Total", formatPrice(input.booking.total)],
-      ])}
-      <div style="margin-top:16px;"><strong>Bookingdetaljer</strong>${renderVehicleDetailsHtml(input.booking)}</div>
-      ${
-        input.booking.discountDkk && input.booking.discountDkk > 0
-          ? `<p style="margin:14px 0 0;color:#0d6b47;font-weight:700;">Samlet rabat: -${escapeHtml(formatPrice(input.booking.discountDkk))}</p>`
-          : ""
-      }
-      ${renderAdminNote(input.booking.adminNotes)}
-      <p style="margin-top:20px;color:#36505d;">${escapeHtml(input.footer)}</p>
-      <p style="margin-top:10px;color:#36505d;">Support: ${escapeHtml(input.settings.supportEmail)}</p>
-    </div>
-  `;
+  const bookingRows: Array<[string, string]> = [
+    ["Booking ID", input.booking.id],
+    ["Status", getStatusLabel(input.booking.status)],
+    ["Dato og tidspunkt", appointmentLabel],
+    ["Antal biler", `${vehicles.length}`],
+  ];
+  if (addressLine) bookingRows.push(["Adresse", addressLine]);
+
+  const content =
+    renderEmailHeader(input.settings.companyName) +
+    `<div style="padding:32px 32px 8px;">` +
+    renderStatusBadge(input.eyebrow, input.eyebrow) +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.title)}</h1>` +
+    `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.intro)}</p>` +
+    renderHighlightBox(input.highlight) +
+    `</div>` +
+    `<div style="padding:8px 32px 32px;">` +
+    renderInfoCard("Bookingoversigt", bookingRows) +
+    renderVehicleDetailsHtml(input.booking) +
+    renderPriceSummaryCard(input.booking) +
+    renderAdminNote(input.booking.adminNotes) +
+    `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:18px 20px;margin-bottom:${input.portalUrl ? "24px" : "8px"};">` +
+    `<p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Hvad sker der nu?</p>` +
+    `<p style="margin:0;font-size:14px;color:#111827;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.footer)}</p>` +
+    `</div>` +
+    (input.portalUrl
+      ? `<div style="text-align:center;margin-bottom:8px;">${renderCTAButton(input.portalUrl, input.portalLabel || "Se din booking")}</div>`
+      : "") +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
+
+  return renderEmailWrapper(content);
 };
 
 const renderCustomerEmailText = (input: {
@@ -315,8 +400,23 @@ const renderCustomerEmailText = (input: {
 
   lines.push("", input.footer, `Support: ${input.settings.supportEmail}`);
 
-  return lines.join("\n");
+  return lines.filter((l) => l !== undefined).join("\n");
 };
+
+const getVehicleDetailsText = (booking: MailBooking) =>
+  getBookingVehicles(booking)
+    .map((vehicle) =>
+      [
+        `${vehicle.label}: ${vehicle.vehicleName} (${vehicle.registrationNumber})`,
+        `Service: ${vehicle.packageLabel}${vehicle.category ? ` - ${vehicle.category}` : ""}`,
+        `Tilvalg: ${getAddonText(vehicle.addons)}`,
+        vehicle.discountAmount > 0 ? `Rabat: -${formatPrice(vehicle.discountAmount)}` : "",
+        `Pris: ${formatPrice(vehicle.totalPrice)}`,
+      ]
+        .filter(Boolean)
+        .join("\n")
+    )
+    .join("\n\n");
 
 const getCustomerCreationCopy = (
   booking: MailBooking,
@@ -340,7 +440,7 @@ const getCustomerCreationCopy = (
         title: "Din booking er godkendt",
         intro: `Vi har godkendt din booking hos ${settings.companyName} og reserveret tiden ${appointmentLabel}.`,
         highlight:
-          "Du har nu en aktiv tid i kalenderen. Brug kundeportalen, hvis du vil gennemga detaljerne eller opdatere dine oplysninger.",
+          "Du har nu en aktiv tid i kalenderen. Brug kundeportalen, hvis du vil gennemgå detaljerne eller opdatere dine oplysninger.",
         footer:
           "Har du brug for at ændre noget, kan du svare på denne mail eller kontakte os direkte.",
         portalLabel: "Se din booking",
@@ -349,13 +449,13 @@ const getCustomerCreationCopy = (
       return {
         subject: `${settings.companyName}: booking modtaget`,
         eyebrow: "Booking modtaget",
-        title: "Vi har modtaget din booking",
-        intro: `Tak for din booking hos ${settings.companyName}. Vi gennemgår nu forespørgslen for ${appointmentLabel}.`,
+        title: "Tak for din booking hos Clean Wash",
+        intro: `Vi har modtaget din booking hos ${settings.companyName} og glæder os til at gøre din bil ren og klar. Vi gennemgår nu forespørgslen for ${appointmentLabel}.`,
         highlight:
           "Du får en ny mail, så snart bookingen er godkendt eller hvis vi har brug for at justere noget.",
         footer:
-          "Du kan bruge kundeportalen allerede nu, hvis du vil tjekke oplysningerne eller sende os en kommentar.",
-        portalLabel: "Aabn kundeportal",
+          "Du skal blot møde op til din aftalte tid. Vi sørger for resten. Du kan bruge kundeportalen allerede nu, hvis du vil tjekke oplysningerne eller sende os en kommentar.",
+        portalLabel: "Se din booking",
       };
   }
 };
@@ -382,9 +482,9 @@ const getCustomerStatusCopy = (
         title: "Din booking er godkendt",
         intro: `Vi har nu godkendt din booking for ${appointmentLabel}.`,
         highlight:
-          "Din tid er reserveret. Har du brug for at justere adresse eller kontaktoplysninger, kan du gore det fra kundeportalen.",
+          "Din tid er reserveret. Har du brug for at justere adresse eller kontaktoplysninger, kan du gøre det fra kundeportalen.",
         footer:
-          "Tak for at booke hos os. Svar gerne pa mailen, hvis der er noget, vi skal vide inden besoeg.",
+          "Tak for at booke hos os. Svar gerne på mailen, hvis der er noget, vi skal vide inden besøget.",
         portalLabel: "Se din booking",
       };
     case "completed":
@@ -394,7 +494,7 @@ const getCustomerStatusCopy = (
         title: "Tak for din booking",
         intro: `Din booking for ${appointmentLabel} er nu afsluttet.`,
         highlight:
-          "Tak fordi du valgte CleanWash. Du kan altid finde forlobet igen i kundeportalen og booke en ny tid derfra.",
+          "Tak fordi du valgte CleanWash. Du kan altid finde forløbet igen i kundeportalen og booke en ny tid derfra.",
         footer:
           "Hvis du vil have en ny tid eller har feedback, er du altid velkommen til at kontakte os.",
         portalLabel: "Se bookinghistorik",
@@ -406,10 +506,10 @@ const getCustomerStatusCopy = (
         title: "Din booking er annulleret",
         intro: `Din booking for ${appointmentLabel} er blevet annulleret.`,
         highlight:
-          "Hvis du gerne vil have en ny tid, kan du booke igen fra kundeportalen eller skrive til os, saa finder vi en ny aftale.",
+          "Hvis du gerne vil have en ny tid, kan du booke igen fra kundeportalen eller skrive til os, så finder vi en ny aftale.",
         footer:
           "Vi hjælper gerne med at finde en ny tid, hvis annulleringen skal ændres til en ombooking.",
-        portalLabel: "Aabn kundeportal",
+        portalLabel: "Book en ny tid",
       };
     default:
       return {
@@ -421,7 +521,7 @@ const getCustomerStatusCopy = (
           "Du får en ny mail, så snart bookingen er godkendt eller hvis vi mangler noget fra dig.",
         footer:
           "Du kan bruge kundeportalen til at holde overblik over status og dine kontaktoplysninger.",
-        portalLabel: "Aabn kundeportal",
+        portalLabel: "Se din booking",
       };
   }
 };
@@ -558,6 +658,48 @@ export const sendAdminNewBookingAlert = async (input: {
   const config = getMailConfig();
   const adminEmail =
     input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+  const vehicles = getBookingVehicles(input.booking);
+  const addressLine = getAddressLine(input.customer);
+
+  const quickSummaryRows: Array<[string, string]> = [
+    ["Kunde", customerName || input.customer.email],
+    ["Dato og tidspunkt", appointmentLabel],
+    ["Nummerplade", vehicles.map((v) => v.registrationNumber.toUpperCase()).join(", ")],
+    ["Totalpris", formatPrice(input.booking.total)],
+  ];
+
+  const customerInfoRows: Array<[string, string]> = [
+    ["Navn", customerName || "-"],
+    ["Email", input.customer.email],
+    ["Telefon", input.customer.phone],
+  ];
+  if (addressLine) customerInfoRows.push(["Adresse", addressLine]);
+  if (input.customer.company) customerInfoRows.push(["Virksomhed", input.customer.company]);
+  if (input.customer.companyId) customerInfoRows.push(["CVR", input.customer.companyId]);
+
+  const content =
+    renderEmailHeader(input.settings.companyName) +
+    `<div style="padding:32px 32px 8px;">` +
+    renderStatusBadge("Ny booking", "ny booking") +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Ny bilvask-booking modtaget</h1>` +
+    `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">Der er modtaget en ny booking i systemet.</p>` +
+    `</div>` +
+    `<div style="padding:8px 32px 32px;">` +
+    renderInfoCard("Hurtigt overblik", quickSummaryRows) +
+    renderInfoCard("Kundeoplysninger", customerInfoRows) +
+    renderVehicleDetailsHtml(input.booking) +
+    renderPriceSummaryCard(input.booking) +
+    (input.customer.notes
+      ? `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:18px 20px;margin-bottom:16px;">` +
+        `<p style="margin:0 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Bemærkning fra kunde</p>` +
+        `<p style="margin:0;font-size:14px;color:#111827;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.customer.notes)}</p>` +
+        `</div>`
+      : "") +
+    (input.portalUrl
+      ? `<div style="text-align:center;margin-top:8px;">${renderCTAButton(input.portalUrl, "Åbn booking i admin")}</div>`
+      : "") +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
 
   await sendLoggedMail({
     bookingId: input.booking.id,
@@ -565,37 +707,10 @@ export const sendAdminNewBookingAlert = async (input: {
     recipient: adminEmail,
     recipientRole: "admin",
     templateKey: "admin_new_booking",
-    subject: `${input.settings.companyName}: ny booking ${getBookingVehicles(input.booking).length > 1 ? "2 biler" : input.booking.registrationNumber}`,
-    html: `
-      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
-        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Ny booking</p>
-        <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">Ny booking modtaget</h2>
-        <p style="margin:0;color:#36505d;"><strong>${escapeHtml(
-          customerName || input.customer.email
-        )}</strong> har lavet en booking fra websitet.</p>
-        ${renderPortalButton(input.portalUrl, "Aabn kundeportal")}
-        ${renderRows([
-          ["Status", getStatusLabel(input.booking.status)],
-          ["Tid", appointmentLabel],
-          ["Kunde", customerName || input.customer.email],
-          ["Telefon", input.customer.phone],
-          ["Email", input.customer.email],
-          ["Adresse", getAddressLine(input.customer)],
-          ["Biler", `${getBookingVehicles(input.booking).length}`],
-          ["Pris", formatPrice(input.booking.total)],
-        ])}
-        <div style="margin-top:16px;"><strong>Bookingdetaljer</strong>${renderVehicleDetailsHtml(input.booking)}</div>
-        ${
-          input.customer.notes
-            ? `<p style="margin-top:16px;"><strong>Bemaerkninger:</strong><br />${escapeHtml(
-                input.customer.notes
-              )}</p>`
-            : ""
-        }
-      </div>
-    `,
+    subject: `${input.settings.companyName}: ny booking ${vehicles.length > 1 ? "2 biler" : input.booking.registrationNumber}`,
+    html: renderEmailWrapper(content),
     text: [
-      "Ny booking modtaget",
+      "Ny bilvask-booking modtaget",
       "",
       `Kunde: ${customerName || input.customer.email}`,
       `Status: ${getStatusLabel(input.booking.status)}`,
@@ -603,12 +718,12 @@ export const sendAdminNewBookingAlert = async (input: {
       `Telefon: ${input.customer.phone}`,
       `Email: ${input.customer.email}`,
       `Adresse: ${getAddressLine(input.customer)}`,
-      `Biler: ${getBookingVehicles(input.booking).length}`,
+      `Biler: ${vehicles.length}`,
       "",
       getVehicleDetailsText(input.booking),
       `Pris: ${formatPrice(input.booking.total)}`,
       `Kundeportal: ${input.portalUrl}`,
-      input.customer.notes ? `Bemaerkninger: ${input.customer.notes}` : "",
+      input.customer.notes ? `Bemærkning: ${input.customer.notes}` : "",
     ]
       .filter(Boolean)
       .join("\n"),
@@ -632,6 +747,28 @@ export const sendCustomerInvoiceEmail = async (input: {
   const total = formatPrice(input.totalInclMomsDkk);
   const greeting = input.customerName ? `Hej ${input.customerName}` : "Hej";
 
+  const invoiceContent =
+    renderEmailHeader(input.settings.companyName) +
+    `<div style="padding:32px 32px 8px;">` +
+    renderStatusBadge("Faktura klar", "modtaget") +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(subject)}</h1>` +
+    `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(`${greeting}. Din faktura er klar og kan åbnes sikkert i browseren.`)}</p>` +
+    `</div>` +
+    `<div style="padding:8px 32px 32px;">` +
+    renderInfoCard("Fakturaoplysninger", [
+      ["Fakturanummer", input.invoiceNumber],
+      ["Booking ID", input.bookingId],
+      ["Dato og tidspunkt", input.appointmentLabel || "-"],
+      ["Beløb inkl. moms", total],
+    ]) +
+    `<div style="text-align:center;margin:24px 0 16px;">` +
+    renderCTAButton(input.invoiceUrl, "Se og print faktura") +
+    `</div>` +
+    `<p style="margin:0;font-size:13px;color:#6B7280;text-align:center;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">Fra fakturasiden kan du vælge Print / Save as PDF. Der er ingen PDF-vedhæftning.</p>` +
+    `<p style="margin:10px 0 0;font-size:13px;color:#6B7280;text-align:center;font-family:Arial,Helvetica,sans-serif;">Hvis knappen ikke virker: <a href="${escapeHtml(input.invoiceUrl)}" style="color:#00A7B8;text-decoration:none;">${escapeHtml(input.invoiceUrl)}</a></p>` +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
+
   return sendLoggedMailDetailed({
     bookingId: input.bookingId,
     customerId: input.customerId,
@@ -639,48 +776,21 @@ export const sendCustomerInvoiceEmail = async (input: {
     recipientRole: "customer",
     templateKey: "customer_invoice",
     subject,
-    html: input.invoiceHtml || `
-      <div style="margin:0;background:#edf4f5;padding:28px 14px;font-family:Arial,Helvetica,sans-serif;color:#102d38;line-height:1.6;">
-        <div style="max-width:640px;margin:0 auto;overflow:hidden;border-radius:22px;background:#ffffff;box-shadow:0 20px 60px rgba(18,61,82,.12);">
-          <div style="padding:30px;background:linear-gradient(135deg,#102d38,#174f61);color:#ffffff;">
-            <p style="margin:0 0 8px;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#a9e8d8;">Faktura klar</p>
-            <h1 style="margin:0;font-size:29px;line-height:1.2;">${escapeHtml(subject)}</h1>
-          </div>
-          <div style="padding:30px;">
-            <p style="margin:0 0 18px;color:#36505d;">${escapeHtml(
-              `${greeting}. Din faktura er klar og kan åbnes sikkert i browseren.`
-            )}</p>
-            ${renderRows([
-              ["Fakturanummer", input.invoiceNumber],
-              ["Booking", input.bookingId],
-              ["Tid", input.appointmentLabel || "-"],
-              ["Beløb inkl. moms", total],
-            ])}
-            <p style="margin:24px 0 0;">
-              <a href="${escapeHtml(input.invoiceUrl)}" style="display:inline-block;border-radius:999px;background:#12b886;color:#ffffff;padding:13px 22px;text-decoration:none;font-weight:800;">Se og print faktura</a>
-            </p>
-            <p style="margin:22px 0 0;color:#5b6b75;font-size:13px;">
-              Fra fakturasiden kan du vælge Print / Save as PDF. Der er ingen PDF-vedhæftning.
-            </p>
-            <p style="margin:14px 0 0;color:#5b6b75;font-size:13px;">
-              Hvis knappen ikke virker, åbn dette link: ${escapeHtml(input.invoiceUrl)}
-            </p>
-          </div>
-        </div>
-      </div>
-    `,
-    text: input.invoiceText || [
-      subject,
-      "",
-      `${greeting}. Din faktura er klar.`,
-      `Fakturanummer: ${input.invoiceNumber}`,
-      `Booking: ${input.bookingId}`,
-      `Tid: ${input.appointmentLabel || "-"}`,
-      `Beløb inkl. moms: ${total}`,
-      `Se og print faktura: ${input.invoiceUrl}`,
-      "",
-      `Support: ${input.settings.supportEmail}`,
-    ].join("\n"),
+    html: input.invoiceHtml || renderEmailWrapper(invoiceContent),
+    text:
+      input.invoiceText ||
+      [
+        subject,
+        "",
+        `${greeting}. Din faktura er klar.`,
+        `Fakturanummer: ${input.invoiceNumber}`,
+        `Booking: ${input.bookingId}`,
+        `Tid: ${input.appointmentLabel || "-"}`,
+        `Beløb inkl. moms: ${total}`,
+        `Se og print faktura: ${input.invoiceUrl}`,
+        "",
+        `Support: ${input.settings.supportEmail}`,
+      ].join("\n"),
   });
 };
 
@@ -695,23 +805,32 @@ export const sendAdminInvoiceNotice = async (input: {
   const adminEmail =
     input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
   const total = formatPrice(input.totalInclMomsDkk);
-  const message = `Agent ${input.agentName} generated and sent invoice ${input.invoiceNumber} for booking ${input.bookingId}. Total: ${total}.`;
+  const message = `Agent ${input.agentName} har genereret og sendt faktura ${input.invoiceNumber} for booking ${input.bookingId}. Total: ${total}.`;
+
+  const noticeContent =
+    renderEmailHeader(input.settings.companyName) +
+    `<div style="padding:32px 32px 8px;">` +
+    renderStatusBadge("Faktura sendt", "modtaget") +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Faktura ${escapeHtml(input.invoiceNumber)} sendt</h1>` +
+    `</div>` +
+    `<div style="padding:8px 32px 32px;">` +
+    renderInfoCard("Fakturaoversigt", [
+      ["Fakturanummer", input.invoiceNumber],
+      ["Booking ID", input.bookingId],
+      ["Agent", input.agentName],
+      ["Total inkl. moms", total],
+    ]) +
+    `<p style="margin:0;font-size:14px;color:#6B7280;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(message)}</p>` +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
 
   return sendLoggedMail({
     bookingId: input.bookingId,
     recipient: adminEmail,
     recipientRole: "admin",
     templateKey: "admin_invoice_sent",
-    subject: `${input.settings.companyName}: invoice ${input.invoiceNumber} sent`,
-    html: `
-      <div style="font-family:Inter,Arial,sans-serif;color:#16303a;line-height:1.6;max-width:640px;">
-        <p style="margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#2388d1;">Invoice sent</p>
-        <h2 style="margin:0 0 12px;font-size:28px;line-height:1.2;">Invoice ${escapeHtml(
-          input.invoiceNumber
-        )} sent</h2>
-        <p style="margin:0;color:#36505d;">${escapeHtml(message)}</p>
-      </div>
-    `,
+    subject: `${input.settings.companyName}: faktura ${input.invoiceNumber} sendt`,
+    html: renderEmailWrapper(noticeContent),
     text: message,
   });
 };
