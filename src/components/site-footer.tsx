@@ -37,6 +37,9 @@ export function SiteFooter() {
               <Link href="/booking" className="transition hover:text-[var(--ink)]">
                 Book bilvask
               </Link>
+              <Link href={"/kontakt" as import("next").Route} className="transition hover:text-[var(--ink)]">
+                Kontakt os
+              </Link>
               <a href={`mailto:${siteConfig.email}`} className="transition hover:text-[var(--ink)]">
                 Skriv til os
               </a>
