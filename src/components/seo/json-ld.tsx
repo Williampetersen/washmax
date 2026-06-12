@@ -47,6 +47,63 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
       target: absoluteUrl("/booking"),
       name: "Book bilvask online",
     },
+    priceRange: "349-849 DKK",
+    sameAs: [
+      "https://www.facebook.com/cleanwash.dk",
+      "https://www.google.com/maps/search/CleanWash+bilvask+København",
+    ],
+    contactPoint: {
+      "@type": "ContactPoint",
+      telephone: siteConfig.phoneDisplay,
+      email: siteConfig.email,
+      contactType: "customer service",
+      availableLanguage: ["Danish", "da"],
+      hoursAvailable: {
+        "@type": "OpeningHoursSpecification",
+        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+        opens: "08:00",
+        closes: "17:00",
+      },
+    },
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Clean Wash bilvask services",
+      itemListElement: [
+        {
+          "@type": "Offer",
+          name: "Udvendig bilvask",
+          description: "Skånsom udvendig vask: lak, fælge, hjulbuer, ruder og finish.",
+          price: "349",
+          priceCurrency: "DKK",
+          priceValidUntil: "2026-12-31",
+          availability: "https://schema.org/InStock",
+          url: absoluteUrl("/booking"),
+          seller: { "@type": "Organization", name: "Clean Wash" },
+        },
+        {
+          "@type": "Offer",
+          name: "Komplet bilvask",
+          description: "Udvendig vask plus grundig indvendig rengøring af kabine, sæder og bagagerum.",
+          price: "599",
+          priceCurrency: "DKK",
+          priceValidUntil: "2026-12-31",
+          availability: "https://schema.org/InStock",
+          url: absoluteUrl("/booking"),
+          seller: { "@type": "Organization", name: "Clean Wash" },
+        },
+        {
+          "@type": "Offer",
+          name: "Premium bilpleje",
+          description: "Komplet bilvask plus polering, voksbeskyttelse og klargøring til salg.",
+          price: "849",
+          priceCurrency: "DKK",
+          priceValidUntil: "2026-12-31",
+          availability: "https://schema.org/InStock",
+          url: absoluteUrl("/booking"),
+          seller: { "@type": "Organization", name: "Clean Wash" },
+        },
+      ],
+    },
     // TODO: Add postalAddress when Clean Wash has a confirmed public business address.
   };
 
@@ -105,5 +162,28 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
   return {
     "@context": "https://schema.org",
     "@graph": [localBusiness, service, faqPage, breadcrumbList],
+  };
+}
+
+export function buildArticleJsonLd(page: SeoPageConfig) {
+  const pageUrl = absoluteUrl(`/${page.slug}`);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: page.h1,
+    description: page.description,
+    url: pageUrl,
+    image: absoluteUrl(page.image.src),
+    author: { "@type": "Organization", name: "Clean Wash", url: siteConfig.url },
+    publisher: {
+      "@type": "Organization",
+      name: "Clean Wash",
+      url: siteConfig.url,
+      logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
+    },
+    datePublished: "2025-01-01",
+    dateModified: new Date().toISOString().split("T")[0],
+    mainEntityOfPage: pageUrl,
+    keywords: page.keywords.join(", "),
   };
 }

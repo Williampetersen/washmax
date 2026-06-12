@@ -70,7 +70,7 @@ export function SEOHero({ page }: { page: SeoPageConfig }) {
                 Book bilvask
               </Link>
               <Link
-                href={page.secondaryCta.href}
+                href={page.secondaryCta.href as import("next").Route}
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-white/18 px-5 text-sm font-semibold text-white transition hover:bg-white/10"
               >
                 {page.secondaryCta.label}
@@ -291,7 +291,7 @@ export function InternalLinks({ links }: { links: SeoPageConfig["relatedLinks"] 
         {links.map((link) => (
           <Link
             key={link.href}
-            href={link.href}
+            href={link.href as import("next").Route}
             className="flex min-h-16 items-center justify-between gap-4 rounded-lg border border-[var(--line)] bg-white/88 px-5 py-4 text-sm font-semibold text-[var(--ink)] shadow-[0_14px_32px_rgba(11,31,58,0.06)] transition hover:-translate-y-0.5 hover:bg-white"
           >
             {link.label}

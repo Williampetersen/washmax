@@ -38,6 +38,7 @@ import {
 export const metadata: Metadata = {
   title: "Kundeportal",
   description: "Se dine CleanWash bookinger, kontaktoplysninger og kommende aftaler.",
+  robots: { index: false, follow: false },
 };
 
 export default async function CustomerPortalPage({

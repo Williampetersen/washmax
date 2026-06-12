@@ -14,6 +14,7 @@ import {
 import { HomePlateForm } from "@/components/home-plate-form";
 import { BookingSteps } from "@/components/sections/BookingSteps";
 import { TypewriterCity } from "@/components/ui/TypewriterCity";
+import { JsonLd } from "@/components/seo/json-ld";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -113,11 +114,111 @@ const faqs = [
     question: "Hvordan kontakter jeg CleanWash?",
     answer: `Ring på ${siteConfig.phoneDisplay} eller skriv til ${siteConfig.email}. Du kan også booke direkte online.`,
   },
+  {
+    question: "Hvad er forskellen på udvendig og komplet bilvask?",
+    answer:
+      "Udvendig bilvask rengør lak, ruder, fælge og hjulbuer. Komplet bilvask inkluderer derudover indvendig rengøring af kabine, sæder, måtter og bagagerum.",
+  },
+  {
+    question: "Kan I vaske elbiler og hybridbiler?",
+    answer:
+      "Ja. CleanWash vasker elbiler og hybridbiler. Vi bruger skånsomme metoder, der er sikre for alle biltyper.",
+  },
+  {
+    question: "Tilbyder I flådeaftaler til virksomheder?",
+    answer:
+      "Ja. CleanWash laver erhvervsaftaler til virksomheder med firmabiler, leasingbiler, taxi, transport og bilforhandlere. Kontakt os for et tilbud.",
+  },
+  {
+    question: "Hvad gør I, hvis vejret er dårligt på bookingdagen?",
+    answer:
+      "Vi kontakter dig, hvis vejret ikke er egnet til bilvask. Vi finder en ny tid, der passer dig.",
+  },
+  {
+    question: "Hvornår bør jeg vaske bilen?",
+    answer:
+      "Udvendig vask mindst én gang om måneden. Om vinteren hyppigere pga. vejsalt. Indvendig rengøring 4-6 gange om året. Se vores bilpleje guide for mere.",
+  },
 ];
+
+const homeHowToSchema = {
+  "@context": "https://schema.org",
+  "@type": "HowTo",
+  name: "Sådan booker du bilvask hos CleanWash",
+  description: "Book professionel bilvask i København og på Sjælland i 4 nemme trin.",
+  totalTime: "PT5M",
+  step: [
+    { "@type": "HowToStep", position: 1, name: "Vælg bilvask", text: "Gå til booking-siden og vælg udvendig vask, indvendig rengøring eller komplet bilpleje." },
+    { "@type": "HowToStep", position: 2, name: "Angiv bil og adresse", text: "Indtast nummerplade, din adresse og kontaktoplysninger." },
+    { "@type": "HowToStep", position: 3, name: "Vælg tidspunkt", text: "Vælg et ledigt tidspunkt, der passer ind i din kalender." },
+    { "@type": "HowToStep", position: 4, name: "Få bilen vasket", text: "CleanWash møder op og vasker bilen professionelt. Du betaler kun, når bilen er ren." },
+  ],
+};
+
+const homeFaqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: { "@type": "Answer", text: faq.answer },
+  })),
+};
+
+const homeVideoSchema = {
+  "@context": "https://schema.org",
+  "@type": "VideoObject",
+  name: "CleanWash — Professionel mobil bilvask i København og på Sjælland",
+  description:
+    "Se CleanWash i aktion. Professionel mobil bilvask på adressen i København og på Sjælland.",
+  thumbnailUrl: `${siteConfig.url}/opengraph.jpg`,
+  uploadDate: "2024-01-01",
+  contentUrl: `${siteConfig.url}/videos/frontvideo.mp4`,
+  publisher: {
+    "@type": "Organization",
+    name: "CleanWash",
+    url: siteConfig.url,
+  },
+};
+
+const homeLocalBusinessSchema = {
+  "@context": "https://schema.org",
+  "@type": ["AutoWash", "LocalBusiness"],
+  "@id": `${siteConfig.url}#localbusiness`,
+  name: "Clean Wash",
+  alternateName: siteConfig.name,
+  url: siteConfig.url,
+  image: `${siteConfig.url}${siteConfig.ogImage}`,
+  telephone: siteConfig.phoneDisplay,
+  email: siteConfig.email,
+  openingHours: "Mo-Su 08:00-17:00",
+  openingHoursSpecification: [
+    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "08:00", closes: "17:00" },
+    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday","Sunday"], opens: "08:00", closes: "17:00" },
+  ],
+  areaServed: [
+    "København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro",
+    "Vesterbro", "Valby", "Hellerup", "Gentofte", "Roskilde", "Køge", "Sjælland",
+  ].map((name) => ({ "@type": "Place", name })),
+  potentialAction: {
+    "@type": "ReserveAction",
+    target: `${siteConfig.url}/booking`,
+    name: "Book bilvask online",
+  },
+  priceRange: "349-849 DKK",
+  sameAs: [
+    "https://www.facebook.com/cleanwash.dk",
+    "https://www.google.com/maps/search/CleanWash+bilvask+København",
+  ],
+};
 
 export default function HomePage() {
   return (
     <main id="top" className="px-4 pb-12 sm:px-6">
+      <JsonLd data={homeHowToSchema} />
+      <JsonLd data={homeFaqSchema} />
+      <JsonLd data={homeVideoSchema} />
+      <JsonLd data={homeLocalBusinessSchema} />
       <section className="-mx-4 -mt-24 sm:-mx-6">
         <div className="relative overflow-hidden bg-[var(--page-bg)] pt-24">
           <video

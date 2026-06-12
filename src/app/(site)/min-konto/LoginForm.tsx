@@ -218,7 +218,7 @@ export default function LoginForm() {
                   <Input
                     type="email"
                     autoComplete="email"
-                    placeholder="din@email.com"
+                    placeholder="your@email.com"
                     value={email}
                     onChange={(e) => { setEmail(e.target.value); setError(""); }}
                     required
