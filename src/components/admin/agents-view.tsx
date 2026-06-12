@@ -114,7 +114,13 @@ export function AdminAgentsView({
     }
   }, []);
 
-  useEffect(() => { fetchStats(); }, [fetchStats]);
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void fetchStats();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchStats]);
 
   const handleAssignAll = async () => {
     setAssigningAll(true);

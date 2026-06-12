@@ -1,12 +1,43 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Route } from "next";
 import { navItems, siteConfig } from "@/lib/site";
+
+const route = (href: string) => href as Route;
+
+const serviceLinks = [
+  { label: "Bilvask København", href: route("/bilvask-koebenhavn") },
+  { label: "Mobil bilvask", href: route("/mobil-bilvask-koebenhavn") },
+  { label: "Bilvask priser", href: route("/bilvask-priser") },
+  { label: "Indvendig bilrengøring", href: route("/indvendig-bilrengoering-koebenhavn") },
+  { label: "Udvendig bilvask", href: route("/udvendig-bilvask-koebenhavn") },
+  { label: "Erhverv bilvask", href: route("/erhverv-bilvask-koebenhavn") },
+  { label: "Flådeaftale", href: route("/erhverv/flaadeaftale") },
+];
+
+const areaLinks = [
+  { label: "Bilvask Frederiksberg", href: route("/bilvask-frederiksberg") },
+  { label: "Bilvask Amager", href: route("/bilvask-amager") },
+  { label: "Bilvask Østerbro", href: route("/bilvask-osterbro") },
+  { label: "Bilvask Nørrebro", href: route("/bilvask-norrebro") },
+  { label: "Bilvask Valby", href: route("/bilvask-valby") },
+  { label: "Bilvask Hellerup", href: route("/bilvask-hellerup") },
+];
+
+const trustLinks = [
+  { label: "Kontakt", href: route("/kontakt") },
+  { label: "Anmeldelser", href: route("/anmeldelser") },
+  { label: "Før og efter", href: route("/foer-efter") },
+  { label: "Serviceområder", href: route("/serviceomraader") },
+  { label: "Garanti", href: route("/garanti") },
+  { label: "Miljø", href: route("/miljoe") },
+];
 
 export function SiteFooter() {
   return (
     <footer className="px-4 pb-8 pt-8 sm:px-6">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[var(--line)] bg-white/92 px-6 py-10 shadow-[0_18px_60px_rgba(11,31,58,0.10)] backdrop-blur-xl sm:px-10">
-        <div className="grid gap-10 lg:grid-cols-[1.3fr_0.8fr_0.8fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.75fr_0.75fr_0.75fr_0.8fr]">
           <div className="max-w-xl">
             <Image
               src="/logo.png"
@@ -26,10 +57,10 @@ export function SiteFooter() {
 
           <div>
             <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-              Hurtige links
+              Services
             </h3>
             <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
-              {navItems.map((item) => (
+              {serviceLinks.map((item) => (
                 <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
                   {item.label}
                 </Link>
@@ -40,6 +71,39 @@ export function SiteFooter() {
               <a href={`mailto:${siteConfig.email}`} className="transition hover:text-[var(--ink)]">
                 Skriv til os
               </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Områder
+            </h3>
+            <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
+              {areaLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
+                  {item.label}
+                </Link>
+              ))}
+              {navItems
+                .filter((item) => item.label === "Sjælland" || item.label === "Om os")
+                .map((item) => (
+                  <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
+                    {item.label}
+                  </Link>
+                ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Tillid
+            </h3>
+            <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
+              {trustLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
+                  {item.label}
+                </Link>
+              ))}
             </div>
           </div>
 

@@ -30,11 +30,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly" as const,
       priority: page.priority,
     })),
-    {
-      url: `${siteConfig.url}/admin/login`,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 0.3,
-    },
   ];
 }

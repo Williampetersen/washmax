@@ -12,10 +12,13 @@ export const siteConfig = {
 };
 
 export const navItems = [
-  { label: "Services", href: "/#services" },
-  { label: "København", href: "/#koebenhavn" },
-  { label: "Sjælland", href: "/#sjaelland" },
-  { label: "Erhverv", href: "/#erhverv" },
+  { label: "Mobil bilvask", href: "/mobil-bilvask-koebenhavn" },
+  { label: "København", href: "/bilvask-koebenhavn" },
+  { label: "Priser", href: "/bilvask-priser" },
+  { label: "Områder", href: "/serviceomraader" },
+  { label: "Sjælland", href: "/bilvask-sjaelland" },
+  { label: "Erhverv", href: "/erhverv-bilvask-koebenhavn" },
   { label: "Om os", href: "/om-os" },
+  { label: "Kontakt", href: "/kontakt" },
   { label: "FAQ", href: "/#faq" },
 ] as const;

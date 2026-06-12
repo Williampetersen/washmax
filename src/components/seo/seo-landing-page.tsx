@@ -16,6 +16,8 @@ export function SeoLandingPage({ page }: { page: SeoPageConfig }) {
         <ShortSummary items={page.shortSummary} />
         <ContentSections page={page} />
         <LocalServiceArea page={page} />
+        <ResultProof page={page} />
+        <KeywordClusters page={page} />
         <ServiceBenefits benefits={page.benefits} />
         <ServiceProcess steps={page.process} />
         <FAQ faqs={page.faqs} />
@@ -192,6 +194,123 @@ function LocalServiceArea({ page }: { page: SeoPageConfig }) {
             ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ResultProof({ page }: { page: SeoPageConfig }) {
+  const proofPoints = page.proofPoints ?? [];
+  const gallery = page.gallery ?? [];
+
+  if (!proofPoints.length && !gallery.length) {
+    return null;
+  }
+
+  return (
+    <section className="grid gap-8 lg:grid-cols-[0.42fr_0.58fr] lg:items-start">
+      <div>
+        <span className="eyebrow">Resultat og tillid</span>
+        <h2 className="mt-5 section-title">Det kunden kan forvente</h2>
+        <p className="mt-5 support-copy">
+          Søgemaskiner og AI-svar forstår en service bedre, når siden viser konkrete resultater,
+          tydelige valg og lokal relevans. Her samler vi de signaler uden at bruge falske
+          anmeldelser eller overdrevne løfter.
+        </p>
+        {proofPoints.length ? (
+          <div className="mt-6 grid gap-3">
+            {proofPoints.map((point) => (
+              <div
+                key={point.title}
+                className="rounded-lg border border-[var(--line)] bg-white/88 p-4 shadow-[0_12px_28px_rgba(11,31,58,0.05)]"
+              >
+                <h3 className="font-semibold text-[var(--ink)]">{point.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{point.text}</p>
+              </div>
+            ))}
+          </div>
+        ) : null}
+      </div>
+
+      {gallery.length ? (
+        <div className="grid gap-4 sm:grid-cols-3">
+          {gallery.map((item) => (
+            <article
+              key={item.title}
+              className="overflow-hidden rounded-lg border border-[var(--line)] bg-white/88 shadow-[0_16px_36px_rgba(11,31,58,0.08)]"
+            >
+              <div className="relative aspect-[4/3]">
+                <Image
+                  src={item.src}
+                  alt={item.alt}
+                  fill
+                  sizes="(min-width: 1024px) 18vw, (min-width: 640px) 30vw, 100vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-4">
+                <h3 className="font-display text-xl font-semibold text-[var(--ink)]">
+                  {item.title}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-[var(--muted)]">{item.text}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function KeywordClusters({ page }: { page: SeoPageConfig }) {
+  const groups =
+    page.keywordGroups ??
+    [
+      {
+        title: "Populære søgninger",
+        terms: page.keywords,
+      },
+      {
+        title: "Områder",
+        terms: page.serviceArea.slice(0, 12),
+      },
+    ];
+
+  if (!groups.length) {
+    return null;
+  }
+
+  return (
+    <section className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr] lg:items-start">
+      <div>
+        <span className="eyebrow">SEO og AI search</span>
+        <h2 className="mt-5 section-title">Populære søgninger</h2>
+        <p className="mt-5 support-copy">
+          Disse søgeord matcher de måder, kunder typisk leder efter bilvask, mobil service og
+          bilrengøring i København og omegn.
+        </p>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        {groups.map((group) => (
+          <article
+            key={group.title}
+            className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_14px_32px_rgba(11,31,58,0.06)]"
+          >
+            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">
+              {group.title}
+            </h3>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {group.terms.map((term) => (
+                <span
+                  key={term}
+                  className="rounded-full border border-[var(--line)] bg-[#eefbfc] px-3 py-1.5 text-xs font-semibold text-[var(--ink)]"
+                >
+                  {term}
+                </span>
+              ))}
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );

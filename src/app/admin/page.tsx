@@ -1475,13 +1475,13 @@ function BookingsView({
         title="Bookinger"
         description={`${bookings.length} bookinger i alt · ${pendingBookings.length} afventer`}
         action={
-          <a
+          <Link
             href="/admin/bookings/new"
             className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#00A7B8] px-4 text-[12.5px] font-semibold text-white shadow-[0_4px_14px_rgba(0,167,184,0.28)] transition hover:bg-[#008A99]"
           >
             <CalendarPlus className="h-3.5 w-3.5" />
             Ny booking
-          </a>
+          </Link>
         }
       />
 
