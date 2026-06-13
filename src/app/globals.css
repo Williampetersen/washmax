@@ -78,6 +78,13 @@
   }
 }
 
+@keyframes addon-shine {
+  0%   { transform: translateX(-130%) skewX(-20deg); opacity: 0; }
+  8%   { opacity: 1; }
+  22%  { transform: translateX(230%) skewX(-20deg); opacity: 0; }
+  100% { transform: translateX(230%) skewX(-20deg); opacity: 0; }
+}
+
 @layer components {
   .font-display {
     font-family: var(--font-display);

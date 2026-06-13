@@ -184,6 +184,15 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
 
+  const [toast, setToast] = useState<{ message: string; type: "added" | "removed" } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+
+  const showToast = useCallback((message: string, type: "added" | "removed" = "added") => {
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    setToast({ message, type });
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 3000);
+  }, []);
+
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
   const step3Ref = useRef<HTMLDivElement>(null);
@@ -593,25 +602,36 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   };
 
   const handlePackageSelect = (packageId: string) => {
+    const pkg = settings.catalog.packages.find((p) => p.id === packageId);
     if (activeVehicleIndex === 1) {
       setSecondPackage(packageId);
     } else {
       setActivePackage(packageId);
     }
+    if (pkg) showToast(`${pkg.title} valgt`);
     clearSelectedAppointmentTime();
     window.setTimeout(() => goToStep(2), 280);
   };
 
   const handleAddonToggle = (addon: AddOnSelection) => {
+    let willBeAdded = false;
     if (activeVehicleIndex === 1) {
-      setSecondAddonIds((current) =>
-        current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
-      );
+      setSecondAddonIds((current) => {
+        const isOn = current.includes(addon.id);
+        willBeAdded = !isOn;
+        return isOn ? current.filter((item) => item !== addon.id) : [...current, addon.id];
+      });
     } else {
-      setSelectedAddonIds((current) =>
-        current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
-      );
+      setSelectedAddonIds((current) => {
+        const isOn = current.includes(addon.id);
+        willBeAdded = !isOn;
+        return isOn ? current.filter((item) => item !== addon.id) : [...current, addon.id];
+      });
     }
+    showToast(
+      willBeAdded ? `${addon.label} tilføjet` : `${addon.label} fjernet`,
+      willBeAdded ? "added" : "removed"
+    );
     clearSelectedAppointmentTime();
   };
 
@@ -1002,7 +1022,6 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                         isActive={isActive}
                         price={itemPrice}
                         vehicleName={activeSelectionVehicleName}
-                        vehiclePlate={activeSelectionVehicle?.registration_number || ""}
                         onClick={() => handlePackageSelect(item.id)}
                       />
                     );
@@ -1472,6 +1491,31 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       ) : (
         <section className="mx-auto mt-8 max-w-6xl">{lookupCard}</section>
       )}
+
+      {/* ── Toast notification ─────────────────────────────────── */}
+      <div
+        className={cn(
+          "fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 transition-all duration-300 xl:bottom-8 xl:left-auto xl:right-8 xl:translate-x-0",
+          toast ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
+        )}
+      >
+        {toast ? (
+          <div className={cn(
+            "flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.18)] backdrop-blur-xl",
+            toast.type === "removed"
+              ? "border border-red-200/40 bg-[#1f2d2a] text-white"
+              : "border border-emerald-500/20 bg-[#0f2820] text-white"
+          )}>
+            <span className={cn(
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+              toast.type === "removed" ? "bg-red-500" : "bg-emerald-500"
+            )}>
+              <Check className="h-3.5 w-3.5 text-white" />
+            </span>
+            <span className="whitespace-nowrap text-[13px] font-semibold">{toast.message}</span>
+          </div>
+        ) : null}
+      </div>
     </main>
   );
 }
@@ -1579,22 +1623,34 @@ function BookingVehicleSummaryCard({
 
 const defaultFeaturesByType: Record<string, string[]> = {
   hele: [
-    "Dampstøvsugning af sæder, måtter og bagagerum",
-    "Rensning af rat, geargreb, paneler og knapper",
-    "Steamvask af bilens fulde eksteriør",
-    "Kabinedesinfektion og lugt-neutralisering",
+    "Dampstøvsugning af sæder og måtter",
+    "Rat, geargreb og knapper renses",
+    "Steamvask af hele eksterøret",
+    "Kabinedesinfektion inkluderet",
+    "Fælge og dæk renses",
+    "Alle ruder aftørres",
+    "Vinyl og læderplejning",
+    "Lugtneutralisering af kabinen",
   ],
   indvend: [
-    "Grundig støvsugning af hele interiøret inkl. bagagerum",
-    "Aftørring og plejning af alle plastik- og læderoverflader",
-    "Vinduespudsning indefra — splinterrent resultat",
-    "Frisk luftbehandling og desinfektion af kabinen",
+    "Støvsugning inkl. bagagerum",
+    "Plastik og læder aftørres",
+    "Vinduespudsning indefra",
+    "Kabinedesinfektion inkluderet",
+    "Rat og geargreb renses",
+    "Måtter rystes og støvsuges",
+    "Sidepaneler aftørres",
+    "Frisk luftbehandling",
   ],
   udvend: [
-    "Højtrykssteam fjerner vejsalt, tjære og insektsnavs",
-    "Fælge og dæk renses til blank finish",
-    "Alle ruder, spejle og lygter aftørres omhyggeligt",
-    "Lakbeskyttende afrensning for langvarigt glans",
+    "Steamvask fjerner salt og tjære",
+    "Fælge og dæk til blank finish",
+    "Ruder og spejle aftørres",
+    "Lakbeskyttende afrensning",
+    "Lygter renses og poleres",
+    "Hjulkasser og dørfalse renses",
+    "Underkarm aftørres",
+    "Tørres af med blødt klæde",
   ],
 };
 
@@ -1611,14 +1667,12 @@ function PackageCard({
   isActive,
   price,
   vehicleName,
-  vehiclePlate,
   onClick,
 }: {
   item: { id: string; title: string; description: string; duration: string; badge: string; imageUrl?: string; features?: string[] };
   isActive: boolean;
   price: number;
   vehicleName?: string;
-  vehiclePlate?: string;
   onClick: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -1657,11 +1711,10 @@ function PackageCard({
       <div className="flex flex-1 flex-col bg-white p-4">
         <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
 
-        {/* Vehicle name shown under title */}
+        {/* Vehicle name shown under title (name only, no plate) */}
         {vehicleName ? (
-          <p className="mt-0.5 text-[12px] font-semibold text-[var(--brand)]">
+          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--brand)]">
             {vehicleName}
-            {vehiclePlate ? <span className="ml-1.5 font-medium text-[var(--muted)]">· {vehiclePlate}</span> : null}
           </p>
         ) : null}
 
@@ -1677,12 +1730,12 @@ function PackageCard({
 
         {features.length > 0 ? (
           <div className="mt-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Dette er inkluderet</p>
-            <ul className="mt-2 space-y-1.5">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Inkluderet i pakken</p>
+            <ul className="mt-2 space-y-1">
               {visibleFeatures.map((f, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-[var(--muted)]">
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                  {f}
+                <li key={i} className="flex items-center gap-1.5 text-[13px] text-[var(--muted)]">
+                  <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                  <span className="truncate">{f}</span>
                 </li>
               ))}
             </ul>
@@ -1690,9 +1743,9 @@ function PackageCard({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
+                className="mt-2 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
               >
-                {expanded ? `Vis mindre ▲` : `Vis mere (+${features.length - 4}) ▼`}
+                {expanded ? "Læs mindre ▲" : `Læs mere ▼`}
               </button>
             ) : null}
           </div>
@@ -1713,6 +1766,37 @@ function AddonCard({
   isSelected: boolean;
   onToggle: () => void;
 }) {
+  const [typedDesc, setTypedDesc] = useState("");
+  const wasSelectedRef = useRef(false);
+  const typingRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isSelected && !wasSelectedRef.current) {
+      wasSelectedRef.current = true;
+      const desc = addon.description || "";
+      if (!desc) return;
+      setTypedDesc("");
+      let i = 0;
+      if (typingRef.current) window.clearInterval(typingRef.current);
+      typingRef.current = window.setInterval(() => {
+        i++;
+        setTypedDesc(desc.slice(0, i));
+        if (i >= desc.length) {
+          window.clearInterval(typingRef.current!);
+          typingRef.current = null;
+        }
+      }, 22);
+    }
+    if (!isSelected && wasSelectedRef.current) {
+      wasSelectedRef.current = false;
+      if (typingRef.current) { window.clearInterval(typingRef.current); typingRef.current = null; }
+      setTypedDesc("");
+    }
+    return () => {
+      if (typingRef.current) window.clearInterval(typingRef.current);
+    };
+  }, [isSelected, addon.description]);
+
   return (
     <button
       type="button"
@@ -1724,6 +1808,15 @@ function AddonCard({
           : "border-[var(--line)] bg-white hover:border-[var(--brand)] hover:shadow-sm"
       )}
     >
+      {/* Shine sweep — only on selected cards */}
+      {isSelected ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-10 w-[35%] bg-gradient-to-r from-transparent via-white/45 to-transparent"
+          style={{ animation: "addon-shine 4s ease-in-out 0.6s infinite" }}
+        />
+      ) : null}
+
       {/* Image */}
       <div className="relative aspect-square w-full overflow-hidden">
         {addon.imageUrl ? (
@@ -1735,14 +1828,14 @@ function AddonCard({
         {addon.price ? (
           <span className={cn(
             "absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-bold shadow-sm",
-            isSelected ? "bg-[var(--color-success)] text-white" : "bg-white/90 text-[var(--ink)]"
+            isSelected ? "bg-emerald-500 text-white" : "bg-white/90 text-[var(--ink)]"
           )}>
             {formatShortPrice(Number(addon.price))}
           </span>
         ) : null}
         {/* Check badge */}
         {isSelected ? (
-          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-success)] text-white shadow-sm">
+          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
             <Check className="h-3.5 w-3.5" />
           </span>
         ) : null}
@@ -1754,7 +1847,12 @@ function AddonCard({
           {addon.label}
         </p>
         {isSelected && addon.description ? (
-          <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#99f6e4]">{addon.description}</p>
+          <p className="mt-1 min-h-[2.5rem] text-[10px] leading-4 text-[#99f6e4]">
+            {typedDesc}
+            {typedDesc.length < (addon.description?.length ?? 0) ? (
+              <span className="ml-px inline-block h-[10px] w-[1.5px] animate-pulse bg-[#99f6e4] align-middle" />
+            ) : null}
+          </p>
         ) : null}
       </div>
     </button>
