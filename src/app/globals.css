@@ -85,6 +85,50 @@
   100% { transform: translateX(230%) skewX(-20deg); opacity: 0; }
 }
 
+@keyframes pkg-border-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pkg-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 2px;
+  background: #dceef2;
+}
+
+.pkg-ring {
+  position: absolute;
+  inset: -100%;
+  width: 300%;
+  height: 300%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 60%,
+    #00A7B8 74%,
+    #22d3ee 82%,
+    #ffffff 86%,
+    #22d3ee 90%,
+    transparent 96%
+  );
+  opacity: 0;
+  animation: pkg-border-spin 2.5s linear infinite paused;
+  transition: opacity 0.25s;
+  pointer-events: none;
+}
+
+.pkg-wrap:hover .pkg-ring {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+.pkg-wrap--active .pkg-ring {
+  opacity: 1;
+  animation-play-state: running;
+}
+
 @layer components {
   .font-display {
     font-family: var(--font-display);

@@ -614,19 +614,18 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   };
 
   const handleAddonToggle = (addon: AddOnSelection) => {
-    let willBeAdded = false;
+    const currentIds = activeVehicleIndex === 1 ? secondAddonIds : selectedAddonIds;
+    const isCurrentlySelected = currentIds.includes(addon.id);
+    const willBeAdded = !isCurrentlySelected;
+
     if (activeVehicleIndex === 1) {
-      setSecondAddonIds((current) => {
-        const isOn = current.includes(addon.id);
-        willBeAdded = !isOn;
-        return isOn ? current.filter((item) => item !== addon.id) : [...current, addon.id];
-      });
+      setSecondAddonIds((current) =>
+        current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
+      );
     } else {
-      setSelectedAddonIds((current) => {
-        const isOn = current.includes(addon.id);
-        willBeAdded = !isOn;
-        return isOn ? current.filter((item) => item !== addon.id) : [...current, addon.id];
-      });
+      setSelectedAddonIds((current) =>
+        current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
+      );
     }
     showToast(
       willBeAdded ? `${addon.label} tilføjet` : `${addon.label} fjernet`,
@@ -1681,79 +1680,82 @@ function PackageCard({
   const visibleFeatures = expanded ? features : features.slice(0, 4);
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex flex-col overflow-hidden rounded-2xl border text-left transition",
-        isActive
-          ? "border-[var(--brand)] shadow-[0_8px_32px_rgba(0,167,184,0.18)]"
-          : "border-[var(--line)] bg-white hover:border-[var(--brand)] hover:shadow-md"
-      )}
+    <div className={cn("pkg-wrap", isActive && "pkg-wrap--active")}
+      style={isActive ? { background: "linear-gradient(135deg,#00A7B8,#22d3ee,#00A7B8)" } : undefined}
     >
-      {/* Image */}
-      {item.imageUrl ? (
-        <div className="relative h-44 w-full overflow-hidden">
-          <Image src={item.imageUrl} alt="" fill sizes="(max-width:640px) 100vw,33vw" className="object-cover" />
-          {isActive ? (
-            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md">
-              <Check className="h-4 w-4" />
-            </span>
-          ) : null}
-        </div>
-      ) : (
-        <div className="flex h-32 items-center justify-center bg-[#eefbfc]">
-          <Sparkles className={cn("h-10 w-10", isActive ? "text-[var(--brand)]" : "text-[#99dfe7]")} />
-        </div>
-      )}
+      {/* Spinning border ring */}
+      <div className="pkg-ring" />
 
-      {/* Content */}
-      <div className="flex flex-1 flex-col bg-white p-4">
-        <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
-
-        {/* Vehicle name shown under title (name only, no plate) */}
-        {vehicleName ? (
-          <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--brand)]">
-            {vehicleName}
-          </p>
-        ) : null}
-
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
-            <Clock3 className="h-3.5 w-3.5" />
-            {item.duration}
-          </span>
-          <span className="text-sm text-[var(--muted)]">
-            Fra <strong className="text-base text-[var(--brand)]">{formatShortPrice(price)}</strong>
-          </span>
-        </div>
-
-        {features.length > 0 ? (
-          <div className="mt-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Inkluderet i pakken</p>
-            <ul className="mt-2 space-y-1">
-              {visibleFeatures.map((f, i) => (
-                <li key={i} className="flex items-center gap-1.5 text-[13px] text-[var(--muted)]">
-                  <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
-                  <span className="truncate">{f}</span>
-                </li>
-              ))}
-            </ul>
-            {features.length > 4 ? (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                className="mt-2 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
-              >
-                {expanded ? "Læs mindre ▲" : `Læs mere ▼`}
-              </button>
+      <button
+        type="button"
+        onClick={onClick}
+        className="relative z-10 flex w-full flex-col overflow-hidden rounded-[14px] bg-white text-left transition hover:shadow-md"
+        style={isActive ? { boxShadow: "0 8px 32px rgba(0,167,184,0.18)" } : undefined}
+      >
+        {/* Image */}
+        {item.imageUrl ? (
+          <div className="relative h-44 w-full overflow-hidden rounded-t-[14px]">
+            <Image src={item.imageUrl} alt="" fill sizes="(max-width:640px) 100vw,33vw" className="object-cover" />
+            {isActive ? (
+              <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md">
+                <Check className="h-4 w-4" />
+              </span>
             ) : null}
           </div>
         ) : (
-          <p className="mt-3 text-sm leading-5 text-[var(--muted)]">{item.description}</p>
+          <div className="flex h-32 items-center justify-center rounded-t-[14px] bg-[#eefbfc]">
+            <Sparkles className={cn("h-10 w-10", isActive ? "text-[var(--brand)]" : "text-[#99dfe7]")} />
+          </div>
         )}
-      </div>
-    </button>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
+
+          {/* Vehicle name shown under title (name only, no plate) */}
+          {vehicleName ? (
+            <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--brand)]">
+              {vehicleName}
+            </p>
+          ) : null}
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
+              <Clock3 className="h-3.5 w-3.5" />
+              {item.duration}
+            </span>
+            <span className="text-sm text-[var(--muted)]">
+              Fra <strong className="text-base text-[var(--brand)]">{formatShortPrice(price)}</strong>
+            </span>
+          </div>
+
+          {features.length > 0 ? (
+            <div className="mt-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Inkluderet i pakken</p>
+              <ul className="mt-2 space-y-1">
+                {visibleFeatures.map((f, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[13px] text-[var(--muted)]">
+                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                    <span className="truncate">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              {features.length > 4 ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                  className="mt-2 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
+                >
+                  {expanded ? "Læs mindre ▲" : "Læs mere ▼"}
+                </button>
+              ) : null}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm leading-5 text-[var(--muted)]">{item.description}</p>
+          )}
+        </div>
+      </button>
+    </div>
   );
 }
 
@@ -1813,7 +1815,7 @@ function AddonCard({
         <span
           aria-hidden
           className="pointer-events-none absolute inset-y-0 z-10 w-[35%] bg-gradient-to-r from-transparent via-white/45 to-transparent"
-          style={{ animation: "addon-shine 4s ease-in-out 0.6s infinite" }}
+          style={{ animation: "addon-shine 4s ease-in-out 4s infinite" }}
         />
       ) : null}
 
