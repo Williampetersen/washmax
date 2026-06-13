@@ -1001,6 +1001,8 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                         item={item}
                         isActive={isActive}
                         price={itemPrice}
+                        vehicleName={activeSelectionVehicleName}
+                        vehiclePlate={activeSelectionVehicle?.registration_number || ""}
                         onClick={() => handlePackageSelect(item.id)}
                       />
                     );
@@ -1575,19 +1577,53 @@ function BookingVehicleSummaryCard({
   );
 }
 
+const defaultFeaturesByType: Record<string, string[]> = {
+  hele: [
+    "Dampstøvsugning af sæder, måtter og bagagerum",
+    "Rensning af rat, geargreb, paneler og knapper",
+    "Steamvask af bilens fulde eksteriør",
+    "Kabinedesinfektion og lugt-neutralisering",
+  ],
+  indvend: [
+    "Grundig støvsugning af hele interiøret inkl. bagagerum",
+    "Aftørring og plejning af alle plastik- og læderoverflader",
+    "Vinduespudsning indefra — splinterrent resultat",
+    "Frisk luftbehandling og desinfektion af kabinen",
+  ],
+  udvend: [
+    "Højtrykssteam fjerner vejsalt, tjære og insektsnavs",
+    "Fælge og dæk renses til blank finish",
+    "Alle ruder, spejle og lygter aftørres omhyggeligt",
+    "Lakbeskyttende afrensning for langvarigt glans",
+  ],
+};
+
+function getDefaultFeatures(title: string): string[] {
+  const lower = title.toLowerCase();
+  if (lower.includes("hele") || lower.includes("komplet") || lower.includes("full")) return defaultFeaturesByType.hele!;
+  if (lower.includes("indvend") || lower.includes("interior") || lower.includes("inden")) return defaultFeaturesByType.indvend!;
+  if (lower.includes("udvend") || lower.includes("exterior") || lower.includes("uden")) return defaultFeaturesByType.udvend!;
+  return [];
+}
+
 function PackageCard({
   item,
   isActive,
   price,
+  vehicleName,
+  vehiclePlate,
   onClick,
 }: {
   item: { id: string; title: string; description: string; duration: string; badge: string; imageUrl?: string; features?: string[] };
   isActive: boolean;
   price: number;
+  vehicleName?: string;
+  vehiclePlate?: string;
   onClick: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const features = item.features ?? [];
+  const catalogFeatures = item.features ?? [];
+  const features = catalogFeatures.length > 0 ? catalogFeatures : getDefaultFeatures(item.title);
   const visibleFeatures = expanded ? features : features.slice(0, 4);
 
   return (
@@ -1620,7 +1656,16 @@ function PackageCard({
       {/* Content */}
       <div className="flex flex-1 flex-col bg-white p-4">
         <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
-        <div className="mt-1.5 flex items-center justify-between gap-2">
+
+        {/* Vehicle name shown under title */}
+        {vehicleName ? (
+          <p className="mt-0.5 text-[12px] font-semibold text-[var(--brand)]">
+            {vehicleName}
+            {vehiclePlate ? <span className="ml-1.5 font-medium text-[var(--muted)]">· {vehiclePlate}</span> : null}
+          </p>
+        ) : null}
+
+        <div className="mt-2 flex items-center justify-between gap-2">
           <span className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
             <Clock3 className="h-3.5 w-3.5" />
             {item.duration}
@@ -1636,7 +1681,7 @@ function PackageCard({
             <ul className="mt-2 space-y-1.5">
               {visibleFeatures.map((f, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm text-[var(--muted)]">
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" />
+                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-emerald-500" />
                   {f}
                 </li>
               ))}
@@ -1647,7 +1692,7 @@ function PackageCard({
                 onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
                 className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
               >
-                {expanded ? `Se mindre ▲` : `Se mere (+${features.length - 4}) ▼`}
+                {expanded ? `Vis mindre ▲` : `Vis mere (+${features.length - 4}) ▼`}
               </button>
             ) : null}
           </div>
