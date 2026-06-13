@@ -80,8 +80,8 @@
 
 @keyframes addon-shine {
   0%   { transform: translateX(-130%) skewX(-20deg); opacity: 0; }
-  8%   { opacity: 1; }
-  22%  { transform: translateX(230%) skewX(-20deg); opacity: 0; }
+  4%   { opacity: 1; }
+  15%  { transform: translateX(230%) skewX(-20deg); opacity: 0; }
   100% { transform: translateX(230%) skewX(-20deg); opacity: 0; }
 }
 
@@ -114,19 +114,23 @@
     transparent 96%
   );
   opacity: 0;
-  animation: pkg-border-spin 2.5s linear infinite paused;
-  transition: opacity 0.25s;
+  /* no delay when leaving hover */
+  transition: opacity 0.3s 0s;
   pointer-events: none;
 }
 
+/* 4 second delay before the border light appears and starts spinning */
 .pkg-wrap:hover .pkg-ring {
   opacity: 1;
-  animation-play-state: running;
+  transition: opacity 0.3s 4s;
+  animation: pkg-border-spin 2.5s linear 4s infinite;
 }
 
+/* selected cards: instant animated border, no delay */
 .pkg-wrap--active .pkg-ring {
   opacity: 1;
-  animation-play-state: running;
+  transition: opacity 0.3s 0s;
+  animation: pkg-border-spin 2.5s linear infinite;
 }
 
 @layer components {

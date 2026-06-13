@@ -1815,7 +1815,7 @@ function AddonCard({
         <span
           aria-hidden
           className="pointer-events-none absolute inset-y-0 z-10 w-[35%] bg-gradient-to-r from-transparent via-white/45 to-transparent"
-          style={{ animation: "addon-shine 4s ease-in-out 4s infinite" }}
+          style={{ animation: "addon-shine 4s linear 0s infinite" }}
         />
       ) : null}
 
