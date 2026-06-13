@@ -72,6 +72,7 @@ import { AdminCalendarPanel } from "@/components/admin/admin-calendar";
 import { AdminAgentsView } from "@/components/admin/agents-view";
 import { BookingSetupView } from "@/components/admin/booking-setup-view";
 import { AdminCommandCenter } from "@/components/admin/admin-command-center";
+import { EmailLogList } from "@/components/admin/email-log-list";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
 import { AdminSidebar as AdminSidebarLayout } from "@/components/admin/admin-sidebar";
 import { cn } from "@/lib/utils";
@@ -374,7 +375,7 @@ export default async function AdminPage({
         ) : null}
 
         {view === "emails" ? (
-          <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs.slice(0, 30)} />
+          <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs} />
         ) : null}
 
         {view === "invoices" ? <AdminInvoicesView invoices={adminInvoices} page={page} /> : null}
@@ -2236,13 +2237,7 @@ function EmailsView({
             title="Seneste emailhændelser"
             description="Her kan admin se, hvad der er sendt, om det fejlede, og sende den nuværende mail igen med ét klik."
           />
-          <div className="grid gap-4">
-            {recentEmails.length > 0 ? (
-              recentEmails.map((email) => <EmailLogCard key={email.id} email={email} />)
-            ) : (
-              <EmptyState text="Ingen mailhistorik endnu." />
-            )}
-          </div>
+          <EmailLogList emails={recentEmails} />
         </section>
       </div>
     </div>

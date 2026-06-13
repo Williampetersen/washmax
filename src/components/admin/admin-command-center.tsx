@@ -16,13 +16,10 @@ import {
   X,
 } from "lucide-react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -40,9 +37,9 @@ import {
   formatShortPrice,
   type BookingStatus,
 } from "@/lib/shared/booking";
+import { cn } from "@/lib/utils";
 
 const chartPrimary = "#00A7B8";
-const chartSecondary = "#99DFE7";
 
 export function AdminCommandCenter({
   dashboard,
@@ -171,8 +168,41 @@ export function AdminCommandCenter({
   );
 }
 
+type ChartRange = "today" | "7" | "14" | "30" | "custom";
+
+const RANGE_LABELS: Record<ChartRange, string> = {
+  today: "Today",
+  "7": "7 days",
+  "14": "14 days",
+  "30": "30 days",
+  custom: "Custom",
+};
+
 function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
-  const monthly = buildDashboardMonths(bookings, 6);
+  const [range, setRange] = useState<ChartRange>("30");
+  const [customFrom, setCustomFrom] = useState("");
+  const [customTo, setCustomTo] = useState("");
+
+  const { from, to } = useMemo(() => {
+    const todayStr = toChartDateKey(new Date());
+    if (range === "today") return { from: todayStr, to: todayStr };
+    if (range === "custom") {
+      if (!customFrom || !customTo) return { from: todayStr, to: todayStr };
+      return customFrom <= customTo
+        ? { from: customFrom, to: customTo }
+        : { from: customTo, to: customFrom };
+    }
+    const days = Number(range);
+    const d = new Date();
+    d.setDate(d.getDate() - days + 1);
+    return { from: toChartDateKey(d), to: todayStr };
+  }, [range, customFrom, customTo]);
+
+  const data = useMemo(() => buildDailyData(bookings, from, to), [bookings, from, to]);
+
+  const totalRevenue = data.reduce((sum, d) => sum + d.revenue, 0);
+  const totalBookings = data.reduce((sum, d) => sum + d.bookings, 0);
+  const interval = data.length <= 7 ? 0 : data.length <= 14 ? 1 : 4;
 
   return (
     <GlassCard className="p-4">
@@ -180,47 +210,73 @@ function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
         <div>
           <p className="text-[14px] font-semibold text-[#111827]">Revenue and bookings</p>
           <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
-            Monthly totals from booking records
+            {data.length} day{data.length !== 1 ? "s" : ""} · {totalBookings} bookings
           </p>
         </div>
-        <span className="rounded-full border border-[#DCEEF2] bg-white/60 px-3 py-1 text-[12px] font-semibold text-[#00A7B8]">
-          {getRevenueTrendLabel(bookings)}
-        </span>
+        <div className="text-right">
+          <p className="text-[22px] font-bold leading-none text-[#111827]">
+            {formatShortPrice(totalRevenue)}
+          </p>
+          <p className="mt-1 text-[12px] font-medium text-[#6B7280]">Total revenue</p>
+        </div>
       </div>
-      <div className="mt-5 h-64">
+
+      <div className="mt-3 flex flex-wrap items-center gap-1.5">
+        {(["today", "7", "14", "30", "custom"] as const).map((r) => (
+          <button
+            key={r}
+            type="button"
+            onClick={() => setRange(r)}
+            className={cn(
+              "h-7 rounded-xl px-3 text-[12px] font-semibold transition duration-[200ms]",
+              range === r
+                ? "bg-[#00A7B8] text-white shadow-[0_4px_12px_rgba(0,167,184,0.22)]"
+                : "border border-[#DCEEF2] bg-white/60 text-[#6B7280] hover:bg-white hover:text-[#111827]"
+            )}
+          >
+            {RANGE_LABELS[r]}
+          </button>
+        ))}
+        {range === "custom" && (
+          <div className="flex items-center gap-1.5">
+            <input
+              type="date"
+              value={customFrom}
+              onChange={(e) => setCustomFrom(e.target.value)}
+              className="h-7 rounded-xl border border-[#DCEEF2] bg-white/70 px-2 text-[12px] font-medium text-[#111827] outline-none focus:border-[#00A7B8]"
+            />
+            <span className="text-[12px] text-[#94A3B8]">→</span>
+            <input
+              type="date"
+              value={customTo}
+              onChange={(e) => setCustomTo(e.target.value)}
+              className="h-7 rounded-xl border border-[#DCEEF2] bg-white/70 px-2 text-[12px] font-medium text-[#111827] outline-none focus:border-[#00A7B8]"
+            />
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={monthly} margin={{ left: -12, right: 8, top: 12, bottom: 0 }}>
-            <defs>
-              <linearGradient id="adminRevenueFill" x1="0" x2="0" y1="0" y2="1">
-                <stop offset="5%" stopColor={chartPrimary} stopOpacity={0.2} />
-                <stop offset="95%" stopColor={chartPrimary} stopOpacity={0} />
-              </linearGradient>
-            </defs>
+          <BarChart data={data} margin={{ left: -20, right: 4, top: 8, bottom: 0 }}>
             <CartesianGrid stroke="#DCEEF2" strokeDasharray="3 3" vertical={false} />
             <XAxis
               axisLine={false}
               dataKey="label"
-              tick={{ fill: "#6B7280", fontSize: 11, fontWeight: 600 }}
+              interval={interval}
+              tick={{ fill: "#6B7280", fontSize: 10, fontWeight: 600 }}
               tickLine={false}
             />
             <YAxis
+              allowDecimals={false}
               axisLine={false}
               tick={{ fill: "#6B7280", fontSize: 11 }}
-              tickFormatter={(value: number) => formatShortPrice(value)}
               tickLine={false}
-              width={54}
+              width={28}
             />
             <Tooltip
-              cursor={{ stroke: "#99DFE7", strokeWidth: 1 }}
-              formatter={(value, name) => {
-                const metricName = String(name);
-                const numericValue =
-                  typeof value === "number" ? value : Number(value ?? 0);
-                return [
-                  metricName === "revenue" ? formatPrice(numericValue) : numericValue,
-                  metricName === "revenue" ? "Revenue" : "Bookings",
-                ];
-              }}
+              cursor={{ fill: "rgba(0,167,184,0.06)" }}
+              formatter={(value) => [value, "Bookings"]}
               labelStyle={{ color: "#111827", fontWeight: 700 }}
               contentStyle={{
                 background: "rgba(255,255,255,0.92)",
@@ -229,22 +285,8 @@ function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
                 boxShadow: "0 8px 32px rgba(0,167,184,0.12)",
               }}
             />
-            <Area
-              dataKey="revenue"
-              fill="url(#adminRevenueFill)"
-              stroke={chartPrimary}
-              strokeWidth={3}
-              type="monotone"
-            />
-            <Line
-              dataKey="bookings"
-              dot={{ fill: chartSecondary, r: 3 }}
-              stroke={chartSecondary}
-              strokeWidth={2}
-              type="monotone"
-              yAxisId={0}
-            />
-          </AreaChart>
+            <Bar dataKey="bookings" fill={chartPrimary} radius={[5, 5, 0, 0]} />
+          </BarChart>
         </ResponsiveContainer>
       </div>
     </GlassCard>
@@ -601,6 +643,42 @@ function sortRecentBookings(left: DashboardBooking, right: DashboardBooking) {
   return `${right.createdAt || right.appointmentDate}T${right.appointmentTime}`.localeCompare(
     `${left.createdAt || left.appointmentDate}T${left.appointmentTime}`
   );
+}
+
+function toChartDateKey(date: Date) {
+  const year = date.getFullYear().toString();
+  const month = (date.getMonth() + 1).toString().padStart(2, "0");
+  const day = date.getDate().toString().padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function formatChartDayLabel(date: Date) {
+  try {
+    return new Intl.DateTimeFormat("en-GB", { day: "2-digit", month: "short" }).format(date);
+  } catch {
+    return toChartDateKey(date);
+  }
+}
+
+function buildDailyData(bookings: DashboardBooking[], from: string, to: string) {
+  const days: { key: string; label: string; bookings: number; revenue: number }[] = [];
+  const current = new Date(`${from}T00:00:00`);
+  const end = new Date(`${to}T00:00:00`);
+  while (current <= end) {
+    const key = toChartDateKey(current);
+    days.push({ key, label: formatChartDayLabel(current), bookings: 0, revenue: 0 });
+    current.setDate(current.getDate() + 1);
+  }
+  const map = new Map(days.map((d) => [d.key, d]));
+  for (const booking of bookings) {
+    if (booking.status === "cancelled") continue;
+    const day = map.get(booking.appointmentDate);
+    if (day) {
+      day.bookings++;
+      day.revenue += booking.total;
+    }
+  }
+  return days;
 }
 
 function buildDashboardMonths(bookings: DashboardBooking[], count: number) {
