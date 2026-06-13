@@ -73,6 +73,7 @@ import { AdminCalendarPanel } from "@/components/admin/admin-calendar";
 import { AdminAgentsView } from "@/components/admin/agents-view";
 import { BookingSetupView } from "@/components/admin/booking-setup-view";
 import { AdminCommandCenter } from "@/components/admin/admin-command-center";
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
 import { EmailLogList } from "@/components/admin/email-log-list";
 import { ImageUploadForm } from "@/components/admin/image-upload-form";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
@@ -1543,11 +1544,12 @@ function BookingsView({
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
-          <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_2rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
+          <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_auto_2rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
             <span>Kunde og bil</span>
             <span>Tid og service</span>
             <span>Status</span>
             <span className="text-right">Total</span>
+            <span />
             <span />
           </div>
           <div className="divide-y divide-[#e8ebf5]">
@@ -2730,7 +2732,7 @@ function BookingActionCard({
       className="group bg-white/40 open:bg-white"
     >
       <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-white/80 sm:px-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_2rem] lg:items-center lg:gap-4">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_auto_2rem] lg:items-center lg:gap-4">
           <div className="min-w-0">
             <p className="truncate text-[14px] font-bold text-[#1f2340]">
               {booking.customerName || booking.customerEmail}
@@ -2754,6 +2756,12 @@ function BookingActionCard({
           <p className="text-[14px] font-bold text-[#1f2340] lg:text-right">
             {formatPrice(booking.total)}
           </p>
+          <ConfirmDeleteForm
+            action={`/api/admin/bookings/${booking.id}`}
+            hiddenFields={{ action: "delete", return_view: returnView }}
+            message={`Slet booking for ${booking.customerName || booking.customerEmail}? Handlingen kan ikke fortrydes.`}
+            label="Slet"
+          />
           <ChevronDown className="h-5 w-5 text-[#8e95b5] transition group-open:rotate-180" />
         </div>
       </summary>
@@ -3073,7 +3081,14 @@ function CustomerCard({
               <Field label="Noter">
                 <Textarea name="notes" defaultValue={customer.notes} className="min-h-28" />
               </Field>
-              <Button type="submit">Gem kundeinfo</Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="submit">Gem kundeinfo</Button>
+                <ConfirmDeleteForm
+                  action={`/api/admin/customers/${customer.id}`}
+                  hiddenFields={{ action: "delete", return_view: "customers" }}
+                  message={`Slet kunden ${name}? Alle kundedata slettes. Handlingen kan ikke fortrydes.`}
+                />
+              </div>
             </form>
           </InfoPanel>
 
@@ -3186,16 +3201,16 @@ function AdminInvoicesView({ invoices, page }: { invoices: Invoice[]; page: numb
       <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
         {pageItems.length > 0 ? (
           <>
-            <div className="hidden border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid lg:grid-cols-[1fr_1fr_9rem_auto] lg:gap-4">
-              {["Faktura", "Kunde / e-mail", "Beløb", ""].map((col) => (
-                <span key={col}>{col}</span>
+            <div className="hidden border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid lg:grid-cols-[1fr_1fr_9rem_auto_auto] lg:gap-4">
+              {["Faktura", "Kunde / e-mail", "Beløb", "", ""].map((col, i) => (
+                <span key={i}>{col}</span>
               ))}
             </div>
             <div className="divide-y divide-[#e8ebf5]">
               {pageItems.map((invoice) => (
                 <article
                   key={invoice.id}
-                  className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto] lg:items-center"
+                  className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto_auto] lg:items-center"
                 >
                   <div>
                     <p className="text-[13px] font-bold text-[#111827]">{invoice.invoiceNumber}</p>
@@ -3225,6 +3240,11 @@ function AdminInvoicesView({ invoices, page }: { invoices: Invoice[]; page: numb
                   ) : (
                     <span className="text-[12px] text-[#6B7280]">Ingen visning</span>
                   )}
+                  <ConfirmDeleteForm
+                    action={`/api/admin/invoices/${invoice.id}`}
+                    hiddenFields={{ action: "delete" }}
+                    message={`Slet faktura ${invoice.invoiceNumber}? Handlingen kan ikke fortrydes.`}
+                  />
                 </article>
               ))}
             </div>

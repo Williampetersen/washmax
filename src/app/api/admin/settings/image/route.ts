@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { put } from "@vercel/blob";
 import sharp from "sharp";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
-import { getBookingSettings, saveBookingSettings } from "@/lib/server/bookings";
+import { saveCompanyLogoUrl } from "@/lib/server/bookings";
 
 export const runtime = "nodejs";
 
@@ -41,8 +41,7 @@ export async function POST(request: Request) {
       { access: "public", contentType: "image/webp" }
     );
 
-    const settings = await getBookingSettings();
-    await saveBookingSettings({ ...settings, companyLogoUrl: url });
+    await saveCompanyLogoUrl(url);
 
     return NextResponse.redirect(
       new URL(`/admin?view=settings&saved=settings`, request.url),

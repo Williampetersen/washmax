@@ -6,6 +6,7 @@ import {
   CreditCard,
   MapPinned,
   StickyNote,
+  Trash2,
   UserRound,
   X,
   type LucideIcon,
@@ -161,11 +162,32 @@ export function BookingDetailDrawer({
               ) : null}
 
               <div className="mt-6 rounded-3xl border border-white/55 bg-white/50 p-4">
-                <p className="text-[14px] font-semibold">Status actions</p>
+                <p className="text-[14px] font-semibold">Statushandlinger</p>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                  <BookingActionForm booking={booking} action="approve" label="Approve" />
-                  <BookingActionForm booking={booking} action="complete" label="Complete" />
-                  <BookingActionForm booking={booking} action="cancel" label="Cancel" danger />
+                  <BookingActionForm booking={booking} action="approve" label="Godkend" />
+                  <BookingActionForm booking={booking} action="complete" label="Afslut" />
+                  <BookingActionForm booking={booking} action="cancel" label="Annuller" danger />
+                </div>
+                <div className="mt-3 border-t border-white/55 pt-3">
+                  <form
+                    action={`/api/admin/bookings/${booking.id}`}
+                    method="POST"
+                    onSubmit={(e) => {
+                      if (!window.confirm(`Slet booking for ${booking.customerName || booking.customerEmail}? Handlingen kan ikke fortrydes.`)) {
+                        e.preventDefault();
+                      }
+                    }}
+                  >
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" name="return_view" value="overview" />
+                    <button
+                      type="submit"
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-red-200/60 bg-red-50/70 px-3 py-2.5 text-[12px] font-semibold text-red-700 transition hover:bg-red-100/80"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Slet booking
+                    </button>
+                  </form>
                 </div>
               </div>
 
@@ -176,10 +198,10 @@ export function BookingDetailDrawer({
               >
                 <input type="hidden" name="action" value="reschedule" />
                 <input type="hidden" name="return_view" value="overview" />
-                <p className="text-[14px] font-semibold">Reschedule</p>
+                <p className="text-[14px] font-semibold">Ombooking</p>
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <label className="grid gap-1.5 text-[12px] font-medium text-[#6B7280]">
-                    Date
+                    Dato
                     <Input
                       type="date"
                       name="appointment_date"
@@ -188,7 +210,7 @@ export function BookingDetailDrawer({
                     />
                   </label>
                   <label className="grid gap-1.5 text-[12px] font-medium text-[#6B7280]">
-                    Time
+                    Tid
                     <select
                       name="appointment_time"
                       defaultValue={booking.appointmentTime}
@@ -202,7 +224,7 @@ export function BookingDetailDrawer({
                     </select>
                   </label>
                   <label className="grid gap-1.5 text-[12px] font-medium text-[#6B7280] sm:col-span-2">
-                    Admin notes
+                    Admin-noter
                     <Textarea
                       name="admin_notes"
                       defaultValue={booking.adminNotes}
@@ -217,10 +239,10 @@ export function BookingDetailDrawer({
                     defaultChecked
                     className="h-4 w-4 rounded border-[#DCEEF2] bg-white"
                   />
-                  Notify customer
+                  Send opdateret mail til kunden
                 </label>
                 <Button type="submit" className="mt-4 w-full">
-                  Save new time
+                  Gem ny tid
                 </Button>
               </form>
             </div>

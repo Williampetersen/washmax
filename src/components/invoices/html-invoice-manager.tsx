@@ -8,6 +8,7 @@ import type {
   BookingInvoiceData,
   Invoice,
   InvoiceStatus,
+  PriceSummary,
 } from "@/lib/server/invoices";
 
 type ApiResponse = {
@@ -28,6 +29,45 @@ type EditableLine = {
   quantity: number;
   unitPriceDkk: number;
 };
+
+function formatDkkAmount(value: number) {
+  return new Intl.NumberFormat("da-DK", { style: "currency", currency: "DKK" }).format(value || 0);
+}
+
+function PriceSummaryCard({ summary, locale }: { summary: PriceSummary; locale: "da" | "en" }) {
+  const rows =
+    locale === "da"
+      ? [
+          { label: "Pris u. moms", value: summary.subtotalExMomsDkk },
+          { label: "Moms (25%)", value: summary.momsAmountDkk },
+          { label: "Total inkl. moms", value: summary.totalInclMomsDkk, bold: true },
+        ]
+      : [
+          { label: "Subtotal excl. VAT", value: summary.subtotalExMomsDkk },
+          { label: "VAT (25%)", value: summary.momsAmountDkk },
+          { label: "Total incl. VAT", value: summary.totalInclMomsDkk, bold: true },
+        ];
+
+  return (
+    <div className="rounded-lg border border-[#DCEEF2] bg-[#F6FBFC] px-4 py-3">
+      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#00A7B8]">
+        {locale === "da" ? "Prisoversigt" : "Price summary"}
+      </p>
+      <div className="grid gap-1">
+        {rows.map((row) => (
+          <div key={row.label} className="flex items-center justify-between gap-4">
+            <span className={`text-[13px] ${row.bold ? "font-bold text-[#111827]" : "text-[#6B7280]"}`}>
+              {row.label}
+            </span>
+            <span className={`text-[13px] ${row.bold ? "font-bold text-[#111827]" : "font-medium text-[#374151]"}`}>
+              {formatDkkAmount(row.value)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function HtmlInvoiceManager({
   bookingId,
@@ -271,6 +311,9 @@ export function HtmlInvoiceManager({
 
   return (
     <div className="grid gap-3">
+      {initialData?.summary ? (
+        <PriceSummaryCard summary={initialData.summary} locale={locale} />
+      ) : null}
       <div className="flex flex-wrap gap-2">
         <Button
           type="button"
@@ -339,13 +382,13 @@ export function HtmlInvoiceManager({
                 onChange={(event) => setStatus(event.target.value as InvoiceStatus)}
                 className="h-10 rounded-md border border-[#DCEEF2] bg-white px-3 text-sm"
               >
-                <option value="draft">Draft</option>
-                <option value="ready">Ready</option>
-                <option value="sent">Sent</option>
+                <option value="draft">{locale === "da" ? "Kladde" : "Draft"}</option>
+                <option value="ready">{locale === "da" ? "Klar" : "Ready"}</option>
+                <option value="sent">{locale === "da" ? "Sendt" : "Sent"}</option>
                 {allowPaid || status === "paid" ? (
-                  <option value="paid" disabled={!allowPaid}>Paid</option>
+                  <option value="paid" disabled={!allowPaid}>{locale === "da" ? "Betalt" : "Paid"}</option>
                 ) : null}
-                <option value="cancelled">Cancelled</option>
+                <option value="cancelled">{locale === "da" ? "Annulleret" : "Cancelled"}</option>
               </select>
             </label>
           </div>

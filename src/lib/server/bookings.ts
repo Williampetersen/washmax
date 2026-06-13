@@ -981,6 +981,17 @@ export const getAvailabilityBlocks = async (): Promise<AvailabilityBlock[]> => {
   }
 };
 
+let _logoColumnReady = false;
+const _ensureLogoColumn = async (sql: ReturnType<typeof getSql>) => {
+  if (_logoColumnReady) return;
+  try {
+    await sql`ALTER TABLE booking_settings ADD COLUMN IF NOT EXISTS company_logo_url TEXT NOT NULL DEFAULT '';`;
+    _logoColumnReady = true;
+  } catch {
+    // non-fatal — SELECT will still work via the catch below
+  }
+};
+
 const _getBookingSettings = async (): Promise<BookingSettings> => {
   if (!isDatabaseConfigured()) {
     return {
@@ -993,6 +1004,7 @@ const _getBookingSettings = async (): Promise<BookingSettings> => {
   try {
     await ensureSchema();
     const sql = getSql();
+    await _ensureLogoColumn(sql);
     const [row] = await sql<RawSettings[]>`
       SELECT
         company_name,
@@ -1026,6 +1038,14 @@ const _getBookingSettings = async (): Promise<BookingSettings> => {
 
 export const getBookingSettings = cache(_getBookingSettings);
 
+export const saveCompanyLogoUrl = async (url: string) => {
+  const sql = getSql();
+  await _ensureLogoColumn(sql);
+  await sql`
+    UPDATE booking_settings SET company_logo_url = ${url} WHERE settings_key = 'default';
+  `;
+};
+
 export const saveBookingSettings = async (input: BookingSettings) => {
   await ensureSchema();
   const sql = getSql();
@@ -1034,7 +1054,6 @@ export const saveBookingSettings = async (input: BookingSettings) => {
     UPDATE booking_settings
     SET
       company_name = ${input.companyName},
-      company_logo_url = ${input.companyLogoUrl || ""},
       support_email = ${input.supportEmail},
       admin_notify_email = ${input.adminNotifyEmail},
       default_booking_status = ${input.defaultBookingStatus},
@@ -1663,6 +1682,16 @@ export const deleteBooking = async (bookingId: string) => {
   await sql`
     DELETE FROM bookings
     WHERE id = ${bookingId};
+  `;
+};
+
+export const deleteCustomer = async (customerId: string) => {
+  await ensureSchema();
+  const sql = getSql();
+
+  await sql`
+    DELETE FROM customers
+    WHERE id = ${customerId};
   `;
 };
 

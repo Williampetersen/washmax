@@ -1618,3 +1618,9 @@ export const updateInvoiceStatus = async (
       { status }
     )
   ).invoice;
+
+export const deleteInvoice = async (invoiceId: string) => {
+  const sql = getSql();
+  await sql`DELETE FROM invoice_items WHERE invoice_id = ${invoiceId}`;
+  await sql`DELETE FROM invoices WHERE id = ${invoiceId}`;
+};
