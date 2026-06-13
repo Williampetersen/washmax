@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { CalendarDays, Clock3, type LucideIcon } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, Clock3, type LucideIcon } from "lucide-react";
 import { BookingDetailDrawer } from "@/components/admin/booking-detail-drawer";
 import { GlassCard } from "@/components/admin/glass-card";
 import type { DashboardBooking, DashboardData } from "@/lib/server/bookings";
@@ -74,12 +74,30 @@ export function AdminCalendarPanel({
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
-              <input
-                type="date"
-                value={calendarDate}
-                onChange={(event) => setCalendarDate(event.target.value || today)}
-                className="h-9 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium text-[#111827] outline-none transition focus:border-[#00A7B8] focus:ring-4 focus:ring-[#00A7B8]/10"
-              />
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setCalendarDate(shiftDate(calendarDate, calendarMode, -1))}
+                  className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#DCEEF2] bg-white/70 text-[#6B7280] transition hover:border-[#00A7B8] hover:text-[#00A7B8]"
+                  aria-label="Previous"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <input
+                  type="date"
+                  value={calendarDate}
+                  onChange={(event) => setCalendarDate(event.target.value || today)}
+                  className="h-9 rounded-2xl border border-[#DCEEF2] bg-white/70 px-3 text-[13px] font-medium text-[#111827] outline-none transition focus:border-[#00A7B8] focus:ring-4 focus:ring-[#00A7B8]/10"
+                />
+                <button
+                  type="button"
+                  onClick={() => setCalendarDate(shiftDate(calendarDate, calendarMode, 1))}
+                  className="flex h-9 w-9 items-center justify-center rounded-2xl border border-[#DCEEF2] bg-white/70 text-[#6B7280] transition hover:border-[#00A7B8] hover:text-[#00A7B8]"
+                  aria-label="Next"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
               <div className="rounded-2xl border border-[#DCEEF2] bg-white/55 p-1">
                 {(["day", "week"] as const).map((mode) => (
                   <button
@@ -282,6 +300,12 @@ function getCalendarStatusClass(status: BookingStatus) {
     default:
       return "border-[#F59E0B]/20 bg-[#F59E0B]/12 text-[#92400E]";
   }
+}
+
+function shiftDate(date: string, mode: CalendarMode, direction: -1 | 1) {
+  const d = parseDateText(date);
+  d.setDate(d.getDate() + direction * (mode === "week" ? 7 : 1));
+  return toDateText(d);
 }
 
 function parseDateText(value: string) {
