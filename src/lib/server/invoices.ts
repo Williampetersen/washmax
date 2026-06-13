@@ -1262,8 +1262,13 @@ export const updateInvoiceDetails = async (
     throw new InvoiceWorkflowError("Invoice was not found.", 404, "INVOICE_NOT_FOUND");
   }
   await assertActorCanAccessInvoice(current, actor);
+  // Allow admin to unlock + re-edit by sending a non-locked target status together with edits.
+  const targetStatus =
+    patch.status && invoiceStatuses.includes(patch.status) ? patch.status : current.status;
+  const isUnlocking = !["sent", "paid"].includes(targetStatus);
   if (
     ["sent", "paid"].includes(current.status) &&
+    !isUnlocking &&
     (patch.manualLines || patch.customerEmail !== undefined)
   ) {
     throw new InvoiceWorkflowError(
