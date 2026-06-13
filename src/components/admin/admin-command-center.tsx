@@ -16,6 +16,8 @@ import {
   X,
 } from "lucide-react";
 import {
+  Area,
+  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
@@ -256,37 +258,67 @@ function RevenueTrendCard({ bookings }: { bookings: DashboardBooking[] }) {
         )}
       </div>
 
-      <div className="mt-4 h-56">
+      <div className="mt-4 h-60">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} margin={{ left: -20, right: 4, top: 8, bottom: 0 }}>
-            <CartesianGrid stroke="#DCEEF2" strokeDasharray="3 3" vertical={false} />
+          <AreaChart data={data} margin={{ left: -20, right: 8, top: 16, bottom: 0 }}>
+            <defs>
+              <linearGradient id="bookingsGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={chartPrimary} stopOpacity={0.28} />
+                <stop offset="55%" stopColor={chartPrimary} stopOpacity={0.07} />
+                <stop offset="100%" stopColor={chartPrimary} stopOpacity={0} />
+              </linearGradient>
+              <filter id="lineGlow" x="-5%" y="-60%" width="110%" height="220%">
+                <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <CartesianGrid stroke="#E8F4F6" strokeDasharray="4 4" vertical={false} />
             <XAxis
               axisLine={false}
               dataKey="label"
               interval={interval}
-              tick={{ fill: "#6B7280", fontSize: 10, fontWeight: 600 }}
+              tick={{ fill: "#94A3B8", fontSize: 10, fontWeight: 600 }}
               tickLine={false}
             />
             <YAxis
               allowDecimals={false}
               axisLine={false}
-              tick={{ fill: "#6B7280", fontSize: 11 }}
+              tick={{ fill: "#94A3B8", fontSize: 10 }}
               tickLine={false}
-              width={28}
+              width={26}
             />
             <Tooltip
-              cursor={{ fill: "rgba(0,167,184,0.06)" }}
+              cursor={{ stroke: "#00A7B8", strokeWidth: 1, strokeDasharray: "4 3" }}
               formatter={(value) => [value, "Bookings"]}
-              labelStyle={{ color: "#111827", fontWeight: 700 }}
+              labelStyle={{ color: "#111827", fontWeight: 700, fontSize: 13 }}
               contentStyle={{
-                background: "rgba(255,255,255,0.92)",
-                border: "1px solid rgba(255,255,255,0.7)",
-                borderRadius: "18px",
-                boxShadow: "0 8px 32px rgba(0,167,184,0.12)",
+                background: "rgba(255,255,255,0.97)",
+                border: "1px solid rgba(0,167,184,0.14)",
+                borderRadius: "16px",
+                boxShadow: "0 16px 48px rgba(0,167,184,0.18)",
+                padding: "10px 16px",
               }}
             />
-            <Bar dataKey="bookings" fill={chartPrimary} radius={[5, 5, 0, 0]} />
-          </BarChart>
+            <Area
+              dataKey="bookings"
+              type="monotone"
+              stroke={chartPrimary}
+              strokeWidth={2.5}
+              fill="url(#bookingsGradient)"
+              dot={false}
+              activeDot={{
+                r: 6,
+                fill: chartPrimary,
+                stroke: "#fff",
+                strokeWidth: 2.5,
+                style: { filter: "drop-shadow(0 0 8px rgba(0,167,184,0.65))" },
+              }}
+              filter="url(#lineGlow)"
+            />
+          </AreaChart>
         </ResponsiveContainer>
       </div>
     </GlassCard>

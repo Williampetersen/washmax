@@ -94,6 +94,7 @@ type RawBooking = {
 
 type RawSettings = {
   company_name: string;
+  company_logo_url: string | null;
   support_email: string;
   admin_notify_email: string;
   default_booking_status: string;
@@ -537,6 +538,7 @@ const availabilityBlockFromRow = (row: RawAvailabilityBlock): AvailabilityBlock 
 
 const settingsFromRow = (row?: RawSettings | null): BookingSettings => ({
   companyName: row?.company_name || defaultBookingSettings.companyName,
+  companyLogoUrl: row?.company_logo_url || "",
   supportEmail: row?.support_email || process.env.SMTP_USER || defaultBookingSettings.supportEmail,
   adminNotifyEmail:
     row?.admin_notify_email ||
@@ -994,6 +996,7 @@ const _getBookingSettings = async (): Promise<BookingSettings> => {
     const [row] = await sql<RawSettings[]>`
       SELECT
         company_name,
+        company_logo_url,
         support_email,
         admin_notify_email,
         default_booking_status,
@@ -1031,6 +1034,7 @@ export const saveBookingSettings = async (input: BookingSettings) => {
     UPDATE booking_settings
     SET
       company_name = ${input.companyName},
+      company_logo_url = ${input.companyLogoUrl || ""},
       support_email = ${input.supportEmail},
       admin_notify_email = ${input.adminNotifyEmail},
       default_booking_status = ${input.defaultBookingStatus},

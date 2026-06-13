@@ -1,6 +1,23 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { type ReactNode, useState } from "react";
 import Link from "next/link";
-import { CalendarClock, Eye, EyeOff, Image as ImageIcon, Plus, Settings2, Sparkles, SlidersHorizontal, ListChecks, Clock, CalendarX, FileText, Wrench } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronDown,
+  Eye,
+  EyeOff,
+  Image as ImageIcon,
+  Plus,
+  Settings2,
+  Sparkles,
+  SlidersHorizontal,
+  ListChecks,
+  Clock,
+  CalendarX,
+  FileText,
+  Wrench,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ImageUploadForm } from "@/components/admin/image-upload-form";
@@ -102,11 +119,7 @@ export function BookingSetupView({
             description="Vises i den offentlige booking, når synlige."
             action={<CreateInlineButton label="Tilføj ydelse" formId="create-service-form" />}
           >
-            <div className="grid gap-4">
-              {data.services.map((service) => (
-                <ServiceEditor key={service.id} service={service} />
-              ))}
-            </div>
+            <ServicesList services={data.services} />
             <div className="mt-4 rounded-2xl border border-dashed border-[#DCEEF2] bg-white/50 p-4">
               <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#00A7B8]">
                 Ny ydelse
@@ -143,11 +156,7 @@ export function BookingSetupView({
             title="Ekstra ydelser / tilvalg"
             description="Skjulte tilvalg vises ikke i den offentlige booking."
           >
-            <div className="grid gap-4">
-              {data.addons.map((addon) => (
-                <AddonEditor key={addon.id} addon={addon} services={data.services} />
-              ))}
-            </div>
+            <AddonsList addons={data.addons} services={data.services} />
             <div className="mt-4 rounded-2xl border border-dashed border-[#DCEEF2] bg-white/50 p-4">
               <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#00A7B8]">
                 Nyt tilvalg
@@ -192,52 +201,7 @@ export function BookingSetupView({
           title="Bookingmuligheder"
           description="Bilkategori og andre kundevalg."
         >
-          <div className="grid gap-4">
-            {data.optionGroups.map((group) => (
-              <div key={group.id} className="rounded-2xl border border-white/55 bg-white/55 p-4">
-                <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[14px] font-semibold text-[#111827]">{group.name}</p>
-                    <p className="text-[12px] font-medium text-[#6B7280]">{group.description}</p>
-                  </div>
-                  <StatusPill visible={group.isVisible} />
-                </div>
-                <div className="grid gap-2">
-                  {group.options.map((option) => (
-                    <form
-                      key={option.id}
-                      action={`/api/admin/booking-setup/options/${option.id}`}
-                      method="POST"
-                      className="grid gap-2 rounded-xl border border-white/55 bg-white/60 p-3 lg:grid-cols-[1fr_7rem_7rem_5rem_auto]"
-                    >
-                      <input type="hidden" name="group_id" value={group.id} />
-                      <Input name="label" defaultValue={option.label} />
-                      <Input type="number" name="price_adjustment_dkk" defaultValue={option.priceAdjustmentDkk} />
-                      <Input type="number" name="duration_adjustment_minutes" defaultValue={option.durationAdjustmentMinutes} />
-                      <Input type="number" name="sort_order" defaultValue={option.sortOrder} />
-                      <div className="flex flex-wrap gap-2">
-                        <label className="flex items-center gap-2 text-[12px] font-semibold">
-                          <input type="checkbox" name="is_visible" defaultChecked={option.isVisible} />
-                          Synlig
-                        </label>
-                        <Button type="submit" className="h-9">Gem</Button>
-                        <Button type="submit" name="action" value="delete" variant="outline" className="h-9 border-red-200 text-red-600 hover:bg-red-50">
-                          Slet
-                        </Button>
-                      </div>
-                    </form>
-                  ))}
-                </div>
-                <form action="/api/admin/booking-setup/options" method="POST" className="mt-3 grid gap-2 rounded-xl border border-dashed border-[#DCEEF2] bg-white/45 p-3 lg:grid-cols-[1fr_7rem_7rem_auto]">
-                  <input type="hidden" name="group_id" value={group.id} />
-                  <Input name="label" placeholder="Ny mulighed" required />
-                  <Input type="number" name="price_adjustment_dkk" placeholder="Pris" />
-                  <Input type="number" name="duration_adjustment_minutes" placeholder="Minutter" />
-                  <Button type="submit">Tilføj</Button>
-                </form>
-              </div>
-            ))}
-          </div>
+          <OptionGroupsList groups={data.optionGroups} />
         </SetupSection>
       ) : null}
 
@@ -263,82 +227,441 @@ export function BookingSetupView({
   );
 }
 
+/* ─────────────────────────── Services accordion ─────────────────────────── */
 
-function ServiceEditor({ service }: { service: BookingSetupService }) {
+function ServicesList({ services }: { services: BookingSetupService[] }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (services.length === 0) {
+    return (
+      <p className="text-[13px] font-medium text-[#6B7280]">Ingen ydelser oprettet endnu.</p>
+    );
+  }
   return (
-    <article className="rounded-2xl border border-white/55 bg-white/55 p-3">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-        <ImagePreview imageUrl={service.imageUrl} label={service.name} />
-        <form action={`/api/admin/booking-setup/services/${service.id}`} method="POST" className="grid flex-1 gap-3">
-          <div className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem_5rem]">
-            <Input name="name" defaultValue={service.name} />
-            <Input type="number" name="price_dkk" defaultValue={service.priceDkk} />
-            <Input type="number" name="duration_minutes" defaultValue={service.durationMinutes} />
-            <Input type="number" name="sort_order" defaultValue={service.sortOrder} />
+    <div className="grid gap-2">
+      {services.map((service) => (
+        <ServiceItem
+          key={service.id}
+          service={service}
+          isOpen={openId === service.id}
+          onToggle={() => setOpenId(openId === service.id ? null : service.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function ServiceItem({
+  service,
+  isOpen,
+  onToggle,
+}: {
+  service: BookingSetupService;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <article className="overflow-hidden rounded-2xl border border-white/55 bg-white/60 shadow-[0_2px_8px_rgba(0,167,184,0.06)]">
+      {/* Collapsed header */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/40"
+      >
+        {service.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={service.imageUrl} alt="" className="h-10 w-14 shrink-0 rounded-xl object-cover ring-1 ring-white/70" />
+        ) : (
+          <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-xl border border-dashed border-[#DCEEF2] bg-white/50">
+            <ImageIcon className="h-4 w-4 text-[#94A3B8]" />
           </div>
-          <Input name="short_description" defaultValue={service.shortDescription} />
-          <Textarea name="description" defaultValue={service.description} className="min-h-16" />
-          <div className="flex flex-wrap items-center gap-3">
-            <StatusPill visible={service.isVisible} />
-            <label className="flex items-center gap-2 text-[12px] font-semibold">
-              <input type="checkbox" name="is_visible" defaultChecked={service.isVisible} /> Visible
-            </label>
-            <label className="flex items-center gap-2 text-[12px] font-semibold">
-              <input type="checkbox" name="is_featured" defaultChecked={service.isFeatured} /> Featured
-            </label>
-            <Button type="submit" className="h-10">Save</Button>
-            <Button type="submit" name="action" value="delete" variant="outline" className="h-10 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700">
-              Delete
-            </Button>
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold text-[#111827]">{service.name}</p>
+          {service.shortDescription ? (
+            <p className="truncate text-[11px] font-medium text-[#6B7280]">{service.shortDescription}</p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <span className="hidden text-[12px] font-semibold text-[#111827] sm:block">
+            {formatPrice(service.priceDkk)}
+          </span>
+          <span className="hidden text-[11px] font-medium text-[#6B7280] sm:block">
+            {service.durationMinutes} min
+          </span>
+          <StatusPill visible={service.isVisible} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-[#94A3B8] transition-transform duration-200",
+              isOpen && "rotate-180"
+            )}
+          />
+        </div>
+      </button>
+
+      {/* Expanded editor */}
+      {isOpen && (
+        <div className="border-t border-[#DCEEF2]/60 p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+            <div className="shrink-0 space-y-2">
+              <ImagePreview imageUrl={service.imageUrl} label={service.name} />
+              <ImageUploadForm action={`/api/admin/booking-setup/services/${service.id}/image`} />
+            </div>
+            <form
+              action={`/api/admin/booking-setup/services/${service.id}`}
+              method="POST"
+              className="grid flex-1 gap-3"
+            >
+              <div className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem_5rem]">
+                <Field label="Navn">
+                  <Input name="name" defaultValue={service.name} />
+                </Field>
+                <Field label="Pris (DKK)">
+                  <Input type="number" name="price_dkk" defaultValue={service.priceDkk} />
+                </Field>
+                <Field label="Varighed (min)">
+                  <Input type="number" name="duration_minutes" defaultValue={service.durationMinutes} />
+                </Field>
+                <Field label="Rækkefølge">
+                  <Input type="number" name="sort_order" defaultValue={service.sortOrder} />
+                </Field>
+              </div>
+              <Field label="Kort beskrivelse">
+                <Input name="short_description" defaultValue={service.shortDescription} />
+              </Field>
+              <Field label="Fuld beskrivelse">
+                <Textarea name="description" defaultValue={service.description} className="min-h-[5rem]" />
+              </Field>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-[12px] font-semibold">
+                  <input type="checkbox" name="is_visible" defaultChecked={service.isVisible} /> Synlig
+                </label>
+                <label className="flex items-center gap-2 text-[12px] font-semibold">
+                  <input type="checkbox" name="is_featured" defaultChecked={service.isFeatured} /> Fremhævet
+                </label>
+                <Button type="submit" className="h-9">Gem</Button>
+                <Button
+                  type="submit"
+                  name="action"
+                  value="delete"
+                  variant="outline"
+                  className="h-9 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
+                >
+                  Slet
+                </Button>
+              </div>
+            </form>
           </div>
-        </form>
-        <ImageUploadForm action={`/api/admin/booking-setup/services/${service.id}/image`} />
-      </div>
+        </div>
+      )}
     </article>
   );
 }
 
-function AddonEditor({ addon, services }: { addon: BookingSetupAddon; services: BookingSetupService[] }) {
+/* ─────────────────────────── Addons accordion ────────────────────────────── */
+
+function AddonsList({
+  addons,
+  services,
+}: {
+  addons: BookingSetupAddon[];
+  services: BookingSetupService[];
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (addons.length === 0) {
+    return (
+      <p className="text-[13px] font-medium text-[#6B7280]">Ingen tilvalg oprettet endnu.</p>
+    );
+  }
   return (
-    <article className="rounded-2xl border border-white/55 bg-white/55 p-3">
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-start">
-        <ImagePreview imageUrl={addon.imageUrl} label={addon.name} />
-        <form action={`/api/admin/booking-setup/addons/${addon.id}`} method="POST" className="grid flex-1 gap-3">
-          <div className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem_5rem]">
-            <Input name="name" defaultValue={addon.name} />
-            <Input type="number" name="price_dkk" defaultValue={addon.priceDkk} />
-            <Input type="number" name="duration_minutes" defaultValue={addon.durationMinutes} />
-            <Input type="number" name="sort_order" defaultValue={addon.sortOrder} />
+    <div className="grid gap-2">
+      {addons.map((addon) => (
+        <AddonItem
+          key={addon.id}
+          addon={addon}
+          services={services}
+          isOpen={openId === addon.id}
+          onToggle={() => setOpenId(openId === addon.id ? null : addon.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function AddonItem({
+  addon,
+  services,
+  isOpen,
+  onToggle,
+}: {
+  addon: BookingSetupAddon;
+  services: BookingSetupService[];
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const categoryLabel =
+    addon.addonCategory === "interior"
+      ? "Indvendig"
+      : addon.addonCategory === "exterior"
+        ? "Udvendig"
+        : "Antal";
+
+  return (
+    <article className="overflow-hidden rounded-2xl border border-white/55 bg-white/60 shadow-[0_2px_8px_rgba(0,167,184,0.06)]">
+      {/* Collapsed header */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 px-3 py-3 text-left transition hover:bg-white/40"
+      >
+        {addon.imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={addon.imageUrl} alt="" className="h-10 w-14 shrink-0 rounded-xl object-cover ring-1 ring-white/70" />
+        ) : (
+          <div className="flex h-10 w-14 shrink-0 items-center justify-center rounded-xl border border-dashed border-[#DCEEF2] bg-white/50">
+            <ImageIcon className="h-4 w-4 text-[#94A3B8]" />
           </div>
-          <Input name="description" defaultValue={addon.description} />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <select name="addon_category" defaultValue={addon.addonCategory} className={selectClassName}>
-              <option value="interior">Interior</option>
-              <option value="exterior">Exterior</option>
-              <option value="quantity">Quantity/manual</option>
-            </select>
-            <Input
-              name="allowed_service_ids"
-              defaultValue={addon.allowedServiceIds.join(", ")}
-              placeholder={services.map((service) => service.id).join(", ")}
-            />
+        )}
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[13px] font-semibold text-[#111827]">{addon.name}</p>
+          <p className="text-[11px] font-medium text-[#6B7280]">{categoryLabel}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <span className="hidden text-[12px] font-semibold text-[#111827] sm:block">
+            {formatPrice(addon.priceDkk)}
+          </span>
+          <span className="hidden text-[11px] font-medium text-[#6B7280] sm:block">
+            {addon.durationMinutes} min
+          </span>
+          <StatusPill visible={addon.isVisible} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-[#94A3B8] transition-transform duration-200",
+              isOpen && "rotate-180"
+            )}
+          />
+        </div>
+      </button>
+
+      {/* Expanded editor */}
+      {isOpen && (
+        <div className="border-t border-[#DCEEF2]/60 p-4">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
+            <div className="shrink-0 space-y-2">
+              <ImagePreview imageUrl={addon.imageUrl} label={addon.name} />
+              <ImageUploadForm action={`/api/admin/booking-setup/addons/${addon.id}/image`} />
+            </div>
+            <form
+              action={`/api/admin/booking-setup/addons/${addon.id}`}
+              method="POST"
+              className="grid flex-1 gap-3"
+            >
+              <div className="grid gap-3 sm:grid-cols-[1fr_7rem_7rem_5rem]">
+                <Field label="Navn">
+                  <Input name="name" defaultValue={addon.name} />
+                </Field>
+                <Field label="Pris (DKK)">
+                  <Input type="number" name="price_dkk" defaultValue={addon.priceDkk} />
+                </Field>
+                <Field label="Varighed (min)">
+                  <Input type="number" name="duration_minutes" defaultValue={addon.durationMinutes} />
+                </Field>
+                <Field label="Rækkefølge">
+                  <Input type="number" name="sort_order" defaultValue={addon.sortOrder} />
+                </Field>
+              </div>
+              <Field label="Beskrivelse">
+                <Input name="description" defaultValue={addon.description} />
+              </Field>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Kategori">
+                  <select name="addon_category" defaultValue={addon.addonCategory} className={selectClassName}>
+                    <option value="interior">Indvendig</option>
+                    <option value="exterior">Udvendig</option>
+                    <option value="quantity">Antal/manuel</option>
+                  </select>
+                </Field>
+                <Field label="Tilladte ydelse-IDs">
+                  <Input
+                    name="allowed_service_ids"
+                    defaultValue={addon.allowedServiceIds.join(", ")}
+                    placeholder={services.map((s) => s.id).join(", ")}
+                  />
+                </Field>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-[12px] font-semibold">
+                  <input type="checkbox" name="is_visible" defaultChecked={addon.isVisible} /> Synlig
+                </label>
+                <Button type="submit" className="h-9">Gem</Button>
+                <Button
+                  type="submit"
+                  name="action"
+                  value="delete"
+                  variant="outline"
+                  className="h-9 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700"
+                >
+                  Slet
+                </Button>
+              </div>
+            </form>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <StatusPill visible={addon.isVisible} />
-            <label className="flex items-center gap-2 text-[12px] font-semibold">
-              <input type="checkbox" name="is_visible" defaultChecked={addon.isVisible} /> Visible
-            </label>
-            <Button type="submit" className="h-10">Save</Button>
-            <Button type="submit" name="action" value="delete" variant="outline" className="h-10 border-red-200 text-red-700 hover:bg-red-50 hover:text-red-700">
-              Delete
-            </Button>
-          </div>
-        </form>
-        <ImageUploadForm action={`/api/admin/booking-setup/addons/${addon.id}/image`} />
-      </div>
+        </div>
+      )}
     </article>
   );
 }
+
+/* ─────────────────────────── Options accordion ───────────────────────────── */
+
+function OptionGroupsList({ groups }: { groups: BookingSetupData["optionGroups"] }) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  if (groups.length === 0) {
+    return (
+      <p className="text-[13px] font-medium text-[#6B7280]">Ingen muligheder oprettet endnu.</p>
+    );
+  }
+  return (
+    <div className="grid gap-2">
+      {groups.map((group) => (
+        <OptionGroupItem
+          key={group.id}
+          group={group}
+          isOpen={openId === group.id}
+          onToggle={() => setOpenId(openId === group.id ? null : group.id)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function OptionGroupItem({
+  group,
+  isOpen,
+  onToggle,
+}: {
+  group: BookingSetupData["optionGroups"][number];
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-white/55 bg-white/60 shadow-[0_2px_8px_rgba(0,167,184,0.06)]">
+      {/* Collapsed header */}
+      <button
+        type="button"
+        onClick={onToggle}
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-white/40"
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-[13px] font-semibold text-[#111827]">{group.name}</p>
+          {group.description ? (
+            <p className="text-[11px] font-medium text-[#6B7280]">{group.description}</p>
+          ) : null}
+        </div>
+        <div className="flex shrink-0 items-center gap-2.5">
+          <span className="hidden text-[11px] font-medium text-[#6B7280] sm:block">
+            {group.options.length} muligheder
+          </span>
+          <StatusPill visible={group.isVisible} />
+          <ChevronDown
+            className={cn(
+              "h-4 w-4 shrink-0 text-[#94A3B8] transition-transform duration-200",
+              isOpen && "rotate-180"
+            )}
+          />
+        </div>
+      </button>
+
+      {/* Expanded options */}
+      {isOpen && (
+        <div className="border-t border-[#DCEEF2]/60 p-4">
+          {/* Column labels */}
+          <div className="mb-1 hidden grid-cols-[1fr_7rem_8rem_5rem_auto] gap-2 px-1 lg:grid">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">Label</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">Pris-jus. (DKK)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">Varighed-jus. (min)</span>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">Rækkefølge</span>
+            <span />
+          </div>
+
+          <div className="grid gap-2">
+            {group.options.map((option) => (
+              <form
+                key={option.id}
+                action={`/api/admin/booking-setup/options/${option.id}`}
+                method="POST"
+                className="grid gap-2 rounded-xl border border-white/55 bg-white/60 p-3 lg:grid-cols-[1fr_7rem_8rem_5rem_auto] lg:items-end"
+              >
+                <input type="hidden" name="group_id" value={group.id} />
+                <Field label="Label" className="lg:hidden">
+                  <Input name="label" defaultValue={option.label} />
+                </Field>
+                <Input name="label" defaultValue={option.label} className="hidden lg:block" />
+
+                <Field label="Pris-justering (DKK)" className="lg:hidden">
+                  <Input type="number" name="price_adjustment_dkk" defaultValue={option.priceAdjustmentDkk} />
+                </Field>
+                <Input type="number" name="price_adjustment_dkk" defaultValue={option.priceAdjustmentDkk} className="hidden lg:block" />
+
+                <Field label="Varighed-justering (min)" className="lg:hidden">
+                  <Input type="number" name="duration_adjustment_minutes" defaultValue={option.durationAdjustmentMinutes} />
+                </Field>
+                <Input type="number" name="duration_adjustment_minutes" defaultValue={option.durationAdjustmentMinutes} className="hidden lg:block" />
+
+                <Field label="Rækkefølge" className="lg:hidden">
+                  <Input type="number" name="sort_order" defaultValue={option.sortOrder} />
+                </Field>
+                <Input type="number" name="sort_order" defaultValue={option.sortOrder} className="hidden lg:block" />
+
+                <div className="flex flex-wrap items-center gap-2">
+                  <label className="flex items-center gap-1.5 text-[12px] font-semibold">
+                    <input type="checkbox" name="is_visible" defaultChecked={option.isVisible} />
+                    Synlig
+                  </label>
+                  <Button type="submit" className="h-9">Gem</Button>
+                  <Button
+                    type="submit"
+                    name="action"
+                    value="delete"
+                    variant="outline"
+                    className="h-9 border-red-200 text-red-600 hover:bg-red-50"
+                  >
+                    Slet
+                  </Button>
+                </div>
+              </form>
+            ))}
+          </div>
+
+          {/* Add new option */}
+          <form
+            action="/api/admin/booking-setup/options"
+            method="POST"
+            className="mt-3 grid gap-2 rounded-xl border border-dashed border-[#DCEEF2] bg-white/45 p-3 lg:grid-cols-[1fr_7rem_8rem_auto]"
+          >
+            <input type="hidden" name="group_id" value={group.id} />
+            <Field label="Ny mulighed" className="lg:hidden">
+              <Input name="label" placeholder="Ny mulighed" required />
+            </Field>
+            <Input name="label" placeholder="Ny mulighed" required className="hidden lg:block" />
+            <Field label="Pris (DKK)" className="lg:hidden">
+              <Input type="number" name="price_adjustment_dkk" placeholder="0" />
+            </Field>
+            <Input type="number" name="price_adjustment_dkk" placeholder="Pris" className="hidden lg:block" />
+            <Field label="Varighed (min)" className="lg:hidden">
+              <Input type="number" name="duration_adjustment_minutes" placeholder="0" />
+            </Field>
+            <Input type="number" name="duration_adjustment_minutes" placeholder="Minutter" className="hidden lg:block" />
+            <div className="lg:flex lg:items-end">
+              <Button type="submit" className="w-full lg:w-auto">Tilføj</Button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────── Other tabs (unchanged) ─────────────────────── */
 
 function OpeningHoursCard({ data }: { data: BookingSetupData }) {
   const byWeekday = new Map(data.openingHours.map((item) => [item.weekday, item]));
@@ -461,6 +784,8 @@ function GeneralSettingsCard({ data }: { data: BookingSetupData }) {
   );
 }
 
+/* ─────────────────────────── Shared primitives ───────────────────────────── */
+
 function ImagePreview({ imageUrl, label }: { imageUrl: string; label: string }) {
   if (imageUrl) {
     return (
@@ -476,12 +801,11 @@ function ImagePreview({ imageUrl, label }: { imageUrl: string; label: string }) 
   );
 }
 
-
 function StatusPill({ visible }: { visible: boolean }) {
   return (
-    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px] font-semibold", visible ? "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]" : "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]")}>
-      {visible ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-      {visible ? "Visible" : "Hidden"}
+    <span className={cn("inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[11px] font-semibold", visible ? "border-[#10B981]/20 bg-[#10B981]/10 text-[#047857]" : "border-[#EF4444]/20 bg-[#EF4444]/10 text-[#B91C1C]")}>
+      {visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+      {visible ? "Synlig" : "Skjult"}
     </span>
   );
 }

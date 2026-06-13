@@ -15,6 +15,7 @@ import {
   Clock3,
   Cog,
   CreditCard,
+  Image as ImageIcon,
   ListFilter,
   Mail,
   MapPinned,
@@ -73,6 +74,7 @@ import { AdminAgentsView } from "@/components/admin/agents-view";
 import { BookingSetupView } from "@/components/admin/booking-setup-view";
 import { AdminCommandCenter } from "@/components/admin/admin-command-center";
 import { EmailLogList } from "@/components/admin/email-log-list";
+import { ImageUploadForm } from "@/components/admin/image-upload-form";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
 import { AdminSidebar as AdminSidebarLayout } from "@/components/admin/admin-sidebar";
 import { cn } from "@/lib/utils";
@@ -2654,6 +2656,31 @@ function SettingsView({
         </section>
 
         <section className="space-y-4">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Virksomhedslogo</p>
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-5 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+            <p className="text-[13px] font-semibold text-[#111827]">Admin-logo / virksomhedsbillede</p>
+            <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
+              Bruges i adminpanelet og e-mails. Max 4 MB · JPEG, PNG eller WebP.
+            </p>
+            <div className="mt-4 flex flex-wrap items-start gap-4">
+              {dashboard.settings.companyLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={dashboard.settings.companyLogoUrl}
+                  alt="Logo"
+                  className="h-20 w-20 rounded-2xl border border-[#DCEEF2] object-contain bg-white p-1"
+                />
+              ) : (
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-[#DCEEF2] bg-white/60 text-[#94A3B8]">
+                  <ImageIcon className="h-7 w-7" />
+                </div>
+              )}
+              <div className="flex-1">
+                <ImageUploadForm action="/api/admin/settings/image" />
+              </div>
+            </div>
+          </div>
+
           <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Info</p>
           <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
             <p className="text-[13px] font-semibold text-[#111827]">Hvad betyder standardstatus?</p>

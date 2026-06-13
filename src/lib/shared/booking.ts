@@ -82,6 +82,7 @@ export type VehicleLookupResult = {
 
 export type BookingSettings = {
   companyName: string;
+  companyLogoUrl?: string;
   supportEmail: string;
   adminNotifyEmail: string;
   defaultBookingStatus: AutoBookingStatus;
