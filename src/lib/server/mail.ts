@@ -110,6 +110,9 @@ const getTransporter = () => {
             user: config.user,
             pass: config.pass,
           },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 30000,
         })
       : null;
   }
