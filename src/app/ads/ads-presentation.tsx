@@ -75,10 +75,10 @@ const channelCards = [
     className: styles.webCard,
     icon: Globe2,
     eyebrow: "WEBSITE",
-    title: "تعویض آرام و مرحله‌ای",
-    metric: "۴–۵ سال",
-    metricLabel: "سن وب‌سایت فعلی",
-    text: "صفحات مهم را بدون توقف فروش، قدم‌به‌قدم به تجربه سریع‌تر و مدرن‌تر منتقل می‌کنیم.",
+    title: "تعویض کامل و مرحله‌ای",
+    metric: "۳–۵ هفته",
+    metricLabel: "زمان اجرای وب‌سایت جدید",
+    text: "در یک برنامه فشرده، صفحات مهم را بدون توقف فروش به تجربه سریع‌تر و مدرن‌تر منتقل می‌کنیم.",
     tags: ["Speed", "Mobile", "Conversion"],
   },
 ];
@@ -100,9 +100,9 @@ const roadmap = [
   },
   {
     number: "۰۳",
-    period: "ماه دوم",
-    title: "نوسازی آرام سایت",
-    text: "انتقال صفحات کلیدی به زیرساخت جدید CleanWash",
+    period: "هفته ۳–۵",
+    title: "راه‌اندازی سایت جدید",
+    text: "انتقال صفحات کلیدی و تکمیل زیرساخت جدید CleanWash",
     icon: Layers3,
   },
   {
@@ -117,8 +117,11 @@ const roadmap = [
 export function AdsPresentation() {
   useEffect(() => {
     const elements = Array.from(document.querySelectorAll<HTMLElement>("[data-ads-reveal]"));
+    const page = document.querySelector<HTMLElement>("[data-ads-page]");
+    const tiltElements = Array.from(document.querySelectorAll<HTMLElement>("[data-ads-tilt]"));
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (reduceMotion) {
       elements.forEach((element) => element.classList.add(styles.visible));
       return;
     }
@@ -136,11 +139,47 @@ export function AdsPresentation() {
     );
 
     elements.forEach((element) => observer.observe(element));
-    return () => observer.disconnect();
+
+    const handlePagePointer = (event: PointerEvent) => {
+      page?.style.setProperty("--spot-x", `${(event.clientX / window.innerWidth) * 100}%`);
+      page?.style.setProperty("--spot-y", `${(event.clientY / window.innerHeight) * 100}%`);
+    };
+
+    const cleanupTilt = tiltElements.map((element) => {
+      const handleTilt = (event: PointerEvent) => {
+        const rect = element.getBoundingClientRect();
+        const x = (event.clientX - rect.left) / rect.width;
+        const y = (event.clientY - rect.top) / rect.height;
+
+        element.style.setProperty("--tilt-x", `${(0.5 - y) * 5}deg`);
+        element.style.setProperty("--tilt-y", `${(x - 0.5) * 6}deg`);
+        element.style.setProperty("--glow-x", `${x * 100}%`);
+        element.style.setProperty("--glow-y", `${y * 100}%`);
+      };
+      const resetTilt = () => {
+        element.style.setProperty("--tilt-x", "0deg");
+        element.style.setProperty("--tilt-y", "0deg");
+      };
+
+      element.addEventListener("pointermove", handleTilt);
+      element.addEventListener("pointerleave", resetTilt);
+      return () => {
+        element.removeEventListener("pointermove", handleTilt);
+        element.removeEventListener("pointerleave", resetTilt);
+      };
+    });
+
+    window.addEventListener("pointermove", handlePagePointer, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("pointermove", handlePagePointer);
+      cleanupTilt.forEach((cleanup) => cleanup());
+    };
   }, []);
 
   return (
-    <main className={styles.page} dir="rtl" lang="fa">
+    <main className={styles.page} dir="rtl" lang="fa" data-ads-page>
       <div className={styles.noise} aria-hidden="true" />
 
       <section className={styles.hero} id="top">
@@ -291,6 +330,7 @@ export function AdsPresentation() {
               <article
                 className={`${styles.channelCard} ${channel.className}`}
                 data-ads-reveal
+                data-ads-tilt
                 style={{ "--delay": `${index * 90}ms` } as React.CSSProperties}
                 key={channel.eyebrow}
               >
@@ -344,7 +384,7 @@ export function AdsPresentation() {
           </div>
         </div>
 
-        <div className={styles.adMachine} data-ads-reveal>
+        <div className={styles.adMachine} data-ads-reveal data-ads-tilt>
           <div className={styles.machineHeader}>
             <span>DAILY AD MACHINE</span>
             <div>
@@ -384,7 +424,7 @@ export function AdsPresentation() {
 
       <section className={styles.trustSection}>
         <div className={styles.trustVisual} data-ads-reveal>
-          <div className={styles.reviewCard}>
+          <div className={styles.reviewCard} data-ads-tilt>
             <div className={styles.reviewBrand}>
               <Star size={24} fill="currentColor" />
               <strong>Trustpilot</strong>
@@ -444,12 +484,12 @@ export function AdsPresentation() {
           <span className={styles.sectionNumber}>04</span>
           <div>
             <p>WEBSITE EVOLUTION</p>
-            <h2>وب‌سایت را خاموش نمی‌کنیم؛ آرام جایگزینش می‌کنیم.</h2>
+            <h2>در ۳ تا ۵ هفته، وب‌سایت جدید را مرحله‌ای جایگزین می‌کنیم.</h2>
           </div>
         </div>
 
         <div className={styles.websiteGrid}>
-          <div className={styles.browserMockup} data-ads-reveal>
+        <div className={styles.browserMockup} data-ads-reveal data-ads-tilt>
             <div className={styles.browserBar}>
               <span />
               <span />
@@ -465,7 +505,7 @@ export function AdsPresentation() {
                   <i />
                   <i />
                 </div>
-                <span>۴–۵ ساله</span>
+                <span>وب‌سایت فعلی</span>
               </div>
               <div className={styles.migrationArrow}>
                 <ArrowLeft />
@@ -484,7 +524,7 @@ export function AdsPresentation() {
             </div>
           </div>
 
-          <div className={styles.migrationPlan} data-ads-reveal>
+          <div className={styles.migrationPlan} data-ads-reveal data-ads-tilt>
             <div className={styles.cleanwashBadge}>
               <Sparkles size={22} />
               <div>
@@ -587,7 +627,7 @@ export function AdsPresentation() {
       </section>
 
       <section className={styles.costSection}>
-        <div className={styles.costCard} data-ads-reveal>
+        <div className={styles.costCard} data-ads-reveal data-ads-tilt>
           <div className={styles.costTop}>
             <div>
               <p>MONTHLY MANAGEMENT</p>
@@ -614,7 +654,7 @@ export function AdsPresentation() {
           </div>
         </div>
 
-        <div className={styles.paymentCard} data-ads-reveal>
+        <div className={styles.paymentCard} data-ads-reveal data-ads-tilt>
           <HeartHandshake size={42} />
           <p>هزینه CleanWash و جزئیات اضافه‌شده</p>
           <h3>وقتی امکانش بود پرداخت کن.</h3>
