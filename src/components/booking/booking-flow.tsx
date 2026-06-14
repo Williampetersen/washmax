@@ -268,11 +268,27 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   );
   const vehicleName = useMemo(() => buildVehicleName(vehicle), [vehicle]);
   const vehicleTypeLabel = vehicle?.type ? `Biltype: ${vehicle.type}` : "Biltype: -";
-  const activePackagePrice = Number(activePackageData?.price || 0);
+  const activeCatId = category?.id;
+  const activeCatSpecificPrice =
+    activeCatId && activePackageData?.categoryPrices
+      ? (activePackageData.categoryPrices[activeCatId] ?? undefined)
+      : undefined;
+  const activePackagePrice =
+    activeCatSpecificPrice != null
+      ? Number(activeCatSpecificPrice)
+      : Number(activePackageData?.price || 0);
   const basePrice = activePackagePrice > 0 ? activePackagePrice : category?.price ?? 0;
   const hasSecondCar = Boolean(secondVehicle);
   const secondVehicleName = useMemo(() => buildVehicleName(secondVehicle), [secondVehicle]);
-  const secondPackagePrice = Number(secondPackageData?.price || 0);
+  const secondCatId = secondCategory?.id;
+  const secondCatSpecificPrice =
+    secondCatId && secondPackageData?.categoryPrices
+      ? (secondPackageData.categoryPrices[secondCatId] ?? undefined)
+      : undefined;
+  const secondPackagePrice =
+    secondCatSpecificPrice != null
+      ? Number(secondCatSpecificPrice)
+      : Number(secondPackageData?.price || 0);
   const secondBasePrice = secondPackageData
     ? secondPackagePrice > 0
       ? secondPackagePrice
@@ -1011,20 +1027,35 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   }
                 />
                 <div className="grid gap-4 sm:grid-cols-3">
-                  {settings.catalog.packages.map((item) => {
-                    const isActive = item.id === activeSelectionPackageId;
-                    const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : activeSelectionCategory?.price ?? 0;
-                    return (
-                      <PackageCard
-                        key={item.id}
-                        item={item}
-                        isActive={isActive}
-                        price={itemPrice}
-                        vehicleName={activeSelectionVehicleName}
-                        onClick={() => handlePackageSelect(item.id)}
-                      />
-                    );
-                  })}
+                  {settings.catalog.packages
+                    .filter((item) => {
+                      if (!item.categoryPrices) return true;
+                      const catId = activeSelectionCategory?.id;
+                      if (!catId) return true;
+                      return item.categoryPrices[catId] != null;
+                    })
+                    .map((item) => {
+                      const isActive = item.id === activeSelectionPackageId;
+                      const catId = activeSelectionCategory?.id;
+                      const catSpecPrice =
+                        catId && item.categoryPrices ? (item.categoryPrices[catId] ?? undefined) : undefined;
+                      const itemPrice =
+                        catSpecPrice != null
+                          ? Number(catSpecPrice)
+                          : Number(item.price || 0) > 0
+                            ? Number(item.price)
+                            : activeSelectionCategory?.price ?? 0;
+                      return (
+                        <PackageCard
+                          key={item.id}
+                          item={item}
+                          isActive={isActive}
+                          price={itemPrice}
+                          vehicleName={activeSelectionVehicleName}
+                          onClick={() => handlePackageSelect(item.id)}
+                        />
+                      );
+                    })}
                 </div>
               </BookingAccordion>
             </div>
@@ -1286,7 +1317,28 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </div>
                     <label className="flex items-start gap-3">
                       <input type="checkbox" className="mt-1 h-4 w-4 rounded border-[var(--line)]" {...form.register("acceptsTerms")} />
-                      <span>Jeg accepterer handelsbetingelserne og persondatapolitikken</span>
+                      <span>
+                        Jeg accepterer{" "}
+                        <a
+                          href="/handelsbetingelser"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          handelsbetingelserne
+                        </a>
+                        {" "}og{" "}
+                        <a
+                          href="/persondatapolitik"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          persondatapolitikken
+                        </a>
+                      </span>
                     </label>
                     {form.formState.errors.acceptsTerms?.message ? (
                       <p className="-mt-1 text-sm text-red-600">{form.formState.errors.acceptsTerms.message}</p>

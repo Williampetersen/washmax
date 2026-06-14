@@ -6,6 +6,7 @@ export type CleaningPackage = {
   estimatedMinutes: number;
   badge: string;
   price?: number;
+  categoryPrices?: Record<string, number>;
   imageUrl?: string;
   isFeatured?: boolean;
   features?: string[];
@@ -114,6 +115,7 @@ export const cleaningPackages: CleaningPackage[] = [
     duration: "85 - 130 min.",
     estimatedMinutes: 110,
     badge: "Gratis voks",
+    categoryPrices: { small: 799, medium: 899, large: 999, van: 1500 },
   },
   {
     id: "inside",
@@ -122,6 +124,7 @@ export const cleaningPackages: CleaningPackage[] = [
     duration: "60 - 80 min.",
     estimatedMinutes: 75,
     badge: "Kabine",
+    categoryPrices: { small: 600, medium: 700, large: 799, van: 899 },
   },
   {
     id: "outside",
@@ -130,6 +133,16 @@ export const cleaningPackages: CleaningPackage[] = [
     duration: "50 - 70 min.",
     estimatedMinutes: 65,
     badge: "Finish",
+    categoryPrices: { small: 450, medium: 600, large: 699, van: 899 },
+  },
+  {
+    id: "gold",
+    title: "Guldpakken",
+    description: "Den ultimative rengøring – hele bilen plus ekstra pleje.",
+    duration: "120 - 180 min.",
+    estimatedMinutes: 150,
+    badge: "Mest populær",
+    categoryPrices: { medium: 2300, large: 2400, van: 2500 },
   },
 ];
 

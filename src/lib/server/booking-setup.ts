@@ -4,6 +4,7 @@ import { ensureSchema, getSql, isDatabaseConfigured, shouldRunDatabaseSetup } fr
 import {
   defaultBookingSettings,
   defaultEmailAutomation,
+  defaultServiceCatalog,
   findMatchingServiceArea,
   getCatalogPackage,
   type AddOn,
@@ -28,6 +29,7 @@ type RawService = {
   sort_order: number;
   is_visible: boolean;
   is_featured: boolean;
+  category_prices_json: Record<string, number> | null;
   created_at: string | Date;
   updated_at: string | Date;
 };
@@ -160,6 +162,7 @@ export type BookingSetupService = {
   sortOrder: number;
   isVisible: boolean;
   isFeatured: boolean;
+  categoryPrices: Record<string, number>;
   createdAt: string;
   updatedAt: string;
 };
@@ -342,6 +345,10 @@ const serviceFromRow = (row: RawService): BookingSetupService => ({
   sortOrder: Number(row.sort_order || 0),
   isVisible: Boolean(row.is_visible),
   isFeatured: Boolean(row.is_featured),
+  categoryPrices:
+    row.category_prices_json && typeof row.category_prices_json === "object"
+      ? (row.category_prices_json as Record<string, number>)
+      : {},
   createdAt: toDateTimeText(row.created_at),
   updatedAt: toDateTimeText(row.updated_at),
 });
@@ -501,13 +508,13 @@ const seedBookingSetup = async () => {
       await sql`
         INSERT INTO booking_services (
           id, name, slug, short_description, description, price_dkk,
-          duration_minutes, icon, sort_order, is_visible, is_featured
+          duration_minutes, icon, sort_order, is_visible, is_featured, category_prices_json
         )
         VALUES (
           ${item.id}, ${item.title}, ${slugifyBookingSetup(item.id)},
           ${item.description}, ${item.description}, 0,
           ${item.estimatedMinutes}, ${item.badge}, ${index}, true,
-          ${item.id === "whole"}
+          ${item.id === "whole"}, ${sql.json(item.categoryPrices ?? {})}
         )
         ON CONFLICT (id) DO NOTHING;
       `;
@@ -740,17 +747,25 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
   const firstOpen = openHours[0];
   const workingDays = Array.from(new Set(openHours.map((item) => item.weekday)));
   const catalog: ServiceCatalog = {
-    packages: (visibleServices.length > 0 ? visibleServices : data.services).map((item) => ({
-      id: item.id,
-      title: item.name,
-      description: item.shortDescription || item.description,
-      duration: `${item.durationMinutes} min.`,
-      estimatedMinutes: item.durationMinutes,
-      badge: item.isFeatured ? "Featured" : item.icon || "",
-      price: item.priceDkk,
-      imageUrl: item.imageUrl,
-      isFeatured: item.isFeatured,
-    })),
+    packages: (visibleServices.length > 0 ? visibleServices : data.services).map((item) => {
+      const defaultPkg = defaultServiceCatalog.packages.find((p) => p.id === item.id);
+      const categoryPrices =
+        Object.keys(item.categoryPrices).length > 0
+          ? item.categoryPrices
+          : (defaultPkg?.categoryPrices ?? {});
+      return {
+        id: item.id,
+        title: item.name,
+        description: item.shortDescription || item.description,
+        duration: `${item.durationMinutes} min.`,
+        estimatedMinutes: item.durationMinutes,
+        badge: item.isFeatured ? "Featured" : item.icon || "",
+        price: item.priceDkk,
+        imageUrl: item.imageUrl,
+        isFeatured: item.isFeatured,
+        categoryPrices: Object.keys(categoryPrices).length > 0 ? categoryPrices : undefined,
+      };
+    }),
     vehicleCategories:
       vehicleCategories.length > 0 ? vehicleCategories : defaultBookingSettings.catalog.vehicleCategories,
     interiorAddOns: visibleAddons.filter((item) => item.addonCategory === "interior").map(toAddon),
@@ -864,7 +879,16 @@ export const calculateBookingPriceFromSetup = async (input: {
       label: item.label,
       price: Number(item.price || 0),
     }));
-  const basePrice = Number(pkg?.price || 0) > 0 ? Number(pkg.price) : Number(category?.price || 0);
+  const catSpecificPrice =
+    pkg?.categoryPrices && category?.id != null
+      ? (pkg.categoryPrices[category.id] ?? pkg.categoryPrices[category.label])
+      : undefined;
+  const basePrice =
+    catSpecificPrice != null
+      ? Number(catSpecificPrice)
+      : Number(pkg?.price || 0) > 0
+        ? Number(pkg.price)
+        : Number(category?.price || 0);
   const addonsTotal = selectedAddons.reduce((sum, item) => sum + Number(item.price || 0), 0);
   const matchedArea = findMatchingServiceArea(input.postalCode, settings.serviceAreas);
   const travelSurcharge = Number(matchedArea?.surcharge || 0);
@@ -911,22 +935,24 @@ export const upsertBookingGeneralSettings = async (input: Partial<BookingGeneral
 };
 
 export const saveBookingService = async (
-  input: Partial<BookingSetupService> & { id?: string; name: string }
+  input: Partial<BookingSetupService> & { id?: string; name: string; categoryPrices?: Record<string, number> }
 ) => {
   await ensureBookingSetupSeeded();
   const sql = getSql();
   const id = input.id || createId("bsv");
+  const categoryPrices = input.categoryPrices ?? {};
   await sql`
     INSERT INTO booking_services (
       id, name, slug, short_description, description, price_dkk, duration_minutes,
-      image_url, icon, sort_order, is_visible, is_featured
+      image_url, icon, sort_order, is_visible, is_featured, category_prices_json
     )
     VALUES (
       ${id}, ${input.name}, ${input.slug || uniqueSlug(input.name)},
       ${input.shortDescription || ""}, ${input.description || ""},
       ${Number(input.priceDkk || 0)}, ${Number(input.durationMinutes || 60)},
       ${input.imageUrl || ""}, ${input.icon || ""}, ${Number(input.sortOrder || 0)},
-      ${input.isVisible !== false}, ${Boolean(input.isFeatured)}
+      ${input.isVisible !== false}, ${Boolean(input.isFeatured)},
+      ${sql.json(categoryPrices)}
     )
     ON CONFLICT (id)
     DO UPDATE SET
@@ -939,6 +965,7 @@ export const saveBookingService = async (
       sort_order = EXCLUDED.sort_order,
       is_visible = EXCLUDED.is_visible,
       is_featured = EXCLUDED.is_featured,
+      category_prices_json = EXCLUDED.category_prices_json,
       updated_at = NOW();
   `;
   return id;

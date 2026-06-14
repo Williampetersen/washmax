@@ -569,6 +569,11 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
       `;
 
       await sql`
+        ALTER TABLE booking_services
+          ADD COLUMN IF NOT EXISTS category_prices_json JSONB;
+      `;
+
+      await sql`
         CREATE TABLE IF NOT EXISTS booking_addons (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,

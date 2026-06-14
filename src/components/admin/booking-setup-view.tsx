@@ -119,7 +119,12 @@ export function BookingSetupView({
             description="Vises i den offentlige booking, når synlige."
             action={<CreateInlineButton label="Tilføj ydelse" formId="create-service-form" />}
           >
-            <ServicesList services={data.services} />
+            <ServicesList
+              services={data.services}
+              vehicleCategories={(
+                data.optionGroups.find((g) => g.slug === "vehicle-category")?.options || []
+              ).map((o) => ({ id: o.id, label: o.label, price: o.priceAdjustmentDkk }))}
+            />
             <div className="mt-4 rounded-2xl border border-dashed border-[#DCEEF2] bg-white/50 p-4">
               <p className="mb-3 text-[12px] font-semibold uppercase tracking-[0.14em] text-[#00A7B8]">
                 Ny ydelse
@@ -229,7 +234,15 @@ export function BookingSetupView({
 
 /* ─────────────────────────── Services accordion ─────────────────────────── */
 
-function ServicesList({ services }: { services: BookingSetupService[] }) {
+type VehicleCatEntry = { id: string; label: string; price: number };
+
+function ServicesList({
+  services,
+  vehicleCategories,
+}: {
+  services: BookingSetupService[];
+  vehicleCategories: VehicleCatEntry[];
+}) {
   const [openId, setOpenId] = useState<string | null>(null);
   if (services.length === 0) {
     return (
@@ -242,6 +255,7 @@ function ServicesList({ services }: { services: BookingSetupService[] }) {
         <ServiceItem
           key={service.id}
           service={service}
+          vehicleCategories={vehicleCategories}
           isOpen={openId === service.id}
           onToggle={() => setOpenId(openId === service.id ? null : service.id)}
         />
@@ -252,10 +266,12 @@ function ServicesList({ services }: { services: BookingSetupService[] }) {
 
 function ServiceItem({
   service,
+  vehicleCategories,
   isOpen,
   onToggle,
 }: {
   service: BookingSetupService;
+  vehicleCategories: VehicleCatEntry[];
   isOpen: boolean;
   onToggle: () => void;
 }) {
@@ -331,6 +347,29 @@ function ServiceItem({
               <Field label="Fuld beskrivelse">
                 <Textarea name="description" defaultValue={service.description} className="min-h-[5rem]" />
               </Field>
+              {vehicleCategories.length > 0 && (
+                <div>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#6B7280]">
+                    Prismatrix — pris pr. bilkategori (DKK)
+                  </p>
+                  <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                    {vehicleCategories.map((cat) => (
+                      <Field key={cat.id} label={cat.label}>
+                        <Input
+                          type="number"
+                          name={`cat_price_${cat.id}`}
+                          defaultValue={service.categoryPrices?.[cat.id] ?? ""}
+                          placeholder={String(cat.price)}
+                          min="0"
+                        />
+                      </Field>
+                    ))}
+                  </div>
+                  <p className="mt-1 text-[11px] text-[#6B7280]">
+                    Tomme felter arver kategoriens standardpris. Efterlad felter tomme for at deaktivere pakken for den kategori.
+                  </p>
+                </div>
+              )}
               <div className="flex flex-wrap items-center gap-3">
                 <label className="flex items-center gap-2 text-[12px] font-semibold">
                   <input type="checkbox" name="is_visible" defaultChecked={service.isVisible} /> Synlig
