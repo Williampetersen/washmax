@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
-const TITLE_WORDS = "Så nemt booker du din bilvask".split(" ");
 
 /* ─────────────────────────────────────────────────────────
    STEP 1 — Service picker with animated cursor
@@ -350,27 +349,6 @@ export function BookingStepsInfographic() {
         >
           3 nemme trin
         </span>
-        <h2
-          id="steps-title"
-          className="mt-4 font-display text-4xl font-semibold leading-none tracking-tight text-[var(--ink)] sm:text-5xl"
-          aria-label="Så nemt booker du din bilvask"
-        >
-          {TITLE_WORDS.map((word, i) => (
-            <span
-              key={i}
-              className="inline-block"
-              style={{
-                opacity: inView ? undefined : 0,
-                animation: inView
-                  ? `word-fade-up 0.55s cubic-bezier(0.22,1,0.36,1) both ${i * 65 + 150}ms`
-                  : "none",
-              }}
-            >
-              {word}
-              {i < TITLE_WORDS.length - 1 ? " " : ""}
-            </span>
-          ))}
-        </h2>
       </div>
 
       {/* ── Cards ── */}
