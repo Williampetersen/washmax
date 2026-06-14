@@ -78,6 +78,27 @@
   }
 }
 
+@keyframes word-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes step-blob-in {
+  from { opacity: 0; transform: scale(0.4); }
+  65%  { transform: scale(1.08); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes step-card-in {
+  from { opacity: 0; transform: translateY(22px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0);   }
+}
+
+@keyframes blob-float {
+  0%, 100% { transform: translateY(0);    }
+  50%      { transform: translateY(-9px); }
+}
+
 @keyframes addon-shine {
   0%   { transform: translateX(-130%) skewX(-20deg); opacity: 0; }
   4%   { opacity: 1; }

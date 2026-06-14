@@ -12,7 +12,7 @@ import {
   Star,
 } from "lucide-react";
 import { HomePlateForm } from "@/components/home-plate-form";
-import { BookingSteps } from "@/components/sections/BookingSteps";
+import { BookingStepsInfographic } from "@/components/BookingStepsInfographic";
 import { TypewriterCity } from "@/components/ui/TypewriterCity";
 import { JsonLd } from "@/components/seo/json-ld";
 import { siteConfig } from "@/lib/site";
@@ -266,7 +266,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <BookingSteps />
+      <BookingStepsInfographic />
 
       <section className="mx-auto mt-12 max-w-7xl">
         <div className="grid gap-3 rounded-2xl border border-white/70 bg-white/90 p-4 shadow-[0_24px_70px_rgba(11,31,58,0.12)] backdrop-blur sm:grid-cols-2 lg:grid-cols-5">
