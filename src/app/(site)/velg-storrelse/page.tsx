@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Clock3 } from "lucide-react";
 import { getBookingSettingsFromSetup } from "@/lib/server/booking-setup";
@@ -20,12 +21,14 @@ export const metadata: Metadata = {
   robots: { index: true, follow: true },
 };
 
+const CATEGORY_ORDER = ["small", "medium", "large", "van"] as const;
+
 const categoryMeta: Record<
   string,
   {
     examples: string;
     minMinutes: number;
-    svgPath: string;
+    imageSrc: string;
     color: string;
     bg: string;
     badge: string;
@@ -34,8 +37,7 @@ const categoryMeta: Record<
   small: {
     examples: "Polo · Yaris · Fiesta · 208 · Up · Aygo",
     minMinutes: 50,
-    svgPath:
-      "M3 14h18M5 14l2-5h10l2 5M7 14v3m10-3v3M6 9l1.5-3h9L18 9",
+    imageSrc: "/bilsize/lille.png",
     color: "text-[#1D4ED8]",
     bg: "bg-[#EFF6FF]",
     badge: "bg-[#DBEAFE] text-[#1D4ED8]",
@@ -43,8 +45,7 @@ const categoryMeta: Record<
   medium: {
     examples: "Golf · Focus · Octavia · A4 · 3-serie · Corolla",
     minMinutes: 65,
-    svgPath:
-      "M2 14h20M4 14l2-6h12l2 6M7 14v3m10-3v3M5 8l2-3h10l2 3",
+    imageSrc: "/bilsize/mellembil.png",
     color: "text-[#047857]",
     bg: "bg-[#ECFDF5]",
     badge: "bg-[#D1FAE5] text-[#047857]",
@@ -52,8 +53,7 @@ const categoryMeta: Record<
   large: {
     examples: "Passat · Touareg · Q5 · X5 · Tiguan · Kodiaq",
     minMinutes: 75,
-    svgPath:
-      "M2 15h20M3 15l2-7h14l2 7M7 15v3m10-3v3M4 8l3-4h10l3 4",
+    imageSrc: "/bilsize/storbil.png",
     color: "text-[#9333EA]",
     bg: "bg-[#F5F3FF]",
     badge: "bg-[#EDE9FE] text-[#7C3AED]",
@@ -61,8 +61,7 @@ const categoryMeta: Record<
   van: {
     examples: "Transit · Sprinter · Ducato · Master · Daily",
     minMinutes: 90,
-    svgPath:
-      "M2 15h20M3 15V8h14l3 7M7 15v3m10-3v3M3 8h14M3 8V6h11l3 2",
+    imageSrc: "/bilsize/varevogn.png",
     color: "text-[#B45309]",
     bg: "bg-[#FFFBEB]",
     badge: "bg-[#FEF3C7] text-[#92400E]",
@@ -71,17 +70,19 @@ const categoryMeta: Record<
 
 export default async function VelgStorrelse() {
   const settings = await getBookingSettingsFromSetup();
-  const categories = settings.catalog.vehicleCategories;
   const packages = settings.catalog.packages;
 
+  const sortedCategories = [...settings.catalog.vehicleCategories].sort(
+    (a, b) => CATEGORY_ORDER.indexOf(a.id as typeof CATEGORY_ORDER[number]) - CATEGORY_ORDER.indexOf(b.id as typeof CATEGORY_ORDER[number])
+  );
+
   const minPrice = (categoryId: string): number => {
-    const prices = packages
-      .flatMap((pkg) => {
-        const cp = pkg.categoryPrices as Record<string, number> | undefined;
-        const p = cp?.[categoryId];
-        return typeof p === "number" && p > 0 ? [p] : [];
-      });
-    const fallback = categories.find((c) => c.id === categoryId)?.price ?? 0;
+    const prices = packages.flatMap((pkg) => {
+      const cp = pkg.categoryPrices as Record<string, number> | undefined;
+      const p = cp?.[categoryId];
+      return typeof p === "number" && p > 0 ? [p] : [];
+    });
+    const fallback = settings.catalog.vehicleCategories.find((c) => c.id === categoryId)?.price ?? 0;
     return prices.length > 0 ? Math.min(...prices) : fallback;
   };
 
@@ -113,7 +114,7 @@ export default async function VelgStorrelse() {
         "@type": "ItemList",
         name: "Bilstørrelser og priser",
         description: "Oversigt over bilstørrelser og startpriser for bilvask hos Wash Max",
-        itemListElement: categories.map((cat, i) => ({
+        itemListElement: sortedCategories.map((cat, i) => ({
           "@type": "ListItem",
           position: i + 1,
           name: cat.label,
@@ -145,14 +146,11 @@ export default async function VelgStorrelse() {
           <h1 className="mt-4 font-display text-[2.5rem] font-bold leading-tight text-[var(--ink)] sm:text-5xl">
             Vælg din bilstørrelse
           </h1>
-          <p className="mt-4 max-w-lg text-base leading-7 text-[var(--muted)]">
-            Vi prissætter bilvask efter bilens størrelse. Vælg herunder og fortsæt til booking &mdash; du angiver bilmærke og model undervejs.
-          </p>
         </div>
 
         {/* Cards */}
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {categories.map((cat) => {
+        <div className="mt-8 grid gap-4 sm:grid-cols-2">
+          {sortedCategories.map((cat) => {
             const meta = categoryMeta[cat.id];
             if (!meta) return null;
             const fromPrice = minPrice(cat.id);
@@ -161,62 +159,42 @@ export default async function VelgStorrelse() {
               <Link
                 key={cat.id}
                 href={`/booking?category=${cat.id}&manual=true`}
-                className="group relative flex flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white p-6 shadow-[0_8px_32px_rgba(11,31,58,0.06)] transition duration-200 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_20px_48px_rgba(0,167,184,0.13)]"
+                className="group flex flex-col overflow-hidden rounded-3xl border border-[var(--line)] bg-white shadow-[0_8px_32px_rgba(11,31,58,0.06)] transition duration-200 hover:-translate-y-1 hover:border-[var(--brand)] hover:shadow-[0_20px_48px_rgba(0,167,184,0.13)]"
               >
-                {/* Top row: icon + badge */}
-                <div className="flex items-start justify-between gap-3">
-                  {/* Car SVG silhouette */}
-                  <span
-                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl ${meta.bg}`}
-                  >
-                    <svg
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1.8"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className={`h-8 w-8 ${meta.color}`}
-                    >
-                      <path d={meta.svgPath} />
-                      <circle cx="7.5" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
-                      <circle cx="16.5" cy="17.5" r="1.5" fill="currentColor" stroke="none" />
-                    </svg>
-                  </span>
-
+                {/* Image area */}
+                <div className={`relative flex h-44 w-full items-center justify-center ${meta.bg}`}>
+                  <Image
+                    src={meta.imageSrc}
+                    alt={cat.label}
+                    fill
+                    sizes="(min-width: 640px) 50vw, 100vw"
+                    className="object-contain p-6"
+                  />
                   {/* Price badge */}
-                  <span
-                    className={`shrink-0 rounded-full px-3 py-1 text-[11px] font-bold ${meta.badge}`}
-                  >
+                  <span className={`absolute right-4 top-4 rounded-full px-3 py-1 text-[11px] font-bold ${meta.badge}`}>
                     Fra {fmt(fromPrice)}
                   </span>
                 </div>
 
-                {/* Name + description */}
-                <h2 className="mt-5 text-[1.35rem] font-bold text-[var(--ink)]">
-                  {cat.label}
-                </h2>
-                <p className="mt-1.5 text-sm leading-6 text-[var(--muted)]">
-                  {cat.description}
-                </p>
+                {/* Content */}
+                <div className="flex flex-1 flex-col p-6">
+                  <h2 className="text-[1.25rem] font-bold text-[var(--ink)]">{cat.label}</h2>
+                  <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{cat.description}</p>
 
-                {/* Examples */}
-                <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
-                  Fx: {meta.examples}
-                </p>
+                  <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-[#94A3B8]">
+                    Fx: {meta.examples}
+                  </p>
 
-                {/* Bottom row */}
-                <div className="mt-5 flex items-center justify-between border-t border-[var(--line)] pt-4">
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--muted)]">
-                    <Clock3 className="h-3.5 w-3.5" />
-                    Fra {meta.minMinutes} min.
-                  </span>
-                  <span
-                    className={`inline-flex items-center gap-1.5 text-sm font-bold transition-all duration-200 group-hover:gap-2.5 ${meta.color}`}
-                  >
-                    Vælg
-                    <ArrowRight className="h-4 w-4" />
-                  </span>
+                  <div className="mt-auto flex items-center justify-between border-t border-[var(--line)] pt-4 mt-5">
+                    <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--muted)]">
+                      <Clock3 className="h-3.5 w-3.5" />
+                      Fra {meta.minMinutes} min.
+                    </span>
+                    <span className={`inline-flex items-center gap-1.5 text-sm font-bold transition-all duration-200 group-hover:gap-2.5 ${meta.color}`}>
+                      Vælg
+                      <ArrowRight className="h-4 w-4" />
+                    </span>
+                  </div>
                 </div>
               </Link>
             );

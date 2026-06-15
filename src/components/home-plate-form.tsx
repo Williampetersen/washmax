@@ -92,10 +92,11 @@ export function HomePlateForm() {
       ) : null}
 
       <p className="mt-4 text-sm text-[var(--muted)]">
-        Kender du ikke nummerpladen?{" "}
+        Kender du ikke nummerpladen?
+        <br className="sm:hidden" />
         <Link
           href="/velg-storrelse"
-          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline sm:ml-1"
         >
           Vælg bilstørrelse manuelt →
         </Link>
