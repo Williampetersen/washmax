@@ -84,7 +84,7 @@ export function SiteFooter() {
                 <Image src="/payment/visa.png" alt="Visa" width={44} height={28} className="h-7 w-auto object-contain" />
                 <Image src="/payment/Mastercard-logo.svg_.png" alt="Mastercard" width={44} height={28} className="h-7 w-auto object-contain" />
                 <Image src="/payment/dankort.webp" alt="Dankort" width={44} height={28} className="h-7 w-auto object-contain" />
-                <Image src="/payment/mobilepay.webp" alt="MobilePay" width={44} height={28} className="h-7 w-auto object-contain" />
+                <Image src="/payment/mobilepay.jpg" alt="MobilePay" width={44} height={28} className="h-7 w-auto object-contain" />
               </div>
             </div>
           </div>
