@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import { Search } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -38,9 +39,12 @@ export function HomePlateForm() {
 
   return (
     <>
+      <p className="mt-5 text-sm font-semibold text-[var(--muted)]">
+        Indtast din nummerplade og se prisen med det samme
+      </p>
       <form
         onSubmit={handleSubmit}
-        className="mt-7 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-stretch"
+        className="mt-3 flex max-w-2xl flex-col gap-2 sm:flex-row sm:items-stretch"
       >
         <label className="block sm:flex-1">
           <span className="sr-only">Dansk nummerplade</span>
@@ -86,6 +90,16 @@ export function HomePlateForm() {
           {status.message}
         </div>
       ) : null}
+
+      <p className="mt-4 text-sm text-[var(--muted)]">
+        Kender du ikke nummerpladen?{" "}
+        <Link
+          href="/velg-storrelse"
+          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+        >
+          Vælg bilstørrelse manuelt →
+        </Link>
+      </p>
     </>
   );
 }

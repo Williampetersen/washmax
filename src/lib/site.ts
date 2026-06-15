@@ -14,10 +14,10 @@ export const siteConfig = {
 };
 
 export const navItems = [
-  { label: "Services", href: "/#services" },
-  { label: "København", href: "/#koebenhavn" },
-  { label: "Sjælland", href: "/#sjaelland" },
-  { label: "Erhverv", href: "/#erhverv" },
+  { label: "Bilvask", href: "/bilvask-koebenhavn" },
+  { label: "Priser", href: "/#priser" },
+  { label: "Sjælland", href: "/bilvask-sjaelland" },
+  { label: "Erhverv", href: "/erhvervs-bilvask" },
   { label: "Om os", href: "/om-os" },
   { label: "FAQ", href: "/#faq" },
 ] as const;

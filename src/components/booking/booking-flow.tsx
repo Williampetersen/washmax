@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { da } from "date-fns/locale";
@@ -57,6 +58,8 @@ const bookingFormSchema = bookingCustomerSchema.extend({
 
 type BookingFlowProps = {
   initialPlate: string;
+  initialCategory?: string;
+  manualMode?: boolean;
   minDate: string;
   settings: BookingSettings;
   availabilityBlocks: AvailabilityBlock[];
@@ -122,6 +125,28 @@ const createManualVehicle = (plate: string): VehicleLookupResult => ({
   lookupUnavailable: true,
 });
 
+// Maps a category id to a fake VehicleLookupResult so getVehicleCategory() resolves correctly.
+const categoryWeights: Record<string, { type: string | null; weight: number }> = {
+  van:    { type: "varebil", weight: 3000 },
+  large:  { type: null,      weight: 2200 },
+  medium: { type: null,      weight: 1500 },
+  small:  { type: null,      weight: 1000 },
+};
+const createCategoryVehicle = (categoryId: string): VehicleLookupResult => {
+  const spec = categoryWeights[categoryId] ?? categoryWeights.small!;
+  return {
+    registration_number: "",
+    make: null,
+    model: null,
+    model_year: null,
+    color: null,
+    type: spec.type,
+    total_weight: spec.weight,
+    chassis_type: null,
+    lookupUnavailable: true,
+  };
+};
+
 const createIdempotencyKey = (input: {
   plate: string;
   email: string;
@@ -151,7 +176,7 @@ const findFirstBookableDate = (
 };
 
 
-export function BookingFlow({ initialPlate, minDate, settings, availabilityBlocks }: BookingFlowProps) {
+export function BookingFlow({ initialPlate, initialCategory, manualMode = false, minDate, settings, availabilityBlocks }: BookingFlowProps) {
   const initialBookableDate = useMemo(
     () => findFirstBookableDate(minDate, settings, availabilityBlocks),
     [availabilityBlocks, minDate, settings]
@@ -159,7 +184,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
   const [plate, setPlate] = useState(initialPlate);
   const [lookupStatus, setLookupStatus] = useState<LookupStatus | null>(null);
-  const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(null);
+  const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(() =>
+    manualMode && initialCategory ? createCategoryVehicle(initialCategory) : null
+  );
+  const [manualVehicleName, setManualVehicleName] = useState("");
   const [activePackage, setActivePackage] = useState(settings.catalog.packages[0]?.id || "");
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [secondVehicle, setSecondVehicle] = useState<VehicleLookupResult | null>(null);
@@ -575,11 +603,12 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   }, []);
 
   useEffect(() => {
+    if (manualMode) return;
     const normalizedPlate = sanitizePlate(initialPlate);
     if (!normalizedPlate) return;
     if (latestLookupPlateRef.current === normalizedPlate && lookupControllerRef.current && !lookupControllerRef.current.signal.aborted) return;
     void lookupVehicle(initialPlate);
-  }, [initialPlate, lookupVehicle]);
+  }, [initialPlate, lookupVehicle, manualMode]);
 
   useEffect(
     () => () => {
@@ -734,6 +763,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       setFormError("Vi mangler stadig biloplysninger for at oprette bookingen.");
       return;
     }
+    if (manualMode && !manualVehicleName.trim()) {
+      setFormError("Angiv bilens mærke og model for at fortsætte.");
+      return;
+    }
     if (hasSecondCar && (!secondVehicle || !secondPackageData || !secondCategory)) {
       setFormError("Vælg bilvask til bil 2, før du fortsætter til bekræftelse.");
       setActiveVehicleIndex(1);
@@ -759,9 +792,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           method: "POST",
           headers: { "content-type": "application/json", accept: "application/json" },
           body: JSON.stringify({
-            plate,
-            registrationNumber: vehicle.registration_number,
-            vehicleName,
+            plate: manualMode ? "" : plate,
+            registrationNumber: manualMode ? "" : vehicle.registration_number,
+            vehicleName: manualMode && manualVehicleName.trim() ? manualVehicleName.trim() : vehicleName,
             vehicleYear: vehicle.model_year,
             vehicleType: vehicle.type || "",
             category: category.label,
@@ -775,9 +808,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             couponCode: appliedCoupon?.code || "",
             vehicles: bookingVehicles.map((item) => ({
               id: item.id,
-              plate: item.plate,
-              registrationNumber: item.vehicle.registration_number || item.plate,
-              vehicleName: item.vehicleName,
+              plate: manualMode && item.id === "car-1" ? "" : item.plate,
+              registrationNumber: manualMode && item.id === "car-1" ? "" : (item.vehicle.registration_number || item.plate),
+              vehicleName: manualMode && item.id === "car-1" && manualVehicleName.trim() ? manualVehicleName.trim() : item.vehicleName,
               vehicleYear: item.vehicle.model_year,
               vehicleType: item.vehicle.type || "",
               category: item.category.label,
@@ -910,7 +943,29 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   }
 
   // ── Lookup card ──────────────────────────────────────────────────
-  const lookupCard = (
+  const lookupCard = manualMode ? (
+    <Card className="p-5 sm:p-7">
+      <p className="text-sm font-semibold uppercase text-[#6b7780]">Booking</p>
+      <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
+        {category?.label ?? "Din bil"}
+      </h1>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
+        Du har valgt bilstørrelse manuelt. Vælg pakke og tilvalg herunder, og angiv bilmærke og model under &ldquo;Dine oplysninger&rdquo;.
+      </p>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[#f6fbfc] px-4 py-2.5 text-sm font-semibold text-[var(--ink)]">
+          <Car className="h-4 w-4 text-[var(--brand)]" />
+          {category?.label ?? "Bilstørrelse"}
+        </span>
+        <Link
+          href="/velg-storrelse"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--brand)]"
+        >
+          ← Skift bilstørrelse
+        </Link>
+      </div>
+    </Card>
+  ) : (
     <Card className="p-5 sm:p-7">
       <p className="text-sm font-semibold uppercase text-[#6b7780]">Booking</p>
       <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">Sla nummerplade op</h1>
@@ -964,8 +1019,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     Du vælger service til: {activeVehicleLabel}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {activeSelectionVehicleName} · {activeSelectionVehicle?.registration_number || "-"}
-                    {hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}
+                    {manualMode
+                      ? `${activeSelectionCategory?.label ?? "Størrelse valgt manuelt"} · Mærke og model angives under "Dine oplysninger"`
+                      : `${activeSelectionVehicleName} · ${activeSelectionVehicle?.registration_number || "-"}${hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}`}
                   </p>
                 </div>
               </div>
@@ -994,9 +1050,18 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     <LoaderCircle className="h-4 w-4 animate-spin" /> Tjekker...
                   </span>
                 ) : null}
-                <button type="button" onClick={handleChangeVehicle} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9] hover:text-[var(--ink)]">
-                  <RotateCcw className="h-4 w-4" /> Skift bil
-                </button>
+                {manualMode ? (
+                  <Link
+                    href="/velg-storrelse"
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9] hover:text-[var(--ink)]"
+                  >
+                    <RotateCcw className="h-4 w-4" /> Skift størrelse
+                  </Link>
+                ) : (
+                  <button type="button" onClick={handleChangeVehicle} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9] hover:text-[var(--ink)]">
+                    <RotateCcw className="h-4 w-4" /> Skift bil
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1286,6 +1351,30 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       Erhverv
                     </button>
                   </div>
+                  {manualMode && (
+                    <div className="rounded-2xl border border-[#00A7B8]/25 bg-[#eefbfc] px-4 py-4">
+                      <p className="flex items-center gap-2 text-sm font-bold text-[var(--ink)]">
+                        <Car className="h-4 w-4 text-[var(--brand)]" />
+                        Bilmærke og model
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        Angiv bilens mærke og model, så vi er forberedt til vask.
+                      </p>
+                      <Input
+                        className="mt-3"
+                        placeholder="Fx Toyota Yaris, VW Golf, BMW 3-serie…"
+                        value={manualVehicleName}
+                        onChange={(e) => setManualVehicleName(e.target.value)}
+                        required
+                      />
+                      {!manualVehicleName.trim() && (
+                        <p className="mt-1.5 text-xs font-medium text-[#B45309]">
+                          Dette felt er påkrævet
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field label="Fornavn" error={form.formState.errors.firstName?.message}><Input {...form.register("firstName")} placeholder="Fornavn" /></Field>
                     <Field label="Efternavn" error={form.formState.errors.lastName?.message}><Input {...form.register("lastName")} placeholder="Efternavn" /></Field>

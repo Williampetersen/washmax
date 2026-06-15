@@ -65,15 +65,15 @@ const commonRelatedLinks = [
 export const seoPages: SeoPageConfig[] = [
   {
     slug: "bilvask-koebenhavn",
-    title: "Bilvask København | Professionel bilvask hos Clean Wash",
+    title: "Bilvask København | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask i København hos Clean Wash. Få fleksibel bilpleje, indvendig og udvendig vask samt nem online booking.",
+      "Book professionel bilvask i København hos Wash Max. Få fleksibel bilpleje, indvendig og udvendig vask samt nem online booking.",
     h1: "Bilvask København",
     eyebrow: "Professionel bilvask i København",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i København med online booking, klare servicevalg og bilpleje til både private og erhverv.",
+      "Wash Max tilbyder professionel bilvask i København med online booking, klare servicevalg og bilpleje til både private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder professionel bilvask i København med online booking.",
+      "Wash Max tilbyder professionel bilvask i København med online booking.",
       "Kunder kan booke bilvask direkte via booking-siden og vælge indvendig, udvendig eller komplet bilpleje.",
       "Servicen er relevant for bilejere i København, Frederiksberg, Amager, brokvartererne og Storkøbenhavn.",
     ],
@@ -100,7 +100,7 @@ export const seoPages: SeoPageConfig[] = [
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
     image: {
       src: "/service/helebil.jpg",
-      alt: "Professionel bilvask i København udført af Clean Wash",
+      alt: "Professionel bilvask i København udført af Wash Max",
     },
     secondaryCta: {
       label: "Se mobil bilvask",
@@ -113,7 +113,7 @@ export const seoPages: SeoPageConfig[] = [
       },
       {
         title: "Indvendig og udvendig vask",
-        text: "Clean Wash hjælper med både kabine, ruder, fælge, lak og den komplette bilvask.",
+        text: "Wash Max hjælper med både kabine, ruder, fælge, lak og den komplette bilvask.",
       },
       {
         title: "Lokal forståelse",
@@ -134,7 +134,7 @@ export const seoPages: SeoPageConfig[] = [
         text: "Udfyld nummerplade, kontaktoplysninger og ønsket tidspunkt, så bookingen kan planlægges.",
       },
       {
-        title: "Clean Wash klargør opgaven",
+        title: "Wash Max klargør opgaven",
         text: "Teamet forbereder service, udstyr og rute ud fra den valgte løsning.",
       },
       {
@@ -146,21 +146,21 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "Bilvask i København for en travl hverdag",
         paragraphs: [
-          "Når du søger efter bilvask København, leder du ofte efter mere end en hurtig tur gennem vaskehallen. Du vil have en løsning, der passer ind i hverdagen, giver et ordentligt resultat og gør det nemt at få bilen ren, når kalenderen allerede er fyldt. Clean Wash arbejder med professionel bilvask, bilrengøring og bilpleje til kunder i København og nærliggende områder.",
-          "Siden her er lavet til bilejere, der vil forstå, hvad Clean Wash tilbyder, hvordan booking fungerer, og hvilke typer opgaver der kan løses. Clean Wash tilbyder både indvendig rengøring, udvendig bilvask og samlet bilpleje. Det betyder, at du kan vælge en løsning efter bilens behov i stedet for at gætte dig frem.",
+          "Når du søger efter bilvask København, leder du ofte efter mere end en hurtig tur gennem vaskehallen. Du vil have en løsning, der passer ind i hverdagen, giver et ordentligt resultat og gør det nemt at få bilen ren, når kalenderen allerede er fyldt. Wash Max arbejder med professionel bilvask, bilrengøring og bilpleje til kunder i København og nærliggende områder.",
+          "Siden her er lavet til bilejere, der vil forstå, hvad Wash Max tilbyder, hvordan booking fungerer, og hvilke typer opgaver der kan løses. Wash Max tilbyder både indvendig rengøring, udvendig bilvask og samlet bilpleje. Det betyder, at du kan vælge en løsning efter bilens behov i stedet for at gætte dig frem.",
         ],
       },
       {
-        heading: "Hvad er professionel bilvask hos Clean Wash?",
+        heading: "Hvad er professionel bilvask hos Wash Max?",
         paragraphs: [
           "En professionel bilvask handler om at få bilen ren på en kontrolleret og skånsom måde. Det kan være vask af lak, fælge, ruder og udvendige flader, men det kan også være støvsugning, aftørring, måtter og kabinepleje. For mange kunder i København er den bedste løsning en kombination, fordi bilen både samler vejsnavs udenpå og støv, sand, kaffepletter eller børnespor indeni.",
-          "Clean Wash beskriver ydelserne tydeligt i bookingflowet, så du kan vælge ud fra bilens stand og dit behov. Har bilen mest brug for en hurtig opfriskning, kan en udvendig vask være nok. Er bilen brugt dagligt af familie, pendler eller erhverv, giver komplet bilvask ofte bedre mening.",
+          "Wash Max beskriver ydelserne tydeligt i bookingflowet, så du kan vælge ud fra bilens stand og dit behov. Har bilen mest brug for en hurtig opfriskning, kan en udvendig vask være nok. Er bilen brugt dagligt af familie, pendler eller erhverv, giver komplet bilvask ofte bedre mening.",
         ],
       },
       {
         heading: "Lokale områder i København",
         paragraphs: [
-          "Clean Wash er relevant for kunder i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og Storkøbenhavn. Dækningsområdet kan afhænge af ledige tider, ruteplanlægning og den konkrete adresse, men booking-siden er det bedste sted at starte, fordi den samler oplysningerne ét sted.",
+          "Wash Max er relevant for kunder i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og Storkøbenhavn. Dækningsområdet kan afhænge af ledige tider, ruteplanlægning og den konkrete adresse, men booking-siden er det bedste sted at starte, fordi den samler oplysningerne ét sted.",
           "Hvis du søger efter professionel bilvask nær mig, kan det være nyttigt at tænke i både afstand og fleksibilitet. En god bilvask skal ikke kun ligge tæt på; den skal også kunne bookes nemt, være tydelig om servicen og give et resultat, der passer til bilens brug.",
         ],
       },
@@ -168,15 +168,15 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Hvem passer siden til?",
         paragraphs: [
           "Denne service passer til private bilejere, pendlere, familier, firmabiler og kunder, der vil have bilen til at se præsentabel ud før et møde, en weekendtur eller et salg. Den passer også til dig, der gerne vil undgå at udskyde bilvasken, fordi det kræver transport, kø eller ekstra tid i kalenderen.",
-          "Clean Wash gør bilvask i København konkret: vælg service, book online og få bilen gjort ren med fokus på kvalitet. Kunder kan booke bilvask direkte via booking-siden, og de vigtigste valg bliver samlet i et enkelt flow.",
+          "Wash Max gør bilvask i København konkret: vælg service, book online og få bilen gjort ren med fokus på kvalitet. Kunder kan booke bilvask direkte via booking-siden, og de vigtigste valg bliver samlet i et enkelt flow.",
         ],
       },
     ],
     faqs: [
       {
-        question: "Tilbyder Clean Wash bilvask i København?",
+        question: "Tilbyder Wash Max bilvask i København?",
         answer:
-          "Ja. Clean Wash tilbyder professionel bilvask i København og relevante nærområder med online booking.",
+          "Ja. Wash Max tilbyder professionel bilvask i København og relevante nærområder med online booking.",
       },
       {
         question: "Kan jeg booke både indvendig og udvendig bilvask?",
@@ -194,14 +194,14 @@ export const seoPages: SeoPageConfig[] = [
           "Ja. Professionel bilvask kan være relevant for firmabiler, leasingbiler og biler, der skal fremstå præsentable.",
       },
       {
-        question: "Hvilke områder dækker Clean Wash?",
+        question: "Hvilke områder dækker Wash Max?",
         answer:
-          "Clean Wash dækker København, Storkøbenhavn og dele af Sjælland. Den konkrete mulighed afhænger af booking og rute.",
+          "Wash Max dækker København, Storkøbenhavn og dele af Sjælland. Den konkrete mulighed afhænger af booking og rute.",
       },
       {
         question: "Er siden kun for kunder i København?",
         answer:
-          "Denne side fokuserer på København, men Clean Wash har også en side om bilvask på Sjælland.",
+          "Denne side fokuserer på København, men Wash Max har også en side om bilvask på Sjælland.",
       },
     ],
     relatedLinks: commonRelatedLinks.filter((link) => link.href !== "/bilvask-koebenhavn"),
@@ -211,13 +211,13 @@ export const seoPages: SeoPageConfig[] = [
     slug: "mobil-bilvask-koebenhavn",
     title: "Mobil bilvask København | Bilvask der passer ind i din hverdag",
     description:
-      "Book mobil bilvask i København hos Clean Wash. Fleksibel booking, professionel bilrengøring og bilpleje, når hverdagen skal hænge sammen.",
+      "Book mobil bilvask i København hos Wash Max. Fleksibel booking, professionel bilrengøring og bilpleje, når hverdagen skal hænge sammen.",
     h1: "Mobil bilvask København",
     eyebrow: "Fleksibel bilvask i København",
     heroIntro:
-      "Clean Wash gør det lettere at planlægge bilvask i København med fleksibel booking og professionel bilrengøring til hverdagsbiler.",
+      "Wash Max gør det lettere at planlægge bilvask i København med fleksibel booking og professionel bilrengøring til hverdagsbiler.",
     shortSummary: [
-      "Clean Wash tilbyder mobil bilvask i København med online booking.",
+      "Wash Max tilbyder mobil bilvask i København med online booking.",
       "Kunder kan booke bilvask direkte via booking-siden og vælge den service, der passer til bilen.",
       "Serviceområdet og den præcise mulighed for hjemme- eller arbejdspladsservice bør bekræftes i bookingflowet.",
     ],
@@ -277,53 +277,53 @@ export const seoPages: SeoPageConfig[] = [
       },
       {
         title: "Vælg tidspunkt",
-        text: "Vælg en ledig tid, der passer med din hverdag og Clean Washs ruteplanlægning.",
+        text: "Vælg en ledig tid, der passer med din hverdag og Wash Maxs ruteplanlægning.",
       },
       {
         title: "Få bilen rengjort",
-        text: "Clean Wash udfører den valgte bilvask med fokus på grundighed og et pænt resultat.",
+        text: "Wash Max udfører den valgte bilvask med fokus på grundighed og et pænt resultat.",
       },
     ],
     sections: [
       {
         heading: "Mobil bilvask uden unødigt besvær",
         paragraphs: [
-          "Mobil bilvask København er relevant for dig, der gerne vil have bilen gjort ren uden at bygge hele dagen op omkring en tur i vaskehallen. Clean Wash tilbyder fleksibel booking af bilvask, bilrengøring og bilpleje, så du kan planlægge opgaven digitalt og vælge den service, bilen har brug for.",
-          "Det vigtigste er, at servicen er tydelig. Mobil bilvask kan betyde forskellige ting fra virksomhed til virksomhed, og derfor lover denne side ikke mere, end der kan bekræftes i den konkrete booking. Clean Wash beskriver mulighederne i bookingflowet, og serviceområde, adresse og tidspunkt skal altid passe med den aktuelle planlægning. TODO: Bekræft og opdater præcis formulering, hvis virksomheden har faste regler for hjemme- eller arbejdspladsservice.",
+          "Mobil bilvask København er relevant for dig, der gerne vil have bilen gjort ren uden at bygge hele dagen op omkring en tur i vaskehallen. Wash Max tilbyder fleksibel booking af bilvask, bilrengøring og bilpleje, så du kan planlægge opgaven digitalt og vælge den service, bilen har brug for.",
+          "Det vigtigste er, at servicen er tydelig. Mobil bilvask kan betyde forskellige ting fra virksomhed til virksomhed, og derfor lover denne side ikke mere, end der kan bekræftes i den konkrete booking. Wash Max beskriver mulighederne i bookingflowet, og serviceområde, adresse og tidspunkt skal altid passe med den aktuelle planlægning. TODO: Bekræft og opdater præcis formulering, hvis virksomheden har faste regler for hjemme- eller arbejdspladsservice.",
         ],
       },
       {
         heading: "For kunder der vil spare tid",
         paragraphs: [
           "I København er bilen ofte bare ét element i en travl dag. Der er arbejde, aflevering, møder, parkering, indkøb og fritid. Derfor er fleksibel bilrengøring en fordel, fordi du kan tage stilling til bilens behov online og undgå at stå med valget først, når du er fremme ved en vaskehal.",
-          "Clean Wash hjælper med både udvendig vask og indvendig rengøring. Udvendigt kan bilen have brug for vask af lak, fælge og ruder. Indvendigt kan der være støv, sand, madrester, hundehår, kaffemærker eller almindeligt slid fra daglig brug. En mobil løsning giver især mening, når bilen bruges ofte og hurtigt bliver beskidt igen.",
+          "Wash Max hjælper med både udvendig vask og indvendig rengøring. Udvendigt kan bilen have brug for vask af lak, fælge og ruder. Indvendigt kan der være støv, sand, madrester, hundehår, kaffemærker eller almindeligt slid fra daglig brug. En mobil løsning giver især mening, når bilen bruges ofte og hurtigt bliver beskidt igen.",
         ],
       },
       {
         heading: "Bilvask hjemme, på arbejdsplads eller efter aftale",
         paragraphs: [
-          "Mange søger efter bilvask hjemme eller bilvask på arbejdsplads, fordi de vil undgå ekstra transport. Clean Wash arbejder med fleksibel booking, men den konkrete adresse, adgangsforhold og dækningsområde skal kunne bekræftes. Det er vigtigt for både kvalitet, planlægning og et realistisk kundeforløb.",
-          "Hvis du ønsker mobil bilvask i København, er den bedste næste handling at starte på booking-siden. Her kan Clean Wash indsamle de nødvendige oplysninger og vurdere, hvilken løsning der passer. Det gør processen mere præcis end en løs forespørgsel og hjælper både kunden og virksomheden med at undgå misforståelser.",
+          "Mange søger efter bilvask hjemme eller bilvask på arbejdsplads, fordi de vil undgå ekstra transport. Wash Max arbejder med fleksibel booking, men den konkrete adresse, adgangsforhold og dækningsområde skal kunne bekræftes. Det er vigtigt for både kvalitet, planlægning og et realistisk kundeforløb.",
+          "Hvis du ønsker mobil bilvask i København, er den bedste næste handling at starte på booking-siden. Her kan Wash Max indsamle de nødvendige oplysninger og vurdere, hvilken løsning der passer. Det gør processen mere præcis end en løs forespørgsel og hjælper både kunden og virksomheden med at undgå misforståelser.",
         ],
       },
       {
         heading: "Mobil bilpleje til private og erhverv",
         paragraphs: [
           "Mobil bilpleje er ikke kun for private bilejere. Den kan også være relevant for virksomheder med firmabiler, sælgere, servicebiler, leasingbiler eller biler, der skal være præsentable over for kunder. En ren bil sender et bedre signal og kan samtidig gøre hverdagen mere behagelig for den person, der kører i bilen.",
-          "Clean Wash tilbyder professionel bilvask i København med fokus på nem booking, realistisk planlægning og klare servicevalg. Kunder kan booke bilvask direkte via booking-siden, og siden her forklarer, hvordan mobil bilvask passer ind i hverdagen.",
+          "Wash Max tilbyder professionel bilvask i København med fokus på nem booking, realistisk planlægning og klare servicevalg. Kunder kan booke bilvask direkte via booking-siden, og siden her forklarer, hvordan mobil bilvask passer ind i hverdagen.",
         ],
       },
     ],
     faqs: [
       {
-        question: "Hvad betyder mobil bilvask hos Clean Wash?",
+        question: "Hvad betyder mobil bilvask hos Wash Max?",
         answer:
           "Det betyder fleksibel booking af bilvask i København. Den konkrete adresse og serviceform skal bekræftes i bookingflowet.",
       },
       {
-        question: "Tilbyder Clean Wash bilvask hjemme?",
+        question: "Tilbyder Wash Max bilvask hjemme?",
         answer:
-          "Clean Wash arbejder med fleksibel booking. Mulighed for hjemmeadresse afhænger af område, adgang og ledige tider.",
+          "Wash Max arbejder med fleksibel booking. Mulighed for hjemmeadresse afhænger af område, adgang og ledige tider.",
       },
       {
         question: "Kan jeg booke bilvask på arbejdspladsen?",
@@ -336,9 +336,9 @@ export const seoPages: SeoPageConfig[] = [
           "Du kan vælge service efter behov, typisk udvendig vask, indvendig rengøring eller komplet bilpleje.",
       },
       {
-        question: "Dækker Clean Wash hele København?",
+        question: "Dækker Wash Max hele København?",
         answer:
-          "Clean Wash er relevant for København og Storkøbenhavn, men konkret dækning afhænger af booking og rute.",
+          "Wash Max er relevant for København og Storkøbenhavn, men konkret dækning afhænger af booking og rute.",
       },
       {
         question: "Hvordan booker jeg mobil bilvask?",
@@ -353,13 +353,13 @@ export const seoPages: SeoPageConfig[] = [
     slug: "bilvask-sjaelland",
     title: "Bilvask Sjælland | Professionel bilrengøring på Sjælland",
     description:
-      "Få professionel bilvask på Sjælland hos Clean Wash. Book bilrengøring og bilpleje online i København, Storkøbenhavn og nærliggende byer.",
+      "Få professionel bilvask på Sjælland hos Wash Max. Book bilrengøring og bilpleje online i København, Storkøbenhavn og nærliggende byer.",
     h1: "Bilvask Sjælland",
     eyebrow: "Bilrengøring på Sjælland",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask og bilrengøring på Sjælland med online booking og løsninger til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask og bilrengøring på Sjælland med online booking og løsninger til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask på Sjælland med fokus på København, Storkøbenhavn og relevante nærområder.",
+      "Wash Max tilbyder bilvask på Sjælland med fokus på København, Storkøbenhavn og relevante nærområder.",
       "Kunder kan booke bilvask direkte via booking-siden.",
       "Servicen omfatter bilvask, bilrengøring og bilpleje til biler, der bruges i hverdagen.",
     ],
@@ -387,7 +387,7 @@ export const seoPages: SeoPageConfig[] = [
     schemaAreaServed: ["Sjælland", "Zealand", "København", "Copenhagen", "Denmark"],
     image: {
       src: "/service/helebil.jpg",
-      alt: "Bilvask og bilrengøring på Sjælland hos Clean Wash",
+      alt: "Bilvask og bilrengøring på Sjælland hos Wash Max",
     },
     secondaryCta: {
       label: "Se bilvask i København",
@@ -396,7 +396,7 @@ export const seoPages: SeoPageConfig[] = [
     benefits: [
       {
         title: "Regional dækning",
-        text: "Clean Wash hjælper kunder i København, Storkøbenhavn og dele af Sjælland efter aftale og booking.",
+        text: "Wash Max hjælper kunder i København, Storkøbenhavn og dele af Sjælland efter aftale og booking.",
       },
       {
         title: "Til flere biltyper",
@@ -426,44 +426,44 @@ export const seoPages: SeoPageConfig[] = [
       },
       {
         title: "Få professionel bilrengøring",
-        text: "Clean Wash udfører den valgte service med fokus på kvalitet og finish.",
+        text: "Wash Max udfører den valgte service med fokus på kvalitet og finish.",
       },
     ],
     sections: [
       {
         heading: "Bilvask på Sjælland med lokal relevans",
         paragraphs: [
-          "Bilvask Sjælland er et bredt behov. Nogle kunder søger bilvask i København, andre søger bilrengøring i Roskilde, Køge, Hillerød, Helsingør eller andre byer på Sjælland. Clean Wash fokuserer på professionel bilvask, bilrengøring og bilpleje, hvor booking, planlægning og serviceområde kan afklares digitalt.",
-          "Denne side samler den regionale information, så både kunder og søgemaskiner forstår, at Clean Wash er en relevant bilvask-virksomhed for Sjælland og især København og Storkøbenhavn. Det er ikke en liste over ubegrænsede garantier; den konkrete service afhænger af område, rute, tidspunkt og bilens behov.",
+          "Bilvask Sjælland er et bredt behov. Nogle kunder søger bilvask i København, andre søger bilrengøring i Roskilde, Køge, Hillerød, Helsingør eller andre byer på Sjælland. Wash Max fokuserer på professionel bilvask, bilrengøring og bilpleje, hvor booking, planlægning og serviceområde kan afklares digitalt.",
+          "Denne side samler den regionale information, så både kunder og søgemaskiner forstår, at Wash Max er en relevant bilvask-virksomhed for Sjælland og især København og Storkøbenhavn. Det er ikke en liste over ubegrænsede garantier; den konkrete service afhænger af område, rute, tidspunkt og bilens behov.",
         ],
       },
       {
         heading: "Hvilke opgaver kan løses?",
         paragraphs: [
-          "Clean Wash arbejder med bilvask og bilpleje, som kan omfatte udvendig vask, indvendig rengøring, støvsugning, aftørring, ruder, fælge, måtter og generel klargøring. For kunder på Sjælland er det ofte en fordel at vælge en samlet løsning, når bilen bruges meget i hverdagen eller skal stå flot til salg, leasingretur eller erhverv.",
+          "Wash Max arbejder med bilvask og bilpleje, som kan omfatte udvendig vask, indvendig rengøring, støvsugning, aftørring, ruder, fælge, måtter og generel klargøring. For kunder på Sjælland er det ofte en fordel at vælge en samlet løsning, når bilen bruges meget i hverdagen eller skal stå flot til salg, leasingretur eller erhverv.",
           "Udvendig bilvask hjælper med at fjerne vejsnavs, salt, støv og almindeligt snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabinen, hvor sæder, gulve, måtter, instrumentbræt og bagagerum ofte bærer præg af daglig brug. Samlet bilpleje giver den mest komplette oplevelse.",
         ],
       },
       {
         heading: "Områder og byer på Sjælland",
         paragraphs: [
-          "Clean Wash er især relevant i København, Frederiksberg, Amager, Storkøbenhavn og omkringliggende områder, men siden dækker også bredere søgninger efter bilvask Sjælland og bilrengøring Sjælland. Kunder fra Roskilde, Køge, Hillerød, Helsingør, Holbæk, Ringsted, Næstved og Slagelse kan bruge booking eller kontaktmuligheder til at afklare, hvad der er muligt.",
-          "Det er vigtigt at være præcis med serviceområder. Derfor bør større geografiske løfter altid bekræftes i den konkrete booking. Clean Wash kan planlægge ud fra ledige tider og rute, og kunden får en mere realistisk oplevelse, når adresse og behov er tydeligt oplyst fra starten.",
+          "Wash Max er især relevant i København, Frederiksberg, Amager, Storkøbenhavn og omkringliggende områder, men siden dækker også bredere søgninger efter bilvask Sjælland og bilrengøring Sjælland. Kunder fra Roskilde, Køge, Hillerød, Helsingør, Holbæk, Ringsted, Næstved og Slagelse kan bruge booking eller kontaktmuligheder til at afklare, hvad der er muligt.",
+          "Det er vigtigt at være præcis med serviceområder. Derfor bør større geografiske løfter altid bekræftes i den konkrete booking. Wash Max kan planlægge ud fra ledige tider og rute, og kunden får en mere realistisk oplevelse, når adresse og behov er tydeligt oplyst fra starten.",
         ],
       },
       {
         heading: "For private, familier og virksomheder",
         paragraphs: [
           "Bilvask på Sjælland er relevant for mange typer kunder. Familier har ofte behov for indvendig rengøring efter hverdag, sport, madpakker og ture. Pendlere vil gerne have en bil, der føles ren, selvom den bruges meget. Virksomheder kan have brug for løbende bilpleje, så firmabiler fremstår ordentlige over for kunder.",
-          "Clean Wash tilbyder en praktisk vej ind: Kunden vælger service, booker online og giver de oplysninger, der skal bruges. Kunder kan booke bilvask direkte via booking-siden, og Clean Wash kan derefter håndtere opgaven ud fra den valgte løsning.",
+          "Wash Max tilbyder en praktisk vej ind: Kunden vælger service, booker online og giver de oplysninger, der skal bruges. Kunder kan booke bilvask direkte via booking-siden, og Wash Max kan derefter håndtere opgaven ud fra den valgte løsning.",
         ],
       },
     ],
     faqs: [
       {
-        question: "Tilbyder Clean Wash bilvask på Sjælland?",
+        question: "Tilbyder Wash Max bilvask på Sjælland?",
         answer:
-          "Ja. Clean Wash tilbyder bilvask på Sjælland med fokus på København, Storkøbenhavn og relevante nærområder.",
+          "Ja. Wash Max tilbyder bilvask på Sjælland med fokus på København, Storkøbenhavn og relevante nærområder.",
       },
       {
         question: "Hvilke byer på Sjælland er relevante?",
@@ -473,7 +473,7 @@ export const seoPages: SeoPageConfig[] = [
       {
         question: "Kan jeg få indvendig bilrengøring på Sjælland?",
         answer:
-          "Ja. Clean Wash tilbyder indvendig rengøring som del af bilrengøring og bilpleje.",
+          "Ja. Wash Max tilbyder indvendig rengøring som del af bilrengøring og bilpleje.",
       },
       {
         question: "Er bilvask på Sjælland egnet til erhverv?",
@@ -483,7 +483,7 @@ export const seoPages: SeoPageConfig[] = [
       {
         question: "Hvordan afklarer jeg, om min adresse dækkes?",
         answer:
-          "Start via /booking eller kontakt Clean Wash, så adresse, tidspunkt og mulighed kan afklares.",
+          "Start via /booking eller kontakt Wash Max, så adresse, tidspunkt og mulighed kan afklares.",
       },
       {
         question: "Kan jeg vælge komplet bilpleje?",
@@ -498,13 +498,13 @@ export const seoPages: SeoPageConfig[] = [
     slug: "indvendig-bilrengoering-koebenhavn",
     title: "Indvendig bilrengøring København | Grundig rengøring af bilen",
     description:
-      "Book indvendig bilrengøring i København hos Clean Wash. Grundig støvsugning, kabinerengøring, sæderens og bilpleje til hverdagsbiler.",
+      "Book indvendig bilrengøring i København hos Wash Max. Grundig støvsugning, kabinerengøring, sæderens og bilpleje til hverdagsbiler.",
     h1: "Indvendig bilrengøring København",
     eyebrow: "Ren kabine og bedre hverdagskomfort",
     heroIntro:
-      "Clean Wash tilbyder indvendig bilrengøring i København til biler med støv, sand, pletter, lugt og spor fra daglig brug.",
+      "Wash Max tilbyder indvendig bilrengøring i København til biler med støv, sand, pletter, lugt og spor fra daglig brug.",
     shortSummary: [
-      "Clean Wash tilbyder indvendig bilrengøring i København med online booking.",
+      "Wash Max tilbyder indvendig bilrengøring i København med online booking.",
       "Servicen er relevant for kabine, måtter, sæder, instrumentbræt, bagagerum og hverdagsbiler.",
       "Kunder kan booke bilvask direkte via booking-siden og vælge indvendig rengøring eller komplet bilpleje.",
     ],
@@ -529,7 +529,7 @@ export const seoPages: SeoPageConfig[] = [
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
     image: {
       src: "/service/inside.jpg",
-      alt: "Indvendig bilrengøring af kabine hos Clean Wash i København",
+      alt: "Indvendig bilrengøring af kabine hos Wash Max i København",
     },
     secondaryCta: {
       label: "Se håndvask af bil",
@@ -564,7 +564,7 @@ export const seoPages: SeoPageConfig[] = [
       },
       {
         title: "Kabinen rengøres",
-        text: "Clean Wash arbejder med støvsugning, aftørring, måtter og synlige kontaktflader.",
+        text: "Wash Max arbejder med støvsugning, aftørring, måtter og synlige kontaktflader.",
       },
       {
         title: "Afslut med frisk fornemmelse",
@@ -576,14 +576,14 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Indvendig bilrengøring til biler der bruges",
         paragraphs: [
           "Indvendig bilrengøring København er for dig, der mærker hverdagen i bilen. Kabinen samler støv, sand, pollen, krummer, hår, fugt, lugt og små pletter. Det sker især i familiebiler, pendlerbiler, firmabiler og biler, der bruges til transport af børn, udstyr eller kunder.",
-          "Clean Wash tilbyder indvendig bilrengøring i København med fokus på de områder, du ser og rører ved hver dag: sæder, gulve, måtter, instrumentbræt, midterkonsol, dørfalser, bagagerum og ruder. Formålet er ikke kun, at bilen ser pænere ud. Den skal også føles rarere at køre i.",
+          "Wash Max tilbyder indvendig bilrengøring i København med fokus på de områder, du ser og rører ved hver dag: sæder, gulve, måtter, instrumentbræt, midterkonsol, dørfalser, bagagerum og ruder. Formålet er ikke kun, at bilen ser pænere ud. Den skal også føles rarere at køre i.",
         ],
       },
       {
         heading: "Hvad indvendig rengøring typisk omfatter",
         paragraphs: [
           "En indvendig rengøring kan omfatte støvsugning af kabine og bagagerum, rengøring af måtter, aftørring af paneler, instrumentbræt, rat, gearområde, kopholdere og andre kontaktflader. Hvis bilen har pletter, lugt eller meget snavs, kan der være behov for ekstra behandling eller en mere omfattende bilpleje.",
-          "Sæderens er et vigtigt søgeord, men behovet afhænger af sædetype, materiale og bilens stand. Derfor er det bedst at vælge den relevante service i bookingflowet og give tydelige oplysninger, hvis kabinen kræver særlig opmærksomhed. Clean Wash kan derefter håndtere opgaven mere præcist.",
+          "Sæderens er et vigtigt søgeord, men behovet afhænger af sædetype, materiale og bilens stand. Derfor er det bedst at vælge den relevante service i bookingflowet og give tydelige oplysninger, hvis kabinen kræver særlig opmærksomhed. Wash Max kan derefter håndtere opgaven mere præcist.",
         ],
       },
       {
@@ -596,7 +596,7 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "København og nærområder",
         paragraphs: [
-          "Clean Wash er relevant for kunder i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og Storkøbenhavn. Hvis du søger efter rengøring af kabine, støvsugning bil eller bilpleje København, er denne side lavet til at forklare den indvendige del tydeligt.",
+          "Wash Max er relevant for kunder i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og Storkøbenhavn. Hvis du søger efter rengøring af kabine, støvsugning bil eller bilpleje København, er denne side lavet til at forklare den indvendige del tydeligt.",
           "Kunder kan booke bilvask direkte via booking-siden. Her kan du vælge indvendig rengøring, udvendig vask eller komplet bilpleje. Den bedste løsning afhænger af bilens brug, hvor længe siden den sidst blev rengjort, og hvilket resultat du ønsker.",
         ],
       },
@@ -608,9 +608,9 @@ export const seoPages: SeoPageConfig[] = [
           "Det er rengøring af kabine, måtter, sæder, paneler, gulve, bagagerum og andre indvendige flader.",
       },
       {
-        question: "Tilbyder Clean Wash indvendig bilrengøring i København?",
+        question: "Tilbyder Wash Max indvendig bilrengøring i København?",
         answer:
-          "Ja. Clean Wash tilbyder indvendig bilrengøring i København og nærliggende områder med online booking.",
+          "Ja. Wash Max tilbyder indvendig bilrengøring i København og nærliggende områder med online booking.",
       },
       {
         question: "Kan jeg få støvsuget bilen?",
@@ -642,13 +642,13 @@ export const seoPages: SeoPageConfig[] = [
     slug: "haandvask-bil-koebenhavn",
     title: "Håndvask af bil København | Skånsom og professionel bilvask",
     description:
-      "Book skånsom håndvask af bil i København hos Clean Wash. Professionel udvendig bilvask, fælge, ruder og lakvenlig pleje med nem booking.",
+      "Book skånsom håndvask af bil i København hos Wash Max. Professionel udvendig bilvask, fælge, ruder og lakvenlig pleje med nem booking.",
     h1: "Håndvask af bil København",
     eyebrow: "Skånsom udvendig bilvask",
     heroIntro:
-      "Clean Wash tilbyder skånsom håndvask af bil i København for kunder, der ønsker en grundig udvendig vask og pæn finish.",
+      "Wash Max tilbyder skånsom håndvask af bil i København for kunder, der ønsker en grundig udvendig vask og pæn finish.",
     shortSummary: [
-      "Clean Wash tilbyder professionel håndvask af bil i København med online booking.",
+      "Wash Max tilbyder professionel håndvask af bil i København med online booking.",
       "Servicen fokuserer på skånsom udvendig bilvask, fælge, ruder og lakvenlig bilpleje.",
       "Kunder kan booke bilvask direkte via booking-siden.",
     ],
@@ -673,7 +673,7 @@ export const seoPages: SeoPageConfig[] = [
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
     image: {
       src: "/service/udenfor.jpg",
-      alt: "Skånsom håndvask af bil i København hos Clean Wash",
+      alt: "Skånsom håndvask af bil i København hos Wash Max",
     },
     secondaryCta: {
       label: "Se indvendig rengøring",
@@ -708,7 +708,7 @@ export const seoPages: SeoPageConfig[] = [
       },
       {
         title: "Bilen håndvaskes",
-        text: "Clean Wash arbejder skånsomt med lak, ruder, fælge og udvendige flader.",
+        text: "Wash Max arbejder skånsomt med lak, ruder, fælge og udvendige flader.",
       },
       {
         title: "Afslut med finish",
@@ -720,7 +720,7 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Håndvask af bil for en mere kontrolleret vask",
         paragraphs: [
           "Håndvask bil København er for kunder, der ønsker en skånsom og mere kontrolleret udvendig bilvask. En håndvask giver mulighed for at arbejde mere opmærksomt omkring fælge, ruder, spejle, lister og områder, hvor snavs ofte sætter sig fast. Det er især relevant for bilejere, der går op i bilens udtryk og vil undgå en tilfældig standardoplevelse.",
-          "Clean Wash tilbyder professionel håndvask af bil i København med online booking. Servicen er relevant, når bilen skal se pæn ud til hverdag, arbejde, salg, fremvisning eller bare fordi det føles bedre at køre i en ren bil. Kunder kan booke bilvask direkte via booking-siden.",
+          "Wash Max tilbyder professionel håndvask af bil i København med online booking. Servicen er relevant, når bilen skal se pæn ud til hverdag, arbejde, salg, fremvisning eller bare fordi det føles bedre at køre i en ren bil. Kunder kan booke bilvask direkte via booking-siden.",
         ],
       },
       {
@@ -734,22 +734,22 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Udvendig bilvask i København",
         paragraphs: [
           "Udvendig bilvask kan omfatte vask af lak, ruder, spejle, fælge, hjulnære områder og synlige flader. København giver bilen mange typer snavs: bystøv, regn, pollen, bremsestøv, vejsalt og almindelig trafikfilm. En regelmæssig udvendig vask hjælper bilen med at se bedre ud og gør den mere behagelig at bruge.",
-          "Clean Wash er relevant for kunder i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og Storkøbenhavn. Den konkrete mulighed afhænger af booking, rute og servicevalg, men siden her forklarer, hvornår håndvask er den rigtige retning.",
+          "Wash Max er relevant for kunder i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og Storkøbenhavn. Den konkrete mulighed afhænger af booking, rute og servicevalg, men siden her forklarer, hvornår håndvask er den rigtige retning.",
         ],
       },
       {
         heading: "Håndvask eller komplet bilpleje?",
         paragraphs: [
           "Hvis bilen primært er beskidt udenpå, kan håndvask eller udvendig bilvask være nok. Hvis kabinen også bærer præg af hverdagen, giver komplet bilpleje bedre mening. Mange kunder vælger en udvendig vask før en begivenhed, mens andre vælger komplet rengøring, når bilen trænger til en større opfriskning.",
-          "Clean Wash gør valget nemmere ved at samle servicevalg i bookingflowet. Du kan vælge den løsning, der passer til bilen, og give oplysninger om behovet. På den måde bliver håndvask af bil i København ikke bare et søgeord, men en konkret og bookbar service.",
+          "Wash Max gør valget nemmere ved at samle servicevalg i bookingflowet. Du kan vælge den løsning, der passer til bilen, og give oplysninger om behovet. På den måde bliver håndvask af bil i København ikke bare et søgeord, men en konkret og bookbar service.",
         ],
       },
     ],
     faqs: [
       {
-        question: "Tilbyder Clean Wash håndvask af bil i København?",
+        question: "Tilbyder Wash Max håndvask af bil i København?",
         answer:
-          "Ja. Clean Wash tilbyder skånsom udvendig bilvask og håndvask-relevant bilpleje i København.",
+          "Ja. Wash Max tilbyder skånsom udvendig bilvask og håndvask-relevant bilpleje i København.",
       },
       {
         question: "Hvorfor vælge håndvask frem for automatisk vask?",
@@ -785,15 +785,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-frederiksberg",
-    title: "Bilvask Frederiksberg | Professionel bilpleje hos Clean Wash",
+    title: "Bilvask Frederiksberg | Professionel bilpleje hos Wash Max",
     description:
-      "Book professionel bilvask i Frederiksberg hos Clean Wash. Udvendig vask, indvendig rengøring og komplet bilpleje med nem online booking.",
+      "Book professionel bilvask i Frederiksberg hos Wash Max. Udvendig vask, indvendig rengøring og komplet bilpleje med nem online booking.",
     h1: "Bilvask Frederiksberg",
     eyebrow: "Professionel bilvask i Frederiksberg",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i Frederiksberg med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask i Frederiksberg med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Frederiksberg med online booking og tydelige servicevalg.",
+      "Wash Max tilbyder bilvask i Frederiksberg med online booking og tydelige servicevalg.",
       "Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
       "Servicen er relevant for bilejere i Frederiksberg, Valby, Vanløse, Bispebjerg og nærliggende bydele.",
     ],
@@ -815,10 +815,10 @@ export const seoPages: SeoPageConfig[] = [
       "Storkøbenhavn",
     ],
     schemaAreaServed: ["Frederiksberg", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Frederiksberg hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Frederiksberg hos Wash Max" },
     secondaryCta: { label: "Se bilvask København", href: "/bilvask-koebenhavn" },
     benefits: [
-      { title: "Lokal service", text: "Clean Wash er relevant for bilejere i Frederiksberg og nærliggende bydele i København." },
+      { title: "Lokal service", text: "Wash Max er relevant for bilejere i Frederiksberg og nærliggende bydele i København." },
       { title: "Nem online booking", text: "Vælg service, tidspunkt og biloplysninger direkte i bookingflowet uden kø." },
       { title: "Indvendig og udvendig", text: "Book udvendig vask, indvendig rengøring eller komplet bilpleje efter bilens behov." },
       { title: "Til private og erhverv", text: "Passer til familiebiler, firmabiler, leasingbiler og pendlerbiler i hverdagen." },
@@ -826,45 +826,45 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash klargør", text: "Teamet forbereder service og rute ud fra din booking." },
+      { title: "Wash Max klargør", text: "Teamet forbereder service og rute ud fra din booking." },
       { title: "Bilen vaskes", text: "Du får en renere bil uden kø og uden transport til en vaskehal." },
     ],
     sections: [
       {
         heading: "Bilvask i Frederiksberg til den travle hverdag",
         paragraphs: [
-          "Frederiksberg er en tæt bebygget bydel med mange bilejere, der bruger bilen dagligt til pendling, familieliv og arbejde. Når du søger efter bilvask Frederiksberg, leder du efter en løsning, der passer ind i hverdagen uden unødigt besvær. Clean Wash tilbyder professionel bilvask, bilrengøring og bilpleje med online booking, så du kan planlægge opgaven digitalt.",
-          "Bilen samler snavs fra byens gader, parkeringspladser, vejsalt og daglig brug. En professionel bilvask hjælper bilen med at se bedre ud og giver en mere behagelig oplevelse. Clean Wash tilbyder både udvendig vask og indvendig rengøring, så du kan vælge den service, der passer til bilens stand.",
+          "Frederiksberg er en tæt bebygget bydel med mange bilejere, der bruger bilen dagligt til pendling, familieliv og arbejde. Når du søger efter bilvask Frederiksberg, leder du efter en løsning, der passer ind i hverdagen uden unødigt besvær. Wash Max tilbyder professionel bilvask, bilrengøring og bilpleje med online booking, så du kan planlægge opgaven digitalt.",
+          "Bilen samler snavs fra byens gader, parkeringspladser, vejsalt og daglig brug. En professionel bilvask hjælper bilen med at se bedre ud og giver en mere behagelig oplevelse. Wash Max tilbyder både udvendig vask og indvendig rengøring, så du kan vælge den service, der passer til bilens stand.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Frederiksberg?",
+        heading: "Hvad tilbyder Wash Max i Frederiksberg?",
         paragraphs: [
-          "Clean Wash tilbyder bilvask i Frederiksberg med fokus på udvendig vask, indvendig rengøring og komplet bilpleje. Udvendig vask omfatter lak, ruder, fælge og hjulbuer. Indvendig rengøring fokuserer på kabine, måtter, sæder, instrumentbræt og bagagerum. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
-          "Booking fungerer online, og du vælger service, biloplysninger og tidspunkt i ét flow. Den konkrete mulighed afhænger af adresse, rute og ledige tider, men bookingflowet samler alle oplysninger, så Clean Wash kan planlægge opgaven præcist.",
+          "Wash Max tilbyder bilvask i Frederiksberg med fokus på udvendig vask, indvendig rengøring og komplet bilpleje. Udvendig vask omfatter lak, ruder, fælge og hjulbuer. Indvendig rengøring fokuserer på kabine, måtter, sæder, instrumentbræt og bagagerum. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
+          "Booking fungerer online, og du vælger service, biloplysninger og tidspunkt i ét flow. Den konkrete mulighed afhænger af adresse, rute og ledige tider, men bookingflowet samler alle oplysninger, så Wash Max kan planlægge opgaven præcist.",
         ],
       },
       {
         heading: "Lokale områder og nærliggende bydele",
         paragraphs: [
-          "Frederiksberg grænser op til Valby, Vanløse, Bispebjerg, Vesterbro og Indre By. Clean Wash er relevant for kunder i hele dette område og kan håndtere booking fra kunder i Storkøbenhavn. Den konkrete dækning afhænger af booking, rute og tidspunkt, men du kan starte processen online.",
+          "Frederiksberg grænser op til Valby, Vanløse, Bispebjerg, Vesterbro og Indre By. Wash Max er relevant for kunder i hele dette område og kan håndtere booking fra kunder i Storkøbenhavn. Den konkrete dækning afhænger af booking, rute og tidspunkt, men du kan starte processen online.",
           "Hvis du søger bilvask nær mig i Frederiksberg, er det bedste næste skridt at starte booking-processen. Her kan du se tilgængelighed, vælge service og give de oplysninger, der er nødvendige for at planlægge bilvasken korrekt.",
         ],
       },
       {
         heading: "Frederiksberg: firmabiler og private bilejere",
         paragraphs: [
-          "I Frederiksberg finder du mange virksomheder, kontorer og selvstændige, der har behov for regelmæssig bilpleje. Firmabiler og leasingbiler skal fremstå præsentable, og Clean Wash kan hjælpe med at sikre, at bilen er ren og klar til brug. Private bilejere nyder godt af en professionel bilvask, der sparer tid og giver et bedre resultat end en hurtig standardvask.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og Clean Wash håndterer resten.",
+          "I Frederiksberg finder du mange virksomheder, kontorer og selvstændige, der har behov for regelmæssig bilpleje. Firmabiler og leasingbiler skal fremstå præsentable, og Wash Max kan hjælpe med at sikre, at bilen er ren og klar til brug. Private bilejere nyder godt af en professionel bilvask, der sparer tid og giver et bedre resultat end en hurtig standardvask.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og Wash Max håndterer resten.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Frederiksberg?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Frederiksberg og nærliggende bydele med online booking." },
+      { question: "Tilbyder Wash Max bilvask i Frederiksberg?", answer: "Ja. Wash Max tilbyder professionel bilvask i Frederiksberg og nærliggende bydele med online booking." },
       { question: "Kan jeg booke indvendig rengøring i Frederiksberg?", answer: "Ja. Du kan vælge indvendig rengøring, udvendig vask eller komplet bilpleje i bookingflowet." },
-      { question: "Dækker Clean Wash hele Frederiksberg?", answer: "Clean Wash er relevant for Frederiksberg og nærliggende områder. Konkret dækning afhænger af booking og rute." },
+      { question: "Dækker Wash Max hele Frederiksberg?", answer: "Wash Max er relevant for Frederiksberg og nærliggende områder. Konkret dækning afhænger af booking og rute." },
       { question: "Hvad koster bilvask i Frederiksberg?", answer: "Prisen afhænger af den valgte service. Se priser og book online via /booking." },
-      { question: "Kan firmabiler bookes i Frederiksberg?", answer: "Ja. Clean Wash tilbyder bilvask til private og erhverv, herunder firmabiler og leasingbiler." },
+      { question: "Kan firmabiler bookes i Frederiksberg?", answer: "Ja. Wash Max tilbyder bilvask til private og erhverv, herunder firmabiler og leasingbiler." },
       { question: "Hvordan booker jeg bilvask i Frederiksberg?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil, adresse og ønsket tidspunkt." },
     ],
     relatedLinks: commonRelatedLinks.filter((link) => link.href !== "/bilvask-frederiksberg"),
@@ -873,15 +873,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-amager",
-    title: "Bilvask Amager | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Amager | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask på Amager hos Clean Wash. Udvendig vask, indvendig bilrengøring og bilpleje med nem online booking.",
+      "Book professionel bilvask på Amager hos Wash Max. Udvendig vask, indvendig bilrengøring og bilpleje med nem online booking.",
     h1: "Bilvask Amager",
     eyebrow: "Professionel bilvask på Amager",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask på Amager med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask på Amager med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask på Amager med online booking og tydelige servicevalg.",
+      "Wash Max tilbyder bilvask på Amager med online booking og tydelige servicevalg.",
       "Servicen dækker Amager, Sundby, Kastrup, Dragør og nærliggende bydele.",
       "Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
     ],
@@ -903,10 +903,10 @@ export const seoPages: SeoPageConfig[] = [
       "København",
     ],
     schemaAreaServed: ["Amager", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask på Amager hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask på Amager hos Wash Max" },
     secondaryCta: { label: "Se bilvask København", href: "/bilvask-koebenhavn" },
     benefits: [
-      { title: "Amager og omegn", text: "Clean Wash er relevant for kunder i Amager, Sundby, Kastrup, Dragør og Ørestad." },
+      { title: "Amager og omegn", text: "Wash Max er relevant for kunder i Amager, Sundby, Kastrup, Dragør og Ørestad." },
       { title: "Fleksibel booking", text: "Book bilvask online og vælg den service, der passer til bilens stand og behov." },
       { title: "Komplet bilpleje", text: "Udvendig vask, indvendig rengøring eller komplet bilpleje — vælg i bookingflowet." },
       { title: "Til private og erhverv", text: "Passer til familiebiler, pendlerbiler, firmabiler og biler, der bruges dagligt." },
@@ -914,44 +914,44 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Vælg service på booking-siden og angiv biloplysninger og tidspunkt." },
       { title: "Oplys adresse", text: "Angiv den adresse, hvor bilen holder, og kontaktoplysninger." },
-      { title: "Clean Wash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes grundigt", text: "Du får en renere bil uden ventetid eller transport til vaskehal." },
     ],
     sections: [
       {
         heading: "Bilvask på Amager med professionel service",
         paragraphs: [
-          "Amager er en stor og varieret del af København med mange bilejere fra Sundby, Kastrup, Dragør, Ørestad og Islands Brygge. Bilvask Amager er et relevant søgeord for alle, der bor eller arbejder her og vil have bilen gjort ren uden at bruge unødigt tid på det. Clean Wash tilbyder professionel bilvask med online booking og klare servicevalg.",
-          "Bilerne på Amager møder de samme udfordringer som andre biler i storbyen: vejsnavs, bremsestøv, pollen, regn og daglig brug. En regelmæssig bilvask holder bilen pænere og giver en bedre oplevelse. Clean Wash kan hjælpe med udvendig vask, indvendig rengøring og komplet bilpleje.",
+          "Amager er en stor og varieret del af København med mange bilejere fra Sundby, Kastrup, Dragør, Ørestad og Islands Brygge. Bilvask Amager er et relevant søgeord for alle, der bor eller arbejder her og vil have bilen gjort ren uden at bruge unødigt tid på det. Wash Max tilbyder professionel bilvask med online booking og klare servicevalg.",
+          "Bilerne på Amager møder de samme udfordringer som andre biler i storbyen: vejsnavs, bremsestøv, pollen, regn og daglig brug. En regelmæssig bilvask holder bilen pænere og giver en bedre oplevelse. Wash Max kan hjælpe med udvendig vask, indvendig rengøring og komplet bilpleje.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash på Amager?",
+        heading: "Hvad tilbyder Wash Max på Amager?",
         paragraphs: [
-          "Clean Wash tilbyder bilvask på Amager med fokus på udvendig vask, indvendig rengøring og komplet bilpleje. Udvendig vask fjerner snavs fra lak, ruder, fælge og hjulbuer. Indvendig rengøring fokuserer på kabine, støvsugning, måtter, sæder og instrumentbræt. Komplet bilpleje giver det mest gennemførte resultat.",
-          "Booking foregår online, og du vælger den service, der passer til bilen. Den konkrete mulighed afhænger af adresse, rute og ledige tider, men bookingflowet samler oplysningerne, så Clean Wash kan planlægge effektivt.",
+          "Wash Max tilbyder bilvask på Amager med fokus på udvendig vask, indvendig rengøring og komplet bilpleje. Udvendig vask fjerner snavs fra lak, ruder, fælge og hjulbuer. Indvendig rengøring fokuserer på kabine, støvsugning, måtter, sæder og instrumentbræt. Komplet bilpleje giver det mest gennemførte resultat.",
+          "Booking foregår online, og du vælger den service, der passer til bilen. Den konkrete mulighed afhænger af adresse, rute og ledige tider, men bookingflowet samler oplysningerne, så Wash Max kan planlægge effektivt.",
         ],
       },
       {
         heading: "Amager: bydele og serviceområde",
         paragraphs: [
-          "Amager dækker mange forskelligartede bydele: det tætte bykvarter i Sundby, det moderne Ørestad, havneområdet ved Islands Brygge og de rolige villakvarterer i Kastrup og Dragør. Clean Wash er relevant for kunder i hele dette område og kan håndtere booking fra bilejere langs hele Amager.",
+          "Amager dækker mange forskelligartede bydele: det tætte bykvarter i Sundby, det moderne Ørestad, havneområdet ved Islands Brygge og de rolige villakvarterer i Kastrup og Dragør. Wash Max er relevant for kunder i hele dette område og kan håndtere booking fra bilejere langs hele Amager.",
           "Hvis du søger efter bilvask nær mig på Amager, er det bedste første skridt at starte booking-processen online. Her kan du se tilgængelighed og vælge den service, der passer til bilens behov.",
         ],
       },
       {
         heading: "Bilejere med specielle behov på Amager",
         paragraphs: [
-          "Mange bilejere på Amager har specifikke behov. Familier med børn har brug for grundig indvendig rengøring. Pendlere ønsker en hurtig og effektiv bilvask. Erhvervsfolk med firmabiler vil have bilen til at fremstå professionel. Clean Wash tilbyder løsninger til alle disse grupper.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten og leverer et professionelt resultat.",
+          "Mange bilejere på Amager har specifikke behov. Familier med børn har brug for grundig indvendig rengøring. Pendlere ønsker en hurtig og effektiv bilvask. Erhvervsfolk med firmabiler vil have bilen til at fremstå professionel. Wash Max tilbyder løsninger til alle disse grupper.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten og leverer et professionelt resultat.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask på Amager?", answer: "Ja. Clean Wash tilbyder professionel bilvask på Amager og i nærliggende bydele med online booking." },
+      { question: "Tilbyder Wash Max bilvask på Amager?", answer: "Ja. Wash Max tilbyder professionel bilvask på Amager og i nærliggende bydele med online booking." },
       { question: "Dækker I Kastrup og Dragør?", answer: "Kastrup og Dragør kan dækkes afhængigt af rute og ledige tider. Start booking for at afklare muligheder." },
       { question: "Kan jeg få komplet bilpleje på Amager?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
-      { question: "Er Clean Wash relevant for Ørestad?", answer: "Ja. Ørestad er en del af Amager og er relevant for Clean Washs serviceområde." },
+      { question: "Er Wash Max relevant for Ørestad?", answer: "Ja. Ørestad er en del af Amager og er relevant for Wash Maxs serviceområde." },
       { question: "Hvad koster bilvask på Amager?", answer: "Prisen afhænger af den valgte service. Se priser og book online via /booking." },
       { question: "Hvordan booker jeg bilvask på Amager?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
     ],
@@ -963,13 +963,13 @@ export const seoPages: SeoPageConfig[] = [
     slug: "bilvask-osterbro",
     title: "Bilvask Østerbro | Professionel bilvask i København",
     description:
-      "Book professionel bilvask på Østerbro hos Clean Wash. Udvendig bilvask, indvendig bilrengøring og bilpleje med nem online booking.",
+      "Book professionel bilvask på Østerbro hos Wash Max. Udvendig bilvask, indvendig bilrengøring og bilpleje med nem online booking.",
     h1: "Bilvask Østerbro",
     eyebrow: "Professionel bilvask på Østerbro",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask på Østerbro med online booking og fleksible servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask på Østerbro med online booking og fleksible servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask på Østerbro med online booking og tydelige servicevalg.",
+      "Wash Max tilbyder bilvask på Østerbro med online booking og tydelige servicevalg.",
       "Servicen er relevant for bilejere i Østerbro, Nordhavn, Hellerup og nærliggende bydele.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
     ],
@@ -991,10 +991,10 @@ export const seoPages: SeoPageConfig[] = [
       "Storkøbenhavn",
     ],
     schemaAreaServed: ["Østerbro", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask på Østerbro hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask på Østerbro hos Wash Max" },
     secondaryCta: { label: "Se mobil bilvask", href: "/mobil-bilvask-koebenhavn" },
     benefits: [
-      { title: "Østerbro og Nordhavn", text: "Clean Wash er relevant for bilejere på Østerbro, i Nordhavn og nærliggende bydele." },
+      { title: "Østerbro og Nordhavn", text: "Wash Max er relevant for bilejere på Østerbro, i Nordhavn og nærliggende bydele." },
       { title: "Online booking", text: "Book bilvask direkte online og vælg service, tidspunkt og biloplysninger på én gang." },
       { title: "Alle servicetyper", text: "Udvendig vask, indvendig rengøring og komplet bilpleje — alt kan bookes online." },
       { title: "Til travle bilejere", text: "Perfekt for pendlere, familier og virksomheder med biler i daglig brug." },
@@ -1002,44 +1002,44 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Vælg service", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Angiv bil og tidspunkt", text: "Udfyld nummerplade, adresse og ønsket tidspunkt for bilvasken." },
-      { title: "Clean Wash forbereder", text: "Teamet planlægger service og rute ud fra din booking." },
+      { title: "Wash Max forbereder", text: "Teamet planlægger service og rute ud fra din booking." },
       { title: "Ren bil leveret", text: "Bilen bliver vasket professionelt uden kø og uden ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask på Østerbro — nem og professionel",
         paragraphs: [
-          "Østerbro er en af Københavns mest travle bydele med mange bilejere, der dagligt bruger bilen til pendling, familieliv og arbejde. Bilvask Østerbro er et søgeord for alle, der vil have en renere bil uden at bruge en hel dag på det. Clean Wash tilbyder professionel bilvask med online booking, klare servicevalg og fokus på kvalitet.",
+          "Østerbro er en af Københavns mest travle bydele med mange bilejere, der dagligt bruger bilen til pendling, familieliv og arbejde. Bilvask Østerbro er et søgeord for alle, der vil have en renere bil uden at bruge en hel dag på det. Wash Max tilbyder professionel bilvask med online booking, klare servicevalg og fokus på kvalitet.",
           "Biler på Østerbro er udsat for typisk storbysnavs: bremsestøv fra bytrafik, pollen fra parkerne, vejsalt om vinteren og dagligt vejsnavs. En professionel bilvask giver et bedre resultat end en hurtig tur i en automatisk vaskehal og er skånsom over for lakken.",
         ],
       },
       {
         heading: "Serviceområde: Østerbro, Nordhavn og omegn",
         paragraphs: [
-          "Clean Wash dækker Østerbro og nærliggende bydele som Nordhavn, Hellerup, Gentofte og Nørrebro. Det er en central del af København med mange boligblokke, rækkehuse og erhvervsadresser med tilhørende biler. Den konkrete dækning afhænger af booking og rute, men du kan starte processen online.",
+          "Wash Max dækker Østerbro og nærliggende bydele som Nordhavn, Hellerup, Gentofte og Nørrebro. Det er en central del af København med mange boligblokke, rækkehuse og erhvervsadresser med tilhørende biler. Den konkrete dækning afhænger af booking og rute, men du kan starte processen online.",
           "Nordhavn er vokset markant de seneste år og er hjemsted for mange bilejere, der pendler til kontorer i indre by eller kører dagligt til børnepasning og aktiviteter. Professionel bilvask i Nordhavn er relevant for alle, der vil spare tid og have en bedre hverdagsoplevelse.",
         ],
       },
       {
-        heading: "Hvad Clean Wash tilbyder på Østerbro",
+        heading: "Hvad Wash Max tilbyder på Østerbro",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder på Østerbro. Udvendig vask omfatter lak, fælge, ruder og hjulbuer. Indvendig rengøring fokuserer på kabine, støvsugning, måtter og synlige flader. Komplet bilpleje kombinerer begge dele.",
-          "Alle servicetyper kan bookes online. Du vælger service, angiver biloplysninger og ønsket tidspunkt. Clean Wash planlægger opgaven ud fra rute og tilgængelighed. Kunder kan booke bilvask direkte via booking-siden.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder på Østerbro. Udvendig vask omfatter lak, fælge, ruder og hjulbuer. Indvendig rengøring fokuserer på kabine, støvsugning, måtter og synlige flader. Komplet bilpleje kombinerer begge dele.",
+          "Alle servicetyper kan bookes online. Du vælger service, angiver biloplysninger og ønsket tidspunkt. Wash Max planlægger opgaven ud fra rute og tilgængelighed. Kunder kan booke bilvask direkte via booking-siden.",
         ],
       },
       {
         heading: "Firmabiler og private bilejere på Østerbro",
         paragraphs: [
-          "Østerbro har mange kontorer, ambassader, konsulater og internationale virksomheder. Firmabiler skal fremstå præsentable, og Clean Wash kan hjælpe med regelmæssig bilvask og bilpleje. Private bilejere nyder godt af en professionel bilvask, der sparer tid og giver et godt resultat.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten.",
+          "Østerbro har mange kontorer, ambassader, konsulater og internationale virksomheder. Firmabiler skal fremstå præsentable, og Wash Max kan hjælpe med regelmæssig bilvask og bilpleje. Private bilejere nyder godt af en professionel bilvask, der sparer tid og giver et godt resultat.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask på Østerbro?", answer: "Ja. Clean Wash tilbyder professionel bilvask på Østerbro og i nærliggende bydele med online booking." },
-      { question: "Dækker Clean Wash Nordhavn?", answer: "Ja. Nordhavn er del af Østerbro-området og er relevant for Clean Washs serviceområde." },
+      { question: "Tilbyder Wash Max bilvask på Østerbro?", answer: "Ja. Wash Max tilbyder professionel bilvask på Østerbro og i nærliggende bydele med online booking." },
+      { question: "Dækker Wash Max Nordhavn?", answer: "Ja. Nordhavn er del af Østerbro-området og er relevant for Wash Maxs serviceområde." },
       { question: "Kan jeg booke komplet bilpleje på Østerbro?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
-      { question: "Er servicen relevant for firmabiler på Østerbro?", answer: "Ja. Clean Wash tilbyder bilvask til private og erhverv, herunder firmabiler og leasingbiler." },
+      { question: "Er servicen relevant for firmabiler på Østerbro?", answer: "Ja. Wash Max tilbyder bilvask til private og erhverv, herunder firmabiler og leasingbiler." },
       { question: "Hvad koster bilvask på Østerbro?", answer: "Prisen afhænger af den valgte service. Se aktuelle priser og book online via /booking." },
       { question: "Hvordan booker jeg bilvask på Østerbro?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil, adresse og ønsket tidspunkt." },
     ],
@@ -1051,13 +1051,13 @@ export const seoPages: SeoPageConfig[] = [
     slug: "bilvask-roskilde",
     title: "Bilvask Roskilde | Professionel bilrengøring i Roskilde",
     description:
-      "Book professionel bilvask i Roskilde hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
+      "Book professionel bilvask i Roskilde hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
     h1: "Bilvask Roskilde",
     eyebrow: "Professionel bilvask i Roskilde",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask og bilrengøring i Roskilde med online booking og klare servicevalg.",
+      "Wash Max tilbyder professionel bilvask og bilrengøring i Roskilde med online booking og klare servicevalg.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Roskilde og på Sjælland med online booking.",
+      "Wash Max tilbyder bilvask i Roskilde og på Sjælland med online booking.",
       "Servicen er relevant for bilejere i Roskilde og nærliggende byer på Sjælland.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
     ],
@@ -1079,10 +1079,10 @@ export const seoPages: SeoPageConfig[] = [
       "Storkøbenhavn",
     ],
     schemaAreaServed: ["Roskilde", "Sjælland", "Zealand", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Roskilde hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Roskilde hos Wash Max" },
     secondaryCta: { label: "Se bilvask Sjælland", href: "/bilvask-sjaelland" },
     benefits: [
-      { title: "Roskilde og omegn", text: "Clean Wash er relevant for bilejere i Roskilde og nærliggende kommuner på Sjælland." },
+      { title: "Roskilde og omegn", text: "Wash Max er relevant for bilejere i Roskilde og nærliggende kommuner på Sjælland." },
       { title: "Online booking", text: "Book bilvask direkte online uden kø eller telefonopkald." },
       { title: "Alle servicetyper", text: "Vælg udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
       { title: "Til private og erhverv", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
@@ -1090,44 +1090,44 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash forbereder", text: "Teamet klargør service og rute ud fra din booking." },
+      { title: "Wash Max forbereder", text: "Teamet klargør service og rute ud fra din booking." },
       { title: "Bilen vaskes", text: "Du får en renere bil leveret professionelt uden ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Roskilde — professionel og nem",
         paragraphs: [
-          "Roskilde er en af de største byer på Sjælland og et vigtigt trafikknudepunkt med mange pendlere til og fra København. Bilejere i Roskilde har brug for en nem og professionel bilvaskløsning, der passer ind i en travl hverdag. Clean Wash tilbyder bilvask i Roskilde med online booking og klare servicevalg.",
-          "Biler, der bruges til pendling på motorvejen, samler snavs hurtigt. Vejsnavs, vejsalt om vinteren og insekter om sommeren belaster lakken og kræver regelmæssig vask for at beholde et pænt udtryk. Clean Wash hjælper med at holde bilen ren og præsentabel.",
+          "Roskilde er en af de største byer på Sjælland og et vigtigt trafikknudepunkt med mange pendlere til og fra København. Bilejere i Roskilde har brug for en nem og professionel bilvaskløsning, der passer ind i en travl hverdag. Wash Max tilbyder bilvask i Roskilde med online booking og klare servicevalg.",
+          "Biler, der bruges til pendling på motorvejen, samler snavs hurtigt. Vejsnavs, vejsalt om vinteren og insekter om sommeren belaster lakken og kræver regelmæssig vask for at beholde et pænt udtryk. Wash Max hjælper med at holde bilen ren og præsentabel.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Roskilde?",
+        heading: "Hvad tilbyder Wash Max i Roskilde?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Roskilde. Udvendig vask fjerner vejsnavs fra lak, ruder, fælge og hjulbuer. Indvendig rengøring fokuserer på kabine, støvsugning, måtter og sæder. Komplet bilpleje giver den mest grundige løsning.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Roskilde. Udvendig vask fjerner vejsnavs fra lak, ruder, fælge og hjulbuer. Indvendig rengøring fokuserer på kabine, støvsugning, måtter og sæder. Komplet bilpleje giver den mest grundige løsning.",
           "Booking foregår online. Du vælger service, angiver biloplysninger og ønsket tidspunkt. Den konkrete mulighed afhænger af adresse, rute og ledige tider, men bookingflowet samler oplysningerne, så opgaven kan planlægges effektivt.",
         ],
       },
       {
         heading: "Roskilde: pendlerbiler og familiebiler",
         paragraphs: [
-          "Mange af Roskildes bilejere bruger bilen dagligt til pendling til København og andre byer på Sjælland. Pendlerbiler bruges hårdt og trænger til jævnlig bilvask, både udvendigt for lakken og indvendigt for kabinens komfort. Clean Wash er en relevant løsning for pendlere, der vil have bilen ren uden at bruge tid på det i en travl uge.",
+          "Mange af Roskildes bilejere bruger bilen dagligt til pendling til København og andre byer på Sjælland. Pendlerbiler bruges hårdt og trænger til jævnlig bilvask, både udvendigt for lakken og indvendigt for kabinens komfort. Wash Max er en relevant løsning for pendlere, der vil have bilen ren uden at bruge tid på det i en travl uge.",
           "Familier i Roskilde bruger bilen til børnekørsel, indkøb og weekendture. Indvendig rengøring er særlig relevant for familiebiler, hvor kabinen hurtigt samler støv, sand og rester fra daglig brug. En professionel rengøring giver kabinen en frisk start.",
         ],
       },
       {
         heading: "Roskilde og nærliggende byer på Sjælland",
         paragraphs: [
-          "Clean Wash er relevant for kunder i Roskilde og nærliggende kommuner som Lejre, Greve og Køge. Den konkrete dækning afhænger af booking og ruteplanlægning. Kunder fra disse områder kan starte booking-processen online og afklare muligheder direkte.",
-          "Bilvask i Roskilde er en del af Clean Washs bredere fokus på professionel bilpleje på Sjælland. Kunder kan booke bilvask direkte via booking-siden og vælge den service, der passer til bilen.",
+          "Wash Max er relevant for kunder i Roskilde og nærliggende kommuner som Lejre, Greve og Køge. Den konkrete dækning afhænger af booking og ruteplanlægning. Kunder fra disse områder kan starte booking-processen online og afklare muligheder direkte.",
+          "Bilvask i Roskilde er en del af Wash Maxs bredere fokus på professionel bilpleje på Sjælland. Kunder kan booke bilvask direkte via booking-siden og vælge den service, der passer til bilen.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Roskilde?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Roskilde og på Sjælland med online booking." },
-      { question: "Er Clean Wash relevant for pendlere i Roskilde?", answer: "Ja. Pendlerbiler trænger jævnligt til bilvask, og Clean Wash gør booking nem og fleksibel." },
+      { question: "Tilbyder Wash Max bilvask i Roskilde?", answer: "Ja. Wash Max tilbyder professionel bilvask i Roskilde og på Sjælland med online booking." },
+      { question: "Er Wash Max relevant for pendlere i Roskilde?", answer: "Ja. Pendlerbiler trænger jævnligt til bilvask, og Wash Max gør booking nem og fleksibel." },
       { question: "Kan jeg få indvendig rengøring i Roskilde?", answer: "Ja. Du kan vælge indvendig rengøring, udvendig vask eller komplet bilpleje i bookingflowet." },
-      { question: "Dækker Clean Wash hele Roskilde?", answer: "Clean Wash er relevant for Roskilde og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
+      { question: "Dækker Wash Max hele Roskilde?", answer: "Wash Max er relevant for Roskilde og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
       { question: "Hvad koster bilvask i Roskilde?", answer: "Prisen afhænger af den valgte service. Se aktuelle priser og book online via /booking." },
       { question: "Hvordan booker jeg bilvask i Roskilde?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
     ],
@@ -1137,15 +1137,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-koege",
-    title: "Bilvask Køge | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Køge | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask i Køge hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking på Sjælland.",
+      "Book professionel bilvask i Køge hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking på Sjælland.",
     h1: "Bilvask Køge",
     eyebrow: "Professionel bilvask i Køge",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask og bilrengøring i Køge med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask og bilrengøring i Køge med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Køge og på Sydsjælland med online booking.",
+      "Wash Max tilbyder bilvask i Køge og på Sydsjælland med online booking.",
       "Servicen er relevant for bilejere i Køge, Stevns, Greve og nærliggende kommuner.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
     ],
@@ -1167,10 +1167,10 @@ export const seoPages: SeoPageConfig[] = [
       "Storkøbenhavn",
     ],
     schemaAreaServed: ["Køge", "Sjælland", "Zealand", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Køge hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Køge hos Wash Max" },
     secondaryCta: { label: "Se bilvask Sjælland", href: "/bilvask-sjaelland" },
     benefits: [
-      { title: "Køge og omegn", text: "Clean Wash er relevant for bilejere i Køge og nærliggende kommuner på Sjælland." },
+      { title: "Køge og omegn", text: "Wash Max er relevant for bilejere i Køge og nærliggende kommuner på Sjælland." },
       { title: "Fleksibel booking", text: "Book bilvask online og vælg den service, der passer til bilens stand og behov." },
       { title: "Komplet bilpleje", text: "Udvendig vask, indvendig rengøring eller komplet bilpleje kan bookes online." },
       { title: "Til alle biltyper", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
@@ -1178,44 +1178,44 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og behov", text: "Angiv nummerplade, adresse og ønsket tidspunkt for bilvasken." },
-      { title: "Clean Wash klargør", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max klargør", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Køge — professionel bilpleje på Sjælland",
         paragraphs: [
-          "Køge er en voksende by på Sydsjælland med mange bilejere, der pendler til København og andre byer. Bilvask Køge er et relevant søgeord for alle, der vil have bilen gjort ren uden at køre til en vaskehal i storbyen. Clean Wash tilbyder professionel bilvask i Køge med online booking og tydelige servicevalg.",
-          "Med S-tog til København og motorvejsadgang er Køge et centralt punkt på Sjælland. Pendlerbiler og familiebiler i Køge bruges hårdt og trænger til jævnlig bilvask for at bevare et pænt udtryk. Clean Wash hjælper med udvendig vask og indvendig rengøring.",
+          "Køge er en voksende by på Sydsjælland med mange bilejere, der pendler til København og andre byer. Bilvask Køge er et relevant søgeord for alle, der vil have bilen gjort ren uden at køre til en vaskehal i storbyen. Wash Max tilbyder professionel bilvask i Køge med online booking og tydelige servicevalg.",
+          "Med S-tog til København og motorvejsadgang er Køge et centralt punkt på Sjælland. Pendlerbiler og familiebiler i Køge bruges hårdt og trænger til jævnlig bilvask for at bevare et pænt udtryk. Wash Max hjælper med udvendig vask og indvendig rengøring.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Køge?",
+        heading: "Hvad tilbyder Wash Max i Køge?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Køge. Udvendig vask fjerner snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Køge. Udvendig vask fjerner snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
           "Booking foregår online. Du vælger service, angiver biloplysninger og ønsket tidspunkt. Den konkrete mulighed afhænger af rute og ledige tider, men bookingflowet giver alle relevante oplysninger.",
         ],
       },
       {
         heading: "Køge og nærliggende kommuner",
         paragraphs: [
-          "Køge grænser op til Greve, Stevns, Solrød og Ringsted. Clean Wash er relevant for kunder i disse kommuner og kan håndtere booking fra hele Sydsjælland. Den konkrete dækning afhænger af adresse og ruteplanlægning.",
+          "Køge grænser op til Greve, Stevns, Solrød og Ringsted. Wash Max er relevant for kunder i disse kommuner og kan håndtere booking fra hele Sydsjælland. Den konkrete dækning afhænger af adresse og ruteplanlægning.",
           "Bilejere fra Køge og omegn kan starte booking-processen online og afklare muligheder direkte. Kunder kan booke bilvask direkte via booking-siden.",
         ],
       },
       {
         heading: "Erhvervskunder og private i Køge",
         paragraphs: [
-          "Køge har et stærkt erhvervsliv med mange virksomheder, lagerhoteller og industri. Firmabiler og erhvervsbiler skal fremstå præsentable, og Clean Wash kan hjælpe med regelmæssig bilvask og bilpleje. Private bilejere nyder godt af en professionel service, der sparer tid.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten.",
+          "Køge har et stærkt erhvervsliv med mange virksomheder, lagerhoteller og industri. Firmabiler og erhvervsbiler skal fremstå præsentable, og Wash Max kan hjælpe med regelmæssig bilvask og bilpleje. Private bilejere nyder godt af en professionel service, der sparer tid.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Køge?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Køge og på Sjælland med online booking." },
-      { question: "Dækker Clean Wash Greve og Stevns?", answer: "Clean Wash er relevant for Køge og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
+      { question: "Tilbyder Wash Max bilvask i Køge?", answer: "Ja. Wash Max tilbyder professionel bilvask i Køge og på Sjælland med online booking." },
+      { question: "Dækker Wash Max Greve og Stevns?", answer: "Wash Max er relevant for Køge og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
       { question: "Kan jeg booke indvendig rengøring i Køge?", answer: "Ja. Du kan vælge indvendig rengøring, udvendig vask eller komplet bilpleje i bookingflowet." },
-      { question: "Er Clean Wash relevant for erhvervskunder i Køge?", answer: "Ja. Clean Wash tilbyder bilvask til private og erhverv, herunder firmabiler og flådeaftaler." },
+      { question: "Er Wash Max relevant for erhvervskunder i Køge?", answer: "Ja. Wash Max tilbyder bilvask til private og erhverv, herunder firmabiler og flådeaftaler." },
       { question: "Hvad koster bilvask i Køge?", answer: "Prisen afhænger af den valgte service. Se aktuelle priser og book online via /booking." },
       { question: "Hvordan booker jeg bilvask i Køge?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
     ],
@@ -1225,15 +1225,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-hellerup",
-    title: "Bilvask Hellerup | Professionel bilpleje hos Clean Wash",
+    title: "Bilvask Hellerup | Professionel bilpleje hos Wash Max",
     description:
-      "Book professionel bilvask i Hellerup hos Clean Wash. Skånsom udvendig vask, indvendig bilrengøring og premium bilpleje med online booking.",
+      "Book professionel bilvask i Hellerup hos Wash Max. Skånsom udvendig vask, indvendig bilrengøring og premium bilpleje med online booking.",
     h1: "Bilvask Hellerup",
     eyebrow: "Professionel bilvask i Hellerup",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask og premium bilpleje i Hellerup med online booking og klare servicevalg.",
+      "Wash Max tilbyder professionel bilvask og premium bilpleje i Hellerup med online booking og klare servicevalg.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Hellerup og Gentofte-området med online booking.",
+      "Wash Max tilbyder bilvask i Hellerup og Gentofte-området med online booking.",
       "Servicen er relevant for bilejere i Hellerup, Gentofte, Charlottenlund og nærliggende bydele.",
       "Book udvendig vask, indvendig rengøring eller premium bilpleje direkte i bookingflowet.",
     ],
@@ -1255,10 +1255,10 @@ export const seoPages: SeoPageConfig[] = [
       "Storkøbenhavn",
     ],
     schemaAreaServed: ["Hellerup", "Gentofte", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Hellerup hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Hellerup hos Wash Max" },
     secondaryCta: { label: "Se håndvask af bil", href: "/haandvask-bil-koebenhavn" },
     benefits: [
-      { title: "Hellerup og Gentofte", text: "Clean Wash er relevant for bilejere i Hellerup, Gentofte, Charlottenlund og nærliggende villakvarterer." },
+      { title: "Hellerup og Gentofte", text: "Wash Max er relevant for bilejere i Hellerup, Gentofte, Charlottenlund og nærliggende villakvarterer." },
       { title: "Premium bilpleje", text: "Skånsom og grundig bilvask med fokus på lak, finish og professionelt resultat." },
       { title: "Nem online booking", text: "Book bilvask direkte online og vælg den service, der passer til bilen." },
       { title: "Til private og erhverv", text: "Passer til velholdte privatbiler, firmabiler, leasingbiler og biler før salg." },
@@ -1266,42 +1266,42 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Professionelt resultat", text: "Bilen vaskes grundigt og afleveres med et pænt og præsentabelt udtryk." },
     ],
     sections: [
       {
         heading: "Bilvask i Hellerup — premium bilpleje nord for København",
         paragraphs: [
-          "Hellerup er et velhavende villakvarter nord for København med mange bilejere, der sætter pris på kvalitet og professionel service. Bilvask Hellerup er et relevant søgeord for bilejere, der vil have bilen gjort ordentlig ren med fokus på skånsom behandling og godt finish. Clean Wash tilbyder professionel bilvask med online booking og klare servicevalg.",
-          "Biler i Hellerup og Gentofte-området er ofte velholdte og køres af ejere, der går op i bilens stand. Udvendig vask, indvendig rengøring og komplet bilpleje er alle relevante services. Clean Wash arbejder grundigt og skånsomt, så bilen bevarer sit gode udtryk.",
+          "Hellerup er et velhavende villakvarter nord for København med mange bilejere, der sætter pris på kvalitet og professionel service. Bilvask Hellerup er et relevant søgeord for bilejere, der vil have bilen gjort ordentlig ren med fokus på skånsom behandling og godt finish. Wash Max tilbyder professionel bilvask med online booking og klare servicevalg.",
+          "Biler i Hellerup og Gentofte-området er ofte velholdte og køres af ejere, der går op i bilens stand. Udvendig vask, indvendig rengøring og komplet bilpleje er alle relevante services. Wash Max arbejder grundigt og skånsomt, så bilen bevarer sit gode udtryk.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Hellerup?",
+        heading: "Hvad tilbyder Wash Max i Hellerup?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Hellerup. Udvendig vask fjerner snavs fra lak, ruder, fælge og spejle. Indvendig rengøring fokuserer på kabine, støvsugning, sæder og instrumentbræt. Komplet bilpleje giver det mest gennemførte resultat.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Hellerup. Udvendig vask fjerner snavs fra lak, ruder, fælge og spejle. Indvendig rengøring fokuserer på kabine, støvsugning, sæder og instrumentbræt. Komplet bilpleje giver det mest gennemførte resultat.",
           "Booking foregår online. Du vælger service, angiver biloplysninger og ønsket tidspunkt. Den konkrete mulighed afhænger af adresse og rute, men bookingflowet samler alle oplysninger.",
         ],
       },
       {
         heading: "Hellerup, Gentofte og Charlottenlund",
         paragraphs: [
-          "Hellerup grænser op til Gentofte, Charlottenlund, Ordrup og Klampenborg. Clean Wash er relevant for kunder i hele dette villakvarter nord for København. Dækningsområdet afhænger af booking og ruteplanlægning, men du kan starte processen online.",
-          "Mange bilejere i dette område søger en professionel bilvask, der tager sig af bilen med omhu. Clean Wash tilbyder en service, der er skånsom over for lakken og giver et synligt og pænt resultat.",
+          "Hellerup grænser op til Gentofte, Charlottenlund, Ordrup og Klampenborg. Wash Max er relevant for kunder i hele dette villakvarter nord for København. Dækningsområdet afhænger af booking og ruteplanlægning, men du kan starte processen online.",
+          "Mange bilejere i dette område søger en professionel bilvask, der tager sig af bilen med omhu. Wash Max tilbyder en service, der er skånsom over for lakken og giver et synligt og pænt resultat.",
         ],
       },
       {
         heading: "Bilvask til salg, fremvisning og hverdag",
         paragraphs: [
-          "I Hellerup og Gentofte-området skifter mange bilejere bil hyppigt. En professionel bilvask inden salg eller fremvisning kan gøre bilen mere attraktiv og løfte dens oplevede stand. Clean Wash kan hjælpe med en grundig vask, der gør bilen klar til billeder eller fremvisning.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten og leverer et professionelt resultat.",
+          "I Hellerup og Gentofte-området skifter mange bilejere bil hyppigt. En professionel bilvask inden salg eller fremvisning kan gøre bilen mere attraktiv og løfte dens oplevede stand. Wash Max kan hjælpe med en grundig vask, der gør bilen klar til billeder eller fremvisning.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten og leverer et professionelt resultat.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Hellerup?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Hellerup og nærliggende bydele som Gentofte og Charlottenlund." },
-      { question: "Er Clean Wash relevant for Gentofte og Charlottenlund?", answer: "Ja. Gentofte og Charlottenlund er del af Clean Washs serviceområde nord for København." },
+      { question: "Tilbyder Wash Max bilvask i Hellerup?", answer: "Ja. Wash Max tilbyder professionel bilvask i Hellerup og nærliggende bydele som Gentofte og Charlottenlund." },
+      { question: "Er Wash Max relevant for Gentofte og Charlottenlund?", answer: "Ja. Gentofte og Charlottenlund er del af Wash Maxs serviceområde nord for København." },
       { question: "Tilbyder I premium bilpleje i Hellerup?", answer: "Ja. Du kan vælge premium bilpleje med polering og voksbeskyttelse i bookingflowet." },
       { question: "Er servicen relevant inden bilsalg?", answer: "Ja. En professionel bilvask kan gøre bilen mere præsentabel inden billeder, fremvisning eller salg." },
       { question: "Hvad koster bilvask i Hellerup?", answer: "Prisen afhænger af den valgte service. Se aktuelle priser og book online via /booking." },
@@ -1315,13 +1315,13 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-pris",
-    title: "Bilvask pris København | Hvad koster en bilvask? | Clean Wash",
+    title: "Bilvask pris København | Hvad koster en bilvask? | Wash Max",
     description:
-      "Se priser på bilvask i København hos Clean Wash. Udvendig bilvask fra 349 kr., komplet bilpleje fra 599 kr. Klar pris — ingen skjulte gebyrer.",
+      "Se priser på bilvask i København hos Wash Max. Udvendig bilvask fra 349 kr., komplet bilpleje fra 599 kr. Klar pris — ingen skjulte gebyrer.",
     h1: "Bilvask pris",
     eyebrow: "Priser og pakker",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask fra 349 kr. med klar pris, ingen skjulte gebyrer og nem online booking i København og på Sjælland.",
+      "Wash Max tilbyder professionel bilvask fra 349 kr. med klar pris, ingen skjulte gebyrer og nem online booking i København og på Sjælland.",
     shortSummary: [
       "Udvendig bilvask fra 349 kr. — skånsom vask med skum og skyl, fælge og ruder.",
       "Komplet bilvask fra 599 kr. — udvendig vask og grundig indvendig rengøring af kabinen.",
@@ -1344,7 +1344,7 @@ export const seoPages: SeoPageConfig[] = [
       "Storkøbenhavn",
     ],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Bilvask pris og pakker hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Bilvask pris og pakker hos Wash Max" },
     secondaryCta: { label: "Book bilvask online", href: "/booking" },
     benefits: [
       { title: "Klar pris fra start", text: "Du ser prisen, inden du booker. Ingen skjulte gebyrer eller tillæg ved levering." },
@@ -1355,15 +1355,15 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Se priser online", text: "Se alle priser og pakker direkte i bookingflowet og vælg den, der passer." },
       { title: "Book og betal", text: "Bekræft booking og se den endelige pris, inden du forpligter dig." },
-      { title: "Bilen vaskes", text: "Clean Wash udfører den valgte bilvask med professionelt udstyr." },
+      { title: "Bilen vaskes", text: "Wash Max udfører den valgte bilvask med professionelt udstyr." },
       { title: "Betal ved levering", text: "Du betaler kun, når bilen er vasket og du er tilfreds med resultatet." },
     ],
     sections: [
       {
-        heading: "Hvad koster en bilvask hos Clean Wash?",
+        heading: "Hvad koster en bilvask hos Wash Max?",
         paragraphs: [
-          "Bilvask pris er et af de mest søgte spørgsmål, når man overvejer at få bilen vasket professionelt. Clean Wash tilbyder tre klare pakker: udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. og premium bilpleje fra 849 kr. Prisen afhænger af biltype og konkret service, men udgangspunktet er altid tydeligt i bookingflowet.",
-          "Det er vigtigt at sammenligne mere end bare prisen. En billig bilvask, der ikke rengør ordentligt, er ingen besparelse. Clean Wash tilbyder en klar pris, professionelt udstyr og et synligt resultat. Du betaler kun, når bilvasken er udført.",
+          "Bilvask pris er et af de mest søgte spørgsmål, når man overvejer at få bilen vasket professionelt. Wash Max tilbyder tre klare pakker: udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. og premium bilpleje fra 849 kr. Prisen afhænger af biltype og konkret service, men udgangspunktet er altid tydeligt i bookingflowet.",
+          "Det er vigtigt at sammenligne mere end bare prisen. En billig bilvask, der ikke rengør ordentligt, er ingen besparelse. Wash Max tilbyder en klar pris, professionelt udstyr og et synligt resultat. Du betaler kun, når bilvasken er udført.",
         ],
       },
       {
@@ -1389,10 +1389,10 @@ export const seoPages: SeoPageConfig[] = [
       },
     ],
     faqs: [
-      { question: "Hvad koster en udvendig bilvask hos Clean Wash?", answer: "Udvendig bilvask starter fra 349 kr. og inkluderer vask, fælge, ruder og finish." },
+      { question: "Hvad koster en udvendig bilvask hos Wash Max?", answer: "Udvendig bilvask starter fra 349 kr. og inkluderer vask, fælge, ruder og finish." },
       { question: "Hvad koster komplet bilvask?", answer: "Komplet bilvask starter fra 599 kr. og inkluderer udvendig vask og grundig indvendig rengøring." },
       { question: "Hvad koster premium bilpleje?", answer: "Premium bilpleje starter fra 849 kr. og inkluderer alt fra komplet bilvask plus polering og voksbeskyttelse." },
-      { question: "Er der skjulte gebyrer?", answer: "Nej. Clean Wash tilbyder klar pris fra start. Du ser prisen, inden du booker, og betaler kun, når vasken er udført." },
+      { question: "Er der skjulte gebyrer?", answer: "Nej. Wash Max tilbyder klar pris fra start. Du ser prisen, inden du booker, og betaler kun, når vasken er udført." },
       { question: "Kan jeg se den præcise pris, inden jeg booker?", answer: "Ja. Den endelige pris vises i bookingflowet, inden du bekræfter din bestilling." },
       { question: "Hvordan booker jeg bilvask til den viste pris?", answer: "Gå til /booking, vælg den pakke, der passer til bilen, og udfyld oplysninger. Den endelige pris vises under booking." },
     ],
@@ -1404,15 +1404,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "car-wash-copenhagen",
-    title: "Car Wash Copenhagen | Professional Mobile Car Wash | Clean Wash",
+    title: "Car Wash Copenhagen | Professional Mobile Car Wash | Wash Max",
     description:
-      "Book professional car wash in Copenhagen with Clean Wash. Mobile car wash at your address, interior cleaning, exterior wash and business accounts.",
+      "Book professional car wash in Copenhagen with Wash Max. Mobile car wash at your address, interior cleaning, exterior wash and business accounts.",
     h1: "Car Wash Copenhagen",
     eyebrow: "Professional mobile car wash",
     heroIntro:
-      "Clean Wash offers professional car wash in Copenhagen and Zealand. Book online, choose your service and get your car cleaned without queuing.",
+      "Wash Max offers professional car wash in Copenhagen and Zealand. Book online, choose your service and get your car cleaned without queuing.",
     shortSummary: [
-      "Clean Wash offers professional car wash in Copenhagen with online booking and transparent pricing.",
+      "Wash Max offers professional car wash in Copenhagen with online booking and transparent pricing.",
       "Choose exterior wash, interior cleaning or complete car detailing directly in the booking flow.",
       "The service covers Copenhagen, Frederiksberg, Amager, the bridge districts and Greater Copenhagen.",
     ],
@@ -1435,7 +1435,7 @@ export const seoPages: SeoPageConfig[] = [
       "Gentofte",
     ],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Zealand", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professional car wash in Copenhagen by Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professional car wash in Copenhagen by Wash Max" },
     secondaryCta: { label: "Book car wash", href: "/booking" },
     benefits: [
       { title: "Mobile service", text: "We come to your address in Copenhagen — no queuing, no wasted time driving to a car wash." },
@@ -1446,45 +1446,45 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Go to the booking page and choose the car wash service that fits your needs." },
       { title: "Enter car details", text: "Provide your license plate, address and preferred time for the car wash." },
-      { title: "Clean Wash prepares", text: "Our team prepares the service and plans the route based on your booking." },
+      { title: "Wash Max prepares", text: "Our team prepares the service and plans the route based on your booking." },
       { title: "Car washed and delivered", text: "Your car is professionally washed and delivered without queues or delays." },
     ],
     sections: [
       {
         heading: "Professional car wash in Copenhagen",
         paragraphs: [
-          "Finding a professional car wash in Copenhagen can be challenging when you are busy with work, family and daily life. Clean Wash makes it easier by offering mobile car wash with online booking, clear service options and transparent pricing. You choose when and where — we take care of the rest.",
+          "Finding a professional car wash in Copenhagen can be challenging when you are busy with work, family and daily life. Wash Max makes it easier by offering mobile car wash with online booking, clear service options and transparent pricing. You choose when and where — we take care of the rest.",
           "Copenhagen cars accumulate city dirt quickly: brake dust from traffic, pollen from the parks, road salt in winter and everyday grime. Regular professional car washing keeps your car looking good and protects the paintwork from long-term damage.",
         ],
       },
       {
-        heading: "What does Clean Wash offer in Copenhagen?",
+        heading: "What does Wash Max offer in Copenhagen?",
         paragraphs: [
-          "Clean Wash offers three main services: exterior car wash from 349 DKK, complete car wash from 599 DKK and premium car detailing from 849 DKK. Exterior wash covers paintwork, windows, alloy wheels and wheel arches. Complete car wash adds interior cleaning including vacuuming, dashboard, seats and mats. Premium detailing adds polishing, wax protection and preparation for sale or presentation.",
+          "Wash Max offers three main services: exterior car wash from 349 DKK, complete car wash from 599 DKK and premium car detailing from 849 DKK. Exterior wash covers paintwork, windows, alloy wheels and wheel arches. Complete car wash adds interior cleaning including vacuuming, dashboard, seats and mats. Premium detailing adds polishing, wax protection and preparation for sale or presentation.",
           "All services can be booked online. You select the service, provide car details and choose a time that works for you. The booking flow gives you a clear price before you confirm your order.",
         ],
       },
       {
         heading: "Copenhagen neighbourhoods we cover",
         paragraphs: [
-          "Clean Wash is relevant for car owners across Copenhagen, including Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby, Hellerup, Gentofte and Greater Copenhagen. We also serve parts of Zealand including Roskilde, Køge, Hillerød and Helsingør. The exact coverage depends on availability and routing — check the booking page for your address.",
-          "Whether you live in a city apartment in Nørrebro, a house in Gentofte, or work in an office near Nordhavn, Clean Wash can help you get your car cleaned without disrupting your day.",
+          "Wash Max is relevant for car owners across Copenhagen, including Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby, Hellerup, Gentofte and Greater Copenhagen. We also serve parts of Zealand including Roskilde, Køge, Hillerød and Helsingør. The exact coverage depends on availability and routing — check the booking page for your address.",
+          "Whether you live in a city apartment in Nørrebro, a house in Gentofte, or work in an office near Nordhavn, Wash Max can help you get your car cleaned without disrupting your day.",
         ],
       },
       {
         heading: "Business car wash and fleet accounts",
         paragraphs: [
-          "Clean Wash works with businesses in Copenhagen that need regular car washing for their fleet. Company cars, lease vehicles, taxis, transport companies and car dealerships can all benefit from a professional and reliable car wash service. Contact us to discuss a business account tailored to your needs.",
-          "A clean company car makes a better impression on clients and colleagues. Clean Wash handles the logistics so your team does not need to coordinate car washing themselves.",
+          "Wash Max works with businesses in Copenhagen that need regular car washing for their fleet. Company cars, lease vehicles, taxis, transport companies and car dealerships can all benefit from a professional and reliable car wash service. Contact us to discuss a business account tailored to your needs.",
+          "A clean company car makes a better impression on clients and colleagues. Wash Max handles the logistics so your team does not need to coordinate car washing themselves.",
         ],
       },
     ],
     faqs: [
-      { question: "Does Clean Wash offer car wash in Copenhagen?", answer: "Yes. Clean Wash offers professional car wash in Copenhagen and Greater Copenhagen with online booking." },
+      { question: "Does Wash Max offer car wash in Copenhagen?", answer: "Yes. Wash Max offers professional car wash in Copenhagen and Greater Copenhagen with online booking." },
       { question: "How much does a car wash cost in Copenhagen?", answer: "Exterior wash starts from 349 DKK, complete car wash from 599 DKK and premium detailing from 849 DKK." },
       { question: "Can I book a car wash at my home address?", answer: "Yes. You can book car wash at your home, workplace or any other location where the car is legally parked." },
       { question: "Do you offer interior car cleaning?", answer: "Yes. Our complete car wash includes full interior cleaning: vacuuming, dashboard, seats, mats and windows." },
-      { question: "Does Clean Wash serve expats and tourists in Copenhagen?", answer: "Yes. Clean Wash serves all car owners in Copenhagen regardless of nationality. Booking is available online." },
+      { question: "Does Wash Max serve expats and tourists in Copenhagen?", answer: "Yes. Wash Max serves all car owners in Copenhagen regardless of nationality. Booking is available online." },
       { question: "How do I book a car wash in Copenhagen?", answer: "Go to /booking, select your preferred service and enter your car details, address and preferred time." },
     ],
     relatedLinks: commonRelatedLinks.filter((link) => link.href !== "/car-wash-copenhagen"),
@@ -1495,15 +1495,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-noerrebro",
-    title: "Bilvask Nørrebro | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Nørrebro | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask på Nørrebro hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking.",
+      "Book professionel bilvask på Nørrebro hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking.",
     h1: "Bilvask Nørrebro",
     eyebrow: "Professionel bilvask på Nørrebro",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask på Nørrebro med online booking og klare servicevalg til private og erhverv i en travl bydel.",
+      "Wash Max tilbyder professionel bilvask på Nørrebro med online booking og klare servicevalg til private og erhverv i en travl bydel.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask på Nørrebro og i nærliggende bydele med online booking.",
+      "Wash Max tilbyder bilvask på Nørrebro og i nærliggende bydele med online booking.",
       "Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
       "Servicen er relevant for bilejere på Nørrebro, Bispebjerg, Frederiksberg og Ydre Nørrebro.",
     ],
@@ -1517,10 +1517,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask på Nørrebro",
     serviceArea: ["Nørrebro", "Bispebjerg", "Ydre Nørrebro", "Frederiksberg", "Østerbro", "København"],
     schemaAreaServed: ["Nørrebro", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask på Nørrebro hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask på Nørrebro hos Wash Max" },
     secondaryCta: { label: "Se bilvask København", href: "/bilvask-koebenhavn" },
     benefits: [
-      { title: "Lokal service", text: "Clean Wash er relevant for bilejere på Nørrebro, Bispebjerg og nærliggende bydele." },
+      { title: "Lokal service", text: "Wash Max er relevant for bilejere på Nørrebro, Bispebjerg og nærliggende bydele." },
       { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
       { title: "Alle servicetyper", text: "Udvendig vask, indvendig rengøring eller komplet bilpleje — alt bookes online." },
       { title: "Til private og erhverv", text: "Passer til hverdagsbiler, firmabiler og pendlerbiler i bydelen." },
@@ -1528,43 +1528,43 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash klargør", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max klargør", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Ren bil", text: "Du får en renere bil uden kø og transport til vaskehal." },
     ],
     sections: [
       {
         heading: "Bilvask på Nørrebro — professionel og nem",
         paragraphs: [
-          "Nørrebro er en af Københavns mest levende bydele med mange bilejere, der kæmper med begrænset parkering og en travl hverdag. Bilvask Nørrebro er relevant for alle, der vil have bilen gjort ren uden at bruge ekstra tid på transport og kø. Clean Wash tilbyder professionel bilvask med online booking og klare servicevalg.",
+          "Nørrebro er en af Københavns mest levende bydele med mange bilejere, der kæmper med begrænset parkering og en travl hverdag. Bilvask Nørrebro er relevant for alle, der vil have bilen gjort ren uden at bruge ekstra tid på transport og kø. Wash Max tilbyder professionel bilvask med online booking og klare servicevalg.",
           "Biler på Nørrebro samler typisk bysnavs fra tæt trafik, cykelstier og den intensive daglige brug. Vejsnavs, bremsestøv og pollen er hyppige udfordringer. En professionel bilvask holder bilen pænere og giver en bedre hverdagsoplevelse.",
         ],
       },
       {
         heading: "Nørrebro og nærliggende bydele",
         paragraphs: [
-          "Nørrebro grænser op til Bispebjerg, Frederiksberg, Østerbro og det indre København. Clean Wash er relevant for bilejere i hele dette område. Den konkrete dækning afhænger af adresse, rute og ledige tider, men booking-siden samler alle oplysninger.",
+          "Nørrebro grænser op til Bispebjerg, Frederiksberg, Østerbro og det indre København. Wash Max er relevant for bilejere i hele dette område. Den konkrete dækning afhænger af adresse, rute og ledige tider, men booking-siden samler alle oplysninger.",
           "Ydre Nørrebro og Bispebjerg har mange parcelhuse og større boligblokke med tilhørende biler. Disse bilejere søger ofte efter en professionel og fleksibel bilvaskløsning, der ikke kræver transport til en vaskehal.",
         ],
       },
       {
-        heading: "Hvad Clean Wash tilbyder på Nørrebro",
+        heading: "Hvad Wash Max tilbyder på Nørrebro",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder på Nørrebro. Udvendig vask fjerner snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder på Nørrebro. Udvendig vask fjerner snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten.",
         ],
       },
       {
         heading: "Parkering og bilvask på Nørrebro",
         paragraphs: [
           "Parkering er en daglig udfordring på Nørrebro. Mange bilejere parkerer langt fra hjemmet og har ikke mulighed for at flytte bilen til en vaskehal i åbningstiden. En mobil bilvask løser dette problem, fordi bilen kan vaskes, hvor den allerede holder.",
-          "Clean Wash planlægger ruter effektivt og kan bookes til den adresse, hvor bilen holder. Det gør bilvask på Nørrebro mere tilgængeligt og nemmere at passe ind i en travl hverdag.",
+          "Wash Max planlægger ruter effektivt og kan bookes til den adresse, hvor bilen holder. Det gør bilvask på Nørrebro mere tilgængeligt og nemmere at passe ind i en travl hverdag.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask på Nørrebro?", answer: "Ja. Clean Wash tilbyder professionel bilvask på Nørrebro og nærliggende bydele med online booking." },
-      { question: "Kan I vaske bilen, selv om jeg har begrænset parkering?", answer: "Ja. Clean Wash vasker bilen, hvor den holder. Angiv adressen i bookingflowet for at afklare muligheder." },
-      { question: "Dækker I Bispebjerg og Ydre Nørrebro?", answer: "Ja. Bispebjerg og Ydre Nørrebro er del af Clean Washs serviceområde nord for indre by." },
+      { question: "Tilbyder Wash Max bilvask på Nørrebro?", answer: "Ja. Wash Max tilbyder professionel bilvask på Nørrebro og nærliggende bydele med online booking." },
+      { question: "Kan I vaske bilen, selv om jeg har begrænset parkering?", answer: "Ja. Wash Max vasker bilen, hvor den holder. Angiv adressen i bookingflowet for at afklare muligheder." },
+      { question: "Dækker I Bispebjerg og Ydre Nørrebro?", answer: "Ja. Bispebjerg og Ydre Nørrebro er del af Wash Maxs serviceområde nord for indre by." },
       { question: "Kan jeg booke komplet bilpleje på Nørrebro?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
       { question: "Hvad koster bilvask på Nørrebro?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se alle priser via /booking." },
       { question: "Hvordan booker jeg bilvask på Nørrebro?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil, adresse og ønsket tidspunkt." },
@@ -1584,15 +1584,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-vesterbro",
-    title: "Bilvask Vesterbro | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Vesterbro | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask på Vesterbro hos Clean Wash. Udvendig bilvask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
+      "Book professionel bilvask på Vesterbro hos Wash Max. Udvendig bilvask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
     h1: "Bilvask Vesterbro",
     eyebrow: "Professionel bilvask på Vesterbro",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask på Vesterbro med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask på Vesterbro med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask på Vesterbro og i nærliggende bydele med online booking.",
+      "Wash Max tilbyder bilvask på Vesterbro og i nærliggende bydele med online booking.",
       "Servicen er relevant for bilejere på Vesterbro, Sydhavn, Carlsberg Byen og Valby.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
     ],
@@ -1606,10 +1606,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask på Vesterbro",
     serviceArea: ["Vesterbro", "Sydhavn", "Carlsberg Byen", "Valby", "Frederiksberg", "København"],
     schemaAreaServed: ["Vesterbro", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask på Vesterbro hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask på Vesterbro hos Wash Max" },
     secondaryCta: { label: "Se bilvask Valby", href: "/bilvask-valby" },
     benefits: [
-      { title: "Vesterbro og Sydhavn", text: "Clean Wash er relevant for bilejere på Vesterbro, i Sydhavn, Carlsberg Byen og nærliggende bydele." },
+      { title: "Vesterbro og Sydhavn", text: "Wash Max er relevant for bilejere på Vesterbro, i Sydhavn, Carlsberg Byen og nærliggende bydele." },
       { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
       { title: "Komplet bilpleje", text: "Udvendig vask, indvendig rengøring eller komplet bilpleje — vælg efter bilens behov." },
       { title: "Til travle bilejere", text: "Perfekt for pendlere, familier og erhvervskunder, der bruger bilen dagligt." },
@@ -1617,45 +1617,45 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Vælg service på booking-siden og angiv biloplysninger og tidspunkt." },
       { title: "Oplys adresse", text: "Angiv den adresse, hvor bilen holder, og kontaktoplysninger." },
-      { title: "Clean Wash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes", text: "Du får en renere bil leveret professionelt uden ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask på Vesterbro — nem og professionel",
         paragraphs: [
-          "Vesterbro er en af Københavns mest forandrede bydele med mange nye boliger, kontorer og familier. Mange bilejere på Vesterbro kæmper med begrænset parkering og en travl hverdag. Bilvask Vesterbro er for alle, der vil have bilen ren uden unødigt besvær. Clean Wash tilbyder professionel bilvask med online booking.",
+          "Vesterbro er en af Københavns mest forandrede bydele med mange nye boliger, kontorer og familier. Mange bilejere på Vesterbro kæmper med begrænset parkering og en travl hverdag. Bilvask Vesterbro er for alle, der vil have bilen ren uden unødigt besvær. Wash Max tilbyder professionel bilvask med online booking.",
           "Vesterbro dækker et stort område fra Kødbyen og Halmtorvet til de roligere kvarterer mod Frederiksberg og Sydhavn. Biler i bydelen samler typisk bysnavs fra tæt bytrafik. En professionel bilvask giver et bedre resultat end en hurtig standardvask og er skånsom over for lakken.",
         ],
       },
       {
         heading: "Sydhavn og Carlsberg Byen",
         paragraphs: [
-          "Sydhavn og Carlsberg Byen er to af Vesterbros hurtigst voksende delområder med mange nye boliger og kontorer. Bilejere her søger fleksible og professionelle løsninger, der passer ind i en moderne hverdag. Clean Wash er relevant for kunder i begge områder og kan håndtere booking fra hele Vesterbro.",
+          "Sydhavn og Carlsberg Byen er to af Vesterbros hurtigst voksende delområder med mange nye boliger og kontorer. Bilejere her søger fleksible og professionelle løsninger, der passer ind i en moderne hverdag. Wash Max er relevant for kunder i begge områder og kan håndtere booking fra hele Vesterbro.",
           "Med adgang til Sydhavnsmotorvejen og let adgang til resten af København er Vesterbro et populært sted at bo for pendlere. Pendlerbiler bruges hårdt og trænger til jævnlig bilvask for at se pæne ud.",
         ],
       },
       {
-        heading: "Hvad Clean Wash tilbyder på Vesterbro",
+        heading: "Hvad Wash Max tilbyder på Vesterbro",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder på Vesterbro. Udvendig vask fjerner snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten og leverer et professionelt resultat.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder på Vesterbro. Udvendig vask fjerner snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten og leverer et professionelt resultat.",
         ],
       },
       {
         heading: "Vesterbro: familier og erhvervskunder",
         paragraphs: [
           "Vesterbro har mange familier med børn, der bruger bilen dagligt til børnekørsel, indkøb og weekend­ture. Indvendig rengøring er særlig relevant for familiebiler, hvor kabinen hurtigt samler støv og rester fra daglig brug. Erhvervskunder med firmabiler nyder godt af regelmæssig bilpleje.",
-          "Clean Wash gør det nemt at booke bilvask på Vesterbro. Kunder kan booke direkte via booking-siden og vælge den service, der passer til bilen.",
+          "Wash Max gør det nemt at booke bilvask på Vesterbro. Kunder kan booke direkte via booking-siden og vælge den service, der passer til bilen.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask på Vesterbro?", answer: "Ja. Clean Wash tilbyder professionel bilvask på Vesterbro og nærliggende bydele med online booking." },
-      { question: "Dækker I Sydhavn og Carlsberg Byen?", answer: "Ja. Sydhavn og Carlsberg Byen er del af Clean Washs serviceområde på Vesterbro." },
+      { question: "Tilbyder Wash Max bilvask på Vesterbro?", answer: "Ja. Wash Max tilbyder professionel bilvask på Vesterbro og nærliggende bydele med online booking." },
+      { question: "Dækker I Sydhavn og Carlsberg Byen?", answer: "Ja. Sydhavn og Carlsberg Byen er del af Wash Maxs serviceområde på Vesterbro." },
       { question: "Kan jeg booke indvendig rengøring på Vesterbro?", answer: "Ja. Du kan vælge indvendig rengøring, udvendig vask eller komplet bilpleje i bookingflowet." },
       { question: "Hvad koster bilvask på Vesterbro?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se alle priser via /booking." },
-      { question: "Er servicen relevant for firmabiler på Vesterbro?", answer: "Ja. Clean Wash tilbyder bilvask til private og erhverv, herunder firmabiler og leasingbiler." },
+      { question: "Er servicen relevant for firmabiler på Vesterbro?", answer: "Ja. Wash Max tilbyder bilvask til private og erhverv, herunder firmabiler og leasingbiler." },
       { question: "Hvordan booker jeg bilvask på Vesterbro?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil, adresse og ønsket tidspunkt." },
     ],
     relatedLinks: [
@@ -1673,15 +1673,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-valby",
-    title: "Bilvask Valby | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Valby | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask i Valby hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
+      "Book professionel bilvask i Valby hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
     h1: "Bilvask Valby",
     eyebrow: "Professionel bilvask i Valby",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i Valby med online booking og klare servicevalg til familier, pendlere og erhverv.",
+      "Wash Max tilbyder professionel bilvask i Valby med online booking og klare servicevalg til familier, pendlere og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Valby og nærliggende bydele med online booking.",
+      "Wash Max tilbyder bilvask i Valby og nærliggende bydele med online booking.",
       "Servicen er relevant for bilejere i Valby, Brønshøj, Vanløse og Rødovre.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
     ],
@@ -1695,10 +1695,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask i Valby",
     serviceArea: ["Valby", "Brønshøj", "Vanløse", "Rødovre", "Hvidovre", "København"],
     schemaAreaServed: ["Valby", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Valby hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Valby hos Wash Max" },
     secondaryCta: { label: "Se bilvask Vesterbro", href: "/bilvask-vesterbro" },
     benefits: [
-      { title: "Valby og omegn", text: "Clean Wash er relevant for bilejere i Valby, Brønshøj, Vanløse og Rødovre." },
+      { title: "Valby og omegn", text: "Wash Max er relevant for bilejere i Valby, Brønshøj, Vanløse og Rødovre." },
       { title: "Familievenlig service", text: "Professionel bilvask der passer til familier, som bruger bilen til hverdag, sport og weekendture." },
       { title: "Online booking", text: "Book bilvask direkte online uden kø eller telefonopkald." },
       { title: "Klar pris", text: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. — ingen skjulte gebyrer." },
@@ -1706,14 +1706,14 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes grundigt", text: "Du får en renere bil leveret professionelt uden ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Valby — til familier og pendlere",
         paragraphs: [
-          "Valby er et roligt og familievenligt kvarter syd for København med mange villa- og rækkehusejere, der bruger bilen dagligt. Bilvask Valby er relevant for alle, der vil have en ren bil uden at køre langt til en vaskehal. Clean Wash tilbyder professionel bilvask med online booking og klare servicevalg.",
+          "Valby er et roligt og familievenligt kvarter syd for København med mange villa- og rækkehusejere, der bruger bilen dagligt. Bilvask Valby er relevant for alle, der vil have en ren bil uden at køre langt til en vaskehal. Wash Max tilbyder professionel bilvask med online booking og klare servicevalg.",
           "Familiebiler i Valby bruges til børnekørsel, sportsaktiviteter, indkøb og weekendture. Kabinen samler hurtigt snavs, og lakken udsættes for vejrsnavs og pollen. En professionel bilvask hjælper bilen med at se bedre ud og holder kabinen frisk og behagelig.",
         ],
       },
@@ -1721,28 +1721,28 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Valby: et familiekvarter med mange bilejere",
         paragraphs: [
           "Valby er et af de grønnere kvarterer i København med gode butiksforhold, skoler og grønne arealer. Mange familier vælger Valby for bydelens rolige karakter og gode adgangsforhold til resten af København. Bilejere i Valby søger professionelle og fleksible løsninger, der passer til en travl familiekøreplan.",
-          "Clean Wash er relevant for kunder i Valby og nærliggende bydele som Brønshøj, Vanløse og Rødovre. Den konkrete dækning afhænger af booking og ruteplanlægning. Start booking-processen online for at se tilgængelighed.",
+          "Wash Max er relevant for kunder i Valby og nærliggende bydele som Brønshøj, Vanløse og Rødovre. Den konkrete dækning afhænger af booking og ruteplanlægning. Start booking-processen online for at se tilgængelighed.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Valby?",
+        heading: "Hvad tilbyder Wash Max i Valby?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje i Valby. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning, måtter og sæder. Komplet bilpleje kombinerer begge dele.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten og leverer et professionelt resultat.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje i Valby. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning, måtter og sæder. Komplet bilpleje kombinerer begge dele.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten og leverer et professionelt resultat.",
         ],
       },
       {
         heading: "Indvendig rengøring til familiebiler i Valby",
         paragraphs: [
-          "Familiebiler samler snavs hurtigt, og indvendig rengøring er særlig relevant for bilejere med børn. Sæder, gulve, måtter, bagagerum og kabinen generelt kræver regelmæssig rengøring for at holde bilen frisk og behagelig. Clean Wash tilbyder indvendig bilrengøring, der adresserer alle disse områder.",
+          "Familiebiler samler snavs hurtigt, og indvendig rengøring er særlig relevant for bilejere med børn. Sæder, gulve, måtter, bagagerum og kabinen generelt kræver regelmæssig rengøring for at holde bilen frisk og behagelig. Wash Max tilbyder indvendig bilrengøring, der adresserer alle disse områder.",
           "En professionel indvendig rengøring giver familien en bedre oplevelse i bilen og gør bilen mere attraktiv, hvis den skal sælges eller returneres. Kunder i Valby kan booke bilvask direkte via booking-siden.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Valby?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Valby og nærliggende bydele med online booking." },
-      { question: "Er servicen relevant for familiebiler i Valby?", answer: "Ja. Familiebiler trænger ofte til indvendig rengøring, og Clean Wash tilbyder grundig kabinerengøring." },
-      { question: "Dækker I Brønshøj og Vanløse?", answer: "Clean Wash er relevant for Valby og nærliggende bydele. Konkret dækning afhænger af booking og rute." },
+      { question: "Tilbyder Wash Max bilvask i Valby?", answer: "Ja. Wash Max tilbyder professionel bilvask i Valby og nærliggende bydele med online booking." },
+      { question: "Er servicen relevant for familiebiler i Valby?", answer: "Ja. Familiebiler trænger ofte til indvendig rengøring, og Wash Max tilbyder grundig kabinerengøring." },
+      { question: "Dækker I Brønshøj og Vanløse?", answer: "Wash Max er relevant for Valby og nærliggende bydele. Konkret dækning afhænger af booking og rute." },
       { question: "Kan jeg booke komplet bilpleje i Valby?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
       { question: "Hvad koster bilvask i Valby?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se alle priser via /booking." },
       { question: "Hvordan booker jeg bilvask i Valby?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil, adresse og ønsket tidspunkt." },
@@ -1762,15 +1762,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-lyngby",
-    title: "Bilvask Lyngby | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Lyngby | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask i Lyngby hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking nord for København.",
+      "Book professionel bilvask i Lyngby hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking nord for København.",
     h1: "Bilvask Lyngby",
     eyebrow: "Professionel bilvask i Lyngby",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i Lyngby og Lyngby-Taarbæk med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask i Lyngby og Lyngby-Taarbæk med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Lyngby og nærliggende kommuner nord for København.",
+      "Wash Max tilbyder bilvask i Lyngby og nærliggende kommuner nord for København.",
       "Servicen er relevant for bilejere i Lyngby, Virum, Sorgenfri og Klampenborg.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje direkte i bookingflowet.",
     ],
@@ -1784,10 +1784,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask i Lyngby",
     serviceArea: ["Lyngby", "Virum", "Sorgenfri", "Klampenborg", "Gentofte", "Hellerup"],
     schemaAreaServed: ["Lyngby", "Lyngby-Taarbæk", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Lyngby hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Lyngby hos Wash Max" },
     secondaryCta: { label: "Se bilvask Hellerup", href: "/bilvask-hellerup" },
     benefits: [
-      { title: "Lyngby og omegn", text: "Clean Wash er relevant for bilejere i Lyngby, Virum, Sorgenfri og nærliggende kommuner." },
+      { title: "Lyngby og omegn", text: "Wash Max er relevant for bilejere i Lyngby, Virum, Sorgenfri og nærliggende kommuner." },
       { title: "Pendlere og familier", text: "Professionel bilvask der passer til pendlere fra Lyngby til København og familier i forstaden." },
       { title: "Online booking", text: "Book bilvask direkte online og vælg den service, der passer til bilens stand." },
       { title: "Premium bilpleje", text: "Udvendig vask, indvendig rengøring og premium bilpleje — alt kan bookes online." },
@@ -1795,43 +1795,43 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Lyngby — professionel service nord for København",
         paragraphs: [
-          "Lyngby er en velhavende og grøn forstad nord for København med mange bilejere, der pendler dagligt til arbejde i storbyen. Bilvask Lyngby er relevant for alle, der vil have bilen gjort ren professionelt uden at bruge unødigt tid på det. Clean Wash tilbyder bilvask i Lyngby med online booking og klare servicevalg.",
+          "Lyngby er en velhavende og grøn forstad nord for København med mange bilejere, der pendler dagligt til arbejde i storbyen. Bilvask Lyngby er relevant for alle, der vil have bilen gjort ren professionelt uden at bruge unødigt tid på det. Wash Max tilbyder bilvask i Lyngby med online booking og klare servicevalg.",
           "Pendlerbiler fra Lyngby bruges hårdt på motorveje og indfaldsveje. Vejsnavs, vejsalt om vinteren og insekter om sommeren belaster lakken og kræver regelmæssig vask. En professionel bilvask holder bilen pænere og i bedre stand.",
         ],
       },
       {
         heading: "Lyngby, Virum og Sorgenfri",
         paragraphs: [
-          "Lyngby-Taarbæk Kommune dækker Lyngby, Virum og Sorgenfri — tre velhavende villakvarterer med mange bilejere, der sætter pris på kvalitet og god service. Clean Wash er relevant for kunder i hele dette område og kan håndtere booking fra bilejere langs hele den nordlige korridor.",
+          "Lyngby-Taarbæk Kommune dækker Lyngby, Virum og Sorgenfri — tre velhavende villakvarterer med mange bilejere, der sætter pris på kvalitet og god service. Wash Max er relevant for kunder i hele dette område og kan håndtere booking fra bilejere langs hele den nordlige korridor.",
           "Klampenborg og Gentofte grænser op til Lyngby-Taarbæk og er ligeledes relevante. Den konkrete dækning afhænger af booking og ruteplanlægning. Start processen online for at afklare muligheder.",
         ],
       },
       {
-        heading: "Hvad Clean Wash tilbyder i Lyngby",
+        heading: "Hvad Wash Max tilbyder i Lyngby",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje i Lyngby. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje giver det mest gennemførte resultat.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, angiv relevante oplysninger, og Clean Wash håndterer resten.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje i Lyngby. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje giver det mest gennemførte resultat.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, angiv relevante oplysninger, og Wash Max håndterer resten.",
         ],
       },
       {
         heading: "DTU og Lyngby Storcenter — mange biler",
         paragraphs: [
-          "Lyngby er hjemsted for DTU og Lyngby Storcenter med mange studerende, ansatte og besøgende, der ankommer i bil. Virksomheder i Lyngby-Taarbæk har mange firmabiler, der skal fremstå præsentable. Clean Wash kan hjælpe med regelmæssig bilvask og bilpleje til disse kunder.",
+          "Lyngby er hjemsted for DTU og Lyngby Storcenter med mange studerende, ansatte og besøgende, der ankommer i bil. Virksomheder i Lyngby-Taarbæk har mange firmabiler, der skal fremstå præsentable. Wash Max kan hjælpe med regelmæssig bilvask og bilpleje til disse kunder.",
           "Kunder i Lyngby og Lyngby-Taarbæk kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Lyngby?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Lyngby og Lyngby-Taarbæk med online booking." },
-      { question: "Dækker I Virum og Sorgenfri?", answer: "Ja. Virum og Sorgenfri er del af Lyngby-Taarbæk Kommune og er relevant for Clean Washs serviceområde." },
-      { question: "Er servicen relevant for pendlere fra Lyngby?", answer: "Ja. Pendlerbiler trænger jævnligt til bilvask, og Clean Wash gør booking nem og fleksibel." },
+      { question: "Tilbyder Wash Max bilvask i Lyngby?", answer: "Ja. Wash Max tilbyder professionel bilvask i Lyngby og Lyngby-Taarbæk med online booking." },
+      { question: "Dækker I Virum og Sorgenfri?", answer: "Ja. Virum og Sorgenfri er del af Lyngby-Taarbæk Kommune og er relevant for Wash Maxs serviceområde." },
+      { question: "Er servicen relevant for pendlere fra Lyngby?", answer: "Ja. Pendlerbiler trænger jævnligt til bilvask, og Wash Max gør booking nem og fleksibel." },
       { question: "Kan jeg booke komplet bilpleje i Lyngby?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
       { question: "Hvad koster bilvask i Lyngby?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se alle priser via /booking." },
       { question: "Hvordan booker jeg bilvask i Lyngby?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
@@ -1851,15 +1851,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-hvidovre",
-    title: "Bilvask Hvidovre | Professionel bilvask hos Clean Wash",
+    title: "Bilvask Hvidovre | Professionel bilvask hos Wash Max",
     description:
-      "Book professionel bilvask i Hvidovre hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking syd for København.",
+      "Book professionel bilvask i Hvidovre hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking syd for København.",
     h1: "Bilvask Hvidovre",
     eyebrow: "Professionel bilvask i Hvidovre",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i Hvidovre med online booking og klare servicevalg til familier, pendlere og erhverv.",
+      "Wash Max tilbyder professionel bilvask i Hvidovre med online booking og klare servicevalg til familier, pendlere og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Hvidovre og nærliggende kommuner syd for København.",
+      "Wash Max tilbyder bilvask i Hvidovre og nærliggende kommuner syd for København.",
       "Servicen er relevant for bilejere i Hvidovre, Brøndby, Rødovre og Ishøj.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
     ],
@@ -1873,10 +1873,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask i Hvidovre",
     serviceArea: ["Hvidovre", "Brøndby", "Rødovre", "Ishøj", "Valby", "Storkøbenhavn"],
     schemaAreaServed: ["Hvidovre", "København", "Copenhagen", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Hvidovre hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Hvidovre hos Wash Max" },
     secondaryCta: { label: "Se bilvask Valby", href: "/bilvask-valby" },
     benefits: [
-      { title: "Hvidovre og omegn", text: "Clean Wash er relevant for bilejere i Hvidovre, Brøndby, Rødovre og nærliggende kommuner." },
+      { title: "Hvidovre og omegn", text: "Wash Max er relevant for bilejere i Hvidovre, Brøndby, Rødovre og nærliggende kommuner." },
       { title: "Nem online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
       { title: "Klar pris", text: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. — ingen skjulte gebyrer." },
       { title: "Til private og erhverv", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
@@ -1884,44 +1884,44 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash klargør", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max klargør", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes", text: "Du får en renere bil leveret professionelt uden ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Hvidovre — professionel service syd for København",
         paragraphs: [
-          "Hvidovre er en aktiv forstad syd for København med mange familier og erhvervsvirksomheder. Mange bilejere i Hvidovre pendler til arbejde i storbyen eller bruger bilen dagligt til transport af børn og indkøb. Bilvask Hvidovre er relevant for alle, der vil have bilen ren uden at transportere sig til en vaskehal. Clean Wash tilbyder bilvask med online booking.",
+          "Hvidovre er en aktiv forstad syd for København med mange familier og erhvervsvirksomheder. Mange bilejere i Hvidovre pendler til arbejde i storbyen eller bruger bilen dagligt til transport af børn og indkøb. Bilvask Hvidovre er relevant for alle, der vil have bilen ren uden at transportere sig til en vaskehal. Wash Max tilbyder bilvask med online booking.",
           "Bilejere i Hvidovre og nærliggende kommuner som Brøndby, Rødovre og Ishøj bruger bilen hårdt til pendling og familieliv. Vejsnavs, vejsalt og daglig brug belaster lakken og kabinen. En professionel bilvask hjælper bilen med at se bedre ud og forlænger dens stand.",
         ],
       },
       {
         heading: "Hvidovre, Brøndby og Rødovre",
         paragraphs: [
-          "Hvidovre grænser op til Brøndby, Rødovre og Ishøj — tre kommuner med mange bilejere og et stærkt erhvervsliv. Clean Wash er relevant for kunder i hele dette sydvestlige Storkøbenhavn. Den konkrete dækning afhænger af adresse og ruteplanlægning, men du kan starte processen online.",
+          "Hvidovre grænser op til Brøndby, Rødovre og Ishøj — tre kommuner med mange bilejere og et stærkt erhvervsliv. Wash Max er relevant for kunder i hele dette sydvestlige Storkøbenhavn. Den konkrete dækning afhænger af adresse og ruteplanlægning, men du kan starte processen online.",
           "Hvidovre Hospital, Avedøre Holme og Hvidovrevej er store trafikknudepunkter, som dagligt trækker tusindvis af biler til og fra området. Professionel bilvask er relevant for både private og erhvervskunder i dette område.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Hvidovre?",
+        heading: "Hvad tilbyder Wash Max i Hvidovre?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje i Hvidovre. Udvendig vask fjerner vejsnavs, vejsalt og snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje i Hvidovre. Udvendig vask fjerner vejsnavs, vejsalt og snavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten.",
         ],
       },
       {
         heading: "Erhverv og flåder i Hvidovre",
         paragraphs: [
-          "Hvidovre og Avedøre Holme har mange industri- og erhvervsvirksomheder med firmabiler og flåder. Clean Wash kan hjælpe virksomheder med regelmæssig bilvask og bilpleje. Firmabiler skal fremstå præsentable, og Clean Wash gør det nemt at holde flåden ren.",
-          "Virksomheder i Hvidovre kan kontakte Clean Wash for at drøfte erhvervsaftaler og flådeservice. Kunder kan booke bilvask direkte via booking-siden.",
+          "Hvidovre og Avedøre Holme har mange industri- og erhvervsvirksomheder med firmabiler og flåder. Wash Max kan hjælpe virksomheder med regelmæssig bilvask og bilpleje. Firmabiler skal fremstå præsentable, og Wash Max gør det nemt at holde flåden ren.",
+          "Virksomheder i Hvidovre kan kontakte Wash Max for at drøfte erhvervsaftaler og flådeservice. Kunder kan booke bilvask direkte via booking-siden.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Hvidovre?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Hvidovre og nærliggende kommuner med online booking." },
-      { question: "Dækker I Brøndby og Rødovre?", answer: "Clean Wash er relevant for Hvidovre og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
+      { question: "Tilbyder Wash Max bilvask i Hvidovre?", answer: "Ja. Wash Max tilbyder professionel bilvask i Hvidovre og nærliggende kommuner med online booking." },
+      { question: "Dækker I Brøndby og Rødovre?", answer: "Wash Max er relevant for Hvidovre og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
       { question: "Kan jeg booke indvendig rengøring i Hvidovre?", answer: "Ja. Du kan vælge indvendig rengøring, udvendig vask eller komplet bilpleje i bookingflowet." },
-      { question: "Er Clean Wash relevant for virksomheder i Hvidovre?", answer: "Ja. Clean Wash tilbyder bilvask til private og erhverv, herunder firmabiler og flådeaftaler." },
+      { question: "Er Wash Max relevant for virksomheder i Hvidovre?", answer: "Ja. Wash Max tilbyder bilvask til private og erhverv, herunder firmabiler og flådeaftaler." },
       { question: "Hvad koster bilvask i Hvidovre?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se alle priser via /booking." },
       { question: "Hvordan booker jeg bilvask i Hvidovre?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil, adresse og ønsket tidspunkt." },
     ],
@@ -1942,17 +1942,17 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "erhvervs-bilvask",
-    title: "Erhvervs bilvask | Bilvask til firmabiler og flåder | Clean Wash",
+    title: "Erhvervs bilvask | Bilvask til firmabiler og flåder | Wash Max",
     description:
-      "Professionel erhvervs bilvask til firmabiler, leasingbiler og flåder. Faste aftaler, nem koordinering og klar pris. Book eller kontakt Clean Wash i dag.",
+      "Professionel erhvervs bilvask til firmabiler, leasingbiler og flåder. Faste aftaler, nem koordinering og klar pris. Book eller kontakt Wash Max i dag.",
     h1: "Erhvervs bilvask",
     eyebrow: "Bilvask til virksomheder og flåder",
     heroIntro:
-      "Clean Wash tilbyder erhvervs bilvask til virksomheder i København og på Sjælland. Fast aftale, fleksibel planlægning og professionel bilpleje til hele flåden.",
+      "Wash Max tilbyder erhvervs bilvask til virksomheder i København og på Sjælland. Fast aftale, fleksibel planlægning og professionel bilpleje til hele flåden.",
     shortSummary: [
-      "Clean Wash tilbyder erhvervs bilvask til firmabiler, leasingbiler og flåder med faste aftaler.",
+      "Wash Max tilbyder erhvervs bilvask til firmabiler, leasingbiler og flåder med faste aftaler.",
       "Servicen er relevant for virksomheder, der vil have en præsentabel bilflåde uden intern koordinering.",
-      "Book online eller kontakt Clean Wash for at drøfte en erhvervsaftale til din virksomhed.",
+      "Book online eller kontakt Wash Max for at drøfte en erhvervsaftale til din virksomhed.",
     ],
     keywords: [
       "erhvervs bilvask",
@@ -1964,26 +1964,26 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Erhvervs bilvask til firmabiler og flåder",
     serviceArea: ["København", "Storkøbenhavn", "Sjælland", "Frederiksberg", "Amager", "Hvidovre"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Erhvervs bilvask til firmabiler og flåder hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Erhvervs bilvask til firmabiler og flåder hos Wash Max" },
     secondaryCta: { label: "Bilvask leasingbil", href: "/bilvask-leasingbil" },
     benefits: [
       { title: "Fast erhvervsaftale", text: "Få en aftale, der passer til virksomhedens størrelse, bilflåde og ønskede frekvens." },
-      { title: "Nem koordinering", text: "Clean Wash håndterer planlægning og ruter, så I ikke skal koordinere internt." },
+      { title: "Nem koordinering", text: "Wash Max håndterer planlægning og ruter, så I ikke skal koordinere internt." },
       { title: "Præsentable firmabiler", text: "En ren firmabil sender et bedre signal til kunder og samarbejdspartnere." },
       { title: "Til alle biltyper", text: "Passer til firmabiler, leasingbiler, taxa, transport, servicebiler og bilforhandlere." },
     ],
     process: [
-      { title: "Kontakt eller book", text: "Book online eller kontakt Clean Wash for at drøfte en erhvervsaftale." },
+      { title: "Kontakt eller book", text: "Book online eller kontakt Wash Max for at drøfte en erhvervsaftale." },
       { title: "Aftal frekvens", text: "Beslut sammen, hvor ofte bilerne skal vaskes og hvilken service der ønskes." },
-      { title: "Clean Wash planlægger", text: "Teamet koordinerer ruter og tidsplaner, så virksomheden ikke skal tænke på det." },
+      { title: "Wash Max planlægger", text: "Teamet koordinerer ruter og tidsplaner, så virksomheden ikke skal tænke på det." },
       { title: "Ren flåde løbende", text: "Bilerne vaskes regelmæssigt og præsentabelt uden unødigt ophold." },
     ],
     sections: [
       {
         heading: "Erhvervs bilvask — ren flåde uden intern koordinering",
         paragraphs: [
-          "Erhvervs bilvask er relevant for virksomheder, der vil have en præsentabel bilflåde uden at bruge intern tid og ressourcer på koordinering. En ren firmabil sender et professionelt signal til kunder, leverandører og samarbejdspartnere. Clean Wash tilbyder erhvervs bilvask med faste aftaler, fleksibel planlægning og professionel bilpleje.",
-          "Mange virksomheder har firmabiler, der bruges dagligt af sælgere, serviceteknikere, direktører eller ansatte. Disse biler repræsenterer virksomheden og bør fremstå velholdte. Clean Wash gør det nemt at holde flåden ren uden at belaste den administrative koordinering.",
+          "Erhvervs bilvask er relevant for virksomheder, der vil have en præsentabel bilflåde uden at bruge intern tid og ressourcer på koordinering. En ren firmabil sender et professionelt signal til kunder, leverandører og samarbejdspartnere. Wash Max tilbyder erhvervs bilvask med faste aftaler, fleksibel planlægning og professionel bilpleje.",
+          "Mange virksomheder har firmabiler, der bruges dagligt af sælgere, serviceteknikere, direktører eller ansatte. Disse biler repræsenterer virksomheden og bør fremstå velholdte. Wash Max gør det nemt at holde flåden ren uden at belaste den administrative koordinering.",
         ],
       },
       {
@@ -1996,25 +1996,25 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "Erhvervsaftale og flådeservice",
         paragraphs: [
-          "Clean Wash kan indgå en erhvervsaftale, der passer til virksomhedens behov. Det kan være en ugentlig vask af alle firmabiler, en månedlig dybderengøring eller en ad hoc-service, der bookes efter behov. Den konkrete aftale afhænger af antal biler, frekvens, servicetyper og virksomhedens lokation.",
-          "En erhvervsaftale giver virksomheden en forudsigelig bilplejeplan og fri virksomheden fra koordinering. Kontakt Clean Wash for at drøfte mulighederne, eller brug booking-siden til at starte med en enkelt bilvask.",
+          "Wash Max kan indgå en erhvervsaftale, der passer til virksomhedens behov. Det kan være en ugentlig vask af alle firmabiler, en månedlig dybderengøring eller en ad hoc-service, der bookes efter behov. Den konkrete aftale afhænger af antal biler, frekvens, servicetyper og virksomhedens lokation.",
+          "En erhvervsaftale giver virksomheden en forudsigelig bilplejeplan og fri virksomheden fra koordinering. Kontakt Wash Max for at drøfte mulighederne, eller brug booking-siden til at starte med en enkelt bilvask.",
         ],
       },
       {
         heading: "Erhvervs bilvask i København og på Sjælland",
         paragraphs: [
-          "Clean Wash tilbyder erhvervs bilvask i hele København, Storkøbenhavn og på Sjælland. Virksomheder med adresser i indre by, Frederiksberg, Amager, Østerbro, Vesterbro, Hvidovre og andre bydele kan alle booke eller drøfte en erhvervsaftale.",
-          "Den konkrete dækning afhænger af bilantal, adresser og ruteplanlægning. Kontakt Clean Wash for at afklare, hvad der er muligt for din virksomhed.",
+          "Wash Max tilbyder erhvervs bilvask i hele København, Storkøbenhavn og på Sjælland. Virksomheder med adresser i indre by, Frederiksberg, Amager, Østerbro, Vesterbro, Hvidovre og andre bydele kan alle booke eller drøfte en erhvervsaftale.",
+          "Den konkrete dækning afhænger af bilantal, adresser og ruteplanlægning. Kontakt Wash Max for at afklare, hvad der er muligt for din virksomhed.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash erhvervs bilvask?", answer: "Ja. Clean Wash tilbyder erhvervs bilvask til firmabiler, leasingbiler og flåder med faste aftaler." },
-      { question: "Kan vi få en fast aftale for vores flåde?", answer: "Ja. Clean Wash kan indgå erhvervsaftaler tilpasset virksomhedens størrelse, frekvens og behov." },
+      { question: "Tilbyder Wash Max erhvervs bilvask?", answer: "Ja. Wash Max tilbyder erhvervs bilvask til firmabiler, leasingbiler og flåder med faste aftaler." },
+      { question: "Kan vi få en fast aftale for vores flåde?", answer: "Ja. Wash Max kan indgå erhvervsaftaler tilpasset virksomhedens størrelse, frekvens og behov." },
       { question: "Hvilke virksomheder er erhvervs bilvask relevant for?", answer: "Bilforhandlere, leasingselskaber, transportvirksomheder, kontorer med firmabiler, taxa og alle med præsentable biler." },
-      { question: "Dækker I hele København til erhverv?", answer: "Ja. Clean Wash er relevant for virksomheder i hele København, Storkøbenhavn og på Sjælland." },
+      { question: "Dækker I hele København til erhverv?", answer: "Ja. Wash Max er relevant for virksomheder i hele København, Storkøbenhavn og på Sjælland." },
       { question: "Hvad koster erhvervs bilvask?", answer: "Prisen afhænger af antal biler, frekvens og servicetyper. Kontakt os eller book via /booking for et tilbud." },
-      { question: "Hvordan indgår vi en erhvervsaftale?", answer: "Kontakt Clean Wash direkte, eller start med en enkelt booking via /booking for at afprøve servicen." },
+      { question: "Hvordan indgår vi en erhvervsaftale?", answer: "Kontakt Wash Max direkte, eller start med en enkelt booking via /booking for at afprøve servicen." },
     ],
     relatedLinks: [
       { label: "Book bilvask", href: "/booking" },
@@ -2031,16 +2031,16 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "klargoering-bil-salg",
-    title: "Klargøring af bil til salg | Professionel bilklargøring | Clean Wash",
+    title: "Klargøring af bil til salg | Professionel bilklargøring | Wash Max",
     description:
-      "Få bilen klar til salg med professionel bilklargøring hos Clean Wash. Udvendig polering, indvendig rengøring og komplet klargøring for den bedste salgspris.",
+      "Få bilen klar til salg med professionel bilklargøring hos Wash Max. Udvendig polering, indvendig rengøring og komplet klargøring for den bedste salgspris.",
     h1: "Klargøring af bil til salg",
     eyebrow: "Professionel bilklargøring",
     heroIntro:
-      "Clean Wash hjælper dig med at gøre bilen klar til salg med professionel vask, rengøring og klargøring, der kan øge den oplevede stand og salgsprisen.",
+      "Wash Max hjælper dig med at gøre bilen klar til salg med professionel vask, rengøring og klargøring, der kan øge den oplevede stand og salgsprisen.",
     shortSummary: [
       "En professionel bilklargøring kan gøre bilen mere attraktiv for køber og løfte salgsprisen.",
-      "Clean Wash tilbyder komplet klargøring: udvendig vask, polering, indvendig rengøring og finish.",
+      "Wash Max tilbyder komplet klargøring: udvendig vask, polering, indvendig rengøring og finish.",
       "Book bilklargøring online og få bilen præsentabel inden billeder og fremvisning.",
     ],
     keywords: [
@@ -2053,7 +2053,7 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Klargøring af bil til salg",
     serviceArea: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Klargøring af bil til salg hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Klargøring af bil til salg hos Wash Max" },
     secondaryCta: { label: "Se polering af bil", href: "/polering-bil-koebenhavn" },
     benefits: [
       { title: "Højere salgspris", text: "En velrengjort og præsentabel bil kan opnå en højere pris og sælges hurtigere." },
@@ -2063,8 +2063,8 @@ export const seoPages: SeoPageConfig[] = [
     ],
     process: [
       { title: "Book klargøring", text: "Gå til booking-siden og vælg premium bilpleje eller komplet bilklargøring." },
-      { title: "Beskriv bilens stand", text: "Angiv relevante detaljer om bilens stand, så Clean Wash kan forberede den rigtige service." },
-      { title: "Bilen klargøres", text: "Clean Wash udfører udvendig vask, polering og indvendig rengøring." },
+      { title: "Beskriv bilens stand", text: "Angiv relevante detaljer om bilens stand, så Wash Max kan forberede den rigtige service." },
+      { title: "Bilen klargøres", text: "Wash Max udfører udvendig vask, polering og indvendig rengøring." },
       { title: "Klar til salg", text: "Bilen afleveres præsentabel og klar til billeder, fremvisning eller overlevering." },
     ],
     sections: [
@@ -2072,14 +2072,14 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Klargøring af bil til salg — den rigtige start",
         paragraphs: [
           "Når du skal sælge din bil, er det første indtryk afgørende. En køber danner sig en holdning allerede i salgsannoncen — og det billede er alt afgørende for, om de kontakter dig. En professionel bilklargøring kan gøre bilen mere attraktiv, fremstå bedre vedligeholdt og potentielt løfte salgsprisen.",
-          "Klargøring af bil til salg handler om at præsentere bilen i sin bedste stand. Det inkluderer en grundig udvendig vask og polering, indvendig rengøring af kabine, sæder, måtter og bagagerum samt finish, der giver bilen et pænt og velholdt udtryk. Clean Wash tilbyder bilklargøring med online booking.",
+          "Klargøring af bil til salg handler om at præsentere bilen i sin bedste stand. Det inkluderer en grundig udvendig vask og polering, indvendig rengøring af kabine, sæder, måtter og bagagerum samt finish, der giver bilen et pænt og velholdt udtryk. Wash Max tilbyder bilklargøring med online booking.",
         ],
       },
       {
         heading: "Hvad indeholder en professionel bilklargøring?",
         paragraphs: [
           "En professionel bilklargøring kan inkludere udvendig skånsom vask og skyl, polering af lak for at fjerne fine ridser og matte pletter, voksbeskyttelse for glans og beskyttelse, indvendig støvsugning og rengøring af kabine, rengøring af sæder, måtter, instrumentbræt og paneler samt aftørring og finish af alle flader.",
-          "Det er vigtigt at tilpasse klargøringen til bilens stand. En bil med matte pletter og ridser i lakken drager størst nytte af polering. En bil med en beskidt kabine prioriterer indvendig rengøring. Clean Wash hjælper dig med at vælge den rigtige service i bookingflowet.",
+          "Det er vigtigt at tilpasse klargøringen til bilens stand. En bil med matte pletter og ridser i lakken drager størst nytte af polering. En bil med en beskidt kabine prioriterer indvendig rengøring. Wash Max hjælper dig med at vælge den rigtige service i bookingflowet.",
         ],
       },
       {
@@ -2093,14 +2093,14 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Klargøring inden leasingretur",
         paragraphs: [
           "Klargøring af bil er også relevant inden leasingretur. Leasingselskaber foretager en tilstandsrapport ved aflevering, og slid ud over normal brug kan udløse ekstraomkostninger. En professionel vask og rengøring kan reducere risikoen for sådanne tillæg.",
-          "Clean Wash tilbyder klargøring til leasingretur med fokus på de flader og elementer, leasingselskaberne typisk kontrollerer. Kunder kan booke bilklargøring direkte via booking-siden.",
+          "Wash Max tilbyder klargøring til leasingretur med fokus på de flader og elementer, leasingselskaberne typisk kontrollerer. Kunder kan booke bilklargøring direkte via booking-siden.",
         ],
       },
     ],
     faqs: [
       { question: "Hvad er bilklargøring til salg?", answer: "Det er en professionel vask, polering og indvendig rengøring, der gør bilen præsentabel inden salg." },
       { question: "Kan bilklargøring øge salgsprisen?", answer: "Ja. En velrengjort bil fremstår bedre vedligeholdt, tiltrækker flere interesserede og kan opnå en højere pris." },
-      { question: "Tilbyder Clean Wash bilklargøring i København?", answer: "Ja. Clean Wash tilbyder professionel bilklargøring i København og på Sjælland med online booking." },
+      { question: "Tilbyder Wash Max bilklargøring i København?", answer: "Ja. Wash Max tilbyder professionel bilklargøring i København og på Sjælland med online booking." },
       { question: "Er klargøring relevant inden leasingretur?", answer: "Ja. En grundig rengøring kan reducere risikoen for ekstraomkostninger ved aflevering af leasingbil." },
       { question: "Hvad koster bilklargøring til salg?", answer: "Premium bilpleje starter fra 849 kr. og inkluderer polering, voksbeskyttelse og komplet indvendig rengøring." },
       { question: "Hvordan booker jeg bilklargøring?", answer: "Gå til /booking, vælg premium bilpleje eller komplet bilvask og udfyld oplysninger om bilen." },
@@ -2120,16 +2120,16 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-leasingbil",
-    title: "Bilvask leasingbil | Aflevering og retur | Clean Wash",
+    title: "Bilvask leasingbil | Aflevering og retur | Wash Max",
     description:
-      "Book professionel bilvask af leasingbil hos Clean Wash. Grundig vask og rengøring inden aflevering af leasingbil for at undgå ekstraomkostninger.",
+      "Book professionel bilvask af leasingbil hos Wash Max. Grundig vask og rengøring inden aflevering af leasingbil for at undgå ekstraomkostninger.",
     h1: "Bilvask leasingbil",
     eyebrow: "Bilvask inden leasingretur",
     heroIntro:
-      "Clean Wash hjælper dig med at gøre leasingbilen klar til aflevering med professionel vask og rengøring, der kan reducere risikoen for ekstraomkostninger.",
+      "Wash Max hjælper dig med at gøre leasingbilen klar til aflevering med professionel vask og rengøring, der kan reducere risikoen for ekstraomkostninger.",
     shortSummary: [
       "En grundig bilvask inden leasingretur kan reducere risikoen for ekstraomkostninger ved aflevering.",
-      "Clean Wash tilbyder professionel vask og rengøring af leasingbiler i København og på Sjælland.",
+      "Wash Max tilbyder professionel vask og rengøring af leasingbiler i København og på Sjælland.",
       "Book online og få leasingbilen klar til tilstandsrapport og aflevering.",
     ],
     keywords: [
@@ -2142,18 +2142,18 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask af leasingbil",
     serviceArea: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Bilvask af leasingbil inden aflevering hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Bilvask af leasingbil inden aflevering hos Wash Max" },
     secondaryCta: { label: "Klargøring til salg", href: "/klargoering-bil-salg" },
     benefits: [
       { title: "Undgå ekstraomkostninger", text: "En grundig vask kan reducere risikoen for ekstrakrav fra leasingselskabet ved aflevering." },
-      { title: "Udvendig og indvendig", text: "Clean Wash rengør både lakken, ruder, fælge og kabinen — de flader, der kontrolleres." },
+      { title: "Udvendig og indvendig", text: "Wash Max rengør både lakken, ruder, fælge og kabinen — de flader, der kontrolleres." },
       { title: "Hurtig levering", text: "Book online og få leasingbilen klar til aflevering inden din aftalte dato." },
       { title: "Til alle leasingtyper", text: "Passer til private leasingbiler, firmabiler og flåder med leasingaftaler." },
     ],
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg komplet bilvask eller premium bilpleje til leasingbilen." },
       { title: "Oplys leasingbilens stand", text: "Beskriv bilens stand og eventuelle særlige behov i bookingflowet." },
-      { title: "Leasingbilen rengøres", text: "Clean Wash udfører grundig udvendig og indvendig rengøring med fokus på afleveringskritier." },
+      { title: "Leasingbilen rengøres", text: "Wash Max udfører grundig udvendig og indvendig rengøring med fokus på afleveringskritier." },
       { title: "Klar til aflevering", text: "Bilen afleveres ren og præsentabel og klar til tilstandsrapport." },
     ],
     sections: [
@@ -2161,7 +2161,7 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Bilvask af leasingbil — undgå ekstraomkostninger ved aflevering",
         paragraphs: [
           "Mange leasingtagere oplever uventede ekstraomkostninger ved aflevering af leasingbilen, fordi tilstanden bedømmes som dårligere end forventet. Snavs, pletter, cigaretlugt, ridser i interiøret og manglende rengøring kan alle give anledning til tillæg. En professionel bilvask inden aflevering kan reducere risikoen for sådanne udgifter.",
-          "Clean Wash tilbyder bilvask af leasingbiler med fokus på de elementer, leasingselskaber typisk kontrollerer: udvendig lak, ruder og fælge, indvendig kabine, sæder, måtter og bagagerum. En grundig vask inden aflevering er en lille investering sammenlignet med de tillæg, man kan undgå.",
+          "Wash Max tilbyder bilvask af leasingbiler med fokus på de elementer, leasingselskaber typisk kontrollerer: udvendig lak, ruder og fælge, indvendig kabine, sæder, måtter og bagagerum. En grundig vask inden aflevering er en lille investering sammenlignet med de tillæg, man kan undgå.",
         ],
       },
       {
@@ -2175,20 +2175,20 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Hvornår skal leasingbilen vaskes?",
         paragraphs: [
           "Det anbefales at bestille bilvask af leasingbilen senest et par dage inden aflevering, så der er tid til at udbedre eventuelle fund. Book bilvask online, og vælg en tid, der giver plads til aflevering i god ro.",
-          "Clean Wash kan bookes med kort varsel og leverer bilen ren og klar til aflevering. Det er nemt at booke online og vælge det tidspunkt, der passer i perioden op til afleveringsdatoen.",
+          "Wash Max kan bookes med kort varsel og leverer bilen ren og klar til aflevering. Det er nemt at booke online og vælge det tidspunkt, der passer i perioden op til afleveringsdatoen.",
         ],
       },
       {
         heading: "Leasingbil til erhverv og privat",
         paragraphs: [
           "Bilvask af leasingbil er relevant for både private leasingtagere og virksomheder med firmabiler på leasing. Private leasingtagere ønsker at undgå personlige ekstraomkostninger ved aflevering. Virksomheder ønsker at holde flåden i god stand og minimere afleveringstillæg, der belaster firmaets økonomi.",
-          "Clean Wash tilbyder bilvask til leasingbiler i København og på Sjælland. Kunder kan booke bilvask direkte via booking-siden.",
+          "Wash Max tilbyder bilvask til leasingbiler i København og på Sjælland. Kunder kan booke bilvask direkte via booking-siden.",
         ],
       },
     ],
     faqs: [
       { question: "Kan bilvask reducere ekstraomkostninger ved leasingretur?", answer: "Ja. En grundig vask og rengøring inden aflevering kan forbedre bilens tilstand og reducere risikoen for tillæg." },
-      { question: "Hvad tilbyder Clean Wash til leasingbiler?", answer: "Clean Wash tilbyder udvendig vask, indvendig rengøring og komplet bilpleje, der klargør leasingbilen til aflevering." },
+      { question: "Hvad tilbyder Wash Max til leasingbiler?", answer: "Wash Max tilbyder udvendig vask, indvendig rengøring og komplet bilpleje, der klargør leasingbilen til aflevering." },
       { question: "Hvornår skal jeg booke bilvask inden leasingretur?", answer: "Book senest 2-3 dage inden aflevering, så der er tid til at se resultatet, inden bilen afleveres." },
       { question: "Er servicen relevant for firmabiler på leasing?", answer: "Ja. Virksomheder med firmabiler på leasing kan spare afleveringstillæg med regelmæssig bilpleje." },
       { question: "Hvad koster bilvask af leasingbil?", answer: "Komplet bilvask fra 599 kr., premium bilpleje fra 849 kr. Se priser og book via /booking." },
@@ -2209,16 +2209,16 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "polering-bil-koebenhavn",
-    title: "Polering af bil København | Professionel polering hos Clean Wash",
+    title: "Polering af bil København | Professionel polering hos Wash Max",
     description:
-      "Book professionel polering af bil i København hos Clean Wash. Fjern ridser, matte pletter og vejsnavs og giv bilen en glansfuld og beskyttet finish.",
+      "Book professionel polering af bil i København hos Wash Max. Fjern ridser, matte pletter og vejsnavs og giv bilen en glansfuld og beskyttet finish.",
     h1: "Polering af bil København",
     eyebrow: "Professionel lakpolering",
     heroIntro:
-      "Clean Wash tilbyder professionel polering af bil i København. Fjern fine ridser og matte pletter og giv lakken en beskyttet og glansfuld finish.",
+      "Wash Max tilbyder professionel polering af bil i København. Fjern fine ridser og matte pletter og giv lakken en beskyttet og glansfuld finish.",
     shortSummary: [
       "Polering af bil fjerner fine ridser, swirls og matte pletter i lakken og giver en glansfuld finish.",
-      "Clean Wash tilbyder professionel lakpolering i København med online booking.",
+      "Wash Max tilbyder professionel lakpolering i København med online booking.",
       "Poleringen kombineres typisk med voksbeskyttelse for at bevare det gode resultat.",
     ],
     keywords: [
@@ -2231,7 +2231,7 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel polering af bil i København",
     serviceArea: ["København", "Frederiksberg", "Amager", "Østerbro", "Hellerup", "Storkøbenhavn"],
     schemaAreaServed: ["København", "Copenhagen", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel polering af bil i København hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel polering af bil i København hos Wash Max" },
     secondaryCta: { label: "Klargøring til salg", href: "/klargoering-bil-salg" },
     benefits: [
       { title: "Fjern ridser og swirls", text: "Polering fjerner fine ridser, ridsemærker og matte pletter, der giver lakken et dæmpet udtryk." },
@@ -2242,7 +2242,7 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book polering", text: "Gå til booking-siden og vælg premium bilpleje, der inkluderer polering og voks." },
       { title: "Oplys biltype", text: "Angiv bilens farve, stand og eventuelle særlige ønsker til behandlingen." },
-      { title: "Lakken poleres", text: "Clean Wash udfører skånsom polering af lak og behandler efterfølgende med voks." },
+      { title: "Lakken poleres", text: "Wash Max udfører skånsom polering af lak og behandler efterfølgende med voks." },
       { title: "Glansfuld levering", text: "Bilen afleveres med en klar, glansfuld og beskyttet lak." },
     ],
     sections: [
@@ -2257,7 +2257,7 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Polering og voksbeskyttelse — den komplette behandling",
         paragraphs: [
           "Polering alene fjerner materialet fra lakken, men åbner også porerne i overfladen. Voksbeskyttelse efter polering er derfor vigtig for at forsegle lakken og beskytte den mod ny tilsmudning. Voks giver en ekstra glans og gør det nemmere at holde bilen ren i hverdagen.",
-          "Clean Wash anbefaler kombinationen af polering og voks, fordi det giver det bedste og mest holdbare resultat. Premium bilpleje hos Clean Wash inkluderer begge behandlinger samt en grundig udvendig vask inden poleringen.",
+          "Wash Max anbefaler kombinationen af polering og voks, fordi det giver det bedste og mest holdbare resultat. Premium bilpleje hos Wash Max inkluderer begge behandlinger samt en grundig udvendig vask inden poleringen.",
         ],
       },
       {
@@ -2270,14 +2270,14 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "Polering af bil i København",
         paragraphs: [
-          "Clean Wash tilbyder polering af bil i København, Frederiksberg, Amager, Østerbro, Hellerup og Storkøbenhavn. Poleringen er inkluderet i premium bilpleje-pakken, der også indeholder indvendig rengøring og voksbeskyttelse.",
-          "Kunder kan booke polering af bil direkte via booking-siden. Vælg premium bilpleje og angiv relevante oplysninger om bilen. Clean Wash håndterer resten.",
+          "Wash Max tilbyder polering af bil i København, Frederiksberg, Amager, Østerbro, Hellerup og Storkøbenhavn. Poleringen er inkluderet i premium bilpleje-pakken, der også indeholder indvendig rengøring og voksbeskyttelse.",
+          "Kunder kan booke polering af bil direkte via booking-siden. Vælg premium bilpleje og angiv relevante oplysninger om bilen. Wash Max håndterer resten.",
         ],
       },
     ],
     faqs: [
       { question: "Hvad er polering af bil?", answer: "Polering fjerner det øverste slidte lag af lakken og fjerner fine ridser, swirls og matte pletter for en glansfuld finish." },
-      { question: "Tilbyder Clean Wash polering af bil i København?", answer: "Ja. Polering er inkluderet i premium bilpleje-pakken hos Clean Wash." },
+      { question: "Tilbyder Wash Max polering af bil i København?", answer: "Ja. Polering er inkluderet i premium bilpleje-pakken hos Wash Max." },
       { question: "Fjerner polering ridser?", answer: "Polering fjerner fine ridser og swirls. Dybere ridser ned i grundlakken kan ikke fjernes med polering alene." },
       { question: "Hvad koster polering af bil?", answer: "Premium bilpleje inkl. polering og voks starter fra 849 kr. Se priser og book via /booking." },
       { question: "Bør man vokse bilen efter polering?", answer: "Ja. Voksbeskyttelse efter polering er anbefalet for at forsegle lakken og forlænge resultatet." },
@@ -2300,16 +2300,16 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-efter-vinter",
-    title: "Bilvask efter vinter | Fjern vejsalt og vintersmudset | Clean Wash",
+    title: "Bilvask efter vinter | Fjern vejsalt og vintersmudset | Wash Max",
     description:
-      "Book bilvask efter vinter hos Clean Wash. Fjern vejsalt, sand og vintergrus fra lak, fælge og bund — og giv bilen en frisk start på foråret.",
+      "Book bilvask efter vinter hos Wash Max. Fjern vejsalt, sand og vintergrus fra lak, fælge og bund — og giv bilen en frisk start på foråret.",
     h1: "Bilvask efter vinter",
     eyebrow: "Forårsrengøring af bilen",
     heroIntro:
-      "Clean Wash hjælper dig med at fjerne vinternes vejsalt, grus og snavs fra bilen. En grundig bilvask efter vinter beskytter lakken og giver bilen en frisk start.",
+      "Wash Max hjælper dig med at fjerne vinternes vejsalt, grus og snavs fra bilen. En grundig bilvask efter vinter beskytter lakken og giver bilen en frisk start.",
     shortSummary: [
       "Vejsalt fra vintermånederne er skadeligt for lak, fælge og bundramme og bør fjernes hurtigst muligt.",
-      "Clean Wash tilbyder grundig bilvask efter vinter med fokus på salt, grus og vintergrus.",
+      "Wash Max tilbyder grundig bilvask efter vinter med fokus på salt, grus og vintergrus.",
       "Book din bilvask efter vinter online og giv bilen den forårsrengøring den trænger til.",
     ],
     keywords: [
@@ -2322,7 +2322,7 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Bilvask og forårsrengøring efter vinter",
     serviceArea: ["København", "Storkøbenhavn", "Sjælland", "Frederiksberg", "Amager"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Bilvask efter vinter og fjernelse af vejsalt hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Bilvask efter vinter og fjernelse af vejsalt hos Wash Max" },
     secondaryCta: { label: "Se polering af bil", href: "/polering-bil-koebenhavn" },
     benefits: [
       { title: "Fjern vejsalt", text: "Vejsalt fra vintervejene er korrosivt og kan over tid skade lak, fælge og metal på bilen." },
@@ -2333,7 +2333,7 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book bilvask", text: "Book en komplet bilvask eller premium bilpleje til bilvask efter vinter." },
       { title: "Oplys bilens stand", text: "Angiv eventuelle særlige fokusområder som fælge, bundramme eller kabine." },
-      { title: "Grundig vintevrengøring", text: "Clean Wash fjerner salt, grus og vintergrus fra lak, fælge, hjulbuer og kabine." },
+      { title: "Grundig vintevrengøring", text: "Wash Max fjerner salt, grus og vintergrus fra lak, fælge, hjulbuer og kabine." },
       { title: "Frisk bil til foråret", text: "Bilen afleveres ren og klar til en ny sæson — eventuelt med voks for ekstra beskyttelse." },
     ],
     sections: [
@@ -2348,28 +2348,28 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Hvad indeholder bilvask efter vinter?",
         paragraphs: [
           "En god bilvask efter vinter fokuserer særligt på de udsatte områder: fælge og hjulbuer, hvor salt og grus samler sig; bundrammen, hvor salt fra vejene kan starte rustdannelse; lakken, som kan miste glans fra vejsalt og sandfygning; og kabinen, som samler sand, snavs og fugt fra vintermånedernes brug.",
-          "Clean Wash anbefaler en komplet bilvask, der dækker alle disse områder. Premium bilpleje med polering og voks er ideelt efter en hård vinter, fordi det giver lakken den ekstra beskyttelse, den trænger til. En voksbehandling beskytter mod fremtidig tilsmudning og giver en glansfuld finish.",
+          "Wash Max anbefaler en komplet bilvask, der dækker alle disse områder. Premium bilpleje med polering og voks er ideelt efter en hård vinter, fordi det giver lakken den ekstra beskyttelse, den trænger til. En voksbehandling beskytter mod fremtidig tilsmudning og giver en glansfuld finish.",
         ],
       },
       {
         heading: "Salt og rust — risikoen ved at vente",
         paragraphs: [
           "Vejsalt fungerer ved at sænke frysepunktet for vand, men det er kemisk aggressivt over for metaller. Rust starter typisk i mikroskopiske revner i lakken, under tætningslister og i hjulbuer og bundramme, hvor salt og fugt samler sig. Rustdannelse kan som regel ikke ses, inden det er for sent at afhjælpe billigt.",
-          "En professionel bilvask med fokus på disse udsatte områder er den bedste forebyggelse. Jo tidligere efter vinterens afslutning, jo bedre. Clean Wash tilbyder bilvask efter vinter med online booking i hele København og på Sjælland.",
+          "En professionel bilvask med fokus på disse udsatte områder er den bedste forebyggelse. Jo tidligere efter vinterens afslutning, jo bedre. Wash Max tilbyder bilvask efter vinter med online booking i hele København og på Sjælland.",
         ],
       },
       {
         heading: "Forårsrengøring — den komplette bilfornyelse",
         paragraphs: [
           "Mange bilejere bruger forårsrengøringen som anledning til en komplet bilfornyelse: udvendig vask og polering, indvendig rengøring af kabine og bagagerum, voksbehandling for beskyttelse, og et kig på fælge og gummi. Det giver bilen et friskt udtryk og en god start på den lyse halvdel af året.",
-          "Clean Wash tilbyder alle disse services i ét bookingflow. Kunder kan booke bilvask efter vinter direkte via booking-siden og vælge den service, der passer til bilens behov.",
+          "Wash Max tilbyder alle disse services i ét bookingflow. Kunder kan booke bilvask efter vinter direkte via booking-siden og vælge den service, der passer til bilens behov.",
         ],
       },
     ],
     faqs: [
       { question: "Hvorfor er bilvask efter vinter vigtigt?", answer: "Vejsalt fra vintervejene er korrosivt og kan fremkalde rust i lak, fælge og bundramme, hvis det ikke fjernes." },
       { question: "Hvornår bør jeg vaske bilen efter vinter?", answer: "Så snart vejene er saltfri — typisk i marts eller april. Jo tidligere desto bedre for lakken." },
-      { question: "Tilbyder Clean Wash bilvask efter vinter?", answer: "Ja. Clean Wash tilbyder grundig bilvask og forårsrengøring med online booking i København og på Sjælland." },
+      { question: "Tilbyder Wash Max bilvask efter vinter?", answer: "Ja. Wash Max tilbyder grundig bilvask og forårsrengøring med online booking i København og på Sjælland." },
       { question: "Bør jeg vokse bilen efter vintervask?", answer: "Ja. Voks beskytter lakken mod fremtidigt snavs og korrosion og forlænger resultatet af vasken." },
       { question: "Hvad koster bilvask efter vinter?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr., premium med polering og voks fra 849 kr." },
       { question: "Hvordan booker jeg bilvask efter vinter?", answer: "Gå til /booking, vælg komplet bilvask eller premium bilpleje og udfyld oplysninger om bilen." },
@@ -2389,9 +2389,9 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilpleje-guide",
-    title: "Bilpleje guide | Hvor tit skal bilen vaskes? | Clean Wash",
+    title: "Bilpleje guide | Hvor tit skal bilen vaskes? | Wash Max",
     description:
-      "Komplet bilpleje guide fra Clean Wash. Lær hvornår og hvor tit du bør vaske bilen, hvad der sker ved for sjælden vask, og hvad forskellen er på udvendig og komplet bilvask.",
+      "Komplet bilpleje guide fra Wash Max. Lær hvornår og hvor tit du bør vaske bilen, hvad der sker ved for sjælden vask, og hvad forskellen er på udvendig og komplet bilvask.",
     h1: "Bilpleje guide",
     eyebrow: "Guide til bilpleje og bilvask",
     heroIntro:
@@ -2411,7 +2411,7 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilpleje og bilvask",
     serviceArea: ["København", "Storkøbenhavn", "Sjælland", "Frederiksberg", "Amager"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Bilpleje guide fra Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Bilpleje guide fra Wash Max" },
     secondaryCta: { label: "Se bilvask pris", href: "/bilvask-pris" },
     benefits: [
       { title: "Bevar lakkens stand", text: "Regelmæssig vask fjerner snavs, salt og syrer, der over tid kan skade lakkens overflade." },
@@ -2468,7 +2468,7 @@ export const seoPages: SeoPageConfig[] = [
       { question: "Hvornår bør man polere bilen?", answer: "Når lakken ser mat ud, der er ridser eller swirls, inden salg, eller som del af forårsrengøringen. 1-2 gange om året." },
       { question: "Er vejsalt skadeligt for bilen?", answer: "Ja. Vejsalt er korrosivt og kan starte rustdannelse i lak, fælge og metal, hvis det ikke fjernes regelmæssigt." },
       { question: "Hvad sker der, hvis man aldrig vasker bilen?", answer: "Snavs og salt angriber lakken, korrosion starter i metaldele, og kabinen samler støv, allergener og bakterier." },
-      { question: "Kan Clean Wash hjælpe med løbende bilpleje?", answer: "Ja. Book regelmæssige bilvask online via /booking, eller kontakt Clean Wash for at drøfte en fast aftale." },
+      { question: "Kan Wash Max hjælpe med løbende bilpleje?", answer: "Ja. Book regelmæssige bilvask online via /booking, eller kontakt Wash Max for at drøfte en fast aftale." },
     ],
     relatedLinks: [
       { label: "Book bilvask", href: "/booking" },
@@ -2487,13 +2487,13 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "billig-bilvask-koebenhavn",
-    title: "Billig bilvask København | Overkommelig bilvask fra 349 kr. | Clean Wash",
+    title: "Billig bilvask København | Overkommelig bilvask fra 349 kr. | Wash Max",
     description:
-      "Billig bilvask i København fra 349 kr. Professionel udvendig vask, komplet bilpleje og klar pris uden skjulte gebyrer. Book online hos Clean Wash.",
+      "Billig bilvask i København fra 349 kr. Professionel udvendig vask, komplet bilpleje og klar pris uden skjulte gebyrer. Book online hos Wash Max.",
     h1: "Billig bilvask København",
     eyebrow: "Overkommelig bilpleje med professionel kvalitet",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i København fra 349 kr. Klar pris fra start, ingen skjulte gebyrer og nem online booking.",
+      "Wash Max tilbyder professionel bilvask i København fra 349 kr. Klar pris fra start, ingen skjulte gebyrer og nem online booking.",
     shortSummary: [
       "Udvendig bilvask starter fra 349 kr. — komplet vask af lak, fælge, ruder og finish.",
       "Komplet bilvask fra 599 kr. inkluderer udvendig vask og grundig indvendig rengøring af kabinen.",
@@ -2509,7 +2509,7 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask i København til klar pris",
     serviceArea: ["København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro", "Vesterbro", "Storkøbenhavn"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Billig bilvask i København fra 349 kr. hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Billig bilvask i København fra 349 kr. hos Wash Max" },
     secondaryCta: { label: "Se alle priser", href: "/bilvask-pris" },
     benefits: [
       { title: "Fra 349 kr.", text: "Udvendig bilvask fra 349 kr. — skånsom vask, fælge, ruder og finish uden skjulte tillæg." },
@@ -2520,21 +2520,21 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Vælg pakke", text: "Se priserne og vælg den pakke, der passer til din bil og dit budget." },
       { title: "Book online", text: "Book på 2 minutter uden opkald — vælg bil, adresse og tidspunkt." },
-      { title: "Bilen vaskes", text: "Clean Wash møder op og udfører den valgte bilvask professionelt." },
+      { title: "Bilen vaskes", text: "Wash Max møder op og udfører den valgte bilvask professionelt." },
       { title: "Betal ved levering", text: "Du betaler til den pris, du så, da du bookede. Ingen tillæg." },
     ],
     sections: [
       {
         heading: "Hvad koster professionel bilvask i København?",
         paragraphs: [
-          "Mange søger efter billig bilvask i København uden at gå på kompromis med kvaliteten. Clean Wash tilbyder en klar prisstruktur: udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. og premium bilpleje fra 849 kr. Prisen afhænger af valgt service og biltype, men udgangspunktet er altid tydeligt inden booking.",
-          "Det er vigtigt at forstå, hvad en bilvask inkluderer, når man sammenligner priser. Hos Clean Wash er prisen for udvendig vask dækkende for skånsom vask med skum og skyl, rengøring af fælge og hjulbuer, aftørring af ruder og spejle samt tøring og finish. Der er ingen skjulte gebyrer eller tillæg.",
+          "Mange søger efter billig bilvask i København uden at gå på kompromis med kvaliteten. Wash Max tilbyder en klar prisstruktur: udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. og premium bilpleje fra 849 kr. Prisen afhænger af valgt service og biltype, men udgangspunktet er altid tydeligt inden booking.",
+          "Det er vigtigt at forstå, hvad en bilvask inkluderer, når man sammenligner priser. Hos Wash Max er prisen for udvendig vask dækkende for skånsom vask med skum og skyl, rengøring af fælge og hjulbuer, aftørring af ruder og spejle samt tøring og finish. Der er ingen skjulte gebyrer eller tillæg.",
         ],
       },
       {
         heading: "Billig bilvask er ikke det samme som dårlig bilvask",
         paragraphs: [
-          "Billig bilvask handler om gennemsigtighed, ikke om at spare på kvaliteten. En bilvasker, der lover meget lav pris men lægger tillæg til ved levering, er ikke billig — den er bare uigennemsigtig. Clean Wash tilbyder klar pris fra start, fordi vi tror på, at tillid bygges på ærlighed.",
+          "Billig bilvask handler om gennemsigtighed, ikke om at spare på kvaliteten. En bilvasker, der lover meget lav pris men lægger tillæg til ved levering, er ikke billig — den er bare uigennemsigtig. Wash Max tilbyder klar pris fra start, fordi vi tror på, at tillid bygges på ærlighed.",
           "Professionel bilvask behøver ikke at koste en formue. For 349 kr. kan du få en grundig udvendig vask, der fjerner bysnavs, vejsalt, pollen og bremsestøv. For 599 kr. kan du tilføje en grundig indvendig kabinerengøring. Det er overkommelig bilpleje med et professionelt resultat.",
         ],
       },
@@ -2549,13 +2549,13 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Spar penge med regelmæssig booking",
         paragraphs: [
           "En god måde at holde udgifterne nede på er at vaske bilen regelmæssigt frem for sjældent. Biler, der vaskes månedligt, kræver typisk kun en hurtig udvendig vask, fordi snavslaget aldrig når at opbygge sig. Biler, der sjældent vaskes, kræver mere intensiv rengøring og kan have saltskader, der er dyrere at udbedre.",
-          "Clean Wash gør det nemt at booke regelmæssig bilvask i København. Kunder kan booke via booking-siden og vælge den pakke, der passer bedst til budget og behov.",
+          "Wash Max gør det nemt at booke regelmæssig bilvask i København. Kunder kan booke via booking-siden og vælge den pakke, der passer bedst til budget og behov.",
         ],
       },
     ],
     faqs: [
       { question: "Hvad koster billig bilvask i København?", answer: "Udvendig bilvask starter fra 349 kr. Komplet bilvask fra 599 kr. Premium bilpleje fra 849 kr. Ingen skjulte gebyrer." },
-      { question: "Er billig bilvask af dårlig kvalitet?", answer: "Nej. Clean Wash tilbyder professionel kvalitet til klar pris. Billig bilvask handler om gennemsigtighed, ikke dårligt arbejde." },
+      { question: "Er billig bilvask af dårlig kvalitet?", answer: "Nej. Wash Max tilbyder professionel kvalitet til klar pris. Billig bilvask handler om gennemsigtighed, ikke dårligt arbejde." },
       { question: "Hvad inkluderer udvendig bilvask til 349 kr.?", answer: "Skånsom vask, rengøring af fælge og hjulbuer, aftørring af ruder og spejle, finish og tøring af bilen." },
       { question: "Er der skjulte gebyrer?", answer: "Nej. Du ser den samlede pris, inden du bekræfter booking. Du betaler kun, når bilen er vasket." },
       { question: "Kan jeg spare ved at booke regelmæssigt?", answer: "Regelmæssig vask forhindrer opbygning af snavs og saltskader, som kan være dyre at udbedre." },
@@ -2576,16 +2576,16 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "express-bilvask",
-    title: "Express bilvask | Hurtig bilvask samme dag | Clean Wash",
+    title: "Express bilvask | Hurtig bilvask samme dag | Wash Max",
     description:
-      "Hurtig express bilvask hos Clean Wash. Book bilvask samme dag i København og på Sjælland. Nem online booking, klar pris og professionelt resultat.",
+      "Hurtig express bilvask hos Wash Max. Book bilvask samme dag i København og på Sjælland. Nem online booking, klar pris og professionelt resultat.",
     h1: "Express bilvask",
     eyebrow: "Hurtig bilvask uden ventetid",
     heroIntro:
-      "Har bilen brug for en hurtig vask? Clean Wash tilbyder express bilvask med nem online booking og professionelt resultat — samme dag eller til dit næste ledige tidspunkt.",
+      "Har bilen brug for en hurtig vask? Wash Max tilbyder express bilvask med nem online booking og professionelt resultat — samme dag eller til dit næste ledige tidspunkt.",
     shortSummary: [
       "Book express bilvask online og vælg det tidspunkt, der passer dig bedst.",
-      "Clean Wash udfører bilvask uden kø og ventetid — direkte til din adresse.",
+      "Wash Max udfører bilvask uden kø og ventetid — direkte til din adresse.",
       "Hurtig udvendig vask, komplet bilpleje eller express kabinerengøring — vælg i bookingflowet.",
     ],
     keywords: [
@@ -2598,33 +2598,33 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Express bilvask og hurtig bilpleje",
     serviceArea: ["København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro", "Vesterbro", "Storkøbenhavn"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Express bilvask og hurtig bilpleje hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Express bilvask og hurtig bilpleje hos Wash Max" },
     secondaryCta: { label: "Se bilvask pris", href: "/bilvask-pris" },
     benefits: [
       { title: "Ingen kø", text: "Slipper for kø i vaskehallen. Book online og vælg et tidspunkt, der passer ind i din kalender." },
       { title: "Hurtig booking", text: "Book express bilvask online på under 2 minutter uden telefonopkald." },
-      { title: "Til din adresse", text: "Clean Wash møder op, hvor bilen holder — hjemme, på arbejde eller et andet passende sted." },
+      { title: "Til din adresse", text: "Wash Max møder op, hvor bilen holder — hjemme, på arbejde eller et andet passende sted." },
       { title: "Klar pris", text: "Du ser den samlede pris, inden du bekræfter. Ingen overraskelser." },
     ],
     process: [
       { title: "Book online nu", text: "Gå til booking-siden og vælg service, bil og tidspunkt — det tager under 2 minutter." },
       { title: "Angiv adresse", text: "Oplys den adresse, hvor bilen holder, og kontaktoplysninger." },
-      { title: "Clean Wash møder op", text: "Teamet ankommer til det aftalte tidspunkt og udfører bilvasken." },
+      { title: "Wash Max møder op", text: "Teamet ankommer til det aftalte tidspunkt og udfører bilvasken." },
       { title: "Ren bil — hurtigt", text: "Du får en renere bil uden at bruge tid på transport eller kø." },
     ],
     sections: [
       {
         heading: "Hurtig bilvask uden kø og ventetid",
         paragraphs: [
-          "Express bilvask er for dig, der har brug for en ren bil hurtigt. Måske er der et vigtigt møde, en begivenhed eller du har simpelthen opdaget, at bilen trænger til vask. Clean Wash gør det muligt at booke bilvask online og få det udført hurtigt uden kø i en vaskehal.",
-          "Online booking er kernen i express bilvask. Du vælger service, angiver biloplysninger og adresse, og vælger det tidspunkt, der passer dig bedst. Clean Wash håndterer resten. Ingen opkald, ingen ventetid i butik — blot en professionel bilvask leveret til din dør.",
+          "Express bilvask er for dig, der har brug for en ren bil hurtigt. Måske er der et vigtigt møde, en begivenhed eller du har simpelthen opdaget, at bilen trænger til vask. Wash Max gør det muligt at booke bilvask online og få det udført hurtigt uden kø i en vaskehal.",
+          "Online booking er kernen i express bilvask. Du vælger service, angiver biloplysninger og adresse, og vælger det tidspunkt, der passer dig bedst. Wash Max håndterer resten. Ingen opkald, ingen ventetid i butik — blot en professionel bilvask leveret til din dør.",
         ],
       },
       {
         heading: "Bilvask samme dag — er det muligt?",
         paragraphs: [
-          "Det afhænger af tilgængelighed og rute, men Clean Wash tilbyder booking med kort varsel. Via booking-siden kan du se ledige tider og vælge det nærmeste tilgængelige tidspunkt. Mange kunder kan få bilen vasket samme dag eller inden for 24 timer.",
-          "Hurtig bilvask handler ikke bare om hastighed. Det handler om at gøre det nemt at passe bilvask ind i en travl hverdag. Clean Wash er designet til kunder, der vil have en ren bil uden at det tager en hel dag.",
+          "Det afhænger af tilgængelighed og rute, men Wash Max tilbyder booking med kort varsel. Via booking-siden kan du se ledige tider og vælge det nærmeste tilgængelige tidspunkt. Mange kunder kan få bilen vasket samme dag eller inden for 24 timer.",
+          "Hurtig bilvask handler ikke bare om hastighed. Det handler om at gøre det nemt at passe bilvask ind i en travl hverdag. Wash Max er designet til kunder, der vil have en ren bil uden at det tager en hel dag.",
         ],
       },
       {
@@ -2637,8 +2637,8 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "Express bilvask i København og nærliggende bydele",
         paragraphs: [
-          "Clean Wash tilbyder express bilvask i hele København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro og Storkøbenhavn. Den konkrete tilgængelighed afhænger af rute og ledige tider, men booking-siden viser de nærmeste ledige tider i realtid.",
-          "Kunder kan booke express bilvask direkte via booking-siden. Vælg service, bil og tidspunkt, og Clean Wash håndterer resten.",
+          "Wash Max tilbyder express bilvask i hele København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro og Storkøbenhavn. Den konkrete tilgængelighed afhænger af rute og ledige tider, men booking-siden viser de nærmeste ledige tider i realtid.",
+          "Kunder kan booke express bilvask direkte via booking-siden. Vælg service, bil og tidspunkt, og Wash Max håndterer resten.",
         ],
       },
     ],
@@ -2647,7 +2647,7 @@ export const seoPages: SeoPageConfig[] = [
       { question: "Hvad er forskellen på express og normal bilvask?", answer: "Express bilvask har fokus på hurtig levering. Bookingprocessen er den samme — det handler om at vælge et tidspunkt tæt på nu." },
       { question: "Er express bilvask dyrere?", answer: "Nej. Prisen er den samme uanset, om du booker til i dag eller næste uge. Udvendig fra 349 kr." },
       { question: "Kan jeg booke express bilvask uden opkald?", answer: "Ja. Booking foregår helt online via /booking. Ingen telefonopkald nødvendigt." },
-      { question: "Dækker express bilvask hele København?", answer: "Ja. Clean Wash dækker hele København og Storkøbenhavn. Konkret tilgængelighed vises i bookingflowet." },
+      { question: "Dækker express bilvask hele København?", answer: "Ja. Wash Max dækker hele København og Storkøbenhavn. Konkret tilgængelighed vises i bookingflowet." },
       { question: "Hvor lang tid tager en express bilvask?", answer: "Udvendig vask tager typisk 30-60 min. Komplet bilvask 60-90 min. afhængigt af biltype og stand." },
     ],
     relatedLinks: [
@@ -2665,16 +2665,16 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-abonnement",
-    title: "Bilvask abonnement | Fast bilvask aftale | Clean Wash",
+    title: "Bilvask abonnement | Fast bilvask aftale | Wash Max",
     description:
-      "Spar tid og penge med et bilvask abonnement hos Clean Wash. Fast aftale, regelmæssig bilvask og professionel bilpleje i København og på Sjælland.",
+      "Spar tid og penge med et bilvask abonnement hos Wash Max. Fast aftale, regelmæssig bilvask og professionel bilpleje i København og på Sjælland.",
     h1: "Bilvask abonnement",
     eyebrow: "Regelmæssig bilpleje med fast aftale",
     heroIntro:
-      "Et bilvask abonnement hos Clean Wash giver dig en ren bil måned efter måned uden at tænke over det. Fast aftale, fleksibel planlægning og professionel bilpleje.",
+      "Et bilvask abonnement hos Wash Max giver dig en ren bil måned efter måned uden at tænke over det. Fast aftale, fleksibel planlægning og professionel bilpleje.",
     shortSummary: [
       "Et bilvask abonnement giver regelmæssig bilpleje til fast pris og uden intern koordinering.",
-      "Clean Wash tilbyder faste aftaler til private bilejere og virksomheder med firmabiler.",
+      "Wash Max tilbyder faste aftaler til private bilejere og virksomheder med firmabiler.",
       "Regelmæssig bilvask beskytter lakken og bevarer bilens stand og salgsværdi.",
     ],
     keywords: [
@@ -2687,7 +2687,7 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Bilvask abonnement og fast bilplejeaftale",
     serviceArea: ["København", "Frederiksberg", "Amager", "Østerbro", "Storkøbenhavn", "Sjælland"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Bilvask abonnement og fast bilvask aftale hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Bilvask abonnement og fast bilvask aftale hos Wash Max" },
     secondaryCta: { label: "Erhvervs bilvask", href: "/erhvervs-bilvask" },
     benefits: [
       { title: "Altid ren bil", text: "Med et abonnement er bilen altid præsentabel — du behøver ikke huske at booke." },
@@ -2697,8 +2697,8 @@ export const seoPages: SeoPageConfig[] = [
     ],
     process: [
       { title: "Vælg service og frekvens", text: "Beslut hvilken bilvask du ønsker og hvor ofte — ugentligt, to gange om måneden eller månedligt." },
-      { title: "Aftal med Clean Wash", text: "Kontakt Clean Wash eller start med en enkelt booking for at afprøve servicen." },
-      { title: "Planlæg faste tider", text: "Clean Wash planlægger faste tider, der passer ind i din hverdag eller virksomhedens kalender." },
+      { title: "Aftal med Wash Max", text: "Kontakt Wash Max eller start med en enkelt booking for at afprøve servicen." },
+      { title: "Planlæg faste tider", text: "Wash Max planlægger faste tider, der passer ind i din hverdag eller virksomhedens kalender." },
       { title: "Altid ren bil", text: "Bilen vaskes regelmæssigt uden at du behøver tænke over det." },
     ],
     sections: [
@@ -2719,7 +2719,7 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "Bilvask abonnement til private bilejere",
         paragraphs: [
-          "For den private bilejere er et abonnement en nem måde at slippe for at huske bilvask. Du aftaler frekvens og service med Clean Wash, og resten kører automatisk. Bilen er altid præsentabel, og du bruger ikke tid på at koordinere.",
+          "For den private bilejere er et abonnement en nem måde at slippe for at huske bilvask. Du aftaler frekvens og service med Wash Max, og resten kører automatisk. Bilen er altid præsentabel, og du bruger ikke tid på at koordinere.",
           "Det passer særlig godt til pendlere, familier med to biler og bilejere, der bruger bilen dagligt i arbejdssammenhæng. For disse grupper er en ren bil en naturlig del af hverdagen, og et abonnement gør det ubesværet.",
         ],
       },
@@ -2727,17 +2727,17 @@ export const seoPages: SeoPageConfig[] = [
         heading: "Bilvask abonnement til virksomheder",
         paragraphs: [
           "Virksomheder med firmabiler, leasingbiler eller flåder bruger intern tid og ressourcer på at koordinere bilvask, medmindre de har en fast aftale. Et erhvervs bilvask abonnement frigiver denne tid og sikrer, at alle biler er præsentable over for kunder og samarbejdspartnere.",
-          "Clean Wash tilbyder faste aftaler til virksomheder med tilpasset frekvens og servicevalg. Kontakt os for at drøfte et abonnement, der passer til jeres flåde og behov.",
+          "Wash Max tilbyder faste aftaler til virksomheder med tilpasset frekvens og servicevalg. Kontakt os for at drøfte et abonnement, der passer til jeres flåde og behov.",
         ],
       },
     ],
     faqs: [
       { question: "Hvad er et bilvask abonnement?", answer: "En fast aftale om regelmæssig bilvask til forudsigelig pris. Bilen vaskes automatisk på det aftalte tidspunkt." },
-      { question: "Tilbyder Clean Wash bilvask abonnement?", answer: "Ja. Clean Wash tilbyder faste aftaler til private bilejere og virksomheder. Kontakt os for at drøfte en aftale." },
+      { question: "Tilbyder Wash Max bilvask abonnement?", answer: "Ja. Wash Max tilbyder faste aftaler til private bilejere og virksomheder. Kontakt os for at drøfte en aftale." },
       { question: "Hvad koster et bilvask abonnement?", answer: "Prisen afhænger af frekvens og servicevalg. Start med en enkelt booking, eller kontakt os for et abonnementstilbud." },
-      { question: "Kan virksomheder få bilvask abonnement?", answer: "Ja. Clean Wash tilbyder erhvervs bilvask abonnement til virksomheder med firmabiler og flåder." },
+      { question: "Kan virksomheder få bilvask abonnement?", answer: "Ja. Wash Max tilbyder erhvervs bilvask abonnement til virksomheder med firmabiler og flåder." },
       { question: "Hvor tit skal bilen vaskes med abonnement?", answer: "De fleste bilejere vælger månedlig vask. Pendlere og firmabiler vælger typisk to gange om måneden." },
-      { question: "Hvordan starter jeg et bilvask abonnement?", answer: "Kontakt Clean Wash eller start med en enkelt booking via /booking for at afprøve servicen." },
+      { question: "Hvordan starter jeg et bilvask abonnement?", answer: "Kontakt Wash Max eller start med en enkelt booking via /booking for at afprøve servicen." },
     ],
     relatedLinks: [
       { label: "Book bilvask", href: "/booking" },
@@ -2754,15 +2754,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "miljoevenlig-bilvask",
-    title: "Miljøvenlig bilvask | Bæredygtig bilpleje | Clean Wash",
+    title: "Miljøvenlig bilvask | Bæredygtig bilpleje | Wash Max",
     description:
-      "Book miljøvenlig bilvask hos Clean Wash. Professionel bilvask med omtanke for miljøet — vandsparende metoder, skånsomme produkter og effektiv ruteplanlægning.",
+      "Book miljøvenlig bilvask hos Wash Max. Professionel bilvask med omtanke for miljøet — vandsparende metoder, skånsomme produkter og effektiv ruteplanlægning.",
     h1: "Miljøvenlig bilvask",
     eyebrow: "Bilvask med omtanke for miljøet",
     heroIntro:
-      "Clean Wash arbejder med professionel bilvask og miljøbevidst tankegang. Effektiv ruteplanlægning, skånsomme produkter og metoder der passer til den moderne bilejers værdier.",
+      "Wash Max arbejder med professionel bilvask og miljøbevidst tankegang. Effektiv ruteplanlægning, skånsomme produkter og metoder der passer til den moderne bilejers værdier.",
     shortSummary: [
-      "Clean Wash planlægger ruter effektivt for at minimere transport og reducere CO₂-udledning.",
+      "Wash Max planlægger ruter effektivt for at minimere transport og reducere CO₂-udledning.",
       "Vi bruger skånsomme produkter, der er effektive over for snavs og hensynsfulde over for miljøet.",
       "Mobil bilvask kan i mange tilfælde bruge mindre vand end en traditionel vaskehal.",
     ],
@@ -2776,32 +2776,32 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Miljøvenlig bilvask og bæredygtig bilpleje",
     serviceArea: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland"],
     schemaAreaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Miljøvenlig bilvask hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Miljøvenlig bilvask hos Wash Max" },
     secondaryCta: { label: "Se bilpleje guide", href: "/bilpleje-guide" },
     benefits: [
-      { title: "Effektiv ruteplanlægning", text: "Clean Wash planlægger ruter, der minimerer kørsel og reducerer CO₂-udledning fra service." },
+      { title: "Effektiv ruteplanlægning", text: "Wash Max planlægger ruter, der minimerer kørsel og reducerer CO₂-udledning fra service." },
       { title: "Skånsomme produkter", text: "Vi bruger produkter, der er effektive over for snavs og hensynsfulde over for miljøet." },
       { title: "Ingen unødigt spild", text: "Professionelt udstyr giver et godt resultat med korrekte mængder vand og rensemiddel." },
       { title: "Mobil service", text: "Mobil bilvask eliminerer kundens transport til vaskehal og den medfølgende CO₂-udledning." },
     ],
     process: [
       { title: "Book online", text: "Book bilvask online og bidrag til effektiv ruteplanlægning i din bydel." },
-      { title: "Skånsom vask", text: "Clean Wash vasker bilen med skånsomme metoder og miljøbevidste produkter." },
-      { title: "Ingen unødig transport", text: "Mobil service betyder, at du ikke kører til en vaskehal — Clean Wash kommer til dig." },
+      { title: "Skånsom vask", text: "Wash Max vasker bilen med skånsomme metoder og miljøbevidste produkter." },
+      { title: "Ingen unødig transport", text: "Mobil service betyder, at du ikke kører til en vaskehal — Wash Max kommer til dig." },
       { title: "Rent resultat", text: "Du får en ren bil og kan føle dig godt tilpas med, at vasken er udført med omtanke." },
     ],
     sections: [
       {
         heading: "Miljøvenlig bilvask — hvad betyder det i praksis?",
         paragraphs: [
-          "Miljøvenlig bilvask handler om at minimere unødigt ressourceforbrug og vælge metoder og produkter, der er skånsomme over for naturen. For Clean Wash betyder det effektiv ruteplanlægning, der reducerer unødig kørsel, brug af professionelt udstyr, der giver godt resultat med korrekte mængder, og valg af produkter, der er effektive og hensynsfulde over for miljøet.",
-          "Mobil bilvask har et særligt potentiale for miljøvenlighed, fordi det eliminerer kundens tur til en vaskehal. Mange bilejere kører kilometervis for at finde en vaskehal — det transport er unødigt, når bilvask kan komme til dem. Clean Wash tilbyder netop denne løsning.",
+          "Miljøvenlig bilvask handler om at minimere unødigt ressourceforbrug og vælge metoder og produkter, der er skånsomme over for naturen. For Wash Max betyder det effektiv ruteplanlægning, der reducerer unødig kørsel, brug af professionelt udstyr, der giver godt resultat med korrekte mængder, og valg af produkter, der er effektive og hensynsfulde over for miljøet.",
+          "Mobil bilvask har et særligt potentiale for miljøvenlighed, fordi det eliminerer kundens tur til en vaskehal. Mange bilejere kører kilometervis for at finde en vaskehal — det transport er unødigt, når bilvask kan komme til dem. Wash Max tilbyder netop denne løsning.",
         ],
       },
       {
         heading: "Produkter og metoder med omtanke",
         paragraphs: [
-          "Valget af renseprodukter er vigtigt for en miljøvenlig bilvask. Clean Wash bruger produkter, der er effektive over for vejsnavs, vejsalt og bysnavs, men som ikke indeholder unødigt aggressive kemikalier. Skum, shampoo og rensemidler er valgt med tanke på både effektivitet og miljøpåvirkning.",
+          "Valget af renseprodukter er vigtigt for en miljøvenlig bilvask. Wash Max bruger produkter, der er effektive over for vejsnavs, vejsalt og bysnavs, men som ikke indeholder unødigt aggressive kemikalier. Skum, shampoo og rensemidler er valgt med tanke på både effektivitet og miljøpåvirkning.",
           "Professionelt udstyr giver et bedre resultat med præcise mængder vand og produkt sammenlignet med en standard havepose og spand. Det reducer spild og giver et mere konsistent og skånsomt resultat for lakken.",
         ],
       },
@@ -2815,17 +2815,17 @@ export const seoPages: SeoPageConfig[] = [
       {
         heading: "Miljøbevidst bilvask i København",
         paragraphs: [
-          "I København er der et voksende fokus på bæredygtighed og miljøbevidste valg. Mange bilejere leder bevidst efter tjenester, der passer til deres værdier. Clean Wash tilbyder professionel bilvask i København med en tilgang, der tager miljøet alvorligt uden at gå på kompromis med kvaliteten.",
+          "I København er der et voksende fokus på bæredygtighed og miljøbevidste valg. Mange bilejere leder bevidst efter tjenester, der passer til deres værdier. Wash Max tilbyder professionel bilvask i København med en tilgang, der tager miljøet alvorligt uden at gå på kompromis med kvaliteten.",
           "Kunder kan booke miljøvenlig bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og bidrag til en mere effektiv og bæredygtig bilvaskkultur i København.",
         ],
       },
     ],
     faqs: [
-      { question: "Er Clean Wash miljøvenlig?", answer: "Clean Wash arbejder med effektiv ruteplanlægning, skånsomme produkter og metoder der minimerer unødigt ressourceforbrug." },
+      { question: "Er Wash Max miljøvenlig?", answer: "Wash Max arbejder med effektiv ruteplanlægning, skånsomme produkter og metoder der minimerer unødigt ressourceforbrug." },
       { question: "Bruger mobil bilvask mere eller mindre vand end en vaskehal?", answer: "Professionelt udstyr bruger præcise mængder vand. Hertil sparer kunden transport til vaskehal, som reducerer CO₂." },
-      { question: "Hvilke produkter bruger Clean Wash?", answer: "Vi bruger produkter, der er effektive over for vejsnavs og skånsomme over for miljøet. Ingen unødigt aggressive kemikalier." },
+      { question: "Hvilke produkter bruger Wash Max?", answer: "Vi bruger produkter, der er effektive over for vejsnavs og skånsomme over for miljøet. Ingen unødigt aggressive kemikalier." },
       { question: "Er regelmæssig bilvask mere miljøvenlig?", answer: "Ja. Månedlig vask kræver kortere tid og færre ressourcer end sjælden vask af et opbygget snavslag." },
-      { question: "Tilbyder Clean Wash miljøvenlig bilvask i København?", answer: "Ja. Clean Wash tilbyder professionel og miljøbevidst bilvask i hele København og på Sjælland." },
+      { question: "Tilbyder Wash Max miljøvenlig bilvask i København?", answer: "Ja. Wash Max tilbyder professionel og miljøbevidst bilvask i hele København og på Sjælland." },
       { question: "Hvordan booker jeg miljøvenlig bilvask?", answer: "Gå til /booking, vælg den service der passer, og bidrag til mere effektiv og bæredygtig bilvask." },
     ],
     relatedLinks: [
@@ -2843,15 +2843,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-taastrup",
-    title: "Bilvask Taastrup | Professionel bilvask i Høje-Taastrup | Clean Wash",
+    title: "Bilvask Taastrup | Professionel bilvask i Høje-Taastrup | Wash Max",
     description:
-      "Book professionel bilvask i Taastrup og Høje-Taastrup hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking vest for København.",
+      "Book professionel bilvask i Taastrup og Høje-Taastrup hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking vest for København.",
     h1: "Bilvask Taastrup",
     eyebrow: "Professionel bilvask i Taastrup",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i Taastrup og Høje-Taastrup med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask i Taastrup og Høje-Taastrup med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Taastrup og Høje-Taastrup med online booking.",
+      "Wash Max tilbyder bilvask i Taastrup og Høje-Taastrup med online booking.",
       "Servicen er relevant for bilejere i Taastrup, Hedehusene, Roskilde og nærliggende kommuner.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
     ],
@@ -2865,10 +2865,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask i Taastrup",
     serviceArea: ["Taastrup", "Høje-Taastrup", "Hedehusene", "Albertslund", "Glostrup", "Roskilde"],
     schemaAreaServed: ["Taastrup", "Høje-Taastrup", "København", "Sjælland", "Denmark"],
-    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Taastrup og Høje-Taastrup hos Clean Wash" },
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Taastrup og Høje-Taastrup hos Wash Max" },
     secondaryCta: { label: "Se bilvask Roskilde", href: "/bilvask-roskilde" },
     benefits: [
-      { title: "Taastrup og omegn", text: "Clean Wash er relevant for bilejere i Taastrup, Hedehusene, Albertslund og nærliggende kommuner vest for København." },
+      { title: "Taastrup og omegn", text: "Wash Max er relevant for bilejere i Taastrup, Hedehusene, Albertslund og nærliggende kommuner vest for København." },
       { title: "Pendlerbiler", text: "Mange pendlere fra Taastrup kører dagligt til København — professionel bilvask er en naturlig del af den hverdag." },
       { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
       { title: "Erhverv og private", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
@@ -2876,43 +2876,43 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash klargør", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max klargør", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes", text: "Du får en renere bil leveret professionelt uden ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Taastrup — professionel service vest for København",
         paragraphs: [
-          "Høje-Taastrup er et af de største erhvervs- og boligområder vest for København med mange pendlere, familier og virksomheder. Bilejere i Taastrup søger professionel og fleksibel bilvask, der passer ind i en travl hverdag. Clean Wash tilbyder bilvask i Taastrup med online booking og klare servicevalg.",
+          "Høje-Taastrup er et af de største erhvervs- og boligområder vest for København med mange pendlere, familier og virksomheder. Bilejere i Taastrup søger professionel og fleksibel bilvask, der passer ind i en travl hverdag. Wash Max tilbyder bilvask i Taastrup med online booking og klare servicevalg.",
           "Med motorvejsadgang til E20 og Ring 4 er Taastrup et centralt trafikknudepunkt. Pendlerbiler og firmabiler fra Taastrup bruges hårdt og trænger til regelmæssig bilvask. En professionel bilvask holder bilen præsentabel og i bedre stand.",
         ],
       },
       {
         heading: "Høje-Taastrup: erhverv og beboelse",
         paragraphs: [
-          "Høje-Taastrup Kommune er et af Sjællands vigtigste erhvervscentre med mange kontorer, lagerhaller og industrivirksomheder. Firmabiler og erhvervsbiler fra disse virksomheder skal fremstå præsentable. Clean Wash kan hjælpe med regelmæssig bilvask og bilpleje til erhvervskunder.",
+          "Høje-Taastrup Kommune er et af Sjællands vigtigste erhvervscentre med mange kontorer, lagerhaller og industrivirksomheder. Firmabiler og erhvervsbiler fra disse virksomheder skal fremstå præsentable. Wash Max kan hjælpe med regelmæssig bilvask og bilpleje til erhvervskunder.",
           "Taastrup, Hedehusene og Albertslund har mange familier og private bilejere, der bruger bilen til pendling, børnekørsel og hverdagstransport. For disse kunder er en fleksibel og professionel bilvaskløsning en stor fordel.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Taastrup?",
+        heading: "Hvad tilbyder Wash Max i Taastrup?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Taastrup. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge.",
-          "Kunder kan booke bilvask direkte via booking-siden. Den konkrete dækning afhænger af adresse og rute, men bookingflowet samler alle oplysninger, så Clean Wash kan planlægge effektivt.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Taastrup. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge.",
+          "Kunder kan booke bilvask direkte via booking-siden. Den konkrete dækning afhænger af adresse og rute, men bookingflowet samler alle oplysninger, så Wash Max kan planlægge effektivt.",
         ],
       },
       {
         heading: "Taastrup og nærliggende kommuner",
         paragraphs: [
-          "Høje-Taastrup grænser op til Roskilde, Albertslund, Glostrup og Hvidovre. Clean Wash er relevant for kunder i hele dette vestlige Storkøbenhavn. Start booking-processen online for at se tilgængelighed og vælge den service, der passer til bilen.",
+          "Høje-Taastrup grænser op til Roskilde, Albertslund, Glostrup og Hvidovre. Wash Max er relevant for kunder i hele dette vestlige Storkøbenhavn. Start booking-processen online for at se tilgængelighed og vælge den service, der passer til bilen.",
           "Kunder fra Taastrup og nærliggende kommuner kan booke bilvask direkte via booking-siden og afklare muligheder for deres specifikke adresse.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Taastrup?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Taastrup og Høje-Taastrup med online booking." },
-      { question: "Dækker I Hedehusene og Albertslund?", answer: "Clean Wash er relevant for Taastrup og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
-      { question: "Er Clean Wash relevant for erhvervskunder i Taastrup?", answer: "Ja. Høje-Taastrup har mange erhvervsvirksomheder, og Clean Wash tilbyder bilvask til firmabiler og flåder." },
+      { question: "Tilbyder Wash Max bilvask i Taastrup?", answer: "Ja. Wash Max tilbyder professionel bilvask i Taastrup og Høje-Taastrup med online booking." },
+      { question: "Dækker I Hedehusene og Albertslund?", answer: "Wash Max er relevant for Taastrup og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
+      { question: "Er Wash Max relevant for erhvervskunder i Taastrup?", answer: "Ja. Høje-Taastrup har mange erhvervsvirksomheder, og Wash Max tilbyder bilvask til firmabiler og flåder." },
       { question: "Kan jeg booke komplet bilpleje i Taastrup?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
       { question: "Hvad koster bilvask i Taastrup?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se priser og book via /booking." },
       { question: "Hvordan booker jeg bilvask i Taastrup?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
@@ -2932,15 +2932,15 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-hilleroed",
-    title: "Bilvask Hillerød | Professionel bilvask i Nordsjælland | Clean Wash",
+    title: "Bilvask Hillerød | Professionel bilvask i Nordsjælland | Wash Max",
     description:
-      "Book professionel bilvask i Hillerød hos Clean Wash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking i Nordsjælland.",
+      "Book professionel bilvask i Hillerød hos Wash Max. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking i Nordsjælland.",
     h1: "Bilvask Hillerød",
     eyebrow: "Professionel bilvask i Hillerød",
     heroIntro:
-      "Clean Wash tilbyder professionel bilvask i Hillerød og Nordsjælland med online booking og klare servicevalg til private og erhverv.",
+      "Wash Max tilbyder professionel bilvask i Hillerød og Nordsjælland med online booking og klare servicevalg til private og erhverv.",
     shortSummary: [
-      "Clean Wash tilbyder bilvask i Hillerød og Nordsjælland med online booking.",
+      "Wash Max tilbyder bilvask i Hillerød og Nordsjælland med online booking.",
       "Servicen er relevant for bilejere i Hillerød, Allerød, Fredensborg og nærliggende kommuner.",
       "Book udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
     ],
@@ -2954,10 +2954,10 @@ export const seoPages: SeoPageConfig[] = [
     serviceType: "Professionel bilvask i Hillerød og Nordsjælland",
     serviceArea: ["Hillerød", "Allerød", "Fredensborg", "Frederikssund", "Birkerød", "Nordsjælland"],
     schemaAreaServed: ["Hillerød", "Nordsjælland", "Sjælland", "Zealand", "Denmark"],
-    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Hillerød og Nordsjælland hos Clean Wash" },
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Hillerød og Nordsjælland hos Wash Max" },
     secondaryCta: { label: "Se bilvask Sjælland", href: "/bilvask-sjaelland" },
     benefits: [
-      { title: "Hillerød og Nordsjælland", text: "Clean Wash er relevant for bilejere i Hillerød, Allerød, Fredensborg og nærliggende nordsjællandske kommuner." },
+      { title: "Hillerød og Nordsjælland", text: "Wash Max er relevant for bilejere i Hillerød, Allerød, Fredensborg og nærliggende nordsjællandske kommuner." },
       { title: "Pendlere fra Hillerød", text: "Mange pendler dagligt fra Hillerød til København — professionel bilvask passer til denne travle hverdag." },
       { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
       { title: "Til alle biltyper", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
@@ -2965,43 +2965,43 @@ export const seoPages: SeoPageConfig[] = [
     process: [
       { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
       { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
-      { title: "Clean Wash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Wash Max planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
       { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
     ],
     sections: [
       {
         heading: "Bilvask i Hillerød — professionel service i Nordsjælland",
         paragraphs: [
-          "Hillerød er Nordsjællands administrative centrum og en af regionens største byer med mange bilejere, der pendler til København og Storkøbenhavn. Bilvask Hillerød er relevant for alle, der vil have bilen gjort ren professionelt uden at køre langt til en vaskehal. Clean Wash tilbyder bilvask i Hillerød med online booking.",
+          "Hillerød er Nordsjællands administrative centrum og en af regionens største byer med mange bilejere, der pendler til København og Storkøbenhavn. Bilvask Hillerød er relevant for alle, der vil have bilen gjort ren professionelt uden at køre langt til en vaskehal. Wash Max tilbyder bilvask i Hillerød med online booking.",
           "Med togforbindelse til København og adgang til Helsingørmotorvejen er Hillerød et centralt punkt i Nordsjælland. Pendlerbiler fra Hillerød bruges hårdt og trænger til regelmæssig bilvask for at bevare et præsentabelt udtryk.",
         ],
       },
       {
         heading: "Hillerød og nærliggende kommuner",
         paragraphs: [
-          "Hillerød grænser op til Allerød, Fredensborg, Frederikssund og Birkerød. Clean Wash er relevant for kunder i hele dette nordsjællandske område. Den konkrete dækning afhænger af booking og ruteplanlægning. Start processen online for at afklare muligheder.",
-          "Nordsjælland er et område med mange velhavende kommuner og bilejere, der sætter pris på professionel og kvalitetsbevidst service. Clean Wash tilbyder netop dette med online booking og klare servicevalg.",
+          "Hillerød grænser op til Allerød, Fredensborg, Frederikssund og Birkerød. Wash Max er relevant for kunder i hele dette nordsjællandske område. Den konkrete dækning afhænger af booking og ruteplanlægning. Start processen online for at afklare muligheder.",
+          "Nordsjælland er et område med mange velhavende kommuner og bilejere, der sætter pris på professionel og kvalitetsbevidst service. Wash Max tilbyder netop dette med online booking og klare servicevalg.",
         ],
       },
       {
-        heading: "Hvad tilbyder Clean Wash i Hillerød?",
+        heading: "Hvad tilbyder Wash Max i Hillerød?",
         paragraphs: [
-          "Clean Wash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Hillerød. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
-          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Clean Wash håndterer resten.",
+          "Wash Max tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Hillerød. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder. Komplet bilpleje kombinerer begge dele for det bedste resultat.",
+          "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen, og angiv relevante oplysninger. Wash Max håndterer resten.",
         ],
       },
       {
         heading: "Erhvervskunder og private i Hillerød",
         paragraphs: [
-          "Hillerød er hjemsted for mange offentlige institutioner, hospitaler og private virksomheder med firmabiler. Clean Wash kan hjælpe med regelmæssig bilvask og bilpleje til erhvervskunder. Private bilejere i Hillerød nyder godt af en professionel service, der sparer tid og giver et godt resultat.",
+          "Hillerød er hjemsted for mange offentlige institutioner, hospitaler og private virksomheder med firmabiler. Wash Max kan hjælpe med regelmæssig bilvask og bilpleje til erhvervskunder. Private bilejere i Hillerød nyder godt af en professionel service, der sparer tid og giver et godt resultat.",
           "Kunder kan booke bilvask direkte via booking-siden. Vælg den service, der passer til bilen.",
         ],
       },
     ],
     faqs: [
-      { question: "Tilbyder Clean Wash bilvask i Hillerød?", answer: "Ja. Clean Wash tilbyder professionel bilvask i Hillerød og Nordsjælland med online booking." },
-      { question: "Dækker I Allerød og Fredensborg?", answer: "Clean Wash er relevant for Hillerød og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
-      { question: "Er Clean Wash relevant for pendlere fra Hillerød?", answer: "Ja. Pendlerbiler bruges hårdt, og Clean Wash gør det nemt at booke regelmæssig bilvask." },
+      { question: "Tilbyder Wash Max bilvask i Hillerød?", answer: "Ja. Wash Max tilbyder professionel bilvask i Hillerød og Nordsjælland med online booking." },
+      { question: "Dækker I Allerød og Fredensborg?", answer: "Wash Max er relevant for Hillerød og nærliggende kommuner. Konkret dækning afhænger af booking og rute." },
+      { question: "Er Wash Max relevant for pendlere fra Hillerød?", answer: "Ja. Pendlerbiler bruges hårdt, og Wash Max gør det nemt at booke regelmæssig bilvask." },
       { question: "Kan jeg booke komplet bilpleje i Hillerød?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
       { question: "Hvad koster bilvask i Hillerød?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se priser og book via /booking." },
       { question: "Hvordan booker jeg bilvask i Hillerød?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
@@ -3048,7 +3048,7 @@ export function createSeoMetadata(page: SeoPageConfig): Metadata {
           url: siteConfig.ogImage,
           width: 1200,
           height: 630,
-          alt: `${page.title} hos Clean Wash`,
+          alt: `${page.title} hos Wash Max`,
         },
       ],
     },

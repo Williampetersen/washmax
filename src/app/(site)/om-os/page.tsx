@@ -7,16 +7,16 @@ import { absoluteUrl } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Om os | Clean Wash",
+  title: "Om os | Wash Max",
   description:
-    "Læs om Clean Wash, professionel mobil bilvask i København og på Sjælland. Vi tilbyder bilvask, bilrengøring og bilpleje med nem booking.",
+    "Læs om Wash Max, professionel mobil bilvask i København og på Sjælland. Vi tilbyder bilvask, bilrengøring og bilpleje med nem booking.",
   alternates: {
     canonical: "/om-os",
   },
   openGraph: {
-    title: "Om Clean Wash | Professionel bilvask i København og på Sjælland",
+    title: "Om Wash Max | Professionel bilvask i København og på Sjælland",
     description:
-      "Clean Wash hjælper private og erhverv med mobil bilvask, indvendig bilrengøring, udvendig vask og bilpleje.",
+      "Wash Max hjælper private og erhverv med mobil bilvask, indvendig bilrengøring, udvendig vask og bilpleje.",
     url: "/om-os",
     type: "website",
     locale: "da_DK",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
         url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: "Clean Wash professionel bilvask",
+        alt: "Wash Max professionel bilvask",
       },
     ],
   },
@@ -46,7 +46,7 @@ const values = [
   },
   {
     title: "Lokal service",
-    text: "Clean Wash hjælper kunder i København, Storkøbenhavn og store dele af Sjælland.",
+    text: "Wash Max hjælper kunder i København, Storkøbenhavn og store dele af Sjælland.",
   },
 ];
 
@@ -67,7 +67,7 @@ const jsonLd: JsonValue = {
     {
       "@type": ["AutoWash", "LocalBusiness"],
       "@id": `${siteConfig.url}#localbusiness`,
-      name: "Clean Wash",
+      name: "Wash Max",
       alternateName: siteConfig.name,
       url: siteConfig.url,
       image: absoluteUrl(siteConfig.ogImage),
@@ -75,7 +75,7 @@ const jsonLd: JsonValue = {
       email: siteConfig.email,
       openingHours: "Mo-Su 08:00-17:00",
       description:
-        "Clean Wash tilbyder professionel mobil bilvask, bilrengøring og bilpleje i København og på Sjælland.",
+        "Wash Max tilbyder professionel mobil bilvask, bilrengøring og bilpleje i København og på Sjælland.",
       areaServed: ["København", "Copenhagen", "Sjælland", "Denmark"].map((area) => ({
         "@type": "Place",
         name: area,
@@ -85,13 +85,13 @@ const jsonLd: JsonValue = {
         target: absoluteUrl("/booking"),
         name: "Book bilvask online",
       },
-      // TODO: Add postalAddress when Clean Wash has a confirmed public business address.
+      // TODO: Add postalAddress when Wash Max has a confirmed public business address.
     },
     {
       "@type": "AboutPage",
       "@id": `${absoluteUrl("/om-os")}#aboutpage`,
       url: absoluteUrl("/om-os"),
-      name: "Om Clean Wash",
+      name: "Om Wash Max",
       about: {
         "@id": `${siteConfig.url}#localbusiness`,
       },
@@ -142,13 +142,13 @@ export default function AboutPage() {
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(0,167,184,0.20),transparent_48%,rgba(245,158,11,0.10))]" />
             <div className="relative">
               <span className="inline-flex rounded-full border border-white/12 bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">
-                Om Clean Wash
+                Om Wash Max
               </span>
               <h1 className="mt-5 max-w-3xl font-display text-[clamp(2.35rem,5vw,4.8rem)] font-semibold leading-[0.98] text-white">
                 Professionel bilvask gjort nemmere
               </h1>
               <p className="mt-6 max-w-2xl text-base leading-8 text-white/76 sm:text-lg">
-                Clean Wash hjælper bilejere i København og på Sjælland med mobil bilvask,
+                Wash Max hjælper bilejere i København og på Sjælland med mobil bilvask,
                 indvendig bilrengøring, udvendig vask og bilpleje, der passer ind i hverdagen.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -171,7 +171,7 @@ export default function AboutPage() {
           <div className="relative min-h-[18rem] lg:min-h-full">
             <Image
               src="/service/helebil.jpg"
-              alt="Clean Wash udfører professionel bilvask og bilpleje"
+              alt="Wash Max udfører professionel bilvask og bilpleje"
               fill
               sizes="(min-width: 1024px) 45vw, 100vw"
               className="object-cover"
@@ -189,7 +189,7 @@ export default function AboutPage() {
               <span className="eyebrow">Kort fortalt</span>
               <h2 className="mt-5 section-title">Hvad vi laver</h2>
               <p className="mt-5 support-copy">
-                Clean Wash tilbyder professionel bilvask i København og på Sjælland med nem online
+                Wash Max tilbyder professionel bilvask i København og på Sjælland med nem online
                 booking. Kunder kan vælge bilvask, bilrengøring og bilpleje direkte på
                 booking-siden.
               </p>
@@ -198,7 +198,7 @@ export default function AboutPage() {
 
           <div className="space-y-5 text-base leading-8 text-[var(--muted)]">
             <p>
-              Clean Wash er skabt til kunder, der gerne vil have en ren bil uden unødigt besvær.
+              Wash Max er skabt til kunder, der gerne vil have en ren bil uden unødigt besvær.
               Vi arbejder med mobil bilvask, indvendig bilrengøring, udvendig vask og komplet
               bilpleje til både private og erhverv. Vores mål er enkelt: det skal være nemt at
               booke en bilvask, tydeligt hvad du får, og rart at modtage bilen bagefter.
@@ -206,7 +206,7 @@ export default function AboutPage() {
             <p>
               Mange biler bruges hver dag til arbejde, familie, pendling, møder og praktiske
               gøremål. Derfor bliver både kabine og udvendige flader hurtigt påvirket af støv,
-              snavs, vejr, pollen, vejsalt, sand, krummer og almindelig brug. Clean Wash hjælper
+              snavs, vejr, pollen, vejsalt, sand, krummer og almindelig brug. Wash Max hjælper
               med at få bilen tilbage til en renere og mere præsentabel stand.
             </p>
             <p>
@@ -262,7 +262,7 @@ export default function AboutPage() {
               <span className="eyebrow">Hvor vi hjælper</span>
               <h2 className="mt-5 section-title">København og Sjælland</h2>
               <p className="mt-5 support-copy">
-                Clean Wash dækker København, Storkøbenhavn og store dele af Sjælland. Den konkrete
+                Wash Max dækker København, Storkøbenhavn og store dele af Sjælland. Den konkrete
                 mulighed afhænger af adresse, booking, rute og valgt service.
               </p>
             </div>
@@ -297,7 +297,7 @@ export default function AboutPage() {
           <div className="section-shell px-6 py-8 sm:px-8">
             <div className="relative">
               <span className="eyebrow">Kontakt</span>
-              <h2 className="mt-5 section-title">Tal med Clean Wash</h2>
+              <h2 className="mt-5 section-title">Tal med Wash Max</h2>
               <div className="mt-6 grid gap-4 text-sm font-semibold text-[var(--ink)]">
                 <a href={siteConfig.phoneHref} className="flex items-center gap-3">
                   <Sparkles className="h-5 w-5 text-[var(--brand)]" />
