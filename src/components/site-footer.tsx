@@ -42,13 +42,15 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[var(--line)] bg-white/92 px-6 py-10 shadow-[0_18px_60px_rgba(11,31,58,0.10)] backdrop-blur-xl sm:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.3fr_0.8fr_0.8fr]">
           <div className="max-w-xl">
-            <Image
-              src="/logowashmax.png"
-              alt="Wash Max professionel bilvask"
-              width={220}
-              height={48}
-              className="h-12 w-auto max-w-[14rem] object-contain"
-            />
+            <span className="inline-flex items-center rounded-2xl bg-[#0B1F3A] px-4 py-2">
+              <Image
+                src="/logowashmax.png"
+                alt="Wash Max professionel bilvask"
+                width={220}
+                height={44}
+                className="h-11 w-auto max-w-[14rem] object-contain"
+              />
+            </span>
             <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
               Mobil bilvask i København og på Sjælland.
             </h2>

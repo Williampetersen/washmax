@@ -1595,11 +1595,25 @@ function CustomersView({
 
   return (
     <div className="space-y-5">
-      <ViewHeader
-        icon={Users}
-        title="Kunder"
-        description={`${customers.length} kunder · ${customers.filter((c) => c.upcomingBookings > 0).length} aktive`}
-      />
+      <div className="flex items-start justify-between gap-4">
+        <ViewHeader
+          icon={Users}
+          title="Kunder"
+          description={`${customers.length} kunder · ${customers.filter((c) => c.upcomingBookings > 0).length} aktive`}
+        />
+        <a
+          href="/api/admin/export/customers"
+          download
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#e8ebf5] bg-white px-4 py-2 text-[13px] font-medium text-[#374151] shadow-sm hover:bg-[#f9fafb] active:scale-[0.98] transition-transform"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#6B7280]">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Eksporter Excel
+        </a>
+      </div>
 
       <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
