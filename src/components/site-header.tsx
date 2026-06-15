@@ -12,8 +12,8 @@ export function SiteHeader() {
           <div className="flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3">
               <Image
-                src="/logo.png"
-                alt="CleanWash professionel bilvask"
+                src="/logowashmax.png"
+                alt="Wash Max professionel bilvask"
                 width={208}
                 height={48}
                 className="h-11 w-auto max-w-[13rem] object-contain sm:h-12"

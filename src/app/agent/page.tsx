@@ -8,7 +8,7 @@ import { AgentDashboard, type AgentView } from "@/components/agent/agent-dashboa
 
 export const metadata: Metadata = {
   title: "Agent dashboard",
-  description: "CleanWash agent dashboard.",
+  description: "Wash Max agent dashboard.",
   alternates: {
     canonical: "/agent",
   },

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin/
 
-Sitemap: https://cleanwash.dk/sitemap.xml
+Sitemap: https://washmax.dk/sitemap.xml

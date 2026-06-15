@@ -82,7 +82,7 @@ import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Admin",
-  description: "CleanWash admin dashboard.",
+  description: "Wash Max admin dashboard.",
   alternates: {
     canonical: "/admin",
   },
@@ -1088,7 +1088,7 @@ function AdminOverviewDashboard({
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#e9e6ff] text-lg font-semibold text-[#6257e8]">
             WM
           </div>
-          <p className="mt-3 font-semibold text-[#211955]">CleanWash Admin</p>
+          <p className="mt-3 font-semibold text-[#211955]">Wash Max Admin</p>
           <p className="mt-1 text-xs text-[#8b85aa]">{dashboard.settings.supportEmail}</p>
         </div>
 
@@ -1232,7 +1232,7 @@ function GlassCalendarPanel({
                 {monthName}
               </p>
               <p className="mt-3 max-w-xl text-sm leading-6 text-[#817b9f]">
-                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra CleanWash.
+                Ugeplan med faktiske bookinger, arbejdstider og blokeringer fra Wash Max.
               </p>
             </div>
 

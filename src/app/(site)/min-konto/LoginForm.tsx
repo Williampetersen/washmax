@@ -156,8 +156,8 @@ export default function LoginForm() {
         <div className="flex flex-col items-center gap-3 px-8 pb-5 pt-8">
           <Link href="/">
             <Image
-              src="/logo.png"
-              alt="CleanWash"
+              src="/logowashmax.png"
+              alt="Wash Max"
               width={180}
               height={42}
               className="h-10 w-auto object-contain"
@@ -356,7 +356,7 @@ export default function LoginForm() {
         {/* Footer */}
         <div className="border-t border-[var(--line)] bg-[#f6fbfc] px-6 py-3 text-center">
           <p className="text-[11px] text-[var(--muted)]">
-            CleanWash · Professionel mobil bilvask · København &amp; Sjælland
+            Wash Max · Professionel mobil bilvask · København &amp; Sjælland
           </p>
         </div>
       </div>

@@ -21,9 +21,9 @@ export const metadata: Metadata = {
   description: siteConfig.description,
   applicationName: siteConfig.name,
   icons: {
-    icon: "/logo.png",
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: "/logowashmax.png",
+    shortcut: "/logowashmax.png",
+    apple: "/logowashmax.png",
   },
   openGraph: {
     type: "website",
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
         url: siteConfig.ogImage,
         width: 1200,
         height: 630,
-        alt: "CleanWash bilvask i København og på Sjælland",
+        alt: "Wash Max bilvask i København og på Sjælland",
       },
     ],
   },

@@ -31,7 +31,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
   const localBusiness = {
     "@type": ["AutoWash", "LocalBusiness"],
     "@id": businessId,
-    name: "Clean Wash",
+    name: "Wash Max",
     alternateName: siteConfig.name,
     url: siteConfig.url,
     image: absoluteUrl(siteConfig.ogImage),
@@ -49,8 +49,8 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     },
     priceRange: "349-849 DKK",
     sameAs: [
-      "https://www.facebook.com/cleanwash.dk",
-      "https://www.google.com/maps/search/CleanWash+bilvask+København",
+      "https://www.facebook.com/carwashadk/",
+      "https://www.instagram.com/washmaxdk/",
     ],
     contactPoint: {
       "@type": "ContactPoint",
@@ -67,7 +67,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     },
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "Clean Wash bilvask services",
+      name: "Wash Max bilvask services",
       itemListElement: [
         {
           "@type": "Offer",
@@ -78,7 +78,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
           priceValidUntil: "2026-12-31",
           availability: "https://schema.org/InStock",
           url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "Clean Wash" },
+          seller: { "@type": "Organization", name: "Wash Max" },
         },
         {
           "@type": "Offer",
@@ -89,7 +89,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
           priceValidUntil: "2026-12-31",
           availability: "https://schema.org/InStock",
           url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "Clean Wash" },
+          seller: { "@type": "Organization", name: "Wash Max" },
         },
         {
           "@type": "Offer",
@@ -100,11 +100,17 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
           priceValidUntil: "2026-12-31",
           availability: "https://schema.org/InStock",
           url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "Clean Wash" },
+          seller: { "@type": "Organization", name: "Wash Max" },
         },
       ],
     },
-    // TODO: Add postalAddress when Clean Wash has a confirmed public business address.
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Birkeholmen 24",
+      addressLocality: "Solrød Strand",
+      addressCountry: "DK",
+    },
+    vatID: "44605074",
   };
 
   const service = {
@@ -124,7 +130,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     potentialAction: {
       "@type": "ReserveAction",
       target: absoluteUrl("/booking"),
-      name: "Book bilvask hos Clean Wash",
+      name: "Book bilvask hos Wash Max",
     },
   };
 
@@ -174,12 +180,12 @@ export function buildArticleJsonLd(page: SeoPageConfig) {
     description: page.description,
     url: pageUrl,
     image: absoluteUrl(page.image.src),
-    author: { "@type": "Organization", name: "Clean Wash", url: siteConfig.url },
+    author: { "@type": "Organization", name: "Wash Max", url: siteConfig.url },
     publisher: {
       "@type": "Organization",
-      name: "Clean Wash",
+      name: "Wash Max",
       url: siteConfig.url,
-      logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
+      logo: { "@type": "ImageObject", url: absoluteUrl("/logowashmax.png") },
     },
     datePublished: "2025-01-01",
     dateModified: new Date().toISOString().split("T")[0],

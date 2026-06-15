@@ -90,7 +90,7 @@ const getMailConfig = () => ({
   pass: process.env.SMTP_PASSWORD || "",
   from:
     process.env.MAIL_FROM ||
-    `${process.env.MAIL_FROM_NAME || "CleanWash"} <${process.env.SMTP_USER || ""}>`,
+    `${process.env.MAIL_FROM_NAME || "Wash Max"} <${process.env.SMTP_USER || ""}>`,
 });
 
 export const isMailConfigured = () => {
@@ -247,7 +247,7 @@ const renderAdminNote = (adminNotes?: string) => {
   if (!note) return "";
   return (
     `<div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;padding:16px 20px;margin-bottom:16px;">` +
-    `<p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#D97706;font-family:Arial,Helvetica,sans-serif;">Besked fra CleanWash</p>` +
+    `<p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#D97706;font-family:Arial,Helvetica,sans-serif;">Besked fra Wash Max</p>` +
     `<p style="margin:0;font-size:14px;color:#92400E;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(note)}</p>` +
     `</div>`
   );
@@ -394,7 +394,7 @@ const renderCustomerEmailText = (input: {
   ];
 
   if (input.booking.adminNotes?.trim()) {
-    lines.push("", `Besked fra CleanWash: ${input.booking.adminNotes.trim()}`);
+    lines.push("", `Besked fra Wash Max: ${input.booking.adminNotes.trim()}`);
   }
 
   if (input.portalUrl) {
@@ -497,7 +497,7 @@ const getCustomerStatusCopy = (
         title: "Tak for din booking",
         intro: `Din booking for ${appointmentLabel} er nu afsluttet.`,
         highlight:
-          "Tak fordi du valgte CleanWash. Du kan altid finde forløbet igen i kundeportalen og booke en ny tid derfra.",
+          "Tak fordi du valgte Wash Max. Du kan altid finde forløbet igen i kundeportalen og booke en ny tid derfra.",
         footer:
           "Hvis du vil have en ny tid eller har feedback, er du altid velkommen til at kontakte os.",
         portalLabel: "Se bookinghistorik",

@@ -20,12 +20,12 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Bilvask København og Sjælland",
   description:
-    "Book professionel mobil bilvask i København og på Sjælland hos CleanWash. Bilvask på adressen, indvendig bilrengøring, udvendig bilvask og erhvervsaftaler.",
+    "Book professionel mobil bilvask i København og på Sjælland hos Wash Max. Bilvask på adressen, indvendig bilrengøring, udvendig bilvask og erhvervsaftaler.",
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "CleanWash | Bilvask i København og på Sjælland",
+    title: "Wash Max | Bilvask i København og på Sjælland",
     description:
       "Mobil bilvask på adressen. Nem booking, klar pris og professionel bilpleje til private og erhverv.",
     images: [
@@ -33,7 +33,7 @@ export const metadata: Metadata = {
         url: "/opengraph.jpg",
         width: 1200,
         height: 630,
-        alt: "CleanWash bilvask i København og på Sjælland",
+        alt: "Wash Max bilvask i København og på Sjælland",
       },
     ],
   },
@@ -81,12 +81,12 @@ const businessItems = [
 
 const faqs = [
   {
-    question: "Tilbyder CleanWash bilvask i København?",
+    question: "Tilbyder Wash Max bilvask i København?",
     answer:
-      "Ja. CleanWash tilbyder bilvask i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og flere nærliggende bydele.",
+      "Ja. Wash Max tilbyder bilvask i København, Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby og flere nærliggende bydele.",
   },
   {
-    question: "Kører CleanWash ud på Sjælland?",
+    question: "Kører Wash Max ud på Sjælland?",
     answer:
       "Ja. Vi tilbyder mobil bilvask på Sjælland og i Storkøbenhavn. Dækningsområdet kan afhænge af dato, adresse og rute.",
   },
@@ -103,7 +103,7 @@ const faqs = [
   {
     question: "Tilbyder I erhvervsaftaler?",
     answer:
-      "Ja. CleanWash laver erhvervsaftaler for firmabiler, leasingbiler, taxa, transport, bilforhandlere og flåder.",
+      "Ja. Wash Max laver erhvervsaftaler for firmabiler, leasingbiler, taxa, transport, bilforhandlere og flåder.",
   },
   {
     question: "Hvor lang tid tager en bilvask?",
@@ -111,7 +111,7 @@ const faqs = [
       "Tiden afhænger af bilens størrelse, valgt service og tilvalg. Du ser varighed og ledige tider i bookingflowet.",
   },
   {
-    question: "Hvordan kontakter jeg CleanWash?",
+    question: "Hvordan kontakter jeg Wash Max?",
     answer: `Ring på ${siteConfig.phoneDisplay} eller skriv til ${siteConfig.email}. Du kan også booke direkte online.`,
   },
   {
@@ -122,12 +122,12 @@ const faqs = [
   {
     question: "Kan I vaske elbiler og hybridbiler?",
     answer:
-      "Ja. CleanWash vasker elbiler og hybridbiler. Vi bruger skånsomme metoder, der er sikre for alle biltyper.",
+      "Ja. Wash Max vasker elbiler og hybridbiler. Vi bruger skånsomme metoder, der er sikre for alle biltyper.",
   },
   {
     question: "Tilbyder I flådeaftaler til virksomheder?",
     answer:
-      "Ja. CleanWash laver erhvervsaftaler til virksomheder med firmabiler, leasingbiler, taxi, transport og bilforhandlere. Kontakt os for et tilbud.",
+      "Ja. Wash Max laver erhvervsaftaler til virksomheder med firmabiler, leasingbiler, taxi, transport og bilforhandlere. Kontakt os for et tilbud.",
   },
   {
     question: "Hvad gør I, hvis vejret er dårligt på bookingdagen?",
@@ -144,14 +144,14 @@ const faqs = [
 const homeHowToSchema = {
   "@context": "https://schema.org",
   "@type": "HowTo",
-  name: "Sådan booker du bilvask hos CleanWash",
+  name: "Sådan booker du bilvask hos Wash Max",
   description: "Book professionel bilvask i København og på Sjælland i 4 nemme trin.",
   totalTime: "PT5M",
   step: [
     { "@type": "HowToStep", position: 1, name: "Vælg bilvask", text: "Gå til booking-siden og vælg udvendig vask, indvendig rengøring eller komplet bilpleje." },
     { "@type": "HowToStep", position: 2, name: "Angiv bil og adresse", text: "Indtast nummerplade, din adresse og kontaktoplysninger." },
     { "@type": "HowToStep", position: 3, name: "Vælg tidspunkt", text: "Vælg et ledigt tidspunkt, der passer ind i din kalender." },
-    { "@type": "HowToStep", position: 4, name: "Få bilen vasket", text: "CleanWash møder op og vasker bilen professionelt. Du betaler kun, når bilen er ren." },
+    { "@type": "HowToStep", position: 4, name: "Få bilen vasket", text: "Wash Max møder op og vasker bilen professionelt. Du betaler kun, når bilen er ren." },
   ],
 };
 
@@ -168,15 +168,15 @@ const homeFaqSchema = {
 const homeVideoSchema = {
   "@context": "https://schema.org",
   "@type": "VideoObject",
-  name: "CleanWash — Professionel mobil bilvask i København og på Sjælland",
+  name: "Wash Max — Professionel mobil bilvask i København og på Sjælland",
   description:
-    "Se CleanWash i aktion. Professionel mobil bilvask på adressen i København og på Sjælland.",
+    "Se Wash Max i aktion. Professionel mobil bilvask på adressen i København og på Sjælland.",
   thumbnailUrl: `${siteConfig.url}/opengraph.jpg`,
   uploadDate: "2024-01-01",
   contentUrl: `${siteConfig.url}/videos/frontvideo.mp4`,
   publisher: {
     "@type": "Organization",
-    name: "CleanWash",
+    name: "Wash Max",
     url: siteConfig.url,
   },
 };
@@ -207,8 +207,8 @@ const homeLocalBusinessSchema = {
   },
   priceRange: "349-849 DKK",
   sameAs: [
-    "https://www.facebook.com/cleanwash.dk",
-    "https://www.google.com/maps/search/CleanWash+bilvask+København",
+    "https://www.facebook.com/washmax.dk",
+    "https://www.google.com/maps/search/Wash Max+bilvask+København",
   ],
 };
 
@@ -237,7 +237,7 @@ export default function HomePage() {
           <div className="relative mx-auto flex min-h-[calc(100vh-4rem)] max-w-5xl flex-col justify-center px-4 py-16 sm:px-6 lg:px-10">
             <div className="text-[var(--ink)]">
               <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[var(--brand)]">
-                CleanWash · mobil bilvask
+                Wash Max · mobil bilvask
               </p>
               <h1
                 aria-label="Professionel bilvask i København og på Sjælland"
@@ -289,7 +289,7 @@ export default function HomePage() {
             <div className="relative aspect-[4/3]">
               <Image
                 src="/service/udenfor.jpg"
-                alt="Udvendig bilvask udført af CleanWash på adressen"
+                alt="Udvendig bilvask udført af Wash Max på adressen"
                 fill
                 sizes="(min-width: 1024px) 55vw, 100vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -370,7 +370,7 @@ export default function HomePage() {
             <div className="relative aspect-[4/3]">
               <Image
                 src="/service/inside.jpg"
-                alt="Indvendig bilrengøring udført af CleanWash"
+                alt="Indvendig bilrengøring udført af Wash Max"
                 fill
                 sizes="(min-width: 1024px) 55vw, 100vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -431,7 +431,7 @@ export default function HomePage() {
             <div className="group relative min-h-72 overflow-hidden">
               <Image
                 src="/service/helebil.jpg"
-                alt="Komplet bilvask udvendig og indvendig hos CleanWash"
+                alt="Komplet bilvask udvendig og indvendig hos Wash Max"
                 fill
                 sizes="(min-width: 1024px) 50vw, 100vw"
                 className="object-cover opacity-85 transition-transform duration-700 group-hover:scale-105"
@@ -554,7 +554,7 @@ export default function HomePage() {
       <section className="mx-auto mt-16 grid max-w-7xl gap-8 lg:grid-cols-[1fr_0.9fr] lg:items-center">
         <div className="rounded-[2rem] bg-[var(--accent)] p-6 text-white shadow-[0_24px_70px_rgba(11,31,58,0.2)] sm:p-8">
           <span className="inline-flex rounded-full bg-white/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-[#67e8f9]">
-            Hvorfor CleanWash
+            Hvorfor Wash Max
           </span>
           <h2 className="mt-5 font-display text-4xl font-semibold leading-none sm:text-5xl">
             Mindre ventetid. Mere ren bil.
@@ -572,7 +572,7 @@ export default function HomePage() {
           <div className="relative aspect-[4/3]">
             <Image
               src="/home/DeepSeat.jpg"
-              alt="Professionel dybderens af sæder hos CleanWash"
+              alt="Professionel dybderens af sæder hos Wash Max"
               fill
               sizes="(min-width: 1024px) 44vw, 100vw"
               className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -592,7 +592,7 @@ export default function HomePage() {
               <span className="eyebrow">Erhvervs bilvask</span>
               <h2 className="mt-5 section-title">Ren bilflåde uden intern koordinering.</h2>
               <p className="mt-5 support-copy">
-                CleanWash hjælper virksomheder med mobil bilvask og faste aftaler. Godt til
+                Wash Max hjælper virksomheder med mobil bilvask og faste aftaler. Godt til
                 firmabiler, leasingbiler, taxa, transport og bilforhandlere.
               </p>
               <div className="mt-6 grid gap-2 sm:grid-cols-2">
@@ -622,7 +622,7 @@ export default function HomePage() {
               <div className="relative aspect-[4/3]">
                 <Image
                   src="/home/roof.jpg"
-                  alt="Erhvervs bilvask og flådeaftaler hos CleanWash"
+                  alt="Erhvervs bilvask og flådeaftaler hos Wash Max"
                   fill
                   sizes="(min-width: 1024px) 44vw, 100vw"
                   className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -683,7 +683,7 @@ export default function HomePage() {
                 Klar til en renere bil?
               </h2>
               <p className="mt-4 max-w-2xl text-white/76">
-                Book professionel bilvask i København og på Sjælland. Eller kontakt CleanWash direkte.
+                Book professionel bilvask i København og på Sjælland. Eller kontakt Wash Max direkte.
               </p>
             </div>
             <div className="mt-7 flex flex-col gap-3 sm:flex-row lg:mt-0 lg:shrink-0">

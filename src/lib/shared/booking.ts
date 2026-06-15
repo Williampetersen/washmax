@@ -239,8 +239,8 @@ export const weekdayOptions = [
 ] as const;
 
 export const defaultBookingSettings: BookingSettings = {
-  companyName: "CleanWash",
-  supportEmail: "info@cleanwash.dk",
+  companyName: "Wash Max",
+  supportEmail: "info@washmax.dk",
   adminNotifyEmail: "",
   defaultBookingStatus: "pending",
   startHour: 8,
