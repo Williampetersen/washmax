@@ -733,7 +733,7 @@ function TimeSettingsCard({ data }: { data: BookingSetupData }) {
       <form action="/api/admin/booking-setup/time-settings" method="POST" className="grid gap-3 sm:grid-cols-2">
         <Field label="Slot interval"><Input type="number" name="slot_interval_minutes" defaultValue={settings.slotIntervalMinutes} /></Field>
         <Field label="Minimum notice hours"><Input type="number" name="minimum_notice_hours" defaultValue={settings.minimumNoticeHours} /></Field>
-        <Field label="Maximum days ahead"><Input type="number" name="maximum_days_ahead" defaultValue={settings.maximumDaysAhead} /></Field>
+        <Field label="Maximum days ahead (30=1mnd, 90=3mnd, 180=6mnd)"><Input type="number" name="maximum_days_ahead" defaultValue={settings.maximumDaysAhead} min={1} max={365} /></Field>
         <Field label="Buffer before minutes"><Input type="number" name="buffer_before_minutes" defaultValue={settings.bufferBeforeMinutes} /></Field>
         <Field label="Buffer after minutes"><Input type="number" name="buffer_after_minutes" defaultValue={settings.bufferAfterMinutes} /></Field>
         <Field label="Max bookings per slot"><Input type="number" name="max_bookings_per_slot" defaultValue={settings.maxBookingsPerSlot} /></Field>

@@ -1254,6 +1254,8 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                       locale={da}
                       weekStartsOn={1}
                       showOutsideDays
+                      fromDate={toCalendarDate(minDate)}
+                      toDate={maxBookableDate}
                       disabled={(date) => {
                         const dateValue = format(date, "yyyy-MM-dd");
                         return (
@@ -1273,9 +1275,9 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                           {isAvailabilityLoading ? "Henter ledige tider…" : "Ledige tider"}
                         </p>
                         {isAvailabilityLoading ? (
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                            {[1, 2, 3].map((n) => (
-                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[var(--line)] bg-[#eefbfc]" />
+                          <div className="mt-4 grid grid-cols-3 gap-2">
+                            {[1, 2, 3, 4, 5, 6].map((n) => (
+                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[#bbf7d0] bg-[#f0fdf4]" />
                             ))}
                           </div>
                         ) : availabilityError ? (
@@ -1283,22 +1285,25 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                             {availabilityError}
                           </p>
                         ) : availableTimeSlots.length > 0 ? (
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <div className="mt-4 grid grid-cols-3 gap-2">
                             {availableTimeSlots.map((slot) => {
                               const isActive = slot === appointmentTime;
+                              const [h, m] = slot.split(":").map(Number);
+                              const endMins = h * 60 + m + (settings.slotMinutes || 120);
+                              const endTime = `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
                               return (
                                 <button
                                   key={slot}
                                   type="button"
                                   onClick={() => setSelectedAppointmentTime(slot)}
                                   className={cn(
-                                    "rounded-xl border px-4 py-3 text-sm font-semibold transition",
+                                    "rounded-xl border px-1.5 py-3 text-center text-xs font-semibold transition",
                                     isActive
-                                      ? "border-[var(--brand)] bg-[var(--brand)] text-white shadow-md"
-                                      : "border-[var(--line)] bg-[#f6f8fa] text-[var(--ink)] hover:border-[var(--brand)]"
+                                      ? "border-[#16a34a] bg-[#16a34a] text-white shadow-md"
+                                      : "border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] hover:border-[#22c55e] hover:bg-[#dcfce7]"
                                   )}
                                 >
-                                  {slot}
+                                  {slot} - {endTime}
                                 </button>
                               );
                             })}

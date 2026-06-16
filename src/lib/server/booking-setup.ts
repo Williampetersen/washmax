@@ -428,7 +428,7 @@ const unavailableDateFromRow = (row: RawUnavailableDate): BookingUnavailableDate
 const timeSettingsFromRow = (row?: RawTimeSettings | null): BookingTimeSettings => ({
   slotIntervalMinutes: Number(row?.slot_interval_minutes ?? 30),
   minimumNoticeHours: Number(row?.minimum_notice_hours ?? 2),
-  maximumDaysAhead: Number(row?.maximum_days_ahead ?? 30),
+  maximumDaysAhead: Number(row?.maximum_days_ahead ?? 180),
   bufferBeforeMinutes: Number(row?.buffer_before_minutes ?? 160),
   bufferAfterMinutes: Number(row?.buffer_after_minutes ?? 0),
   maxBookingsPerSlot: Number(row?.max_bookings_per_slot ?? 1),
@@ -605,7 +605,7 @@ const seedBookingSetup = async () => {
       max_bookings_per_day, allow_same_day_booking
     )
     VALUES (
-      'default', ${defaultBookingSettings.slotMinutes}, 2, 30,
+      'default', ${defaultBookingSettings.slotMinutes}, 2, 180,
       ${defaultBookingSettings.bufferBeforeMinutes ?? 160},
       ${defaultBookingSettings.bufferAfterMinutes ?? defaultBookingSettings.travelBufferMinutes},
       1, 0, true
