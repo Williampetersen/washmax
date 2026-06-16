@@ -931,4 +931,8 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
   }
 };
 
-export const runDatabaseMigrations = () => ensureSchema({ force: true });
+export const runDatabaseMigrations = () => {
+  schemaPromise = null;
+  globalThis.CleanWashSchemaPromise = null;
+  return ensureSchema({ force: true });
+};

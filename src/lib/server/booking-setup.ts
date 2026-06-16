@@ -512,6 +512,15 @@ const seedBookingSetup = async () => {
   await ensureSchema();
   const sql = getSql();
 
+  // Ensure columns added after initial schema deployment exist (idempotent migrations)
+  await sql`
+    ALTER TABLE booking_general_settings
+      ADD COLUMN IF NOT EXISTS admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
+  `.catch(() => null);
+
   const [serviceCount] = await sql<{ count: string }[]>`
     SELECT COUNT(*)::text AS count FROM booking_services;
   `;
