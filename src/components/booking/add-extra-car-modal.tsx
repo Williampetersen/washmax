@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
-const platePattern = /^[A-Z0-9]{2,10}$/;
+const platePattern = /^.{2,}$/;
 
 type LookupState =
   | { status: "idle"; error: string; vehicle: null }
@@ -87,7 +87,7 @@ export function AddExtraCarModal({
     if (!platePattern.test(nextPlate)) {
       setLookupState({
         status: "error",
-        error: "Indtast en gyldig dansk nummerplade, fx AB12345.",
+        error: "Indtast mindst 2 tegn.",
         vehicle: null,
       });
       return;

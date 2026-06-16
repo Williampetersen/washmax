@@ -263,8 +263,8 @@ export const sanitizePlate = (plate: string) =>
   plate
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 10);
+    .replace(/\s+/g, " ")
+    .slice(0, 20);
 
 export const normalizePostalCode = (postalCode: string) =>
   postalCode.replace(/\s+/g, "").trim();

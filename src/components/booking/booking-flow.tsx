@@ -106,7 +106,7 @@ const toCalendarDate = (dateValue: string) => {
   const [y, m, d] = dateValue.split("-").map(Number);
   return new Date(Date.UTC(y!, m! - 1, d!, 12, 0, 0));
 };
-const platePattern = /^[A-Z0-9]{2,10}$/;
+const platePattern = /^.{2,}$/;
 const lookupDebounceMs = 400;
 const minAutoLookupPlateLength = 5;
 const clientVehicleCacheTtlMs = 5 * 60 * 1000;
@@ -556,7 +556,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
       lookupControllerRef.current?.abort();
       latestLookupPlateRef.current = "";
       setVehicle(null);
-      setLookupStatus({ message: "Indtast en gyldig dansk nummerplade, fx AB12345.", type: "error" });
+      setLookupStatus({ message: "Indtast mindst 2 tegn.", type: "error" });
       return;
     }
     const cached = vehicleLookupCache.get(normalizedPlate);
