@@ -941,6 +941,13 @@ export const upsertBookingGeneralSettings = async (input: Partial<BookingGeneral
   const next = { ...current, ...input };
   const sql = getSql();
   await sql`
+    ALTER TABLE booking_general_settings
+      ADD COLUMN IF NOT EXISTS admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
+  `.catch(() => null);
+  await sql`
     UPDATE booking_general_settings
     SET
       booking_enabled = ${next.bookingEnabled},
