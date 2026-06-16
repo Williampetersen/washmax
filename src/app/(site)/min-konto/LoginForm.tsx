@@ -155,16 +155,14 @@ export default function LoginForm() {
         {/* Logo header */}
         <div className="flex flex-col items-center gap-3 px-8 pb-5 pt-8">
           <Link href="/">
-            <span className="inline-flex items-center rounded-xl bg-[#0B1F3A] px-3 py-2">
-              <Image
-                src="/logowashmax.png"
-                alt="Wash Max"
-                width={180}
-                height={40}
-                className="h-9 w-auto object-contain"
-                priority
-              />
-            </span>
+            <Image
+              src="/logo.png"
+              alt="CleanWash"
+              width={180}
+              height={42}
+              className="h-10 w-auto object-contain"
+              priority
+            />
           </Link>
           <p className="text-center text-[13px] text-[var(--muted)]">
             {tab === "login"
@@ -358,7 +356,7 @@ export default function LoginForm() {
         {/* Footer */}
         <div className="border-t border-[var(--line)] bg-[#f6fbfc] px-6 py-3 text-center">
           <p className="text-[11px] text-[var(--muted)]">
-            Wash Max · Professionel mobil bilvask · København &amp; Sjælland
+            CleanWash · Professionel mobil bilvask · København &amp; Sjælland
           </p>
         </div>
       </div>

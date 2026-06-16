@@ -1,14 +1,12 @@
 export const siteConfig = {
-  name: "Wash Max",
+  name: "CleanWash",
   description:
-    "Wash Max tilbyder professionel mobil bilvask i København og på Sjælland. Book bilvask på adressen med nummerpladeopslag, klar pris og fleksible tider.",
-  url: process.env.APP_URL || "https://washmax.dk",
+    "CleanWash tilbyder professionel mobil bilvask i København og på Sjælland. Book bilvask på adressen med nummerpladeopslag, klar pris og fleksible tider.",
+  url: process.env.APP_URL || "https://cleanwash.dk",
   ogImage: "/opengraph.jpg",
-  phoneDisplay: "+45 50 13 84 26",
-  phoneHref: "tel:+4550138426",
-  email: "info@washmax.dk",
-  address: "Birkeholmen 24, Solrød Strand",
-  cvr: "44605074",
+  phoneDisplay: "42 50 45 51",
+  phoneHref: "tel:+4542504551",
+  email: "info@cleanwash.dk",
   bookingExternalUrl: "/booking",
   giftCardUrl: "/booking",
 };

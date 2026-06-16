@@ -102,7 +102,7 @@ const roadmap = [
     number: "۰۳",
     period: "هفته ۳–۵",
     title: "راه‌اندازی سایت جدید",
-    text: "انتقال صفحات کلیدی و تکمیل زیرساخت جدید Wash Max",
+    text: "انتقال صفحات کلیدی و تکمیل زیرساخت جدید CleanWash",
     icon: Layers3,
   },
   {
@@ -494,7 +494,7 @@ export function AdsPresentation() {
               <span />
               <span />
               <span />
-              <div>washmax.dk</div>
+              <div>cleanwash.dk</div>
             </div>
             <div className={styles.browserBody}>
               <div className={styles.oldSite}>
@@ -528,7 +528,7 @@ export function AdsPresentation() {
             <div className={styles.cleanwashBadge}>
               <Sparkles size={22} />
               <div>
-                <strong>Wash Max آماده است</strong>
+                <strong>CleanWash آماده است</strong>
                 <span>ساخته‌شده حدود یک ماه پیش + جزئیات اضافه</span>
               </div>
             </div>
@@ -656,7 +656,7 @@ export function AdsPresentation() {
 
         <div className={styles.paymentCard} data-ads-reveal data-ads-tilt>
           <HeartHandshake size={42} />
-          <p>هزینه Wash Max و جزئیات اضافه‌شده</p>
+          <p>هزینه CleanWash و جزئیات اضافه‌شده</p>
           <h3>وقتی امکانش بود پرداخت کن.</h3>
           <span>پرداخت ماهانه ۱۰۰۰ DKK · بدون عجله</span>
           <div className={styles.paymentNote}>

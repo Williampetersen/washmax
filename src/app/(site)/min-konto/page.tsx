@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import LoginForm from "./LoginForm";
 
 export const metadata: Metadata = {
-  title: "Min konto – Wash Max",
-  description: "Log ind for at se og administrere dine Wash Max bookinger.",
+  title: "Min konto – CleanWash",
+  description: "Log ind for at se og administrere dine CleanWash bookinger.",
   robots: { index: false, follow: false },
 };
 

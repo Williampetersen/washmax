@@ -3,12 +3,12 @@ import { defaultBookingSettings } from "@/lib/shared/booking";
 
 declare global {
   // Keep one postgres pool per server runtime, including Next.js dev hot reloads.
-  var WashMaxSql: Sql | null | undefined;
-  var WashMaxSchemaPromise: Promise<void> | null | undefined;
+  var CleanWashSql: Sql | null | undefined;
+  var CleanWashSchemaPromise: Promise<void> | null | undefined;
 }
 
-let cachedSql: Sql | null | undefined = globalThis.WashMaxSql;
-let schemaPromise: Promise<void> | null = globalThis.WashMaxSchemaPromise ?? null;
+let cachedSql: Sql | null | undefined = globalThis.CleanWashSql;
+let schemaPromise: Promise<void> | null = globalThis.CleanWashSchemaPromise ?? null;
 
 const getConnectionString = () => process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
 export const shouldRunDatabaseSetup = () =>
@@ -35,7 +35,7 @@ const createClient = () => {
 export const getSql = () => {
   if (cachedSql === undefined) {
     cachedSql = createClient();
-    globalThis.WashMaxSql = cachedSql;
+    globalThis.CleanWashSql = cachedSql;
   }
 
   if (!cachedSql) {
@@ -514,8 +514,8 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
       await sql`
         ALTER TABLE booking_settings
           ADD COLUMN IF NOT EXISTS settings_key TEXT,
-          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'Wash Max',
-          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          ADD COLUMN IF NOT EXISTS company_name TEXT NOT NULL DEFAULT 'CleanWash',
+          ADD COLUMN IF NOT EXISTS support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           ADD COLUMN IF NOT EXISTS admin_notify_email TEXT NOT NULL DEFAULT '',
           ADD COLUMN IF NOT EXISTS default_booking_status TEXT NOT NULL DEFAULT 'pending',
           ADD COLUMN IF NOT EXISTS start_hour INTEGER NOT NULL DEFAULT 8,
@@ -690,8 +690,8 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           disabled_message TEXT NOT NULL DEFAULT 'Online booking is temporarily unavailable.',
           currency TEXT NOT NULL DEFAULT 'DKK',
           vat_rate INTEGER NOT NULL DEFAULT 25,
-          company_name TEXT NOT NULL DEFAULT 'Wash Max',
-          support_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+          company_name TEXT NOT NULL DEFAULT 'CleanWash',
+          support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           admin_notify_email TEXT NOT NULL DEFAULT '',
           customer_confirmation_enabled BOOLEAN NOT NULL DEFAULT true,
           admin_notification_enabled BOOLEAN NOT NULL DEFAULT true,
@@ -907,14 +907,14 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
         ON assignment_log (agent_id, assigned_at DESC);
       `;
     })();
-    globalThis.WashMaxSchemaPromise = schemaPromise;
+    globalThis.CleanWashSchemaPromise = schemaPromise;
   }
 
   try {
     await schemaPromise;
   } catch (error) {
     schemaPromise = null;
-    globalThis.WashMaxSchemaPromise = null;
+    globalThis.CleanWashSchemaPromise = null;
     throw error;
   }
 };

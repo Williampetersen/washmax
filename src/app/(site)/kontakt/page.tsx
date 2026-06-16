@@ -5,13 +5,13 @@ import { ContactForm } from "@/components/contact-form";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Kontakt os | Wash Max — Professionel bilvask",
+  title: "Kontakt os | CleanWash — Professionel bilvask",
   description:
-    "Kontakt Wash Max med spørgsmål om bilvask, booking, erhvervsaftaler eller andet. Udfyld formularen eller ring til os på +45 50 13 84 26 — vi svarer inden for 24 timer.",
+    "Kontakt CleanWash med spørgsmål om bilvask, booking, erhvervsaftaler eller andet. Udfyld formularen eller ring til os på 42 50 45 51 — vi svarer inden for 24 timer.",
   openGraph: {
-    title: "Kontakt os | Wash Max",
+    title: "Kontakt os | CleanWash",
     description:
-      "Kontakt Wash Max med spørgsmål om bilvask, booking eller erhvervsaftaler. Vi svarer inden for 24 timer.",
+      "Kontakt CleanWash med spørgsmål om bilvask, booking eller erhvervsaftaler. Vi svarer inden for 24 timer.",
   },
 };
 
@@ -95,8 +95,9 @@ export default function KontaktPage() {
                     Åbningstider
                   </p>
                   <p className="mt-0.5 text-sm font-semibold text-[var(--ink)]">
-                    Man–Søn: 8:00–17:00
+                    Alle ugens dage
                   </p>
+                  <p className="text-sm text-[var(--muted)]">kl. 08:00–17:00</p>
                 </div>
               </div>
 
@@ -106,17 +107,12 @@ export default function KontaktPage() {
                 </span>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)]">
-                    Adresse
+                    Serviceområde
                   </p>
                   <p className="mt-0.5 text-sm font-semibold text-[var(--ink)]">
-                    {siteConfig.address}
+                    København og Sjælland
                   </p>
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--muted)] mt-3">
-                    CVR
-                  </p>
-                  <p className="mt-0.5 text-sm font-semibold text-[var(--ink)]">
-                    {siteConfig.cvr}
-                  </p>
+                  <p className="text-sm text-[var(--muted)]">Vi kommer ud til dig</p>
                 </div>
               </div>
             </div>

@@ -95,9 +95,9 @@ export async function POST() {
     const info = await transporter.sendMail({
       from,
       to,
-      subject: "WashMax — test email",
-      text: "This is a test email from WashMax. SMTP is working correctly.",
-      html: "<p>This is a test email from WashMax. SMTP is working correctly.</p>",
+      subject: "CleanWash — test email",
+      text: "This is a test email from CleanWash. SMTP is working correctly.",
+      html: "<p>This is a test email from CleanWash. SMTP is working correctly.</p>",
     });
     return NextResponse.json({ success: true, messageId: info.messageId, to });
   } catch (error) {

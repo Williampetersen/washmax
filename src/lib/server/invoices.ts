@@ -257,7 +257,7 @@ const getLineVatSnapshot = (totalIncVatOre: number, vatRate = DEFAULT_VAT_RATE) 
   };
 };
 const baseUrl = () =>
-  process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://washmax.dk";
+  process.env.APP_URL || process.env.NEXT_PUBLIC_APP_URL || "https://cleanwash.dk";
 const publicPath = (token: string) => (token ? `/invoices/${token}` : "");
 
 const recordInvoiceEmailLog = async (input: {
@@ -591,9 +591,9 @@ const applyInvoiceSchema = async () => {
   await sql`
     CREATE TABLE IF NOT EXISTS invoice_settings (
       settings_key TEXT PRIMARY KEY DEFAULT 'default',
-      company_name TEXT NOT NULL DEFAULT 'Wash Max',
+      company_name TEXT NOT NULL DEFAULT 'CleanWash',
       company_address TEXT NOT NULL DEFAULT '',
-      company_email TEXT NOT NULL DEFAULT 'info@washmax.dk',
+      company_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
       company_phone TEXT NOT NULL DEFAULT '',
       company_cvr TEXT NOT NULL DEFAULT '',
       invoice_prefix TEXT NOT NULL DEFAULT 'CW',
@@ -1084,7 +1084,7 @@ const renderAndStoreInvoice = async (
     notes: text(row.invoice_notes),
     paymentInstructions:
       process.env.INVOICE_PAYMENT_INSTRUCTIONS ||
-      "Betaling sker efter aftale med Wash Max.",
+      "Betaling sker efter aftale med CleanWash.",
   });
   const sql = getSql();
   const [stored] = await sql<RawInvoice[]>`

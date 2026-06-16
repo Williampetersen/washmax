@@ -42,51 +42,20 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[var(--line)] bg-white/92 px-6 py-10 shadow-[0_18px_60px_rgba(11,31,58,0.10)] backdrop-blur-xl sm:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.3fr_0.8fr_0.8fr]">
           <div className="max-w-xl">
-            <span className="inline-flex items-center rounded-2xl bg-[#0B1F3A] px-4 py-2">
-              <Image
-                src="/logowashmax.png"
-                alt="Wash Max professionel bilvask"
-                width={220}
-                height={44}
-                className="h-11 w-auto max-w-[14rem] object-contain"
-              />
-            </span>
+            <Image
+              src="/logo.png"
+              alt="CleanWash professionel bilvask"
+              width={220}
+              height={48}
+              className="h-12 w-auto max-w-[14rem] object-contain"
+            />
             <h2 className="mt-4 font-display text-3xl font-semibold tracking-tight text-[var(--ink)] sm:text-4xl">
               Mobil bilvask i København og på Sjælland.
             </h2>
             <p className="mt-4 text-sm leading-7 text-[var(--muted)] sm:text-base">
-              Wash Max kommer ud til dig privat, på jobbet eller der hvor bilen holder.
+              CleanWash kommer ud til dig privat, på jobbet eller der hvor bilen holder.
               Book online på få minutter og få professionel bilrengøring uden kø.
             </p>
-
-            {/* Company details */}
-            <div className="mt-6 grid gap-1.5 text-sm text-[var(--muted)]">
-              <p>{siteConfig.address}</p>
-              <p>CVR: {siteConfig.cvr}</p>
-              <p>
-                <a href={siteConfig.phoneHref} className="transition hover:text-[var(--ink)]">
-                  {siteConfig.phoneDisplay}
-                </a>
-              </p>
-              <p>
-                <a href={`mailto:${siteConfig.email}`} className="transition hover:text-[var(--ink)]">
-                  {siteConfig.email}
-                </a>
-              </p>
-            </div>
-
-            {/* Payment methods */}
-            <div className="mt-6">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-                Vi modtager
-              </p>
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Image src="/payment/visa.png" alt="Visa" width={44} height={28} className="h-7 w-auto object-contain" />
-                <Image src="/payment/Mastercard-logo.svg_.png" alt="Mastercard" width={44} height={28} className="h-7 w-auto object-contain" />
-                <Image src="/payment/dankort.webp" alt="Dankort" width={44} height={28} className="h-7 w-auto object-contain" />
-                <Image src="/payment/mobilepay.jpg" alt="MobilePay" width={44} height={28} className="h-7 w-auto object-contain" />
-              </div>
-            </div>
           </div>
 
           <div>
@@ -105,12 +74,9 @@ export function SiteFooter() {
               <Link href={"/kontakt" as import("next").Route} className="transition hover:text-[var(--ink)]">
                 Kontakt os
               </Link>
-              <Link href={"/handelsbetingelser" as import("next").Route} className="transition hover:text-[var(--ink)]">
-                Handelsbetingelser
-              </Link>
-              <Link href={"/persondatapolitik" as import("next").Route} className="transition hover:text-[var(--ink)]">
-                Cookie- og privatlivspolitik
-              </Link>
+              <a href={`mailto:${siteConfig.email}`} className="transition hover:text-[var(--ink)]">
+                Skriv til os
+              </a>
             </div>
           </div>
 
@@ -125,7 +91,7 @@ export function SiteFooter() {
               <a href={`mailto:${siteConfig.email}`} className="transition hover:text-[var(--ink)]">
                 {siteConfig.email}
               </a>
-              <p>Man–Søn: 8:00–17:00</p>
+              <p>Alle ugens dage kl. 08-17</p>
               <p>Dækker København, Storkøbenhavn og store dele af Sjælland</p>
             </div>
             <Link
@@ -164,7 +130,7 @@ export function SiteFooter() {
         `}</style>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-[var(--line)] pt-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} Wash Max. Alle rettigheder forbeholdes. CVR: {siteConfig.cvr}</p>
+          <p>&copy; {new Date().getFullYear()} CleanWash. Alle rettigheder forbeholdes.</p>
           <div className="flex items-center gap-2">
             {SOCIALS.map(({ label, href, icon, hoverColor }) => (
               <a

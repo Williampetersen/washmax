@@ -31,7 +31,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
   const localBusiness = {
     "@type": ["AutoWash", "LocalBusiness"],
     "@id": businessId,
-    name: "Wash Max",
+    name: "CleanWash",
     alternateName: siteConfig.name,
     url: siteConfig.url,
     image: absoluteUrl(siteConfig.ogImage),
@@ -67,7 +67,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     },
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: "Wash Max bilvask services",
+      name: "CleanWash bilvask services",
       itemListElement: [
         {
           "@type": "Offer",
@@ -78,7 +78,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
           priceValidUntil: "2026-12-31",
           availability: "https://schema.org/InStock",
           url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "Wash Max" },
+          seller: { "@type": "Organization", name: "CleanWash" },
         },
         {
           "@type": "Offer",
@@ -89,7 +89,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
           priceValidUntil: "2026-12-31",
           availability: "https://schema.org/InStock",
           url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "Wash Max" },
+          seller: { "@type": "Organization", name: "CleanWash" },
         },
         {
           "@type": "Offer",
@@ -100,7 +100,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
           priceValidUntil: "2026-12-31",
           availability: "https://schema.org/InStock",
           url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "Wash Max" },
+          seller: { "@type": "Organization", name: "CleanWash" },
         },
       ],
     },
@@ -130,7 +130,7 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     potentialAction: {
       "@type": "ReserveAction",
       target: absoluteUrl("/booking"),
-      name: "Book bilvask hos Wash Max",
+      name: "Book bilvask hos CleanWash",
     },
   };
 
@@ -180,12 +180,12 @@ export function buildArticleJsonLd(page: SeoPageConfig) {
     description: page.description,
     url: pageUrl,
     image: absoluteUrl(page.image.src),
-    author: { "@type": "Organization", name: "Wash Max", url: siteConfig.url },
+    author: { "@type": "Organization", name: "CleanWash", url: siteConfig.url },
     publisher: {
       "@type": "Organization",
-      name: "Wash Max",
+      name: "CleanWash",
       url: siteConfig.url,
-      logo: { "@type": "ImageObject", url: absoluteUrl("/logowashmax.png") },
+      logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
     },
     datePublished: "2025-01-01",
     dateModified: new Date().toISOString().split("T")[0],

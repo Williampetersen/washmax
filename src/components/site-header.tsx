@@ -11,16 +11,14 @@ export function SiteHeader() {
         <div className="rounded-[1.75rem] border border-[var(--line)] bg-white/92 px-5 py-4 text-[var(--ink)] shadow-[0_18px_60px_rgba(11,31,58,0.10)] backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
             <Link href="/" className="flex items-center gap-3">
-              <span className="flex items-center rounded-2xl bg-[#0B1F3A] px-3 py-2">
-                <Image
-                  src="/logowashmax.png"
-                  alt="Wash Max professionel bilvask"
-                  width={208}
-                  height={40}
-                  className="h-9 w-auto max-w-[12rem] object-contain sm:h-10"
-                  priority
-                />
-              </span>
+              <Image
+                src="/logo.png"
+                alt="CleanWash professionel bilvask"
+                width={208}
+                height={48}
+                className="h-11 w-auto max-w-[13rem] object-contain sm:h-12"
+                priority
+              />
             </Link>
 
             <nav className="hidden items-center gap-2 lg:flex">

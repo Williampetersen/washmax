@@ -38,16 +38,14 @@ export function AdminSidebar({
       <div className="border-b border-white/55 px-4 py-5">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#0B1F3A] p-1.5 shadow-[0_8px_20px_rgba(0,167,184,0.18)]">
-            <img
-              src="/logowashmax.png"
-              alt="Wash Max logo"
-              className="h-full w-full object-contain"
-            />
-          </span>
+          <img
+            src="/logo.png"
+            alt="CleanWash logo"
+            className="h-10 w-10 rounded-2xl object-contain shadow-[0_8px_20px_rgba(0,167,184,0.18)]"
+          />
           <div className="min-w-0">
             <p className="text-[12px] font-semibold uppercase tracking-[0.16em] text-[#00A7B8]">
-              Wash Max
+              CleanWash
             </p>
             <p className="mt-1 text-[13px] font-semibold">Admin Panel</p>
             <p className="truncate text-[12px] font-medium text-[#6B7280]">{sessionEmail}</p>
