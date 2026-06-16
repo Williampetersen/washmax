@@ -134,6 +134,10 @@ type RawGeneralSettings = {
   company_name: string;
   support_email: string;
   admin_notify_email: string;
+  admin_notify_email_2: string;
+  admin_notify_email_3: string;
+  admin_notify_email_4: string;
+  admin_notify_email_5: string;
   customer_confirmation_enabled: boolean;
   admin_notification_enabled: boolean;
   cancellation_policy_text: string | null;
@@ -268,6 +272,10 @@ export type BookingGeneralSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  adminNotifyEmail2: string;
+  adminNotifyEmail3: string;
+  adminNotifyEmail4: string;
+  adminNotifyEmail5: string;
   customerConfirmationEnabled: boolean;
   adminNotificationEnabled: boolean;
   cancellationPolicyText: string;
@@ -460,6 +468,10 @@ const generalFromRow = (row?: RawGeneralSettings | null): BookingGeneralSettings
     row?.admin_notify_email ||
     process.env.BOOKING_ADMIN_EMAIL ||
     defaultBookingSettings.adminNotifyEmail,
+  adminNotifyEmail2: row?.admin_notify_email_2 || "",
+  adminNotifyEmail3: row?.admin_notify_email_3 || "",
+  adminNotifyEmail4: row?.admin_notify_email_4 || "",
+  adminNotifyEmail5: row?.admin_notify_email_5 || "",
   customerConfirmationEnabled: row?.customer_confirmation_enabled !== false,
   adminNotificationEnabled: row?.admin_notification_enabled !== false,
   cancellationPolicyText: String(row?.cancellation_policy_text || ""),
@@ -778,6 +790,10 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     companyName: data.general.companyName,
     supportEmail: data.general.supportEmail,
     adminNotifyEmail: data.general.adminNotifyEmail,
+    adminNotifyEmail2: data.general.adminNotifyEmail2,
+    adminNotifyEmail3: data.general.adminNotifyEmail3,
+    adminNotifyEmail4: data.general.adminNotifyEmail4,
+    adminNotifyEmail5: data.general.adminNotifyEmail5,
     defaultBookingStatus:
       legacy?.default_booking_status === "approved" ? "approved" : defaultBookingSettings.defaultBookingStatus,
     startHour: Number(firstOpen?.startTime.slice(0, 2) || defaultBookingSettings.startHour),
@@ -925,6 +941,10 @@ export const upsertBookingGeneralSettings = async (input: Partial<BookingGeneral
       company_name = ${next.companyName},
       support_email = ${next.supportEmail},
       admin_notify_email = ${next.adminNotifyEmail},
+      admin_notify_email_2 = ${next.adminNotifyEmail2},
+      admin_notify_email_3 = ${next.adminNotifyEmail3},
+      admin_notify_email_4 = ${next.adminNotifyEmail4},
+      admin_notify_email_5 = ${next.adminNotifyEmail5},
       customer_confirmation_enabled = ${next.customerConfirmationEnabled},
       admin_notification_enabled = ${next.adminNotificationEnabled},
       cancellation_policy_text = ${next.cancellationPolicyText},

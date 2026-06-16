@@ -86,6 +86,10 @@ export type BookingSettings = {
   companyLogoUrl?: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  adminNotifyEmail2?: string;
+  adminNotifyEmail3?: string;
+  adminNotifyEmail4?: string;
+  adminNotifyEmail5?: string;
   defaultBookingStatus: AutoBookingStatus;
   startHour: number;
   endHour: number;

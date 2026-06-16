@@ -813,7 +813,17 @@ function GeneralSettingsCard({ data }: { data: BookingSetupData }) {
         <Field label="VAT / moms rate"><Input type="number" name="vat_rate" defaultValue={general.vatRate} /></Field>
         <Field label="Company name"><Input name="company_name" defaultValue={general.companyName} /></Field>
         <Field label="Support email"><Input type="email" name="support_email" defaultValue={general.supportEmail} /></Field>
-        <Field label="Admin notify email"><Input type="email" name="admin_notify_email" defaultValue={general.adminNotifyEmail} /></Field>
+        <div className="sm:col-span-2">
+          <p className="mb-2 text-[13px] font-semibold text-[var(--ink)]">Admin notifikations e-mails</p>
+          <p className="mb-3 text-[11px] text-[var(--muted)]">Alle udfyldte adresser modtager besked ved ny booking og faktura. Felter kan stå tomme.</p>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <Field label="E-mail 1"><Input type="email" name="admin_notify_email" placeholder="e-mail 1" defaultValue={general.adminNotifyEmail} /></Field>
+            <Field label="E-mail 2"><Input type="email" name="admin_notify_email_2" placeholder="e-mail 2" defaultValue={general.adminNotifyEmail2} /></Field>
+            <Field label="E-mail 3"><Input type="email" name="admin_notify_email_3" placeholder="e-mail 3" defaultValue={general.adminNotifyEmail3} /></Field>
+            <Field label="E-mail 4"><Input type="email" name="admin_notify_email_4" placeholder="e-mail 4" defaultValue={general.adminNotifyEmail4} /></Field>
+            <Field label="E-mail 5"><Input type="email" name="admin_notify_email_5" placeholder="e-mail 5" defaultValue={general.adminNotifyEmail5} /></Field>
+          </div>
+        </div>
         <Field label="Disabled booking message" className="sm:col-span-2"><Textarea name="disabled_message" defaultValue={general.disabledMessage} /></Field>
         <Field label="Cancellation policy" className="sm:col-span-2"><Textarea name="cancellation_policy_text" defaultValue={general.cancellationPolicyText} /></Field>
         <Field label="Success message" className="sm:col-span-2"><Textarea name="success_message" defaultValue={general.successMessage} /></Field>

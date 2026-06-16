@@ -54,6 +54,10 @@ type MailSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  adminNotifyEmail2?: string;
+  adminNotifyEmail3?: string;
+  adminNotifyEmail4?: string;
+  adminNotifyEmail5?: string;
 };
 
 type CustomerMailInput = {
@@ -659,8 +663,13 @@ export const sendAdminNewBookingAlert = async (input: {
   const appointmentLabel = getAppointmentLabel(input.booking);
   const customerName = getCustomerName(input.customer);
   const config = getMailConfig();
-  const adminEmail =
-    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+  const adminEmail = [
+    input.settings.adminNotifyEmail,
+    input.settings.adminNotifyEmail2,
+    input.settings.adminNotifyEmail3,
+    input.settings.adminNotifyEmail4,
+    input.settings.adminNotifyEmail5,
+  ].filter(Boolean).join(", ") || process.env.BOOKING_ADMIN_EMAIL || config.user;
   const vehicles = getBookingVehicles(input.booking);
   const addressLine = getAddressLine(input.customer);
 
@@ -867,8 +876,13 @@ export const sendAdminInvoiceNotice = async (input: {
   settings: MailSettings;
 }) => {
   const config = getMailConfig();
-  const adminEmail =
-    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+  const adminEmail = [
+    input.settings.adminNotifyEmail,
+    input.settings.adminNotifyEmail2,
+    input.settings.adminNotifyEmail3,
+    input.settings.adminNotifyEmail4,
+    input.settings.adminNotifyEmail5,
+  ].filter(Boolean).join(", ") || process.env.BOOKING_ADMIN_EMAIL || config.user;
   const total = formatPrice(input.totalInclMomsDkk);
   const message = `Agent ${input.agentName} har genereret og sendt faktura ${input.invoiceNumber} for booking ${input.bookingId}. Total: ${total}.`;
 

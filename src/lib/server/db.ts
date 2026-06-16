@@ -693,6 +693,10 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           company_name TEXT NOT NULL DEFAULT 'CleanWash',
           support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           admin_notify_email TEXT NOT NULL DEFAULT '',
+          admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+          admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+          admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+          admin_notify_email_5 TEXT NOT NULL DEFAULT '',
           customer_confirmation_enabled BOOLEAN NOT NULL DEFAULT true,
           admin_notification_enabled BOOLEAN NOT NULL DEFAULT true,
           cancellation_policy_text TEXT,
@@ -700,6 +704,14 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
+      `;
+
+      await sql`
+        ALTER TABLE booking_general_settings
+          ADD COLUMN IF NOT EXISTS admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
       `;
 
       await sql`

@@ -8,6 +8,7 @@ import {
   type BookingCustomer,
   type DashboardBooking,
 } from "@/lib/server/bookings";
+import { getBookingSettingsFromSetup } from "@/lib/server/booking-setup";
 import {
   sendAdminInvoiceNotice,
   sendCustomerInvoiceEmail,
@@ -1414,7 +1415,7 @@ export const sendInvoiceById = async (
     invoice = (await renderAndStoreInvoice(row, invoice.items, data)).invoice;
   }
   const recipient = invoice.customerEmail || data.customer.email;
-  const settings = await getBookingSettings();
+  const settings = await getBookingSettingsFromSetup();
   const subject = `${settings.companyName}: faktura ${invoice.invoiceNumber}`;
   const invoiceUrl = new URL(invoice.publicUrl, baseUrl()).toString();
   try {
