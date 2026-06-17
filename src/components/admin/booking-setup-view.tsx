@@ -766,7 +766,7 @@ const TIMEZONE_OPTIONS = [
   { label: "Pacific/Auckland (New Zealand, NZST)", value: "Pacific/Auckland" },
   { label: "— Universal —", value: "", disabled: true },
   { label: "UTC (Koordineret universaltid)", value: "UTC" },
-] as const;
+] satisfies Array<{ label: string; value: string; disabled?: boolean }>;
 
 function TimeSettingsCard({ data }: { data: BookingSetupData }) {
   const settings = data.timeSettings;
