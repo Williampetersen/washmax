@@ -714,7 +714,18 @@ const _getBookingSetupData = async (): Promise<BookingSetupData> => {
   const addons = addonRows.map(addonFromRow);
   const openingHours = openingRows.map(openingHourFromRow);
   const unavailableDates = unavailableRows.map(unavailableDateFromRow);
-  const timeSettings = timeSettingsFromRow(timeRows[0]);
+  const timeSettings = (() => {
+    const raw = timeSettingsFromRow(timeRows[0]);
+    if (raw.maximumDaysAhead <= 1) {
+      void sql`
+        UPDATE booking_time_settings
+        SET maximum_days_ahead = 180, updated_at = NOW()
+        WHERE settings_key = 'default' AND maximum_days_ahead <= 1
+      `.catch(() => null);
+      return { ...raw, maximumDaysAhead: 180 };
+    }
+    return raw;
+  })();
   const formFields = fieldRows.map(formFieldFromRow);
   const general = generalFromRow(generalRows[0]);
   const publicSettings = await buildBookingSettingsFromSetup({
