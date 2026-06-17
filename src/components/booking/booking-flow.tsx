@@ -1258,9 +1258,10 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                       toDate={maxBookableDate}
                       disabled={(date) => {
                         const dateValue = format(date, "yyyy-MM-dd");
+                        const maxDateStr = format(maxBookableDate, "yyyy-MM-dd");
                         return (
-                          date < toCalendarDate(minDate) ||
-                          date > maxBookableDate ||
+                          dateValue < minDate ||
+                          dateValue > maxDateStr ||
                           !isWorkingDay(date, settings.workingDays) ||
                           isDateBlocked(dateValue, availabilityBlocks)
                         );

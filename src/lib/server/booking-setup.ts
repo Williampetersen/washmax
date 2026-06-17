@@ -111,6 +111,7 @@ type RawTimeSettings = {
   max_bookings_per_slot: number;
   max_bookings_per_day: number;
   allow_same_day_booking: boolean;
+  time_zone: string;
 };
 
 type RawFormField = {
@@ -249,6 +250,7 @@ export type BookingTimeSettings = {
   maxBookingsPerSlot: number;
   maxBookingsPerDay: number;
   allowSameDayBooking: boolean;
+  timeZone: string;
 };
 
 export type BookingFormField = {
@@ -442,6 +444,7 @@ const timeSettingsFromRow = (row?: RawTimeSettings | null): BookingTimeSettings 
   maxBookingsPerSlot: Number(row?.max_bookings_per_slot ?? 1),
   maxBookingsPerDay: Number(row?.max_bookings_per_day ?? 0),
   allowSameDayBooking: row?.allow_same_day_booking !== false,
+  timeZone: String(row?.time_zone || "Europe/Copenhagen"),
 });
 
 const formFieldFromRow = (row: RawFormField): BookingFormField => ({
@@ -519,6 +522,11 @@ const seedBookingSetup = async () => {
       ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
       ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
+  `.catch(() => null);
+
+  await sql`
+    ALTER TABLE booking_time_settings
+      ADD COLUMN IF NOT EXISTS time_zone TEXT NOT NULL DEFAULT 'Europe/Copenhagen';
   `.catch(() => null);
 
   const [serviceCount] = await sql<{ count: string }[]>`
@@ -623,13 +631,13 @@ const seedBookingSetup = async () => {
     INSERT INTO booking_time_settings (
       settings_key, slot_interval_minutes, minimum_notice_hours, maximum_days_ahead,
       buffer_before_minutes, buffer_after_minutes, max_bookings_per_slot,
-      max_bookings_per_day, allow_same_day_booking
+      max_bookings_per_day, allow_same_day_booking, time_zone
     )
     VALUES (
       'default', ${defaultBookingSettings.slotMinutes}, 2, 180,
       ${defaultBookingSettings.bufferBeforeMinutes ?? 160},
       ${defaultBookingSettings.bufferAfterMinutes ?? defaultBookingSettings.travelBufferMinutes},
-      1, 0, true
+      1, 0, true, 'Europe/Copenhagen'
     )
     ON CONFLICT (settings_key) DO NOTHING;
   `;
@@ -835,6 +843,7 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     },
     bookingEnabled: data.general.bookingEnabled,
     disabledMessage: data.general.disabledMessage,
+    timeZone: data.timeSettings.timeZone || "Europe/Copenhagen",
     maximumDaysAhead: data.timeSettings.maximumDaysAhead,
     minimumNoticeHours: data.timeSettings.minimumNoticeHours,
     maxBookingsPerSlot: data.timeSettings.maxBookingsPerSlot,
@@ -1175,7 +1184,12 @@ export const saveTimeSettings = async (input: Partial<BookingTimeSettings>) => {
   await ensureBookingSetupSeeded();
   const current = (await getBookingSetupData()).timeSettings;
   const next = { ...current, ...input };
-  await getSql()`
+  const sql = getSql();
+  await sql`
+    ALTER TABLE booking_time_settings
+      ADD COLUMN IF NOT EXISTS time_zone TEXT NOT NULL DEFAULT 'Europe/Copenhagen';
+  `.catch(() => null);
+  await sql`
     UPDATE booking_time_settings
     SET
       slot_interval_minutes = ${next.slotIntervalMinutes},
@@ -1186,6 +1200,7 @@ export const saveTimeSettings = async (input: Partial<BookingTimeSettings>) => {
       max_bookings_per_slot = ${next.maxBookingsPerSlot},
       max_bookings_per_day = ${next.maxBookingsPerDay},
       allow_same_day_booking = ${next.allowSameDayBooking},
+      time_zone = ${next.timeZone},
       updated_at = NOW()
     WHERE settings_key = 'default';
   `;

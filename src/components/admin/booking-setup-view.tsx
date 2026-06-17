@@ -726,6 +726,48 @@ function OpeningHoursCard({ data }: { data: BookingSetupData }) {
   );
 }
 
+const TIMEZONE_OPTIONS = [
+  { label: "— Europa —", value: "", disabled: true },
+  { label: "Europe/Copenhagen (Danmark, CET/CEST)", value: "Europe/Copenhagen" },
+  { label: "Europe/London (UK, GMT/BST)", value: "Europe/London" },
+  { label: "Europe/Berlin (Tyskland, CET/CEST)", value: "Europe/Berlin" },
+  { label: "Europe/Paris (Frankrig, CET/CEST)", value: "Europe/Paris" },
+  { label: "Europe/Amsterdam (Holland, CET/CEST)", value: "Europe/Amsterdam" },
+  { label: "Europe/Stockholm (Sverige, CET/CEST)", value: "Europe/Stockholm" },
+  { label: "Europe/Oslo (Norge, CET/CEST)", value: "Europe/Oslo" },
+  { label: "Europe/Helsinki (Finland, EET/EEST)", value: "Europe/Helsinki" },
+  { label: "Europe/Warsaw (Polen, CET/CEST)", value: "Europe/Warsaw" },
+  { label: "Europe/Madrid (Spanien, CET/CEST)", value: "Europe/Madrid" },
+  { label: "Europe/Rome (Italien, CET/CEST)", value: "Europe/Rome" },
+  { label: "Europe/Lisbon (Portugal, WET/WEST)", value: "Europe/Lisbon" },
+  { label: "Europe/Athens (Grækenland, EET/EEST)", value: "Europe/Athens" },
+  { label: "Europe/Istanbul (Tyrkiet, TRT)", value: "Europe/Istanbul" },
+  { label: "Europe/Moscow (Rusland, MSK)", value: "Europe/Moscow" },
+  { label: "— USA & Canada —", value: "", disabled: true },
+  { label: "America/New_York (Eastern, ET)", value: "America/New_York" },
+  { label: "America/Chicago (Central, CT)", value: "America/Chicago" },
+  { label: "America/Denver (Mountain, MT)", value: "America/Denver" },
+  { label: "America/Los_Angeles (Pacific, PT)", value: "America/Los_Angeles" },
+  { label: "America/Phoenix (Arizona, MST)", value: "America/Phoenix" },
+  { label: "America/Toronto (Eastern Canada)", value: "America/Toronto" },
+  { label: "America/Vancouver (Pacific Canada)", value: "America/Vancouver" },
+  { label: "— Mellemøsten & Afrika —", value: "", disabled: true },
+  { label: "Asia/Dubai (UAE, GST)", value: "Asia/Dubai" },
+  { label: "Asia/Riyadh (Saudi-Arabien, AST)", value: "Asia/Riyadh" },
+  { label: "Africa/Cairo (Egypten, EET)", value: "Africa/Cairo" },
+  { label: "Africa/Johannesburg (Sydafrika, SAST)", value: "Africa/Johannesburg" },
+  { label: "— Asien & Pacific —", value: "", disabled: true },
+  { label: "Asia/Bangkok (Thailand, ICT)", value: "Asia/Bangkok" },
+  { label: "Asia/Singapore (Singapore, SGT)", value: "Asia/Singapore" },
+  { label: "Asia/Tokyo (Japan, JST)", value: "Asia/Tokyo" },
+  { label: "Asia/Shanghai (Kina, CST)", value: "Asia/Shanghai" },
+  { label: "Asia/Kolkata (Indien, IST)", value: "Asia/Kolkata" },
+  { label: "Australia/Sydney (AEDT/AEST)", value: "Australia/Sydney" },
+  { label: "Pacific/Auckland (New Zealand, NZST)", value: "Pacific/Auckland" },
+  { label: "— Universal —", value: "", disabled: true },
+  { label: "UTC (Koordineret universaltid)", value: "UTC" },
+] as const;
+
 function TimeSettingsCard({ data }: { data: BookingSetupData }) {
   const settings = data.timeSettings;
   return (
@@ -742,6 +784,21 @@ function TimeSettingsCard({ data }: { data: BookingSetupData }) {
           <input type="checkbox" name="allow_same_day_booking" defaultChecked={settings.allowSameDayBooking} />
           Allow same-day booking
         </label>
+        <Field label="Tidszone — booking-tider beregnes i denne tidszone" className="sm:col-span-2">
+          <select
+            name="time_zone"
+            defaultValue={settings.timeZone || "Europe/Copenhagen"}
+            className="w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--brand)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/15"
+          >
+            {TIMEZONE_OPTIONS.map((tz, i) =>
+              tz.disabled ? (
+                <option key={i} value="" disabled>{tz.label}</option>
+              ) : (
+                <option key={tz.value} value={tz.value}>{tz.label}</option>
+              )
+            )}
+          </select>
+        </Field>
         <div className="sm:col-span-2"><Button type="submit">Save time rules</Button></div>
       </form>
     </SetupPanel>

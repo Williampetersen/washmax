@@ -91,6 +91,7 @@ export type BookingSettings = {
   adminNotifyEmail4?: string;
   adminNotifyEmail5?: string;
   defaultBookingStatus: AutoBookingStatus;
+  timeZone?: string;
   startHour: number;
   endHour: number;
   slotMinutes: number;
@@ -247,6 +248,7 @@ export const defaultBookingSettings: BookingSettings = {
   supportEmail: "info@cleanwash.dk",
   adminNotifyEmail: "",
   defaultBookingStatus: "pending",
+  timeZone: "Europe/Copenhagen",
   startHour: 8,
   endHour: 18,
   slotMinutes: 150,

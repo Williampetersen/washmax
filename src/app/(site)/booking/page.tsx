@@ -24,7 +24,7 @@ export default async function BookingPage({
   const manualMode = params.manual === "true" && Boolean(initialCategory);
   const bookingSettings = await getBookingSettingsFromSetup();
   const availabilityBlocks = await getSetupAvailabilityBlocks();
-  const minDate = getCopenhagenNow().date;
+  const minDate = getCopenhagenNow(bookingSettings.timeZone || "Europe/Copenhagen").date;
 
   return (
     <BookingFlow
