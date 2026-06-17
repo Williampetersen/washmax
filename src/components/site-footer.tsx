@@ -130,7 +130,21 @@ export function SiteFooter() {
         `}</style>
 
         <div className="mt-10 flex flex-col gap-3 border-t border-[var(--line)] pt-6 text-sm text-[var(--muted)] sm:flex-row sm:items-center sm:justify-between">
-          <p>&copy; {new Date().getFullYear()} CleanWash. Alle rettigheder forbeholdes.</p>
+          <div className="flex flex-col gap-1">
+            <p>&copy; {new Date().getFullYear()} CleanWash. Alle rettigheder forbeholdes.</p>
+            <p>
+              CleanWash er en del af{" "}
+              <a
+                href="http://washmax.dk/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold transition hover:text-[var(--ink)]"
+              >
+                Wash Max
+              </a>
+              .
+            </p>
+          </div>
           <div className="flex items-center gap-2">
             {SOCIALS.map(({ label, href, icon, hoverColor }) => (
               <a

@@ -218,6 +218,18 @@ export default function AboutPage() {
               . Hvis adresse, serviceområde eller særlige behov skal afklares, er det bedre at
               gøre det tydeligt fra starten end at love noget upræcist.
             </p>
+            <p>
+              CleanWash er en del af{" "}
+              <a
+                href="http://washmax.dk/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[var(--brand)]"
+              >
+                Wash Max
+              </a>
+              .
+            </p>
           </div>
         </section>
 
