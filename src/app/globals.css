@@ -78,6 +78,82 @@
   }
 }
 
+@keyframes word-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes step-blob-in {
+  from { opacity: 0; transform: scale(0.4); }
+  65%  { transform: scale(1.08); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes step-card-in {
+  from { opacity: 0; transform: translateY(22px); filter: blur(6px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0);   }
+}
+
+@keyframes blob-float {
+  0%, 100% { transform: translateY(0);    }
+  50%      { transform: translateY(-9px); }
+}
+
+@keyframes addon-shine {
+  0%   { transform: translateX(-130%) skewX(-20deg); opacity: 0; }
+  4%   { opacity: 1; }
+  15%  { transform: translateX(230%) skewX(-20deg); opacity: 0; }
+  100% { transform: translateX(230%) skewX(-20deg); opacity: 0; }
+}
+
+@keyframes pkg-border-spin {
+  to { transform: rotate(360deg); }
+}
+
+.pkg-wrap {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 2px;
+  background: #dceef2;
+}
+
+.pkg-ring {
+  position: absolute;
+  inset: -100%;
+  width: 300%;
+  height: 300%;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0%,
+    transparent 60%,
+    #00A7B8 74%,
+    #22d3ee 82%,
+    #ffffff 86%,
+    #22d3ee 90%,
+    transparent 96%
+  );
+  opacity: 0;
+  /* no delay when leaving hover */
+  transition: opacity 0.3s 0s;
+  pointer-events: none;
+}
+
+/* 4 second delay before the border light appears and starts spinning */
+.pkg-wrap:hover .pkg-ring {
+  opacity: 1;
+  transition: opacity 0.3s 4s;
+  animation: pkg-border-spin 2.5s linear 4s infinite;
+}
+
+/* selected cards: instant animated border, no delay */
+.pkg-wrap--active .pkg-ring {
+  opacity: 1;
+  transition: opacity 0.3s 0s;
+  animation: pkg-border-spin 2.5s linear infinite;
+}
+
 @layer components {
   .font-display {
     font-family: var(--font-display);

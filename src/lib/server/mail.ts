@@ -54,6 +54,10 @@ type MailSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  adminNotifyEmail2?: string;
+  adminNotifyEmail3?: string;
+  adminNotifyEmail4?: string;
+  adminNotifyEmail5?: string;
 };
 
 type CustomerMailInput = {
@@ -110,6 +114,9 @@ const getTransporter = () => {
             user: config.user,
             pass: config.pass,
           },
+          connectionTimeout: 10000,
+          greetingTimeout: 10000,
+          socketTimeout: 30000,
         })
       : null;
   }
@@ -178,26 +185,37 @@ const getBadgeColors = (eyebrow: string): { bg: string; text: string } => {
 };
 
 const renderEmailWrapper = (content: string) =>
-  `<div style="margin:0;padding:0;background:#F6FBFC;">` +
+  `<!DOCTYPE html><html lang="da"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>` +
+  `@media only screen and (max-width:600px){` +
+  `.ehead{padding:18px 16px 14px!important;}` +
+  `.efoot{padding:14px 16px!important;}` +
+  `.epad{padding:20px 16px 8px!important;}` +
+  `.epad2{padding:8px 16px 20px!important;}` +
+  `.epad3{padding:0 16px 20px!important;}` +
+  `.ewrap{padding:8px 8px!important;}` +
+  `.ebtn a{display:block!important;width:100%!important;box-sizing:border-box!important;text-align:center!important;}` +
+  `h1{font-size:20px!important;}` +
+  `}` +
+  `</style></head><body style="margin:0;padding:0;background:#F6FBFC;">` +
   `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F6FBFC;font-family:Arial,Helvetica,sans-serif;">` +
-  `<tr><td align="center" style="padding:32px 16px;">` +
-  `<table width="640" cellpadding="0" cellspacing="0" border="0" style="max-width:640px;width:100%;">` +
+  `<tr><td align="center" class="ewrap" style="padding:24px 16px;">` +
+  `<table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;">` +
   `<tr><td>` +
   `<div style="background:#FFFFFF;border-radius:16px;overflow:hidden;border:1px solid #DCEEF2;box-shadow:0 4px 24px rgba(11,31,58,0.07);">` +
   content +
   `</div>` +
   `</td></tr></table>` +
   `</td></tr></table>` +
-  `</div>`;
+  `</body></html>`;
 
 const renderEmailHeader = (companyName: string) =>
-  `<div style="background:#0B1F3A;padding:26px 32px 22px;">` +
+  `<div class="ehead" style="background:#0B1F3A;padding:26px 32px 22px;">` +
   `<p style="margin:0;color:#FFFFFF;font-size:20px;font-weight:700;letter-spacing:-0.01em;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(companyName)}</p>` +
   `<p style="margin:5px 0 0;color:#00A7B8;font-size:12px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;">Professionel bilvask</p>` +
   `</div>`;
 
 const renderEmailFooter = (companyName: string, supportEmail: string) =>
-  `<div style="background:#F6FBFC;border-top:1px solid #DCEEF2;padding:22px 32px;text-align:center;">` +
+  `<div class="efoot" style="background:#F6FBFC;border-top:1px solid #DCEEF2;padding:22px 32px;text-align:center;">` +
   `<p style="margin:0;font-size:13px;font-weight:600;color:#374151;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(companyName)}</p>` +
   `<p style="margin:3px 0 0;font-size:12px;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Professionel bilvask</p>` +
   (supportEmail
@@ -336,13 +354,13 @@ const renderCustomerEmailHtml = (input: {
 
   const content =
     renderEmailHeader(input.settings.companyName) +
-    `<div style="padding:32px 32px 8px;">` +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
     renderStatusBadge(input.eyebrow, input.eyebrow) +
     `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.title)}</h1>` +
     `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.intro)}</p>` +
     renderHighlightBox(input.highlight) +
     `</div>` +
-    `<div style="padding:8px 32px 32px;">` +
+    `<div class="epad2" style="padding:8px 32px 32px;">` +
     renderInfoCard("Bookingoversigt", bookingRows) +
     renderVehicleDetailsHtml(input.booking) +
     renderPriceSummaryCard(input.booking) +
@@ -656,8 +674,13 @@ export const sendAdminNewBookingAlert = async (input: {
   const appointmentLabel = getAppointmentLabel(input.booking);
   const customerName = getCustomerName(input.customer);
   const config = getMailConfig();
-  const adminEmail =
-    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+  const adminEmail = [
+    input.settings.adminNotifyEmail,
+    input.settings.adminNotifyEmail2,
+    input.settings.adminNotifyEmail3,
+    input.settings.adminNotifyEmail4,
+    input.settings.adminNotifyEmail5,
+  ].filter(Boolean).join(", ") || process.env.BOOKING_ADMIN_EMAIL || config.user;
   const vehicles = getBookingVehicles(input.booking);
   const addressLine = getAddressLine(input.customer);
 
@@ -679,12 +702,12 @@ export const sendAdminNewBookingAlert = async (input: {
 
   const content =
     renderEmailHeader(input.settings.companyName) +
-    `<div style="padding:32px 32px 8px;">` +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
     renderStatusBadge("Ny booking", "ny booking") +
     `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Ny bilvask-booking modtaget</h1>` +
     `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">Der er modtaget en ny booking i systemet.</p>` +
     `</div>` +
-    `<div style="padding:8px 32px 32px;">` +
+    `<div class="epad2" style="padding:8px 32px 32px;">` +
     renderInfoCard("Hurtigt overblik", quickSummaryRows) +
     renderInfoCard("Kundeoplysninger", customerInfoRows) +
     renderVehicleDetailsHtml(input.booking) +
@@ -749,12 +772,12 @@ export const sendCustomerInvoiceEmail = async (input: {
 
   const invoiceContent =
     renderEmailHeader(input.settings.companyName) +
-    `<div style="padding:32px 32px 8px;">` +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
     renderStatusBadge("Faktura klar", "modtaget") +
     `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(subject)}</h1>` +
     `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(`${greeting}. Din faktura er klar og kan åbnes sikkert i browseren.`)}</p>` +
     `</div>` +
-    `<div style="padding:8px 32px 32px;">` +
+    `<div class="epad2" style="padding:8px 32px 32px;">` +
     renderInfoCard("Fakturaoplysninger", [
       ["Fakturanummer", input.invoiceNumber],
       ["Booking ID", input.bookingId],
@@ -813,12 +836,12 @@ export const sendCustomerVerificationCodeEmail = async (input: {
 
   const content =
     renderEmailHeader(input.settings.companyName) +
-    `<div style="padding:32px 32px 8px;">` +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
     renderStatusBadge("Bekræftelseskode", "modtaget") +
     `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Bekræft din e-mail</h1>` +
     `<p style="margin:0 0 24px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">Brug koden herunder for at få adgang til din booking og kundeprofil.</p>` +
     `</div>` +
-    `<div style="padding:0 32px 32px;">` +
+    `<div class="epad3" style="padding:0 32px 32px;">` +
     `<div style="background:#F6FBFC;border:1px solid #DCEEF2;border-radius:12px;padding:28px 20px;margin-bottom:20px;text-align:center;">` +
     `<p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#6B7280;font-family:Arial,Helvetica,sans-serif;">Din kode</p>` +
     `<p style="margin:0;font-size:40px;font-weight:700;letter-spacing:0.22em;color:#0B1F3A;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(codeDigits)}</p>` +
@@ -864,18 +887,23 @@ export const sendAdminInvoiceNotice = async (input: {
   settings: MailSettings;
 }) => {
   const config = getMailConfig();
-  const adminEmail =
-    input.settings.adminNotifyEmail || process.env.BOOKING_ADMIN_EMAIL || config.user;
+  const adminEmail = [
+    input.settings.adminNotifyEmail,
+    input.settings.adminNotifyEmail2,
+    input.settings.adminNotifyEmail3,
+    input.settings.adminNotifyEmail4,
+    input.settings.adminNotifyEmail5,
+  ].filter(Boolean).join(", ") || process.env.BOOKING_ADMIN_EMAIL || config.user;
   const total = formatPrice(input.totalInclMomsDkk);
   const message = `Agent ${input.agentName} har genereret og sendt faktura ${input.invoiceNumber} for booking ${input.bookingId}. Total: ${total}.`;
 
   const noticeContent =
     renderEmailHeader(input.settings.companyName) +
-    `<div style="padding:32px 32px 8px;">` +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
     renderStatusBadge("Faktura sendt", "modtaget") +
     `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Faktura ${escapeHtml(input.invoiceNumber)} sendt</h1>` +
     `</div>` +
-    `<div style="padding:8px 32px 32px;">` +
+    `<div class="epad2" style="padding:8px 32px 32px;">` +
     renderInfoCard("Fakturaoversigt", [
       ["Fakturanummer", input.invoiceNumber],
       ["Booking ID", input.bookingId],

@@ -1,6 +1,6 @@
 // ============================================================
 // assignmentService.ts
-// Auto-assignment engine for WashMax agents.
+// Auto-assignment engine for CleanWash agents.
 //
 // Assumptions about existing schema:
 //   - bookings.appointment_date  → DATE column

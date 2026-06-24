@@ -20,6 +20,14 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
+  keywords: [
+    "bilvask", "bilvask København", "mobil bilvask", "indvendig bilrengøring",
+    "bilpleje", "bilvask Sjælland", "håndvask bil", "erhvervs bilvask",
+  ],
+  authors: [{ name: "CleanWash", url: siteConfig.url }],
+  creator: "CleanWash",
+  publisher: "CleanWash",
+  category: "Automotive",
   icons: {
     icon: "/logo.png",
     shortcut: "/logo.png",
@@ -27,6 +35,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: "website",
+    locale: "da_DK",
     siteName: siteConfig.name,
     url: siteConfig.url,
     title: `${siteConfig.name} | Professionel mobil bilvask`,
@@ -42,12 +51,29 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
+    site: "@washmaxdk",
+    creator: "@washmaxdk",
     title: `${siteConfig.name} | Bilvask København og Sjælland`,
     description: siteConfig.description,
     images: [siteConfig.ogImage],
   },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   alternates: {
-    canonical: "/",
+    canonical: siteConfig.url,
+    languages: { "da-DK": siteConfig.url },
+  },
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION ?? "",
   },
 };
 

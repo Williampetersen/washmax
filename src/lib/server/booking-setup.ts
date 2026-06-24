@@ -4,6 +4,7 @@ import { ensureSchema, getSql, isDatabaseConfigured, shouldRunDatabaseSetup } fr
 import {
   defaultBookingSettings,
   defaultEmailAutomation,
+  defaultServiceCatalog,
   findMatchingServiceArea,
   getCatalogPackage,
   type AddOn,
@@ -28,6 +29,7 @@ type RawService = {
   sort_order: number;
   is_visible: boolean;
   is_featured: boolean;
+  category_prices_json: Record<string, number> | null;
   created_at: string | Date;
   updated_at: string | Date;
 };
@@ -109,6 +111,7 @@ type RawTimeSettings = {
   max_bookings_per_slot: number;
   max_bookings_per_day: number;
   allow_same_day_booking: boolean;
+  time_zone: string;
 };
 
 type RawFormField = {
@@ -132,6 +135,10 @@ type RawGeneralSettings = {
   company_name: string;
   support_email: string;
   admin_notify_email: string;
+  admin_notify_email_2: string;
+  admin_notify_email_3: string;
+  admin_notify_email_4: string;
+  admin_notify_email_5: string;
   customer_confirmation_enabled: boolean;
   admin_notification_enabled: boolean;
   cancellation_policy_text: string | null;
@@ -160,6 +167,7 @@ export type BookingSetupService = {
   sortOrder: number;
   isVisible: boolean;
   isFeatured: boolean;
+  categoryPrices: Record<string, number>;
   createdAt: string;
   updatedAt: string;
 };
@@ -242,6 +250,7 @@ export type BookingTimeSettings = {
   maxBookingsPerSlot: number;
   maxBookingsPerDay: number;
   allowSameDayBooking: boolean;
+  timeZone: string;
 };
 
 export type BookingFormField = {
@@ -265,6 +274,10 @@ export type BookingGeneralSettings = {
   companyName: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  adminNotifyEmail2: string;
+  adminNotifyEmail3: string;
+  adminNotifyEmail4: string;
+  adminNotifyEmail5: string;
   customerConfirmationEnabled: boolean;
   adminNotificationEnabled: boolean;
   cancellationPolicyText: string;
@@ -342,6 +355,10 @@ const serviceFromRow = (row: RawService): BookingSetupService => ({
   sortOrder: Number(row.sort_order || 0),
   isVisible: Boolean(row.is_visible),
   isFeatured: Boolean(row.is_featured),
+  categoryPrices:
+    row.category_prices_json && typeof row.category_prices_json === "object"
+      ? (row.category_prices_json as Record<string, number>)
+      : {},
   createdAt: toDateTimeText(row.created_at),
   updatedAt: toDateTimeText(row.updated_at),
 });
@@ -421,12 +438,13 @@ const unavailableDateFromRow = (row: RawUnavailableDate): BookingUnavailableDate
 const timeSettingsFromRow = (row?: RawTimeSettings | null): BookingTimeSettings => ({
   slotIntervalMinutes: Number(row?.slot_interval_minutes ?? 30),
   minimumNoticeHours: Number(row?.minimum_notice_hours ?? 2),
-  maximumDaysAhead: Number(row?.maximum_days_ahead ?? 30),
+  maximumDaysAhead: Number(row?.maximum_days_ahead ?? 180),
   bufferBeforeMinutes: Number(row?.buffer_before_minutes ?? 160),
   bufferAfterMinutes: Number(row?.buffer_after_minutes ?? 0),
   maxBookingsPerSlot: Number(row?.max_bookings_per_slot ?? 1),
   maxBookingsPerDay: Number(row?.max_bookings_per_day ?? 0),
   allowSameDayBooking: row?.allow_same_day_booking !== false,
+  timeZone: String(row?.time_zone || "Europe/Copenhagen"),
 });
 
 const formFieldFromRow = (row: RawFormField): BookingFormField => ({
@@ -453,6 +471,10 @@ const generalFromRow = (row?: RawGeneralSettings | null): BookingGeneralSettings
     row?.admin_notify_email ||
     process.env.BOOKING_ADMIN_EMAIL ||
     defaultBookingSettings.adminNotifyEmail,
+  adminNotifyEmail2: row?.admin_notify_email_2 || "",
+  adminNotifyEmail3: row?.admin_notify_email_3 || "",
+  adminNotifyEmail4: row?.admin_notify_email_4 || "",
+  adminNotifyEmail5: row?.admin_notify_email_5 || "",
   customerConfirmationEnabled: row?.customer_confirmation_enabled !== false,
   adminNotificationEnabled: row?.admin_notification_enabled !== false,
   cancellationPolicyText: String(row?.cancellation_policy_text || ""),
@@ -493,6 +515,20 @@ const seedBookingSetup = async () => {
   await ensureSchema();
   const sql = getSql();
 
+  // Ensure columns added after initial schema deployment exist (idempotent migrations)
+  await sql`
+    ALTER TABLE booking_general_settings
+      ADD COLUMN IF NOT EXISTS admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
+  `.catch(() => null);
+
+  await sql`
+    ALTER TABLE booking_time_settings
+      ADD COLUMN IF NOT EXISTS time_zone TEXT NOT NULL DEFAULT 'Europe/Copenhagen';
+  `.catch(() => null);
+
   const [serviceCount] = await sql<{ count: string }[]>`
     SELECT COUNT(*)::text AS count FROM booking_services;
   `;
@@ -501,13 +537,13 @@ const seedBookingSetup = async () => {
       await sql`
         INSERT INTO booking_services (
           id, name, slug, short_description, description, price_dkk,
-          duration_minutes, icon, sort_order, is_visible, is_featured
+          duration_minutes, icon, sort_order, is_visible, is_featured, category_prices_json
         )
         VALUES (
           ${item.id}, ${item.title}, ${slugifyBookingSetup(item.id)},
           ${item.description}, ${item.description}, 0,
           ${item.estimatedMinutes}, ${item.badge}, ${index}, true,
-          ${item.id === "whole"}
+          ${item.id === "whole"}, ${sql.json(item.categoryPrices ?? {})}
         )
         ON CONFLICT (id) DO NOTHING;
       `;
@@ -595,13 +631,13 @@ const seedBookingSetup = async () => {
     INSERT INTO booking_time_settings (
       settings_key, slot_interval_minutes, minimum_notice_hours, maximum_days_ahead,
       buffer_before_minutes, buffer_after_minutes, max_bookings_per_slot,
-      max_bookings_per_day, allow_same_day_booking
+      max_bookings_per_day, allow_same_day_booking, time_zone
     )
     VALUES (
-      'default', ${defaultBookingSettings.slotMinutes}, 2, 30,
+      'default', ${defaultBookingSettings.slotMinutes}, 2, 180,
       ${defaultBookingSettings.bufferBeforeMinutes ?? 160},
       ${defaultBookingSettings.bufferAfterMinutes ?? defaultBookingSettings.travelBufferMinutes},
-      1, 0, true
+      1, 0, true, 'Europe/Copenhagen'
     )
     ON CONFLICT (settings_key) DO NOTHING;
   `;
@@ -686,7 +722,18 @@ const _getBookingSetupData = async (): Promise<BookingSetupData> => {
   const addons = addonRows.map(addonFromRow);
   const openingHours = openingRows.map(openingHourFromRow);
   const unavailableDates = unavailableRows.map(unavailableDateFromRow);
-  const timeSettings = timeSettingsFromRow(timeRows[0]);
+  const timeSettings = (() => {
+    const raw = timeSettingsFromRow(timeRows[0]);
+    if (raw.maximumDaysAhead <= 1) {
+      void sql`
+        UPDATE booking_time_settings
+        SET maximum_days_ahead = 180, updated_at = NOW()
+        WHERE settings_key = 'default' AND maximum_days_ahead <= 1
+      `.catch(() => null);
+      return { ...raw, maximumDaysAhead: 180 };
+    }
+    return raw;
+  })();
   const formFields = fieldRows.map(formFieldFromRow);
   const general = generalFromRow(generalRows[0]);
   const publicSettings = await buildBookingSettingsFromSetup({
@@ -740,17 +787,25 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
   const firstOpen = openHours[0];
   const workingDays = Array.from(new Set(openHours.map((item) => item.weekday)));
   const catalog: ServiceCatalog = {
-    packages: (visibleServices.length > 0 ? visibleServices : data.services).map((item) => ({
-      id: item.id,
-      title: item.name,
-      description: item.shortDescription || item.description,
-      duration: `${item.durationMinutes} min.`,
-      estimatedMinutes: item.durationMinutes,
-      badge: item.isFeatured ? "Featured" : item.icon || "",
-      price: item.priceDkk,
-      imageUrl: item.imageUrl,
-      isFeatured: item.isFeatured,
-    })),
+    packages: (visibleServices.length > 0 ? visibleServices : data.services).map((item) => {
+      const defaultPkg = defaultServiceCatalog.packages.find((p) => p.id === item.id);
+      const categoryPrices =
+        Object.keys(item.categoryPrices).length > 0
+          ? item.categoryPrices
+          : (defaultPkg?.categoryPrices ?? {});
+      return {
+        id: item.id,
+        title: item.name,
+        description: item.shortDescription || item.description,
+        duration: `${item.durationMinutes} min.`,
+        estimatedMinutes: item.durationMinutes,
+        badge: item.isFeatured ? "Featured" : item.icon || "",
+        price: item.priceDkk,
+        imageUrl: item.imageUrl,
+        isFeatured: item.isFeatured,
+        categoryPrices: Object.keys(categoryPrices).length > 0 ? categoryPrices : undefined,
+      };
+    }),
     vehicleCategories:
       vehicleCategories.length > 0 ? vehicleCategories : defaultBookingSettings.catalog.vehicleCategories,
     interiorAddOns: visibleAddons.filter((item) => item.addonCategory === "interior").map(toAddon),
@@ -763,6 +818,10 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     companyName: data.general.companyName,
     supportEmail: data.general.supportEmail,
     adminNotifyEmail: data.general.adminNotifyEmail,
+    adminNotifyEmail2: data.general.adminNotifyEmail2,
+    adminNotifyEmail3: data.general.adminNotifyEmail3,
+    adminNotifyEmail4: data.general.adminNotifyEmail4,
+    adminNotifyEmail5: data.general.adminNotifyEmail5,
     defaultBookingStatus:
       legacy?.default_booking_status === "approved" ? "approved" : defaultBookingSettings.defaultBookingStatus,
     startHour: Number(firstOpen?.startTime.slice(0, 2) || defaultBookingSettings.startHour),
@@ -784,6 +843,7 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     },
     bookingEnabled: data.general.bookingEnabled,
     disabledMessage: data.general.disabledMessage,
+    timeZone: data.timeSettings.timeZone || "Europe/Copenhagen",
     maximumDaysAhead: data.timeSettings.maximumDaysAhead,
     minimumNoticeHours: data.timeSettings.minimumNoticeHours,
     maxBookingsPerSlot: data.timeSettings.maxBookingsPerSlot,
@@ -864,7 +924,16 @@ export const calculateBookingPriceFromSetup = async (input: {
       label: item.label,
       price: Number(item.price || 0),
     }));
-  const basePrice = Number(pkg?.price || 0) > 0 ? Number(pkg.price) : Number(category?.price || 0);
+  const catSpecificPrice =
+    pkg?.categoryPrices && category?.id != null
+      ? (pkg.categoryPrices[category.id] ?? pkg.categoryPrices[category.label])
+      : undefined;
+  const basePrice =
+    catSpecificPrice != null
+      ? Number(catSpecificPrice)
+      : Number(pkg?.price || 0) > 0
+        ? Number(pkg.price)
+        : Number(category?.price || 0);
   const addonsTotal = selectedAddons.reduce((sum, item) => sum + Number(item.price || 0), 0);
   const matchedArea = findMatchingServiceArea(input.postalCode, settings.serviceAreas);
   const travelSurcharge = Number(matchedArea?.surcharge || 0);
@@ -892,6 +961,13 @@ export const upsertBookingGeneralSettings = async (input: Partial<BookingGeneral
   const next = { ...current, ...input };
   const sql = getSql();
   await sql`
+    ALTER TABLE booking_general_settings
+      ADD COLUMN IF NOT EXISTS admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+      ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
+  `.catch(() => null);
+  await sql`
     UPDATE booking_general_settings
     SET
       booking_enabled = ${next.bookingEnabled},
@@ -901,6 +977,10 @@ export const upsertBookingGeneralSettings = async (input: Partial<BookingGeneral
       company_name = ${next.companyName},
       support_email = ${next.supportEmail},
       admin_notify_email = ${next.adminNotifyEmail},
+      admin_notify_email_2 = ${next.adminNotifyEmail2},
+      admin_notify_email_3 = ${next.adminNotifyEmail3},
+      admin_notify_email_4 = ${next.adminNotifyEmail4},
+      admin_notify_email_5 = ${next.adminNotifyEmail5},
       customer_confirmation_enabled = ${next.customerConfirmationEnabled},
       admin_notification_enabled = ${next.adminNotificationEnabled},
       cancellation_policy_text = ${next.cancellationPolicyText},
@@ -911,22 +991,24 @@ export const upsertBookingGeneralSettings = async (input: Partial<BookingGeneral
 };
 
 export const saveBookingService = async (
-  input: Partial<BookingSetupService> & { id?: string; name: string }
+  input: Partial<BookingSetupService> & { id?: string; name: string; categoryPrices?: Record<string, number> }
 ) => {
   await ensureBookingSetupSeeded();
   const sql = getSql();
   const id = input.id || createId("bsv");
+  const categoryPrices = input.categoryPrices ?? {};
   await sql`
     INSERT INTO booking_services (
       id, name, slug, short_description, description, price_dkk, duration_minutes,
-      image_url, icon, sort_order, is_visible, is_featured
+      image_url, icon, sort_order, is_visible, is_featured, category_prices_json
     )
     VALUES (
       ${id}, ${input.name}, ${input.slug || uniqueSlug(input.name)},
       ${input.shortDescription || ""}, ${input.description || ""},
       ${Number(input.priceDkk || 0)}, ${Number(input.durationMinutes || 60)},
       ${input.imageUrl || ""}, ${input.icon || ""}, ${Number(input.sortOrder || 0)},
-      ${input.isVisible !== false}, ${Boolean(input.isFeatured)}
+      ${input.isVisible !== false}, ${Boolean(input.isFeatured)},
+      ${sql.json(categoryPrices)}
     )
     ON CONFLICT (id)
     DO UPDATE SET
@@ -939,6 +1021,7 @@ export const saveBookingService = async (
       sort_order = EXCLUDED.sort_order,
       is_visible = EXCLUDED.is_visible,
       is_featured = EXCLUDED.is_featured,
+      category_prices_json = EXCLUDED.category_prices_json,
       updated_at = NOW();
   `;
   return id;
@@ -1101,7 +1184,12 @@ export const saveTimeSettings = async (input: Partial<BookingTimeSettings>) => {
   await ensureBookingSetupSeeded();
   const current = (await getBookingSetupData()).timeSettings;
   const next = { ...current, ...input };
-  await getSql()`
+  const sql = getSql();
+  await sql`
+    ALTER TABLE booking_time_settings
+      ADD COLUMN IF NOT EXISTS time_zone TEXT NOT NULL DEFAULT 'Europe/Copenhagen';
+  `.catch(() => null);
+  await sql`
     UPDATE booking_time_settings
     SET
       slot_interval_minutes = ${next.slotIntervalMinutes},
@@ -1112,6 +1200,7 @@ export const saveTimeSettings = async (input: Partial<BookingTimeSettings>) => {
       max_bookings_per_slot = ${next.maxBookingsPerSlot},
       max_bookings_per_day = ${next.maxBookingsPerDay},
       allow_same_day_booking = ${next.allowSameDayBooking},
+      time_zone = ${next.timeZone},
       updated_at = NOW()
     WHERE settings_key = 'default';
   `;

@@ -526,6 +526,7 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           ADD COLUMN IF NOT EXISTS service_catalog_json JSONB NOT NULL DEFAULT '{}'::jsonb,
           ADD COLUMN IF NOT EXISTS service_areas_json JSONB NOT NULL DEFAULT '[]'::jsonb,
           ADD COLUMN IF NOT EXISTS email_automation_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+          ADD COLUMN IF NOT EXISTS company_logo_url TEXT NOT NULL DEFAULT '',
           ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
       `;
@@ -565,6 +566,11 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
+      `;
+
+      await sql`
+        ALTER TABLE booking_services
+          ADD COLUMN IF NOT EXISTS category_prices_json JSONB;
       `;
 
       await sql`
@@ -687,6 +693,10 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           company_name TEXT NOT NULL DEFAULT 'CleanWash',
           support_email TEXT NOT NULL DEFAULT 'info@cleanwash.dk',
           admin_notify_email TEXT NOT NULL DEFAULT '',
+          admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+          admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+          admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+          admin_notify_email_5 TEXT NOT NULL DEFAULT '',
           customer_confirmation_enabled BOOLEAN NOT NULL DEFAULT true,
           admin_notification_enabled BOOLEAN NOT NULL DEFAULT true,
           cancellation_policy_text TEXT,
@@ -694,6 +704,14 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );
+      `;
+
+      await sql`
+        ALTER TABLE booking_general_settings
+          ADD COLUMN IF NOT EXISTS admin_notify_email_2 TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS admin_notify_email_3 TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS admin_notify_email_4 TEXT NOT NULL DEFAULT '',
+          ADD COLUMN IF NOT EXISTS admin_notify_email_5 TEXT NOT NULL DEFAULT '';
       `;
 
       await sql`
@@ -913,4 +931,8 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
   }
 };
 
-export const runDatabaseMigrations = () => ensureSchema({ force: true });
+export const runDatabaseMigrations = () => {
+  schemaPromise = null;
+  globalThis.CleanWashSchemaPromise = null;
+  return ensureSchema({ force: true });
+};

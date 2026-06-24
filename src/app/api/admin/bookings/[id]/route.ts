@@ -4,11 +4,11 @@ import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import {
   deleteBooking,
   getBookingById,
-  getBookingSettings,
   updateBookingFinancials,
   updateBookingSchedule,
   updateBookingStatus,
 } from "@/lib/server/bookings";
+import { getBookingSettingsFromSetup } from "@/lib/server/booking-setup";
 import {
   sendAdminNewBookingAlert,
   sendCustomerBookingCreatedEmail,
@@ -55,7 +55,7 @@ export async function POST(
 
     if (result && formData.get("notify_customer")) {
       try {
-        const settings = await getBookingSettings();
+        const settings = await getBookingSettingsFromSetup();
         const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
         const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
         await sendCustomerBookingStatusEmail({
@@ -101,7 +101,7 @@ export async function POST(
       return redirectWith("error=action");
     }
 
-    const settings = await getBookingSettings();
+    const settings = await getBookingSettingsFromSetup();
     const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
     const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
     if (result.booking.status === "pending") {
@@ -129,7 +129,7 @@ export async function POST(
       return redirectWith("error=action");
     }
 
-    const settings = await getBookingSettings();
+    const settings = await getBookingSettingsFromSetup();
     const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
     const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
     await sendAdminNewBookingAlert({
@@ -149,7 +149,7 @@ export async function POST(
 
   const result = await updateBookingStatus(id, status, adminNotes);
   if (result) {
-    const settings = await getBookingSettings();
+    const settings = await getBookingSettingsFromSetup();
     const portalBaseUrl = process.env.APP_URL || new URL(request.url).origin;
     const portalUrl = `${portalBaseUrl}/kunde/verify?t=${result.customer.portalToken}`;
     const shouldSendStatusEmail =

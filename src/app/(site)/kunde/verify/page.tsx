@@ -7,6 +7,7 @@ import VerifyForm from "./VerifyForm";
 export const metadata: Metadata = {
   title: "Bekræft din e-mail",
   description: "Bekræft din e-mail for at få adgang til din booking.",
+  robots: { index: false, follow: false },
 };
 
 export default async function VerifyPage({

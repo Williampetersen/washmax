@@ -94,6 +94,7 @@ type RawBooking = {
 
 type RawSettings = {
   company_name: string;
+  company_logo_url: string | null;
   support_email: string;
   admin_notify_email: string;
   default_booking_status: string;
@@ -537,6 +538,7 @@ const availabilityBlockFromRow = (row: RawAvailabilityBlock): AvailabilityBlock 
 
 const settingsFromRow = (row?: RawSettings | null): BookingSettings => ({
   companyName: row?.company_name || defaultBookingSettings.companyName,
+  companyLogoUrl: row?.company_logo_url || "",
   supportEmail: row?.support_email || process.env.SMTP_USER || defaultBookingSettings.supportEmail,
   adminNotifyEmail:
     row?.admin_notify_email ||
@@ -979,6 +981,17 @@ export const getAvailabilityBlocks = async (): Promise<AvailabilityBlock[]> => {
   }
 };
 
+let _logoColumnReady = false;
+const _ensureLogoColumn = async (sql: ReturnType<typeof getSql>) => {
+  if (_logoColumnReady) return;
+  try {
+    await sql`ALTER TABLE booking_settings ADD COLUMN IF NOT EXISTS company_logo_url TEXT NOT NULL DEFAULT '';`;
+    _logoColumnReady = true;
+  } catch {
+    // non-fatal — SELECT will still work via the catch below
+  }
+};
+
 const _getBookingSettings = async (): Promise<BookingSettings> => {
   if (!isDatabaseConfigured()) {
     return {
@@ -991,9 +1004,11 @@ const _getBookingSettings = async (): Promise<BookingSettings> => {
   try {
     await ensureSchema();
     const sql = getSql();
+    await _ensureLogoColumn(sql);
     const [row] = await sql<RawSettings[]>`
       SELECT
         company_name,
+        company_logo_url,
         support_email,
         admin_notify_email,
         default_booking_status,
@@ -1022,6 +1037,14 @@ const _getBookingSettings = async (): Promise<BookingSettings> => {
 };
 
 export const getBookingSettings = cache(_getBookingSettings);
+
+export const saveCompanyLogoUrl = async (url: string) => {
+  const sql = getSql();
+  await _ensureLogoColumn(sql);
+  await sql`
+    UPDATE booking_settings SET company_logo_url = ${url} WHERE settings_key = 'default';
+  `;
+};
 
 export const saveBookingSettings = async (input: BookingSettings) => {
   await ensureSchema();
@@ -1659,6 +1682,16 @@ export const deleteBooking = async (bookingId: string) => {
   await sql`
     DELETE FROM bookings
     WHERE id = ${bookingId};
+  `;
+};
+
+export const deleteCustomer = async (customerId: string) => {
+  await ensureSchema();
+  const sql = getSql();
+
+  await sql`
+    DELETE FROM customers
+    WHERE id = ${customerId};
   `;
 };
 

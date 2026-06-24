@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import {
+  deleteInvoice,
   getInvoiceById,
   invoiceStatuses,
   updateInvoiceStatus,
@@ -61,6 +62,13 @@ export async function POST(
 
   const { id } = await context.params;
   const formData = await request.formData();
+  const action = String(formData.get("action") || "");
+
+  if (action === "delete") {
+    await deleteInvoice(id);
+    return NextResponse.redirect(new URL("/admin?view=invoices&saved=deleted", request.url), 303);
+  }
+
   const statusValue = String(formData.get("status") || "");
   const status = invoiceStatuses.includes(statusValue as InvoiceStatus)
     ? (statusValue as InvoiceStatus)

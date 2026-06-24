@@ -15,6 +15,7 @@ import {
   Clock3,
   Cog,
   CreditCard,
+  Image as ImageIcon,
   ListFilter,
   Mail,
   MapPinned,
@@ -72,6 +73,9 @@ import { AdminCalendarPanel } from "@/components/admin/admin-calendar";
 import { AdminAgentsView } from "@/components/admin/agents-view";
 import { BookingSetupView } from "@/components/admin/booking-setup-view";
 import { AdminCommandCenter } from "@/components/admin/admin-command-center";
+import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
+import { EmailLogList } from "@/components/admin/email-log-list";
+import { ImageUploadForm } from "@/components/admin/image-upload-form";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
 import { AdminSidebar as AdminSidebarLayout } from "@/components/admin/admin-sidebar";
 import { cn } from "@/lib/utils";
@@ -374,7 +378,7 @@ export default async function AdminPage({
         ) : null}
 
         {view === "emails" ? (
-          <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs.slice(0, 30)} />
+          <EmailsView dashboard={dashboard} recentEmails={dashboard.emailLogs} />
         ) : null}
 
         {view === "invoices" ? <AdminInvoicesView invoices={adminInvoices} page={page} /> : null}
@@ -1540,11 +1544,12 @@ function BookingsView({
         </div>
 
         <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
-          <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_2rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
+          <div className="hidden grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_auto_2rem] gap-4 border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid">
             <span>Kunde og bil</span>
             <span>Tid og service</span>
             <span>Status</span>
             <span className="text-right">Total</span>
+            <span />
             <span />
           </div>
           <div className="divide-y divide-[#e8ebf5]">
@@ -1590,11 +1595,25 @@ function CustomersView({
 
   return (
     <div className="space-y-5">
-      <ViewHeader
-        icon={Users}
-        title="Kunder"
-        description={`${customers.length} kunder · ${customers.filter((c) => c.upcomingBookings > 0).length} aktive`}
-      />
+      <div className="flex items-start justify-between gap-4">
+        <ViewHeader
+          icon={Users}
+          title="Kunder"
+          description={`${customers.length} kunder · ${customers.filter((c) => c.upcomingBookings > 0).length} aktive`}
+        />
+        <a
+          href="/api/admin/export/customers"
+          download
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-xl border border-[#e8ebf5] bg-white px-4 py-2 text-[13px] font-medium text-[#374151] shadow-sm hover:bg-[#f9fafb] active:scale-[0.98] transition-transform"
+        >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#6B7280]">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Eksporter Excel
+        </a>
+      </div>
 
       <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
@@ -2236,13 +2255,7 @@ function EmailsView({
             title="Seneste emailhændelser"
             description="Her kan admin se, hvad der er sendt, om det fejlede, og sende den nuværende mail igen med ét klik."
           />
-          <div className="grid gap-4">
-            {recentEmails.length > 0 ? (
-              recentEmails.map((email) => <EmailLogCard key={email.id} email={email} />)
-            ) : (
-              <EmptyState text="Ingen mailhistorik endnu." />
-            )}
-          </div>
+          <EmailLogList emails={recentEmails} />
         </section>
       </div>
     </div>
@@ -2659,6 +2672,31 @@ function SettingsView({
         </section>
 
         <section className="space-y-4">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Virksomhedslogo</p>
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-5 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+            <p className="text-[13px] font-semibold text-[#111827]">Admin-logo / virksomhedsbillede</p>
+            <p className="mt-1 text-[12px] font-medium text-[#6B7280]">
+              Bruges i adminpanelet og e-mails. Max 4 MB · JPEG, PNG eller WebP.
+            </p>
+            <div className="mt-4 flex flex-wrap items-start gap-4">
+              {dashboard.settings.companyLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={dashboard.settings.companyLogoUrl}
+                  alt="Logo"
+                  className="h-20 w-20 rounded-2xl border border-[#DCEEF2] object-contain bg-white p-1"
+                />
+              ) : (
+                <div className="flex h-20 w-20 items-center justify-center rounded-2xl border border-dashed border-[#DCEEF2] bg-white/60 text-[#94A3B8]">
+                  <ImageIcon className="h-7 w-7" />
+                </div>
+              )}
+              <div className="flex-1">
+                <ImageUploadForm action="/api/admin/settings/image" />
+              </div>
+            </div>
+          </div>
+
           <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Info</p>
           <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 px-5 py-4 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
             <p className="text-[13px] font-semibold text-[#111827]">Hvad betyder standardstatus?</p>
@@ -2708,7 +2746,7 @@ function BookingActionCard({
       className="group bg-white/40 open:bg-white"
     >
       <summary className="cursor-pointer list-none px-4 py-4 transition hover:bg-white/80 sm:px-5">
-        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_2rem] lg:items-center lg:gap-4">
+        <div className="grid gap-3 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_9rem_8rem_auto_2rem] lg:items-center lg:gap-4">
           <div className="min-w-0">
             <p className="truncate text-[14px] font-bold text-[#1f2340]">
               {booking.customerName || booking.customerEmail}
@@ -2732,6 +2770,12 @@ function BookingActionCard({
           <p className="text-[14px] font-bold text-[#1f2340] lg:text-right">
             {formatPrice(booking.total)}
           </p>
+          <ConfirmDeleteForm
+            action={`/api/admin/bookings/${booking.id}`}
+            hiddenFields={{ action: "delete", return_view: returnView }}
+            message={`Slet booking for ${booking.customerName || booking.customerEmail}? Handlingen kan ikke fortrydes.`}
+            label="Slet"
+          />
           <ChevronDown className="h-5 w-5 text-[#8e95b5] transition group-open:rotate-180" />
         </div>
       </summary>
@@ -3051,7 +3095,14 @@ function CustomerCard({
               <Field label="Noter">
                 <Textarea name="notes" defaultValue={customer.notes} className="min-h-28" />
               </Field>
-              <Button type="submit">Gem kundeinfo</Button>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button type="submit">Gem kundeinfo</Button>
+                <ConfirmDeleteForm
+                  action={`/api/admin/customers/${customer.id}`}
+                  hiddenFields={{ action: "delete", return_view: "customers" }}
+                  message={`Slet kunden ${name}? Alle kundedata slettes. Handlingen kan ikke fortrydes.`}
+                />
+              </div>
             </form>
           </InfoPanel>
 
@@ -3164,16 +3215,16 @@ function AdminInvoicesView({ invoices, page }: { invoices: Invoice[]; page: numb
       <div className="overflow-hidden rounded-3xl border border-white/60 bg-white/65 shadow-[0_10px_32px_rgba(11,31,58,0.06)]">
         {pageItems.length > 0 ? (
           <>
-            <div className="hidden border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid lg:grid-cols-[1fr_1fr_9rem_auto] lg:gap-4">
-              {["Faktura", "Kunde / e-mail", "Beløb", ""].map((col) => (
-                <span key={col}>{col}</span>
+            <div className="hidden border-b border-[#e8ebf5] px-5 py-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#8e95b5] lg:grid lg:grid-cols-[1fr_1fr_9rem_auto_auto] lg:gap-4">
+              {["Faktura", "Kunde / e-mail", "Beløb", "", ""].map((col, i) => (
+                <span key={i}>{col}</span>
               ))}
             </div>
             <div className="divide-y divide-[#e8ebf5]">
               {pageItems.map((invoice) => (
                 <article
                   key={invoice.id}
-                  className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto] lg:items-center"
+                  className="grid gap-3 px-5 py-3.5 lg:grid-cols-[1fr_1fr_9rem_auto_auto] lg:items-center"
                 >
                   <div>
                     <p className="text-[13px] font-bold text-[#111827]">{invoice.invoiceNumber}</p>
@@ -3203,6 +3254,11 @@ function AdminInvoicesView({ invoices, page }: { invoices: Invoice[]; page: numb
                   ) : (
                     <span className="text-[12px] text-[#6B7280]">Ingen visning</span>
                   )}
+                  <ConfirmDeleteForm
+                    action={`/api/admin/invoices/${invoice.id}`}
+                    hiddenFields={{ action: "delete" }}
+                    message={`Slet faktura ${invoice.invoiceNumber}? Handlingen kan ikke fortrydes.`}
+                  />
                 </article>
               ))}
             </div>

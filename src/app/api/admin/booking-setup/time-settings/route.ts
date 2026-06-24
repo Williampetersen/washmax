@@ -25,7 +25,15 @@ export async function PATCH(request: Request) {
   if (!(await ensureAdmin())) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  await saveTimeSettings(await request.json());
+  const body = await request.json() as Record<string, unknown>;
+  if (body.timeZone) {
+    try {
+      Intl.DateTimeFormat(undefined, { timeZone: String(body.timeZone) });
+    } catch {
+      delete body.timeZone;
+    }
+  }
+  await saveTimeSettings(body);
   return NextResponse.json({ ok: true });
 }
 
@@ -34,6 +42,14 @@ export async function POST(request: Request) {
     return NextResponse.redirect(new URL("/admin/login", request.url), 303);
   }
   const formData = await request.formData();
+  const rawTimeZone = String(formData.get("time_zone") || "Europe/Copenhagen").trim();
+  let validatedTimeZone = "Europe/Copenhagen";
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: rawTimeZone });
+    validatedTimeZone = rawTimeZone;
+  } catch {
+    // invalid timezone — keep default
+  }
   await saveTimeSettings({
     slotIntervalMinutes: asNumber(formData.get("slot_interval_minutes"), 30),
     minimumNoticeHours: asNumber(formData.get("minimum_notice_hours"), 2),
@@ -43,6 +59,7 @@ export async function POST(request: Request) {
     maxBookingsPerSlot: asNumber(formData.get("max_bookings_per_slot"), 1),
     maxBookingsPerDay: asNumber(formData.get("max_bookings_per_day")),
     allowSameDayBooking: Boolean(formData.get("allow_same_day_booking")),
+    timeZone: validatedTimeZone,
   });
   return NextResponse.redirect(new URL("/admin?view=booking-setup&saved=booking-setup", request.url), 303);
 }

@@ -9,6 +9,20 @@ const asNumber = (value: FormDataEntryValue | null, fallback = 0) => {
   return Number.isFinite(number) ? number : fallback;
 };
 
+const parseCategoryPrices = (formData: FormData): Record<string, number> => {
+  const prices: Record<string, number> = {};
+  for (const categoryId of ["small", "medium", "large", "van"]) {
+    const val = formData.get(`cat_price_${categoryId}`);
+    if (val !== null && String(val).trim() !== "") {
+      const num = Number(val);
+      if (Number.isFinite(num) && num >= 0) {
+        prices[categoryId] = Math.round(num);
+      }
+    }
+  }
+  return prices;
+};
+
 const ensureAdmin = async () => {
   const cookieStore = await cookies();
   return getAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value);
@@ -39,6 +53,7 @@ export async function POST(
         sortOrder: asNumber(formData.get("sort_order")),
         isVisible: Boolean(formData.get("is_visible")),
         isFeatured: Boolean(formData.get("is_featured")),
+        categoryPrices: parseCategoryPrices(formData),
       });
     }
     return NextResponse.redirect(new URL("/admin?view=booking-setup&saved=booking-setup", request.url), 303);
@@ -68,6 +83,7 @@ export async function PATCH(
     sortOrder: Number(body.sortOrder || 0),
     isVisible: body.isVisible !== false,
     isFeatured: Boolean(body.isFeatured),
+    categoryPrices: body.categoryPrices && typeof body.categoryPrices === "object" ? body.categoryPrices : {},
   });
   return NextResponse.json({ ok: true });
 }

@@ -6,6 +6,7 @@ export type CleaningPackage = {
   estimatedMinutes: number;
   badge: string;
   price?: number;
+  categoryPrices?: Record<string, number>;
   imageUrl?: string;
   isFeatured?: boolean;
   features?: string[];
@@ -82,9 +83,15 @@ export type VehicleLookupResult = {
 
 export type BookingSettings = {
   companyName: string;
+  companyLogoUrl?: string;
   supportEmail: string;
   adminNotifyEmail: string;
+  adminNotifyEmail2?: string;
+  adminNotifyEmail3?: string;
+  adminNotifyEmail4?: string;
+  adminNotifyEmail5?: string;
   defaultBookingStatus: AutoBookingStatus;
+  timeZone?: string;
   startHour: number;
   endHour: number;
   slotMinutes: number;
@@ -113,6 +120,7 @@ export const cleaningPackages: CleaningPackage[] = [
     duration: "85 - 130 min.",
     estimatedMinutes: 110,
     badge: "Gratis voks",
+    categoryPrices: { small: 799, medium: 899, large: 999, van: 1500 },
   },
   {
     id: "inside",
@@ -121,6 +129,7 @@ export const cleaningPackages: CleaningPackage[] = [
     duration: "60 - 80 min.",
     estimatedMinutes: 75,
     badge: "Kabine",
+    categoryPrices: { small: 600, medium: 700, large: 799, van: 899 },
   },
   {
     id: "outside",
@@ -129,6 +138,16 @@ export const cleaningPackages: CleaningPackage[] = [
     duration: "50 - 70 min.",
     estimatedMinutes: 65,
     badge: "Finish",
+    categoryPrices: { small: 450, medium: 600, large: 699, van: 899 },
+  },
+  {
+    id: "gold",
+    title: "Guldpakken",
+    description: "Den ultimative rengøring – hele bilen plus ekstra pleje.",
+    duration: "120 - 180 min.",
+    estimatedMinutes: 150,
+    badge: "Mest populær",
+    categoryPrices: { medium: 2300, large: 2400, van: 2500 },
   },
 ];
 
@@ -229,6 +248,7 @@ export const defaultBookingSettings: BookingSettings = {
   supportEmail: "info@cleanwash.dk",
   adminNotifyEmail: "",
   defaultBookingStatus: "pending",
+  timeZone: "Europe/Copenhagen",
   startHour: 8,
   endHour: 18,
   slotMinutes: 150,
@@ -245,8 +265,8 @@ export const sanitizePlate = (plate: string) =>
   plate
     .trim()
     .toUpperCase()
-    .replace(/[^A-Z0-9]/g, "")
-    .slice(0, 10);
+    .replace(/\s+/g, " ")
+    .slice(0, 20);
 
 export const normalizePostalCode = (postalCode: string) =>
   postalCode.replace(/\s+/g, "").trim();

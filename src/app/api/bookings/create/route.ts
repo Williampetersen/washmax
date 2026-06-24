@@ -223,14 +223,6 @@ export async function POST(request: Request) {
     });
     logTiming("booking.db", dbStartedAt);
 
-    // Auto-assign an agent immediately after booking creation.
-    // Never throw — booking confirmation must succeed regardless.
-    try {
-      await autoAssignAgent(bookingResult.booking.id);
-    } catch (assignError) {
-      console.error("Auto-assignment failed for new booking", assignError);
-    }
-
     const requestOrigin = new URL(request.url).origin;
     const portalBaseUrl = process.env.APP_URL || requestOrigin;
     const portalUrl = `${portalBaseUrl}/kunde/verify?t=${bookingResult.customer.portalToken}`;
@@ -249,6 +241,13 @@ export async function POST(request: Request) {
     }
 
     after(async () => {
+      // Auto-assign runs after the response so it never blocks the customer.
+      try {
+        await autoAssignAgent(bookingResult.booking.id);
+      } catch (assignError) {
+        console.error("Auto-assignment failed for new booking", assignError);
+      }
+
       const activityJob = logBookingActivity(bookingResult.booking.id, {
         actor: "website",
         activityType: "booking_created",

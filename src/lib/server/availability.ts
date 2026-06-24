@@ -89,12 +89,12 @@ export type AvailableSlotsInput = {
 
 const formatterCache = new Map<string, Intl.DateTimeFormat>();
 
-const getFormatter = (options: Intl.DateTimeFormatOptions) => {
-  const key = JSON.stringify(options);
+const getFormatter = (options: Intl.DateTimeFormatOptions, tz = BOOKING_TIME_ZONE) => {
+  const key = `${tz}:${JSON.stringify(options)}`;
   const cached = formatterCache.get(key);
   if (cached) return cached;
   const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone: BOOKING_TIME_ZONE,
+    timeZone: tz,
     hourCycle: "h23",
     ...options,
   });
@@ -102,13 +102,13 @@ const getFormatter = (options: Intl.DateTimeFormatOptions) => {
   return formatter;
 };
 
-const toDateText = (value: unknown) => {
+const toDateText = (value: unknown, tz = BOOKING_TIME_ZONE) => {
   if (value instanceof Date) {
     const parts = getFormatter({
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
-    }).formatToParts(value);
+    }, tz).formatToParts(value);
     const year = parts.find((part) => part.type === "year")?.value || "0000";
     const month = parts.find((part) => part.type === "month")?.value || "01";
     const day = parts.find((part) => part.type === "day")?.value || "01";
@@ -119,12 +119,12 @@ const toDateText = (value: unknown) => {
   return text.length >= 10 ? text.slice(0, 10) : text;
 };
 
-const toTimeText = (value: unknown, fallback = "00:00") => {
+const toTimeText = (value: unknown, fallback = "00:00", tz = BOOKING_TIME_ZONE) => {
   if (value instanceof Date) {
     const parts = getFormatter({
       hour: "2-digit",
       minute: "2-digit",
-    }).formatToParts(value);
+    }, tz).formatToParts(value);
     const hour = parts.find((part) => part.type === "hour")?.value || "00";
     const minute = parts.find((part) => part.type === "minute")?.value || "00";
     return `${hour}:${minute}`;
@@ -153,7 +153,7 @@ const parseTime = (timeValue: string) => {
   return { hours, minutes };
 };
 
-const getZonedParts = (date: Date) => {
+const getZonedParts = (date: Date, tz = BOOKING_TIME_ZONE) => {
   const parts = getFormatter({
     year: "numeric",
     month: "2-digit",
@@ -161,7 +161,7 @@ const getZonedParts = (date: Date) => {
     hour: "2-digit",
     minute: "2-digit",
     second: "2-digit",
-  }).formatToParts(date);
+  }, tz).formatToParts(date);
   const value = (type: Intl.DateTimeFormatPartTypes) =>
     Number(parts.find((part) => part.type === type)?.value || 0);
 
@@ -175,8 +175,8 @@ const getZonedParts = (date: Date) => {
   };
 };
 
-const getTimeZoneOffsetMs = (date: Date) => {
-  const parts = getZonedParts(date);
+const getTimeZoneOffsetMs = (date: Date, tz = BOOKING_TIME_ZONE) => {
+  const parts = getZonedParts(date, tz);
   const asUtc = Date.UTC(
     parts.year,
     parts.month - 1,
@@ -188,18 +188,18 @@ const getTimeZoneOffsetMs = (date: Date) => {
   return asUtc - date.getTime();
 };
 
-export const zonedDateTimeToUtc = (dateValue: string, timeValue: string) => {
+export const zonedDateTimeToUtc = (dateValue: string, timeValue: string, tz = BOOKING_TIME_ZONE) => {
   const date = parseDate(dateValue);
   const time = parseTime(timeValue);
   if (!date || !time) return null;
 
   const utcGuess = Date.UTC(date.year, date.month - 1, date.day, time.hours, time.minutes, 0);
-  const first = new Date(utcGuess - getTimeZoneOffsetMs(new Date(utcGuess)));
-  return new Date(utcGuess - getTimeZoneOffsetMs(first));
+  const first = new Date(utcGuess - getTimeZoneOffsetMs(new Date(utcGuess), tz));
+  return new Date(utcGuess - getTimeZoneOffsetMs(first, tz));
 };
 
-export const getCopenhagenNow = (now = new Date()) => {
-  const parts = getZonedParts(now);
+export const getCopenhagenNow = (tz = BOOKING_TIME_ZONE, now = new Date()) => {
+  const parts = getZonedParts(now, tz);
   return {
     date: `${parts.year.toString().padStart(4, "0")}-${parts.month
       .toString()
@@ -400,7 +400,7 @@ const getOccupiedPeriod = (
   durationMinutes: number,
   settings: BookingSettings
 ) => {
-  const start = zonedDateTimeToUtc(dateValue, timeValue);
+  const start = zonedDateTimeToUtc(dateValue, timeValue, settingsTimeZone(settings));
   if (!start) return null;
 
   const serviceStart = start.getTime();
@@ -437,11 +437,14 @@ const slotFitsWindow = (
   return true;
 };
 
+const settingsTimeZone = (settings: BookingSettings) =>
+  settings.timeZone || BOOKING_TIME_ZONE;
+
 const passesCurrentTimeRules = (
   dateValue: string,
   timeValue: string,
   settings: BookingSettings,
-  now = getCopenhagenNow()
+  now = getCopenhagenNow(settingsTimeZone(settings))
 ) => {
   if (settings.allowSameDayBooking === false && dateValue === now.date) return false;
   if (dateValue < now.date) return false;
@@ -454,7 +457,7 @@ const passesCurrentTimeRules = (
 const withinMaximumAdvanceWindow = (dateValue: string, settings: BookingSettings) => {
   const maximumDaysAhead = Number(settings.maximumDaysAhead || 0);
   if (!maximumDaysAhead) return true;
-  const today = getCopenhagenNow().date;
+  const today = getCopenhagenNow(settingsTimeZone(settings)).date;
   return dateValue <= addDays(today, maximumDaysAhead);
 };
 
@@ -544,7 +547,7 @@ export const getAvailableBookingSlots = async (input: AvailableSlotsInput) => {
     getRelevantBookings(sql, input.date, agentId),
   ]);
 
-  const now = getCopenhagenNow();
+  const now = getCopenhagenNow(settingsTimeZone(input.settings));
   const slots: string[] = [];
 
   for (let minutes = start; minutes + durationMinutes <= end; minutes += intervalMinutes) {

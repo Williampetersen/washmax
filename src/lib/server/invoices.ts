@@ -8,6 +8,7 @@ import {
   type BookingCustomer,
   type DashboardBooking,
 } from "@/lib/server/bookings";
+import { getBookingSettingsFromSetup } from "@/lib/server/booking-setup";
 import {
   sendAdminInvoiceNotice,
   sendCustomerInvoiceEmail,
@@ -1262,8 +1263,13 @@ export const updateInvoiceDetails = async (
     throw new InvoiceWorkflowError("Invoice was not found.", 404, "INVOICE_NOT_FOUND");
   }
   await assertActorCanAccessInvoice(current, actor);
+  // Allow admin to unlock + re-edit by sending a non-locked target status together with edits.
+  const targetStatus =
+    patch.status && invoiceStatuses.includes(patch.status) ? patch.status : current.status;
+  const isUnlocking = !["sent", "paid"].includes(targetStatus);
   if (
     ["sent", "paid"].includes(current.status) &&
+    !isUnlocking &&
     (patch.manualLines || patch.customerEmail !== undefined)
   ) {
     throw new InvoiceWorkflowError(
@@ -1409,7 +1415,7 @@ export const sendInvoiceById = async (
     invoice = (await renderAndStoreInvoice(row, invoice.items, data)).invoice;
   }
   const recipient = invoice.customerEmail || data.customer.email;
-  const settings = await getBookingSettings();
+  const settings = await getBookingSettingsFromSetup();
   const subject = `${settings.companyName}: faktura ${invoice.invoiceNumber}`;
   const invoiceUrl = new URL(invoice.publicUrl, baseUrl()).toString();
   try {
@@ -1618,3 +1624,9 @@ export const updateInvoiceStatus = async (
       { status }
     )
   ).invoice;
+
+export const deleteInvoice = async (invoiceId: string) => {
+  const sql = getSql();
+  await sql`DELETE FROM invoice_items WHERE invoice_id = ${invoiceId}`;
+  await sql`DELETE FROM invoices WHERE id = ${invoiceId}`;
+};

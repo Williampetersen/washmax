@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
-import { updateCustomerAdmin } from "@/lib/server/bookings";
+import { deleteCustomer, updateCustomerAdmin } from "@/lib/server/bookings";
 
 const asText = (value: FormDataEntryValue | null) => String(value || "").trim();
 
@@ -16,7 +16,16 @@ export async function POST(
 
   const { id } = await context.params;
   const formData = await request.formData();
+  const action = asText(formData.get("action"));
   const returnView = asText(formData.get("return_view")) || "customers";
+
+  if (action === "delete") {
+    await deleteCustomer(id);
+    return NextResponse.redirect(
+      new URL(`/admin?view=${encodeURIComponent(returnView)}&saved=deleted`, request.url),
+      303
+    );
+  }
 
   await updateCustomerAdmin(id, {
     notes: asText(formData.get("notes")),

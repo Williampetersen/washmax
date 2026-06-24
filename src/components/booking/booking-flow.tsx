@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { da } from "date-fns/locale";
@@ -57,6 +58,8 @@ const bookingFormSchema = bookingCustomerSchema.extend({
 
 type BookingFlowProps = {
   initialPlate: string;
+  initialCategory?: string;
+  manualMode?: boolean;
   minDate: string;
   settings: BookingSettings;
   availabilityBlocks: AvailabilityBlock[];
@@ -103,7 +106,7 @@ const toCalendarDate = (dateValue: string) => {
   const [y, m, d] = dateValue.split("-").map(Number);
   return new Date(Date.UTC(y!, m! - 1, d!, 12, 0, 0));
 };
-const platePattern = /^[A-Z0-9]{2,10}$/;
+const platePattern = /^.{2,}$/;
 const lookupDebounceMs = 400;
 const minAutoLookupPlateLength = 5;
 const clientVehicleCacheTtlMs = 5 * 60 * 1000;
@@ -121,6 +124,28 @@ const createManualVehicle = (plate: string): VehicleLookupResult => ({
   chassis_type: null,
   lookupUnavailable: true,
 });
+
+// Maps a category id to a fake VehicleLookupResult so getVehicleCategory() resolves correctly.
+const categoryWeights: Record<string, { type: string | null; weight: number }> = {
+  van:    { type: "varebil", weight: 3000 },
+  large:  { type: null,      weight: 2200 },
+  medium: { type: null,      weight: 1500 },
+  small:  { type: null,      weight: 1000 },
+};
+const createCategoryVehicle = (categoryId: string): VehicleLookupResult => {
+  const spec = categoryWeights[categoryId] ?? categoryWeights.small!;
+  return {
+    registration_number: "",
+    make: null,
+    model: null,
+    model_year: null,
+    color: null,
+    type: spec.type,
+    total_weight: spec.weight,
+    chassis_type: null,
+    lookupUnavailable: true,
+  };
+};
 
 const createIdempotencyKey = (input: {
   plate: string;
@@ -151,7 +176,7 @@ const findFirstBookableDate = (
 };
 
 
-export function BookingFlow({ initialPlate, minDate, settings, availabilityBlocks }: BookingFlowProps) {
+export function BookingFlow({ initialPlate, initialCategory, manualMode = false, minDate, settings, availabilityBlocks }: BookingFlowProps) {
   const initialBookableDate = useMemo(
     () => findFirstBookableDate(minDate, settings, availabilityBlocks),
     [availabilityBlocks, minDate, settings]
@@ -159,7 +184,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
 
   const [plate, setPlate] = useState(initialPlate);
   const [lookupStatus, setLookupStatus] = useState<LookupStatus | null>(null);
-  const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(null);
+  const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(() =>
+    manualMode && initialCategory ? createCategoryVehicle(initialCategory) : null
+  );
+  const [manualVehicleName, setManualVehicleName] = useState("");
   const [activePackage, setActivePackage] = useState(settings.catalog.packages[0]?.id || "");
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
   const [secondVehicle, setSecondVehicle] = useState<VehicleLookupResult | null>(null);
@@ -183,6 +211,15 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountDkk: number; label: string } | null>(null);
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState("");
+
+  const [toast, setToast] = useState<{ message: string; type: "added" | "removed" } | null>(null);
+  const toastTimerRef = useRef<number | null>(null);
+
+  const showToast = useCallback((message: string, type: "added" | "removed" = "added") => {
+    if (toastTimerRef.current) window.clearTimeout(toastTimerRef.current);
+    setToast({ message, type });
+    toastTimerRef.current = window.setTimeout(() => setToast(null), 3000);
+  }, []);
 
   const step1Ref = useRef<HTMLDivElement>(null);
   const step2Ref = useRef<HTMLDivElement>(null);
@@ -259,11 +296,27 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   );
   const vehicleName = useMemo(() => buildVehicleName(vehicle), [vehicle]);
   const vehicleTypeLabel = vehicle?.type ? `Biltype: ${vehicle.type}` : "Biltype: -";
-  const activePackagePrice = Number(activePackageData?.price || 0);
+  const activeCatId = category?.id;
+  const activeCatSpecificPrice =
+    activeCatId && activePackageData?.categoryPrices
+      ? (activePackageData.categoryPrices[activeCatId] ?? undefined)
+      : undefined;
+  const activePackagePrice =
+    activeCatSpecificPrice != null
+      ? Number(activeCatSpecificPrice)
+      : Number(activePackageData?.price || 0);
   const basePrice = activePackagePrice > 0 ? activePackagePrice : category?.price ?? 0;
   const hasSecondCar = Boolean(secondVehicle);
   const secondVehicleName = useMemo(() => buildVehicleName(secondVehicle), [secondVehicle]);
-  const secondPackagePrice = Number(secondPackageData?.price || 0);
+  const secondCatId = secondCategory?.id;
+  const secondCatSpecificPrice =
+    secondCatId && secondPackageData?.categoryPrices
+      ? (secondPackageData.categoryPrices[secondCatId] ?? undefined)
+      : undefined;
+  const secondPackagePrice =
+    secondCatSpecificPrice != null
+      ? Number(secondCatSpecificPrice)
+      : Number(secondPackageData?.price || 0);
   const secondBasePrice = secondPackageData
     ? secondPackagePrice > 0
       ? secondPackagePrice
@@ -503,7 +556,7 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       lookupControllerRef.current?.abort();
       latestLookupPlateRef.current = "";
       setVehicle(null);
-      setLookupStatus({ message: "Indtast en gyldig dansk nummerplade, fx AB12345.", type: "error" });
+      setLookupStatus({ message: "Indtast mindst 2 tegn.", type: "error" });
       return;
     }
     const cached = vehicleLookupCache.get(normalizedPlate);
@@ -550,11 +603,12 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   }, []);
 
   useEffect(() => {
+    if (manualMode) return;
     const normalizedPlate = sanitizePlate(initialPlate);
     if (!normalizedPlate) return;
     if (latestLookupPlateRef.current === normalizedPlate && lookupControllerRef.current && !lookupControllerRef.current.signal.aborted) return;
     void lookupVehicle(initialPlate);
-  }, [initialPlate, lookupVehicle]);
+  }, [initialPlate, lookupVehicle, manualMode]);
 
   useEffect(
     () => () => {
@@ -593,16 +647,22 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   };
 
   const handlePackageSelect = (packageId: string) => {
+    const pkg = settings.catalog.packages.find((p) => p.id === packageId);
     if (activeVehicleIndex === 1) {
       setSecondPackage(packageId);
     } else {
       setActivePackage(packageId);
     }
+    if (pkg) showToast(`${pkg.title} valgt`);
     clearSelectedAppointmentTime();
     window.setTimeout(() => goToStep(2), 280);
   };
 
   const handleAddonToggle = (addon: AddOnSelection) => {
+    const currentIds = activeVehicleIndex === 1 ? secondAddonIds : selectedAddonIds;
+    const isCurrentlySelected = currentIds.includes(addon.id);
+    const willBeAdded = !isCurrentlySelected;
+
     if (activeVehicleIndex === 1) {
       setSecondAddonIds((current) =>
         current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
@@ -612,6 +672,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
         current.includes(addon.id) ? current.filter((item) => item !== addon.id) : [...current, addon.id]
       );
     }
+    showToast(
+      willBeAdded ? `${addon.label} tilføjet` : `${addon.label} fjernet`,
+      willBeAdded ? "added" : "removed"
+    );
     clearSelectedAppointmentTime();
   };
 
@@ -699,6 +763,10 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       setFormError("Vi mangler stadig biloplysninger for at oprette bookingen.");
       return;
     }
+    if (manualMode && !manualVehicleName.trim()) {
+      setFormError("Angiv bilens mærke og model for at fortsætte.");
+      return;
+    }
     if (hasSecondCar && (!secondVehicle || !secondPackageData || !secondCategory)) {
       setFormError("Vælg bilvask til bil 2, før du fortsætter til bekræftelse.");
       setActiveVehicleIndex(1);
@@ -724,9 +792,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
           method: "POST",
           headers: { "content-type": "application/json", accept: "application/json" },
           body: JSON.stringify({
-            plate,
-            registrationNumber: vehicle.registration_number,
-            vehicleName,
+            plate: manualMode ? "" : plate,
+            registrationNumber: manualMode ? "" : vehicle.registration_number,
+            vehicleName: manualMode && manualVehicleName.trim() ? manualVehicleName.trim() : vehicleName,
             vehicleYear: vehicle.model_year,
             vehicleType: vehicle.type || "",
             category: category.label,
@@ -740,9 +808,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
             couponCode: appliedCoupon?.code || "",
             vehicles: bookingVehicles.map((item) => ({
               id: item.id,
-              plate: item.plate,
-              registrationNumber: item.vehicle.registration_number || item.plate,
-              vehicleName: item.vehicleName,
+              plate: manualMode && item.id === "car-1" ? "" : item.plate,
+              registrationNumber: manualMode && item.id === "car-1" ? "" : (item.vehicle.registration_number || item.plate),
+              vehicleName: manualMode && item.id === "car-1" && manualVehicleName.trim() ? manualVehicleName.trim() : item.vehicleName,
               vehicleYear: item.vehicle.model_year,
               vehicleType: item.vehicle.type || "",
               category: item.category.label,
@@ -875,7 +943,29 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
   }
 
   // ── Lookup card ──────────────────────────────────────────────────
-  const lookupCard = (
+  const lookupCard = manualMode ? (
+    <Card className="p-5 sm:p-7">
+      <p className="text-sm font-semibold uppercase text-[#6b7780]">Booking</p>
+      <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">
+        {category?.label ?? "Din bil"}
+      </h1>
+      <p className="mt-3 max-w-xl text-sm leading-6 text-[var(--muted)]">
+        Du har valgt bilstørrelse manuelt. Vælg pakke og tilvalg herunder, og angiv bilmærke og model under &ldquo;Dine oplysninger&rdquo;.
+      </p>
+      <div className="mt-5 flex flex-wrap items-center gap-3">
+        <span className="inline-flex items-center gap-2 rounded-xl border border-[var(--line)] bg-[#f6fbfc] px-4 py-2.5 text-sm font-semibold text-[var(--ink)]">
+          <Car className="h-4 w-4 text-[var(--brand)]" />
+          {category?.label ?? "Bilstørrelse"}
+        </span>
+        <Link
+          href="/velg-storrelse"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-[var(--muted)] transition hover:text-[var(--brand)]"
+        >
+          ← Skift bilstørrelse
+        </Link>
+      </div>
+    </Card>
+  ) : (
     <Card className="p-5 sm:p-7">
       <p className="text-sm font-semibold uppercase text-[#6b7780]">Booking</p>
       <h1 className="mt-3 font-display text-3xl font-semibold text-[var(--ink)] sm:text-4xl">Sla nummerplade op</h1>
@@ -929,8 +1019,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     Du vælger service til: {activeVehicleLabel}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
-                    {activeSelectionVehicleName} · {activeSelectionVehicle?.registration_number || "-"}
-                    {hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}
+                    {manualMode
+                      ? `${activeSelectionCategory?.label ?? "Størrelse valgt manuelt"} · Mærke og model angives under "Dine oplysninger"`
+                      : `${activeSelectionVehicleName} · ${activeSelectionVehicle?.registration_number || "-"}${hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}`}
                   </p>
                 </div>
               </div>
@@ -959,9 +1050,18 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     <LoaderCircle className="h-4 w-4 animate-spin" /> Tjekker...
                   </span>
                 ) : null}
-                <button type="button" onClick={handleChangeVehicle} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9] hover:text-[var(--ink)]">
-                  <RotateCcw className="h-4 w-4" /> Skift bil
-                </button>
+                {manualMode ? (
+                  <Link
+                    href="/velg-storrelse"
+                    className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9] hover:text-[var(--ink)]"
+                  >
+                    <RotateCcw className="h-4 w-4" /> Skift størrelse
+                  </Link>
+                ) : (
+                  <button type="button" onClick={handleChangeVehicle} className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--muted)] transition hover:bg-[#f2f7f9] hover:text-[var(--ink)]">
+                    <RotateCcw className="h-4 w-4" /> Skift bil
+                  </button>
+                )}
               </div>
             </div>
 
@@ -992,19 +1092,35 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                   }
                 />
                 <div className="grid gap-4 sm:grid-cols-3">
-                  {settings.catalog.packages.map((item) => {
-                    const isActive = item.id === activeSelectionPackageId;
-                    const itemPrice = Number(item.price || 0) > 0 ? Number(item.price) : activeSelectionCategory?.price ?? 0;
-                    return (
-                      <PackageCard
-                        key={item.id}
-                        item={item}
-                        isActive={isActive}
-                        price={itemPrice}
-                        onClick={() => handlePackageSelect(item.id)}
-                      />
-                    );
-                  })}
+                  {settings.catalog.packages
+                    .filter((item) => {
+                      if (!item.categoryPrices) return true;
+                      const catId = activeSelectionCategory?.id;
+                      if (!catId) return true;
+                      return item.categoryPrices[catId] != null;
+                    })
+                    .map((item) => {
+                      const isActive = item.id === activeSelectionPackageId;
+                      const catId = activeSelectionCategory?.id;
+                      const catSpecPrice =
+                        catId && item.categoryPrices ? (item.categoryPrices[catId] ?? undefined) : undefined;
+                      const itemPrice =
+                        catSpecPrice != null
+                          ? Number(catSpecPrice)
+                          : Number(item.price || 0) > 0
+                            ? Number(item.price)
+                            : activeSelectionCategory?.price ?? 0;
+                      return (
+                        <PackageCard
+                          key={item.id}
+                          item={item}
+                          isActive={isActive}
+                          price={itemPrice}
+                          vehicleName={activeSelectionVehicleName}
+                          onClick={() => handlePackageSelect(item.id)}
+                        />
+                      );
+                    })}
                 </div>
               </BookingAccordion>
             </div>
@@ -1138,11 +1254,14 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       locale={da}
                       weekStartsOn={1}
                       showOutsideDays
+                      fromDate={toCalendarDate(minDate)}
+                      toDate={maxBookableDate}
                       disabled={(date) => {
                         const dateValue = format(date, "yyyy-MM-dd");
+                        const maxDateStr = format(maxBookableDate, "yyyy-MM-dd");
                         return (
-                          date < toCalendarDate(minDate) ||
-                          date > maxBookableDate ||
+                          dateValue < minDate ||
+                          dateValue > maxDateStr ||
                           !isWorkingDay(date, settings.workingDays) ||
                           isDateBlocked(dateValue, availabilityBlocks)
                         );
@@ -1157,9 +1276,9 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                           {isAvailabilityLoading ? "Henter ledige tider…" : "Ledige tider"}
                         </p>
                         {isAvailabilityLoading ? (
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                            {[1, 2, 3].map((n) => (
-                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[var(--line)] bg-[#eefbfc]" />
+                          <div className="mt-4 grid grid-cols-3 gap-2">
+                            {[1, 2, 3, 4, 5, 6].map((n) => (
+                              <div key={n} className="h-12 animate-pulse rounded-xl border border-[#bbf7d0] bg-[#f0fdf4]" />
                             ))}
                           </div>
                         ) : availabilityError ? (
@@ -1167,22 +1286,25 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                             {availabilityError}
                           </p>
                         ) : availableTimeSlots.length > 0 ? (
-                          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                          <div className="mt-4 grid grid-cols-3 gap-2">
                             {availableTimeSlots.map((slot) => {
                               const isActive = slot === appointmentTime;
+                              const [h, m] = slot.split(":").map(Number);
+                              const endMins = h * 60 + m + (settings.slotMinutes || 120);
+                              const endTime = `${String(Math.floor(endMins / 60)).padStart(2, "0")}:${String(endMins % 60).padStart(2, "0")}`;
                               return (
                                 <button
                                   key={slot}
                                   type="button"
                                   onClick={() => setSelectedAppointmentTime(slot)}
                                   className={cn(
-                                    "rounded-xl border px-4 py-3 text-sm font-semibold transition",
+                                    "rounded-xl border px-1.5 py-3 text-center text-xs font-semibold transition",
                                     isActive
-                                      ? "border-[var(--brand)] bg-[var(--brand)] text-white shadow-md"
-                                      : "border-[var(--line)] bg-[#f6f8fa] text-[var(--ink)] hover:border-[var(--brand)]"
+                                      ? "border-[#16a34a] bg-[#16a34a] text-white shadow-md"
+                                      : "border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] hover:border-[#22c55e] hover:bg-[#dcfce7]"
                                   )}
                                 >
-                                  {slot}
+                                  {slot} - {endTime}
                                 </button>
                               );
                             })}
@@ -1235,6 +1357,30 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                       Erhverv
                     </button>
                   </div>
+                  {manualMode && (
+                    <div className="rounded-2xl border border-[#00A7B8]/25 bg-[#eefbfc] px-4 py-4">
+                      <p className="flex items-center gap-2 text-sm font-bold text-[var(--ink)]">
+                        <Car className="h-4 w-4 text-[var(--brand)]" />
+                        Bilmærke og model
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted)]">
+                        Angiv bilens mærke og model, så vi er forberedt til vask.
+                      </p>
+                      <Input
+                        className="mt-3"
+                        placeholder="Fx Toyota Yaris, VW Golf, BMW 3-serie…"
+                        value={manualVehicleName}
+                        onChange={(e) => setManualVehicleName(e.target.value)}
+                        required
+                      />
+                      {!manualVehicleName.trim() && (
+                        <p className="mt-1.5 text-xs font-medium text-[#B45309]">
+                          Dette felt er påkrævet
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field label="Fornavn" error={form.formState.errors.firstName?.message}><Input {...form.register("firstName")} placeholder="Fornavn" /></Field>
                     <Field label="Efternavn" error={form.formState.errors.lastName?.message}><Input {...form.register("lastName")} placeholder="Efternavn" /></Field>
@@ -1266,7 +1412,28 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
                     </div>
                     <label className="flex items-start gap-3">
                       <input type="checkbox" className="mt-1 h-4 w-4 rounded border-[var(--line)]" {...form.register("acceptsTerms")} />
-                      <span>Jeg accepterer handelsbetingelserne og persondatapolitikken</span>
+                      <span>
+                        Jeg accepterer{" "}
+                        <a
+                          href="/handelsbetingelser"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          handelsbetingelserne
+                        </a>
+                        {" "}og{" "}
+                        <a
+                          href="/persondatapolitik"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          persondatapolitikken
+                        </a>
+                      </span>
                     </label>
                     {form.formState.errors.acceptsTerms?.message ? (
                       <p className="-mt-1 text-sm text-red-600">{form.formState.errors.acceptsTerms.message}</p>
@@ -1470,6 +1637,31 @@ export function BookingFlow({ initialPlate, minDate, settings, availabilityBlock
       ) : (
         <section className="mx-auto mt-8 max-w-6xl">{lookupCard}</section>
       )}
+
+      {/* ── Toast notification ─────────────────────────────────── */}
+      <div
+        className={cn(
+          "fixed bottom-6 left-1/2 z-[70] -translate-x-1/2 transition-all duration-300 xl:bottom-8 xl:left-auto xl:right-8 xl:translate-x-0",
+          toast ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0 pointer-events-none"
+        )}
+      >
+        {toast ? (
+          <div className={cn(
+            "flex items-center gap-3 rounded-2xl px-4 py-3 shadow-[0_8px_32px_rgba(0,0,0,0.18)] backdrop-blur-xl",
+            toast.type === "removed"
+              ? "border border-red-200/40 bg-[#1f2d2a] text-white"
+              : "border border-emerald-500/20 bg-[#0f2820] text-white"
+          )}>
+            <span className={cn(
+              "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+              toast.type === "removed" ? "bg-red-500" : "bg-emerald-500"
+            )}>
+              <Check className="h-3.5 w-3.5 text-white" />
+            </span>
+            <span className="whitespace-nowrap text-[13px] font-semibold">{toast.message}</span>
+          </div>
+        ) : null}
+      </div>
     </main>
   );
 }
@@ -1575,87 +1767,142 @@ function BookingVehicleSummaryCard({
   );
 }
 
+const defaultFeaturesByType: Record<string, string[]> = {
+  hele: [
+    "Dampstøvsugning af sæder og måtter",
+    "Rat, geargreb og knapper renses",
+    "Steamvask af hele eksterøret",
+    "Kabinedesinfektion inkluderet",
+    "Fælge og dæk renses",
+    "Alle ruder aftørres",
+    "Vinyl og læderplejning",
+    "Lugtneutralisering af kabinen",
+  ],
+  indvend: [
+    "Støvsugning inkl. bagagerum",
+    "Plastik og læder aftørres",
+    "Vinduespudsning indefra",
+    "Kabinedesinfektion inkluderet",
+    "Rat og geargreb renses",
+    "Måtter rystes og støvsuges",
+    "Sidepaneler aftørres",
+    "Frisk luftbehandling",
+  ],
+  udvend: [
+    "Steamvask fjerner salt og tjære",
+    "Fælge og dæk til blank finish",
+    "Ruder og spejle aftørres",
+    "Lakbeskyttende afrensning",
+    "Lygter renses og poleres",
+    "Hjulkasser og dørfalse renses",
+    "Underkarm aftørres",
+    "Tørres af med blødt klæde",
+  ],
+};
+
+function getDefaultFeatures(title: string): string[] {
+  const lower = title.toLowerCase();
+  if (lower.includes("hele") || lower.includes("komplet") || lower.includes("full")) return defaultFeaturesByType.hele!;
+  if (lower.includes("indvend") || lower.includes("interior") || lower.includes("inden")) return defaultFeaturesByType.indvend!;
+  if (lower.includes("udvend") || lower.includes("exterior") || lower.includes("uden")) return defaultFeaturesByType.udvend!;
+  return [];
+}
+
 function PackageCard({
   item,
   isActive,
   price,
+  vehicleName,
   onClick,
 }: {
   item: { id: string; title: string; description: string; duration: string; badge: string; imageUrl?: string; features?: string[] };
   isActive: boolean;
   price: number;
+  vehicleName?: string;
   onClick: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
-  const features = item.features ?? [];
+  const catalogFeatures = item.features ?? [];
+  const features = catalogFeatures.length > 0 ? catalogFeatures : getDefaultFeatures(item.title);
   const visibleFeatures = expanded ? features : features.slice(0, 4);
 
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex flex-col overflow-hidden rounded-2xl border text-left transition",
-        isActive
-          ? "border-[var(--brand)] shadow-[0_8px_32px_rgba(0,167,184,0.18)]"
-          : "border-[var(--line)] bg-white hover:border-[var(--brand)] hover:shadow-md"
-      )}
+    <div className={cn("pkg-wrap", isActive && "pkg-wrap--active")}
+      style={isActive ? { background: "linear-gradient(135deg,#00A7B8,#22d3ee,#00A7B8)" } : undefined}
     >
-      {/* Image */}
-      {item.imageUrl ? (
-        <div className="relative h-44 w-full overflow-hidden">
-          <Image src={item.imageUrl} alt="" fill sizes="(max-width:640px) 100vw,33vw" className="object-cover" />
-          {isActive ? (
-            <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md">
-              <Check className="h-4 w-4" />
-            </span>
-          ) : null}
-        </div>
-      ) : (
-        <div className="flex h-32 items-center justify-center bg-[#eefbfc]">
-          <Sparkles className={cn("h-10 w-10", isActive ? "text-[var(--brand)]" : "text-[#99dfe7]")} />
-        </div>
-      )}
+      {/* Spinning border ring */}
+      <div className="pkg-ring" />
 
-      {/* Content */}
-      <div className="flex flex-1 flex-col bg-white p-4">
-        <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
-        <div className="mt-1.5 flex items-center justify-between gap-2">
-          <span className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
-            <Clock3 className="h-3.5 w-3.5" />
-            {item.duration}
-          </span>
-          <span className="text-sm text-[var(--muted)]">
-            Fra <strong className="text-base text-[var(--brand)]">{formatShortPrice(price)}</strong>
-          </span>
-        </div>
-
-        {features.length > 0 ? (
-          <div className="mt-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Dette er inkluderet</p>
-            <ul className="mt-2 space-y-1.5">
-              {visibleFeatures.map((f, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-[var(--muted)]">
-                  <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--brand)]" />
-                  {f}
-                </li>
-              ))}
-            </ul>
-            {features.length > 4 ? (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
-                className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
-              >
-                {expanded ? `Se mindre ▲` : `Se mere (+${features.length - 4}) ▼`}
-              </button>
+      <button
+        type="button"
+        onClick={onClick}
+        className="relative z-10 flex w-full flex-col overflow-hidden rounded-[14px] bg-white text-left transition hover:shadow-md"
+        style={isActive ? { boxShadow: "0 8px 32px rgba(0,167,184,0.18)" } : undefined}
+      >
+        {/* Image */}
+        {item.imageUrl ? (
+          <div className="relative h-44 w-full overflow-hidden rounded-t-[14px]">
+            <Image src={item.imageUrl} alt="" fill sizes="(max-width:640px) 100vw,33vw" className="object-cover" />
+            {isActive ? (
+              <span className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-[var(--brand)] text-white shadow-md">
+                <Check className="h-4 w-4" />
+              </span>
             ) : null}
           </div>
         ) : (
-          <p className="mt-3 text-sm leading-5 text-[var(--muted)]">{item.description}</p>
+          <div className="flex h-32 items-center justify-center rounded-t-[14px] bg-[#eefbfc]">
+            <Sparkles className={cn("h-10 w-10", isActive ? "text-[var(--brand)]" : "text-[#99dfe7]")} />
+          </div>
         )}
-      </div>
-    </button>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-4">
+          <h3 className="text-lg font-bold text-[var(--ink)]">{item.title}</h3>
+
+          {/* Vehicle name shown under title (name only, no plate) */}
+          {vehicleName ? (
+            <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--brand)]">
+              {vehicleName}
+            </p>
+          ) : null}
+
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <span className="flex items-center gap-1.5 text-sm text-[var(--muted)]">
+              <Clock3 className="h-3.5 w-3.5" />
+              {item.duration}
+            </span>
+            <span className="text-sm text-[var(--muted)]">
+              Fra <strong className="text-base text-[var(--brand)]">{formatShortPrice(price)}</strong>
+            </span>
+          </div>
+
+          {features.length > 0 ? (
+            <div className="mt-4">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[var(--brand)]">Inkluderet i pakken</p>
+              <ul className="mt-2 space-y-1">
+                {visibleFeatures.map((f, i) => (
+                  <li key={i} className="flex items-center gap-1.5 text-[13px] text-[var(--muted)]">
+                    <Check className="h-3.5 w-3.5 shrink-0 text-emerald-500" />
+                    <span className="truncate">{f}</span>
+                  </li>
+                ))}
+              </ul>
+              {features.length > 4 ? (
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}
+                  className="mt-2 flex items-center gap-1 text-xs font-semibold text-[var(--brand)] hover:underline"
+                >
+                  {expanded ? "Læs mindre ▲" : "Læs mere ▼"}
+                </button>
+              ) : null}
+            </div>
+          ) : (
+            <p className="mt-3 text-sm leading-5 text-[var(--muted)]">{item.description}</p>
+          )}
+        </div>
+      </button>
+    </div>
   );
 }
 
@@ -1668,6 +1915,37 @@ function AddonCard({
   isSelected: boolean;
   onToggle: () => void;
 }) {
+  const [typedDesc, setTypedDesc] = useState("");
+  const wasSelectedRef = useRef(false);
+  const typingRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (isSelected && !wasSelectedRef.current) {
+      wasSelectedRef.current = true;
+      const desc = addon.description || "";
+      if (!desc) return;
+      setTypedDesc("");
+      let i = 0;
+      if (typingRef.current) window.clearInterval(typingRef.current);
+      typingRef.current = window.setInterval(() => {
+        i++;
+        setTypedDesc(desc.slice(0, i));
+        if (i >= desc.length) {
+          window.clearInterval(typingRef.current!);
+          typingRef.current = null;
+        }
+      }, 22);
+    }
+    if (!isSelected && wasSelectedRef.current) {
+      wasSelectedRef.current = false;
+      if (typingRef.current) { window.clearInterval(typingRef.current); typingRef.current = null; }
+      setTypedDesc("");
+    }
+    return () => {
+      if (typingRef.current) window.clearInterval(typingRef.current);
+    };
+  }, [isSelected, addon.description]);
+
   return (
     <button
       type="button"
@@ -1679,6 +1957,15 @@ function AddonCard({
           : "border-[var(--line)] bg-white hover:border-[var(--brand)] hover:shadow-sm"
       )}
     >
+      {/* Shine sweep — only on selected cards */}
+      {isSelected ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-y-0 z-10 w-[35%] bg-gradient-to-r from-transparent via-white/45 to-transparent"
+          style={{ animation: "addon-shine 4s linear 0s infinite" }}
+        />
+      ) : null}
+
       {/* Image */}
       <div className="relative aspect-square w-full overflow-hidden">
         {addon.imageUrl ? (
@@ -1690,14 +1977,14 @@ function AddonCard({
         {addon.price ? (
           <span className={cn(
             "absolute right-2 top-2 rounded-full px-2 py-0.5 text-[11px] font-bold shadow-sm",
-            isSelected ? "bg-[var(--color-success)] text-white" : "bg-white/90 text-[var(--ink)]"
+            isSelected ? "bg-emerald-500 text-white" : "bg-white/90 text-[var(--ink)]"
           )}>
             {formatShortPrice(Number(addon.price))}
           </span>
         ) : null}
         {/* Check badge */}
         {isSelected ? (
-          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--color-success)] text-white shadow-sm">
+          <span className="absolute left-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm">
             <Check className="h-3.5 w-3.5" />
           </span>
         ) : null}
@@ -1709,7 +1996,12 @@ function AddonCard({
           {addon.label}
         </p>
         {isSelected && addon.description ? (
-          <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-[#99f6e4]">{addon.description}</p>
+          <p className="mt-1 min-h-[2.5rem] text-[10px] leading-4 text-[#99f6e4]">
+            {typedDesc}
+            {typedDesc.length < (addon.description?.length ?? 0) ? (
+              <span className="ml-px inline-block h-[10px] w-[1.5px] animate-pulse bg-[#99f6e4] align-middle" />
+            ) : null}
+          </p>
         ) : null}
       </div>
     </button>
