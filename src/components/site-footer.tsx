@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { Route } from "next";
-import { navItems, siteConfig } from "@/lib/site";
+import { siteConfig } from "@/lib/site";
 
 const route = (href: string) => href as Route;
 
@@ -23,6 +23,8 @@ const areaLinks = [
   { label: "Bilvask Nørrebro", href: route("/bilvask-noerrebro") },
   { label: "Bilvask Valby", href: route("/bilvask-valby") },
   { label: "Bilvask Hellerup", href: route("/bilvask-hellerup") },
+  { label: "Bilvask Sjælland", href: route("/bilvask-sjaelland") },
+  { label: "Om os", href: route("/om-os") },
 ];
 
 const trustLinks = [
@@ -121,13 +123,6 @@ export function SiteFooter() {
                   {item.label}
                 </Link>
               ))}
-              {navItems
-                .filter((item) => item.label === "Sjælland" || item.label === "Om os")
-                .map((item) => (
-                  <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
-                    {item.label}
-                  </Link>
-                ))}
             </div>
           </div>
 

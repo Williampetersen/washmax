@@ -46,13 +46,6 @@ export function MobileMenu() {
                 {item.label}
               </Link>
             ))}
-            <Link
-              href={"/kontakt" as import("next").Route}
-              onClick={close}
-              className="rounded-2xl px-4 py-3 text-sm text-[var(--ink)] transition hover:bg-[#eef8fa]"
-            >
-              Kontakt os
-            </Link>
           </div>
           <div className="mt-4 grid gap-3">
             <Link

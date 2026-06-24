@@ -31,12 +31,6 @@ export function SiteHeader() {
                   {item.label}
                 </Link>
               ))}
-              <Link
-                href={"/kontakt" as import("next").Route}
-                className="rounded-full px-4 py-2 text-sm text-[var(--muted)] transition hover:bg-[#eef8fa] hover:text-[var(--accent)]"
-              >
-                Kontakt
-              </Link>
             </nav>
 
             <div className="hidden items-center gap-3 lg:flex">
