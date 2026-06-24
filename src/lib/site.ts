@@ -14,6 +14,7 @@ export const siteConfig = {
 export const navItems = [
   { label: "Priser", href: "/bilvask-priser" },
   { label: "Områder", href: "/serviceomraader" },
+  { label: "Retur leasebil", href: "/retur-leasebil" },
   { label: "Om os", href: "/om-os" },
   { label: "Kontakt", href: "/kontakt" },
 ] as const;

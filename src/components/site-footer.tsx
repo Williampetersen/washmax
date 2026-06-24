@@ -14,6 +14,7 @@ const serviceLinks = [
   { label: "Udvendig bilvask", href: route("/udvendig-bilvask-koebenhavn") },
   { label: "Erhverv bilvask", href: route("/erhverv-bilvask-koebenhavn") },
   { label: "Flådeaftale", href: route("/erhverv/flaadeaftale") },
+  { label: "Retur leasebil", href: route("/retur-leasebil") },
 ];
 
 const areaLinks = [
