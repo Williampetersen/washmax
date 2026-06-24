@@ -230,23 +230,6 @@ export default async function CustomerPortalPage({
             {/* ── BOOKINGS ── */}
             {portalTab === "bookings" ? (
               <div className="space-y-4">
-<<<<<<< HEAD
-                <ViewHeader
-                  icon={ReceiptText}
-                  title="Bookinger"
-                  description={`${bookings.length} bookinger i alt · ${activeBookings.length} kommende`}
-                  action={
-                    <Link
-                      href="/booking"
-                      className="inline-flex h-9 items-center gap-2 rounded-xl bg-[#00A7B8] px-4 text-[12.5px] font-semibold text-white shadow-[0_4px_14px_rgba(0,167,184,0.28)] transition hover:bg-[#008A99]"
-                    >
-                      <CalendarPlus className="h-3.5 w-3.5" />
-                      Ny booking
-                    </Link>
-                  }
-                />
-=======
->>>>>>> 2c7b6c1791ada70b60c352fb7fbbd7d7c2f90ad3
 
                 {/* Hero greeting */}
                 <section className="relative overflow-hidden rounded-3xl border border-white/60 bg-white/[0.75] shadow-[0_12px_40px_rgba(0,167,184,0.08)] backdrop-blur-2xl">

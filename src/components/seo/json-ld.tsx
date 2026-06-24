@@ -54,46 +54,12 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     image: absoluteUrl(siteConfig.ogImage),
     telephone: siteConfig.phoneDisplay,
     email: siteConfig.email,
-    priceRange: "DKK 349-849+",
     openingHours: "Mo-Su 08:00-17:00",
-    contactPoint: {
-      "@type": "ContactPoint",
-      telephone: siteConfig.phoneDisplay,
-      contactType: "customer service",
-      areaServed: "DK",
-      availableLanguage: ["da", "en"],
-    },
     areaServed: page.schemaAreaServed.map((area) => ({
       "@type": "Place",
       name: area,
     })),
     knowsAbout: page.keywords,
-    hasOfferCatalog: {
-      "@type": "OfferCatalog",
-      name: "Bilvask og bilpleje",
-      itemListElement: [
-        ...packageOffers.map((offer) => ({
-          "@type": "Offer",
-          name: offer.name,
-          price: offer.price,
-          priceCurrency: "DKK",
-          availability: "https://schema.org/InStock",
-          url: absoluteUrl("/booking"),
-          itemOffered: {
-            "@type": "Service",
-            name: offer.name,
-            description: offer.description,
-          },
-        })),
-        ...["Mobil bilvask", "Indvendig bilrengøring", "Erhverv bilvask"].map((name) => ({
-        "@type": "Offer",
-        itemOffered: {
-          "@type": "Service",
-          name,
-        },
-        })),
-      ],
-    },
     potentialAction: {
       "@type": "ReserveAction",
       target: absoluteUrl("/booking"),

@@ -59,7 +59,6 @@ export type SeoPageConfig = {
   priority: number;
 };
 
-<<<<<<< HEAD
 const route = (href: string) => href as Route;
 
 const commonRelatedLinks: SeoPageConfig["relatedLinks"] = [
@@ -72,28 +71,18 @@ const commonRelatedLinks: SeoPageConfig["relatedLinks"] = [
   { label: "Udvendig bilvask København", href: route("/udvendig-bilvask-koebenhavn") },
   { label: "Bilvask priser", href: route("/bilvask-priser") },
   { label: "Erhverv bilvask København", href: route("/erhverv-bilvask-koebenhavn") },
+  { label: "Bilvask Frederiksberg", href: route("/bilvask-frederiksberg") },
+  { label: "Bilvask Amager", href: route("/bilvask-amager") },
+  { label: "Bilvask Østerbro", href: route("/bilvask-osterbro") },
+  { label: "Bilvask Roskilde", href: route("/bilvask-roskilde") },
+  { label: "Bilvask Køge", href: route("/bilvask-koege") },
+  { label: "Bilvask Hellerup", href: route("/bilvask-hellerup") },
+  { label: "Bilvask pris", href: route("/bilvask-pris") },
+  { label: "Car wash Copenhagen", href: route("/car-wash-copenhagen") },
 ];
 
 const relatedLinksWithout = (href: string) =>
   commonRelatedLinks.filter((link) => link.href !== route(href));
-=======
-const commonRelatedLinks = [
-  { label: "Book bilvask", href: "/booking" },
-  { label: "Bilvask København", href: "/bilvask-koebenhavn" },
-  { label: "Mobil bilvask København", href: "/mobil-bilvask-koebenhavn" },
-  { label: "Bilvask Sjælland", href: "/bilvask-sjaelland" },
-  { label: "Indvendig bilrengøring København", href: "/indvendig-bilrengoering-koebenhavn" },
-  { label: "Håndvask af bil København", href: "/haandvask-bil-koebenhavn" },
-  { label: "Bilvask Frederiksberg", href: "/bilvask-frederiksberg" },
-  { label: "Bilvask Amager", href: "/bilvask-amager" },
-  { label: "Bilvask Østerbro", href: "/bilvask-osterbro" },
-  { label: "Bilvask Roskilde", href: "/bilvask-roskilde" },
-  { label: "Bilvask Køge", href: "/bilvask-koege" },
-  { label: "Bilvask Hellerup", href: "/bilvask-hellerup" },
-  { label: "Bilvask pris", href: "/bilvask-pris" },
-  { label: "Car wash Copenhagen", href: "/car-wash-copenhagen" },
-] as const;
->>>>>>> 2c7b6c1791ada70b60c352fb7fbbd7d7c2f90ad3
 
 export const seoPages: SeoPageConfig[] = [
   {

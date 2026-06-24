@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { Route } from "next";
 import { navItems, siteConfig } from "@/lib/site";
 
-<<<<<<< HEAD
 const route = (href: string) => href as Route;
 
 const serviceLinks = [
@@ -21,7 +20,7 @@ const areaLinks = [
   { label: "Bilvask Frederiksberg", href: route("/bilvask-frederiksberg") },
   { label: "Bilvask Amager", href: route("/bilvask-amager") },
   { label: "Bilvask Østerbro", href: route("/bilvask-osterbro") },
-  { label: "Bilvask Nørrebro", href: route("/bilvask-norrebro") },
+  { label: "Bilvask Nørrebro", href: route("/bilvask-noerrebro") },
   { label: "Bilvask Valby", href: route("/bilvask-valby") },
   { label: "Bilvask Hellerup", href: route("/bilvask-hellerup") },
 ];
@@ -34,7 +33,7 @@ const trustLinks = [
   { label: "Garanti", href: route("/garanti") },
   { label: "Miljø", href: route("/miljoe") },
 ];
-=======
+
 const SOCIALS = [
   {
     label: "LinkedIn",
@@ -67,7 +66,6 @@ const SOCIALS = [
     hoverColor: "#1877F2",
   },
 ] as const;
->>>>>>> 2c7b6c1791ada70b60c352fb7fbbd7d7c2f90ad3
 
 export function SiteFooter() {
   return (
