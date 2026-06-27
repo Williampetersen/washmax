@@ -112,6 +112,7 @@ type RawTimeSettings = {
   max_bookings_per_day: number;
   allow_same_day_booking: boolean;
   time_zone: string;
+  slot_display_format: string;
 };
 
 type RawFormField = {
@@ -251,6 +252,7 @@ export type BookingTimeSettings = {
   maxBookingsPerDay: number;
   allowSameDayBooking: boolean;
   timeZone: string;
+  slotDisplayFormat: "range" | "start";
 };
 
 export type BookingFormField = {
@@ -445,6 +447,7 @@ const timeSettingsFromRow = (row?: RawTimeSettings | null): BookingTimeSettings 
   maxBookingsPerDay: Number(row?.max_bookings_per_day ?? 0),
   allowSameDayBooking: row?.allow_same_day_booking !== false,
   timeZone: String(row?.time_zone || "Europe/Copenhagen"),
+  slotDisplayFormat: row?.slot_display_format === "start" ? "start" : "range",
 });
 
 const formFieldFromRow = (row: RawFormField): BookingFormField => ({
@@ -631,13 +634,13 @@ const seedBookingSetup = async () => {
     INSERT INTO booking_time_settings (
       settings_key, slot_interval_minutes, minimum_notice_hours, maximum_days_ahead,
       buffer_before_minutes, buffer_after_minutes, max_bookings_per_slot,
-      max_bookings_per_day, allow_same_day_booking, time_zone
+      max_bookings_per_day, allow_same_day_booking, time_zone, slot_display_format
     )
     VALUES (
       'default', ${defaultBookingSettings.slotMinutes}, 2, 180,
       ${defaultBookingSettings.bufferBeforeMinutes ?? 160},
       ${defaultBookingSettings.bufferAfterMinutes ?? defaultBookingSettings.travelBufferMinutes},
-      1, 0, true, 'Europe/Copenhagen'
+      1, 0, true, 'Europe/Copenhagen', 'range'
     )
     ON CONFLICT (settings_key) DO NOTHING;
   `;
@@ -827,6 +830,7 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     startHour: Number(firstOpen?.startTime.slice(0, 2) || defaultBookingSettings.startHour),
     endHour: Number(firstOpen?.endTime.slice(0, 2) || defaultBookingSettings.endHour),
     slotMinutes: data.timeSettings.slotIntervalMinutes,
+    slotDisplayFormat: data.timeSettings.slotDisplayFormat,
     bufferBeforeMinutes: data.timeSettings.bufferBeforeMinutes,
     bufferAfterMinutes: data.timeSettings.bufferAfterMinutes,
     travelBufferMinutes: data.timeSettings.bufferAfterMinutes,
@@ -1190,6 +1194,10 @@ export const saveTimeSettings = async (input: Partial<BookingTimeSettings>) => {
       ADD COLUMN IF NOT EXISTS time_zone TEXT NOT NULL DEFAULT 'Europe/Copenhagen';
   `.catch(() => null);
   await sql`
+    ALTER TABLE booking_time_settings
+      ADD COLUMN IF NOT EXISTS slot_display_format TEXT NOT NULL DEFAULT 'range';
+  `.catch(() => null);
+  await sql`
     UPDATE booking_time_settings
     SET
       slot_interval_minutes = ${next.slotIntervalMinutes},
@@ -1201,6 +1209,7 @@ export const saveTimeSettings = async (input: Partial<BookingTimeSettings>) => {
       max_bookings_per_day = ${next.maxBookingsPerDay},
       allow_same_day_booking = ${next.allowSameDayBooking},
       time_zone = ${next.timeZone},
+      slot_display_format = ${next.slotDisplayFormat},
       updated_at = NOW()
     WHERE settings_key = 'default';
   `;

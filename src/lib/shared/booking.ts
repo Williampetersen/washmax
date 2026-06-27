@@ -95,6 +95,7 @@ export type BookingSettings = {
   startHour: number;
   endHour: number;
   slotMinutes: number;
+  slotDisplayFormat?: "range" | "start";
   bufferBeforeMinutes?: number;
   bufferAfterMinutes?: number;
   travelBufferMinutes: number;
@@ -252,6 +253,7 @@ export const defaultBookingSettings: BookingSettings = {
   startHour: 8,
   endHour: 18,
   slotMinutes: 150,
+  slotDisplayFormat: "range",
   bufferBeforeMinutes: 160,
   bufferAfterMinutes: 0,
   travelBufferMinutes: 0,

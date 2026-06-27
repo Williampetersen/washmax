@@ -50,6 +50,7 @@ export async function POST(request: Request) {
   } catch {
     // invalid timezone — keep default
   }
+  const rawSlotDisplayFormat = String(formData.get("slot_display_format") || "range");
   await saveTimeSettings({
     slotIntervalMinutes: asNumber(formData.get("slot_interval_minutes"), 30),
     minimumNoticeHours: asNumber(formData.get("minimum_notice_hours"), 2),
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
     maxBookingsPerDay: asNumber(formData.get("max_bookings_per_day")),
     allowSameDayBooking: Boolean(formData.get("allow_same_day_booking")),
     timeZone: validatedTimeZone,
+    slotDisplayFormat: rawSlotDisplayFormat === "start" ? "start" : "range",
   });
   return NextResponse.redirect(new URL("/admin?view=booking-setup&saved=booking-setup", request.url), 303);
 }

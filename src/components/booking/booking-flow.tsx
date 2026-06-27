@@ -449,13 +449,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     date.setDate(date.getDate() + Number(settings.maximumDaysAhead || 90));
     return date;
   }, [minDate, settings.maximumDaysAhead]);
-  const areaCoverageHint = !postalCodeValue?.trim()
-    ? "Indtast dit postnummer for at se, om der er en kørselszone eller et tillæg."
-    : matchedArea
-      ? `${matchedArea.label} matcher din adresse${matchedArea.surcharge > 0 ? ` med et Kørselstillæg på ${formatPrice(matchedArea.surcharge)}.` : " uden ekstra Kørselstillæg."}`
-      : settings.serviceAreas.length > 0
-        ? "Dit postnummer ligger uden for de faste zoner. Vi gennemgår bookingen manuelt, hvis kørsel skal justeres."
-        : "Vi dækker fortsat din adresse uden registreret zonetillæg.";
   const availabilityVehiclesPayload = useMemo(
     () =>
       JSON.stringify(
@@ -1304,7 +1297,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                                       : "border-[#bbf7d0] bg-[#f0fdf4] text-[#166534] hover:border-[#22c55e] hover:bg-[#dcfce7]"
                                   )}
                                 >
-                                  {slot} - {endTime}
+                                  {settings.slotDisplayFormat === "start" ? slot : `${slot} - ${endTime}`}
                                 </button>
                               );
                             })}
@@ -1320,10 +1313,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                         <p className="mt-1 text-xs">Derefter vises ledige tider her.</p>
                       </div>
                     )}
-                    <div className="mt-5 space-y-2 border-t border-[var(--line)] pt-4 text-xs text-[var(--muted)]">
-                      <p>{settings.defaultBookingStatus === "approved" ? "Booking godkendes automatisk — du får bekræftelse på email med det samme." : "Booking starter som afventer — vi godkender og sender bekræftelse."}</p>
-                      <p>{areaCoverageHint}</p>
-                    </div>
                   </div>
                 </div>
                 <div className="mt-6 flex justify-end">

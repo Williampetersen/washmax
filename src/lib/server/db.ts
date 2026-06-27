@@ -663,6 +663,7 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           max_bookings_per_slot INTEGER NOT NULL DEFAULT 1,
           max_bookings_per_day INTEGER NOT NULL DEFAULT 0,
           allow_same_day_booking BOOLEAN NOT NULL DEFAULT true,
+          slot_display_format TEXT NOT NULL DEFAULT 'range',
           created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
           updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         );

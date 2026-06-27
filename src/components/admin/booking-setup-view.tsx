@@ -768,12 +768,46 @@ const TIMEZONE_OPTIONS = [
   { label: "UTC (Koordineret universaltid)", value: "UTC" },
 ] satisfies Array<{ label: string; value: string; disabled?: boolean }>;
 
+const SLOT_INTERVAL_OPTIONS = [
+  { label: "15 minutter", value: 15 },
+  { label: "20 minutter", value: 20 },
+  { label: "30 minutter", value: 30 },
+  { label: "45 minutter", value: 45 },
+  { label: "1 time", value: 60 },
+  { label: "1,5 time", value: 90 },
+  { label: "2 timer", value: 120 },
+  { label: "3 timer", value: 180 },
+];
+
 function TimeSettingsCard({ data }: { data: BookingSetupData }) {
   const settings = data.timeSettings;
+  const intervalOptions = SLOT_INTERVAL_OPTIONS.some((option) => option.value === settings.slotIntervalMinutes)
+    ? SLOT_INTERVAL_OPTIONS
+    : [...SLOT_INTERVAL_OPTIONS, { label: `${settings.slotIntervalMinutes} minutter (nuværende)`, value: settings.slotIntervalMinutes }];
   return (
     <SetupPanel title="Time slots & buffer" icon={<Settings2 className="h-5 w-5" />}>
       <form action="/api/admin/booking-setup/time-settings" method="POST" className="grid gap-3 sm:grid-cols-2">
-        <Field label="Slot interval"><Input type="number" name="slot_interval_minutes" defaultValue={settings.slotIntervalMinutes} /></Field>
+        <Field label="Slot interval — hvor ofte en ny tid kan vælges">
+          <select
+            name="slot_interval_minutes"
+            defaultValue={settings.slotIntervalMinutes}
+            className="w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--brand)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/15"
+          >
+            {intervalOptions.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Vis tidsrum som — hvordan kunden ser tiderne i bookingflowet">
+          <select
+            name="slot_display_format"
+            defaultValue={settings.slotDisplayFormat}
+            className="w-full rounded-md border border-[var(--line)] bg-white px-3 py-2 text-sm text-[var(--ink)] focus:border-[var(--brand)] focus:outline-none focus:ring-2 focus:ring-[var(--brand)]/15"
+          >
+            <option value="range">Start og sluttid (f.eks. 09:00 - 11:00)</option>
+            <option value="start">Kun starttid (f.eks. 09:00)</option>
+          </select>
+        </Field>
         <Field label="Minimum notice hours"><Input type="number" name="minimum_notice_hours" defaultValue={settings.minimumNoticeHours} /></Field>
         <Field label="Maximum days ahead (30=1mnd, 90=3mnd, 180=6mnd)"><Input type="number" name="maximum_days_ahead" defaultValue={settings.maximumDaysAhead} min={1} max={365} /></Field>
         <Field label="Buffer before minutes"><Input type="number" name="buffer_before_minutes" defaultValue={settings.bufferBeforeMinutes} /></Field>
