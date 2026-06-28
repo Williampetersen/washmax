@@ -25,10 +25,7 @@ export const bookingCustomerSchema = z.object({
   firstName: z.string().trim().min(1, "Indtast fornavn."),
   lastName: z.string().trim().min(1, "Indtast efternavn."),
   email: z.string().trim().email("Indtast en gyldig emailadresse."),
-  phone: z
-    .string()
-    .trim()
-    .refine((value) => value.replace(/\D/g, "").length >= 8, "Indtast et gyldigt telefonnummer."),
+  phone: z.string().trim().min(1, "Indtast et telefonnummer."),
   address: z.string().trim().min(1, "Indtast adresse."),
   postalCode: z.string().trim().min(1, "Indtast postnummer."),
   city: z.string().trim().min(1, "Indtast by."),
