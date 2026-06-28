@@ -206,6 +206,9 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false);
   const [openStep, setOpenStep] = useState<1 | 2 | 3 | 4>(1);
   const [confirmation, setConfirmation] = useState<BookingConfirmation | null>(null);
+  const [submitOverlay, setSubmitOverlay] = useState<{ phase: "loading" | "success"; progress: number } | null>(null);
+  const submitProgressTimerRef = useRef<number | null>(null);
+  const submitSuccessTimerRef = useRef<number | null>(null);
 
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discountDkk: number; label: string } | null>(null);
@@ -611,6 +614,18 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     []
   );
 
+  useEffect(() => {
+    if (confirmation) window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+  }, [confirmation]);
+
+  useEffect(
+    () => () => {
+      if (submitProgressTimerRef.current) window.clearInterval(submitProgressTimerRef.current);
+      if (submitSuccessTimerRef.current) window.clearTimeout(submitSuccessTimerRef.current);
+    },
+    []
+  );
+
   const schedulePlateLookup = useCallback(
     (nextPlateValue: string) => {
       const normalizedPlate = sanitizePlate(nextPlateValue);
@@ -779,6 +794,19 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     if (!idempotencyKey) setIdempotencyKey(nextIdempotencyKey);
     setIsSubmitting(true);
 
+    if (submitProgressTimerRef.current) window.clearInterval(submitProgressTimerRef.current);
+    if (submitSuccessTimerRef.current) window.clearTimeout(submitSuccessTimerRef.current);
+    setSubmitOverlay({ phase: "loading", progress: 4 });
+    const submitStartedAt = Date.now();
+    submitProgressTimerRef.current = window.setInterval(() => {
+      setSubmitOverlay((prev) => {
+        if (!prev || prev.phase !== "loading") return prev;
+        const elapsed = Date.now() - submitStartedAt;
+        const next = elapsed < 600 ? Math.min(80, (elapsed / 600) * 80) : Math.min(96, prev.progress + 0.5);
+        return { phase: "loading", progress: next };
+      });
+    }, 60);
+
     void (async () => {
       try {
         const response = await fetch("/api/bookings/create", {
@@ -830,7 +858,8 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
         if (!response.ok || !payload?.ok || !payload.portalUrl) {
           throw new Error(payload?.error || "Kunne ikke oprette bookingen. Prov igen.");
         }
-        setConfirmation({
+        if (submitProgressTimerRef.current) { window.clearInterval(submitProgressTimerRef.current); submitProgressTimerRef.current = null; }
+        const confirmationData: BookingConfirmation = {
           portalUrl: payload.portalUrl,
           emailSent: Boolean(payload.confirmationEmailSent),
           status: payload.bookingStatus || "pending",
@@ -840,8 +869,16 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
           packageLabel: bookingVehicles.length > 1 ? "Bilvask til 2 biler" : activePackageData?.title || bookingVehicles[0]?.packageLabel || "Bilvask",
           total: typeof payload.total === "number" ? payload.total : finalTotal,
           customerEmail: values.email,
-        });
+        };
+        setSubmitOverlay({ phase: "success", progress: 100 });
+        submitSuccessTimerRef.current = window.setTimeout(() => {
+          setConfirmation(confirmationData);
+          setSubmitOverlay(null);
+          setIsSubmitting(false);
+        }, 900);
       } catch (error) {
+        if (submitProgressTimerRef.current) { window.clearInterval(submitProgressTimerRef.current); submitProgressTimerRef.current = null; }
+        setSubmitOverlay(null);
         setFormError(error instanceof Error ? error.message : "Kunne ikke oprette bookingen. Prov igen.");
         setIsSubmitting(false);
       }
@@ -999,6 +1036,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
 
   return (
     <main className={cn("px-4 sm:px-6", vehicle && category ? "pb-32 xl:pb-10" : "pb-10")}>
+      {submitOverlay ? <BookingSubmitOverlay phase={submitOverlay.phase} progress={submitOverlay.progress} /> : null}
       {vehicle && category ? (
         <section className="mx-auto mt-8 grid max-w-[88rem] gap-8 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start">
           <div className="space-y-3">
@@ -1994,6 +2032,66 @@ function AddonCard({
         ) : null}
       </div>
     </button>
+  );
+}
+
+function BookingSubmitOverlay({ phase, progress }: { phase: "loading" | "success"; progress: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const pct = Math.round(progress);
+
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-[100] flex items-center justify-center bg-[#0a1f29]/65 px-4 backdrop-blur-sm transition-opacity duration-300",
+        mounted ? "opacity-100" : "opacity-0"
+      )}
+      role="alert"
+      aria-live="assertive"
+    >
+      <div
+        className={cn(
+          "w-full max-w-sm rounded-3xl bg-white p-7 text-center shadow-[0_30px_90px_rgba(8,30,40,0.35)] transition-all duration-300 sm:p-9",
+          mounted ? "translate-y-0 scale-100 opacity-100" : "translate-y-3 scale-95 opacity-0"
+        )}
+      >
+        <div
+          className={cn(
+            "mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full transition-colors duration-300 sm:h-20 sm:w-20",
+            phase === "success" ? "bg-[var(--color-success)]/10 ring-4 ring-[var(--color-success)]/20" : "bg-[#eefbfc]"
+          )}
+        >
+          {phase === "success" ? (
+            <CheckCircle2 className="h-9 w-9 text-[var(--color-success)] sm:h-10 sm:w-10" />
+          ) : (
+            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--brand)] sm:h-9 sm:w-9" />
+          )}
+        </div>
+
+        <h2 className="font-display text-xl font-bold text-[var(--ink)] sm:text-2xl">
+          {phase === "success" ? "Tak for din booking!" : "Bekræfter din booking..."}
+        </h2>
+        <p className="mt-1.5 text-sm text-[var(--muted)]">
+          {phase === "success" ? "Din bekræftelse er klar om et øjeblik." : "Et øjeblik, vi gemmer dine oplysninger."}
+        </p>
+
+        <div className="mt-6">
+          <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#e7f3ef]">
+            <div
+              className={cn(
+                "h-full rounded-full bg-gradient-to-r from-[#1fae6e] to-[#4ade80] ease-out",
+                phase === "success" ? "transition-[width] duration-500" : "transition-[width] duration-150"
+              )}
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+          <p className="mt-2 text-right text-xs font-semibold tabular-nums text-[#1fae6e]">{pct}%</p>
+        </div>
+      </div>
+    </div>
   );
 }
 
