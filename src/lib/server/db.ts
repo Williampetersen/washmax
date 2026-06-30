@@ -54,6 +54,27 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
 
   if (!schemaPromise) {
     schemaPromise = (async () => {
+      // Fast path: production cold starts otherwise replay ~70 sequential
+      // CREATE/ALTER/INDEX round-trips on every new serverless instance
+      // (schemaPromise only lives in this instance's globalThis). If the
+      // schema is already current, one cheap check lets booking creation
+      // and customer login skip straight to their real query instead of
+      // paying that latency, and risking a transient failure on one of
+      // the 70 statements, on every cold start.
+      const [marker] = await sql<{ ready: boolean }[]>`
+        SELECT
+          to_regclass('public.assignment_log') IS NOT NULL
+          AND to_regclass('public.agent_schedules') IS NOT NULL
+          AND EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'agents' AND column_name = 'postal_code'
+          ) AS ready;
+      `;
+
+      if (marker?.ready) {
+        return;
+      }
+
       await sql`
         CREATE TABLE IF NOT EXISTS customers (
           id TEXT PRIMARY KEY,
