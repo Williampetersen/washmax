@@ -229,6 +229,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   const step3Ref = useRef<HTMLDivElement>(null);
   const step4Ref = useRef<HTMLDivElement>(null);
   const addCarButtonRef = useRef<HTMLButtonElement>(null);
+  const hasScrolledToVehicleRef = useRef(false);
   const lookupControllerRef = useRef<AbortController | null>(null);
   const lookupDebounceRef = useRef<number | null>(null);
   const latestLookupPlateRef = useRef("");
@@ -617,6 +618,19 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   useEffect(() => {
     if (confirmation) window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [confirmation]);
+
+  // As soon as the plate lookup resolves and the page switches from the
+  // plate-entry card to the service-selection view, jump to the very top so
+  // the sticky site header and the car/plate info are both fully visible -
+  // otherwise the page can be left scrolled wherever the user was while
+  // typing the plate, leaving the vehicle bar tucked under the header.
+  useEffect(() => {
+    const hasResolvedVehicle = Boolean(vehicle && category);
+    if (hasResolvedVehicle && !hasScrolledToVehicleRef.current) {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+    hasScrolledToVehicleRef.current = hasResolvedVehicle;
+  }, [vehicle, category]);
 
   useEffect(
     () => () => {
@@ -1097,7 +1111,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
             </div>
 
             {/* ── Step 1: Package ─────────────────────────────────── */}
-            <div ref={step1Ref} className="scroll-mt-6">
+            <div ref={step1Ref} className="scroll-mt-28">
               <BookingAccordion
                 step={1}
                 title={activeVehicleIndex === 1 ? "Vælg bilvask til bil 2" : "Vælg din service"}
@@ -1157,7 +1171,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
             </div>
 
             {/* ── Step 2: Add-ons ─────────────────────────────────── */}
-            <div ref={step2Ref} className="scroll-mt-6">
+            <div ref={step2Ref} className="scroll-mt-28">
               <BookingAccordion
                 step={2}
                 title={`Tilvalg til ${activeVehicleLabel.toLowerCase()}`}
@@ -1262,7 +1276,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
             ) : null}
 
             {/* ── Step 3: Date + Time ─────────────────────────────── */}
-            <div ref={step3Ref} className="scroll-mt-6">
+            <div ref={step3Ref} className="scroll-mt-28">
               <BookingAccordion
                 step={3}
                 title="Vælg dato og tid"
@@ -1367,7 +1381,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
             </div>
 
             {/* ── Step 4: Customer form ────────────────────────────── */}
-            <div ref={step4Ref} className="scroll-mt-6">
+            <div ref={step4Ref} className="scroll-mt-28">
               <BookingAccordion
                 step={4}
                 title="Dine oplysninger"
