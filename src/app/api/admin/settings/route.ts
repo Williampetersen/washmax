@@ -4,6 +4,10 @@ import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import { getBookingSettings, saveBookingSettings } from "@/lib/server/bookings";
 import type { AddOn, CleaningPackage, ServiceArea, VehicleCategory } from "@/lib/shared/booking";
 
+// Admin writes must always hit the live database, never a cached build.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const asText = (value: FormDataEntryValue | null) => String(value || "").trim();
 const asNumber = (value: FormDataEntryValue | null, fallback: number) => {
   const parsed = Number(value);
@@ -66,9 +70,11 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const section = asText(formData.get("section")) || "general";
   const returnView = asText(formData.get("return_view")) || section || "settings";
-  const settings = await getBookingSettings();
 
-  switch (section) {
+  try {
+    const settings = await getBookingSettings();
+
+    switch (section) {
     case "availability": {
       const workingDays = formData
         .getAll("working_days")
@@ -182,6 +188,13 @@ export async function POST(request: Request) {
       });
       break;
     }
+    }
+  } catch (error) {
+    console.error("[admin.settings] save failed", error instanceof Error ? error.message : error);
+    return NextResponse.redirect(
+      new URL(`/admin?view=${encodeURIComponent(returnView)}&error=action`, request.url),
+      303
+    );
   }
 
   return NextResponse.redirect(

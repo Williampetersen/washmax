@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { lookupVehicle } from "@/lib/server/vehicle";
 import { sanitizePlate, type VehicleLookupResult } from "@/lib/shared/booking";
 
+// This route manages its own freshness (in-memory + DB cache with TTLs and
+// a "?fresh=1" bypass) below - force-dynamic just stops Next's Full Route
+// Cache from also freezing a response on top of that.
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const json = (body: unknown, status = 200, cacheControl = "no-store") =>
   NextResponse.json(body, {
     status,
