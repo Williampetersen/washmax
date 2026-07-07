@@ -22,6 +22,7 @@ import {
   Tag,
   UserRound,
   X,
+  XCircle,
 } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { useForm, useWatch } from "react-hook-form";
@@ -111,18 +112,11 @@ const platePattern = /^.{2,}$/;
 const clientVehicleCacheTtlMs = 5 * 60 * 1000;
 const secondCarDiscountPercent = 15;
 const vehicleLookupCache = new Map<string, VehicleCacheEntry>();
-
-const createManualVehicle = (plate: string): VehicleLookupResult => ({
-  registration_number: plate,
-  make: null,
-  model: null,
-  model_year: null,
-  color: null,
-  type: null,
-  total_weight: null,
-  chassis_type: null,
-  lookupUnavailable: true,
-});
+// How long we keep silently retrying the plate lookup before telling the
+// user we couldn't find their car - see PlateLookupOverlay below.
+const plateLookupTimeoutMs = 30 * 1000;
+const plateLookupRetryDelayMs = 3 * 1000;
+type PlateLookupOverlayState = { phase: "checking" | "notfound"; progress: number };
 
 // Maps a category id to a fake VehicleLookupResult so getVehicleCategory() resolves correctly.
 const categoryWeights: Record<string, { type: string | null; weight: number }> = {
@@ -201,6 +195,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   const [isAvailabilityLoading, setIsAvailabilityLoading] = useState(false);
   const [availabilityError, setAvailabilityError] = useState("");
   const [isLookupPending, setIsLookupPending] = useState(false);
+  const [plateLookupOverlay, setPlateLookupOverlay] = useState<PlateLookupOverlayState | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [isMobileSummaryOpen, setIsMobileSummaryOpen] = useState(false);
@@ -232,6 +227,9 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   const hasScrolledToVehicleRef = useRef(false);
   const lookupControllerRef = useRef<AbortController | null>(null);
   const latestLookupPlateRef = useRef("");
+  const plateLookupProgressTimerRef = useRef<number | null>(null);
+  const plateLookupRetryTimerRef = useRef<number | null>(null);
+  const plateLookupResetTimerRef = useRef<number | null>(null);
 
   const form = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
@@ -545,59 +543,151 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     }, 80);
   }, []);
 
-  const lookupVehicle = useCallback(async (nextPlateValue: string) => {
+  const clearSelectedAppointmentTime = () => {
+    setSelectedAppointmentTime("");
+    setLiveAvailableTimeSlots([]);
+  };
+
+  const clearPlateLookupTimers = useCallback(() => {
+    if (plateLookupProgressTimerRef.current) { window.clearInterval(plateLookupProgressTimerRef.current); plateLookupProgressTimerRef.current = null; }
+    if (plateLookupRetryTimerRef.current) { window.clearTimeout(plateLookupRetryTimerRef.current); plateLookupRetryTimerRef.current = null; }
+    if (plateLookupResetTimerRef.current) { window.clearTimeout(plateLookupResetTimerRef.current); plateLookupResetTimerRef.current = null; }
+  }, []);
+
+  // Full reset back to the plate-entry card - used both when the user
+  // explicitly clicks "Skift bil" and as the fallback when a plate lookup
+  // can't resolve a vehicle within plateLookupTimeoutMs (see lookupVehicle).
+  const handleChangeVehicle = useCallback(() => {
+    lookupControllerRef.current?.abort();
+    clearPlateLookupTimers();
+    latestLookupPlateRef.current = "";
+    setVehicle(null);
+    setPlate("");
+    setIsVehicleConfirmed(false);
+    setPlateLookupOverlay(null);
+    setLookupStatus(null);
+    setSecondVehicle(null);
+    setSecondPackage("");
+    setSecondAddonIds([]);
+    setActiveVehicleIndex(0);
+    setSelectedAppointmentTime("");
+    setLiveAvailableTimeSlots([]);
+    setIdempotencyKey("");
+    setOpenStep(1);
+    setConfirmation(null);
+    window.history.replaceState({}, "", "/booking");
+  }, [clearPlateLookupTimers]);
+
+  // Eases the progress bar toward 94% over the 30s retry budget so it never
+  // visually "completes" until we actually have (or give up on) a vehicle.
+  const startPlateLookupProgress = useCallback((startedAt: number) => {
+    if (plateLookupProgressTimerRef.current) window.clearInterval(plateLookupProgressTimerRef.current);
+    plateLookupProgressTimerRef.current = window.setInterval(() => {
+      const elapsed = Date.now() - startedAt;
+      const next = Math.min(94, 6 + (elapsed / plateLookupTimeoutMs) * 88);
+      setPlateLookupOverlay((prev) => (prev && prev.phase === "checking" ? { ...prev, progress: next } : prev));
+    }, 120);
+  }, []);
+
+  // Looks up a plate once the user has explicitly submitted it. A real
+  // result (make/model present) resolves immediately; anything else
+  // (transient API failure, "unavailable" placeholder, etc.) is silently
+  // retried every few seconds behind the PlateLookupOverlay for up to
+  // plateLookupTimeoutMs, so the user never sees a flash of "Ukendt bil".
+  // Only after that whole budget is exhausted do we give up and send the
+  // user back to the plate field via handleChangeVehicle.
+  const lookupVehicle = useCallback((nextPlateValue: string) => {
     const normalizedPlate = sanitizePlate(nextPlateValue);
     setPlate(normalizedPlate);
     if (!platePattern.test(normalizedPlate)) {
       lookupControllerRef.current?.abort();
+      clearPlateLookupTimers();
       latestLookupPlateRef.current = "";
       setVehicle(null);
       setIsVehicleConfirmed(false);
+      setPlateLookupOverlay(null);
       setLookupStatus({ message: "Indtast mindst 2 tegn.", type: "error" });
       return;
     }
+
     const cached = vehicleLookupCache.get(normalizedPlate);
     const cacheIsFresh = cached && Date.now() - cached.cachedAt < clientVehicleCacheTtlMs;
-    if (cached) {
+    if (cached && cacheIsFresh) {
       setVehicle(cached.vehicle);
-      setLookupStatus(cacheIsFresh ? null : { message: "Opdaterer biloplysninger...", type: "info" });
+      setLookupStatus(null);
       window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
-      if (cacheIsFresh) { setIsLookupPending(false); return; }
-    } else {
-      setVehicle(createManualVehicle(normalizedPlate));
-      setLookupStatus({ message: "Vi tjekker bilen...", type: "info" });
+      return;
     }
+
     if (latestLookupPlateRef.current === normalizedPlate && lookupControllerRef.current && !lookupControllerRef.current.signal.aborted) return;
-    lookupControllerRef.current?.abort();
-    const controller = new AbortController();
-    lookupControllerRef.current = controller;
+
+    clearPlateLookupTimers();
     latestLookupPlateRef.current = normalizedPlate;
+    setVehicle(null);
+    setLookupStatus(null);
     setIsLookupPending(true);
-    const startedAt = performance.now();
-    try {
-      const response = await fetch(`/api/vehicle/${encodeURIComponent(normalizedPlate)}`, {
-        headers: { Accept: "application/json" },
-        signal: controller.signal,
-      });
-      const payload = (await response.json().catch(() => ({}))) as VehicleLookupResult | { error?: string };
-      if (!response.ok) throw new Error("error" in payload && payload.error ? payload.error : "Nummerpladen kunne ikke findes. Tjek nummeret og prov igen.");
-      const nextVehicle = payload as VehicleLookupResult;
-      if (latestLookupPlateRef.current !== normalizedPlate || controller.signal.aborted) return;
-      vehicleLookupCache.set(normalizedPlate, { vehicle: nextVehicle, cachedAt: Date.now() });
-      setVehicle(nextVehicle);
-      setLookupStatus(nextVehicle.lookupUnavailable ? { message: "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsætte manuelt.", type: "error" } : null);
-      window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
-      if (process.env.NODE_ENV === "development") console.info(`[perf] booking.lookup ${normalizedPlate} ${Math.round(performance.now() - startedAt)}ms`);
-    } catch (error) {
-      if (error instanceof DOMException && error.name === "AbortError") return;
+    const startedAt = Date.now();
+    const deadline = startedAt + plateLookupTimeoutMs;
+    setPlateLookupOverlay({ phase: "checking", progress: 6 });
+    startPlateLookupProgress(startedAt);
+
+    const finishSuccess = (nextVehicle: VehicleLookupResult) => {
       if (latestLookupPlateRef.current !== normalizedPlate) return;
-      setVehicle(createManualVehicle(normalizedPlate));
-      setLookupStatus({ message: "Vi kunne ikke hente biloplysninger lige nu. Du kan fortsætte manuelt.", type: "error" });
+      clearPlateLookupTimers();
+      vehicleLookupCache.set(normalizedPlate, { vehicle: nextVehicle, cachedAt: Date.now() });
       window.history.replaceState({}, "", `/booking?plate=${encodeURIComponent(normalizedPlate)}`);
-    } finally {
-      if (latestLookupPlateRef.current === normalizedPlate) { setIsLookupPending(false); lookupControllerRef.current = null; }
-    }
-  }, []);
+      setPlateLookupOverlay({ phase: "checking", progress: 100 });
+      window.setTimeout(() => {
+        if (latestLookupPlateRef.current !== normalizedPlate) return;
+        setPlateLookupOverlay(null);
+        setVehicle(nextVehicle);
+        setLookupStatus(null);
+        setIsLookupPending(false);
+      }, 260);
+    };
+
+    const finishNotFound = () => {
+      if (latestLookupPlateRef.current !== normalizedPlate) return;
+      clearPlateLookupTimers();
+      setIsLookupPending(false);
+      setPlateLookupOverlay({ phase: "notfound", progress: 100 });
+      plateLookupResetTimerRef.current = window.setTimeout(() => {
+        handleChangeVehicle();
+      }, 2800);
+    };
+
+    const attempt = async () => {
+      if (latestLookupPlateRef.current !== normalizedPlate) return;
+      lookupControllerRef.current?.abort();
+      const controller = new AbortController();
+      lookupControllerRef.current = controller;
+      try {
+        const response = await fetch(`/api/vehicle/${encodeURIComponent(normalizedPlate)}`, {
+          headers: { Accept: "application/json" },
+          signal: controller.signal,
+        });
+        const payload = (await response.json().catch(() => ({}))) as VehicleLookupResult | { error?: string };
+        if (latestLookupPlateRef.current !== normalizedPlate || controller.signal.aborted) return;
+        const vehiclePayload = payload as VehicleLookupResult;
+        const isUsable = response.ok && !("error" in payload) && !vehiclePayload.lookupUnavailable && Boolean(vehiclePayload.make || vehiclePayload.model);
+        if (isUsable) {
+          finishSuccess(vehiclePayload);
+          return;
+        }
+        throw new Error("Vehicle not resolved yet.");
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        if (latestLookupPlateRef.current !== normalizedPlate) return;
+        if (Date.now() < deadline) {
+          plateLookupRetryTimerRef.current = window.setTimeout(() => { void attempt(); }, plateLookupRetryDelayMs);
+        } else {
+          finishNotFound();
+        }
+      }
+    };
+
+    void attempt();
+  }, [clearPlateLookupTimers, handleChangeVehicle, startPlateLookupProgress]);
 
   // The plate field is pre-filled from the URL (e.g. arriving from the
   // homepage form), but the lookup itself deliberately does NOT run
@@ -606,8 +696,9 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   useEffect(
     () => () => {
       lookupControllerRef.current?.abort();
+      clearPlateLookupTimers();
     },
-    []
+    [clearPlateLookupTimers]
   );
 
   useEffect(() => {
@@ -650,22 +741,19 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     setPlate(normalizedPlate);
     if (!normalizedPlate) {
       lookupControllerRef.current?.abort();
+      clearPlateLookupTimers();
       latestLookupPlateRef.current = "";
       setVehicle(null);
       setLookupStatus(null);
       setIsVehicleConfirmed(false);
+      setPlateLookupOverlay(null);
     }
-  }, []);
+  }, [clearPlateLookupTimers]);
 
   const submitPlateLookup = useCallback(() => {
     setIsVehicleConfirmed(false);
     void lookupVehicle(plate);
   }, [lookupVehicle, plate]);
-
-  const clearSelectedAppointmentTime = () => {
-    setSelectedAppointmentTime("");
-    setLiveAvailableTimeSlots([]);
-  };
 
   const handlePackageSelect = (packageId: string) => {
     const pkg = settings.catalog.packages.find((p) => p.id === packageId);
@@ -733,24 +821,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
       return;
     }
     goToStep(3);
-  };
-
-  const handleChangeVehicle = () => {
-    lookupControllerRef.current?.abort();
-    latestLookupPlateRef.current = "";
-    setVehicle(null);
-    setPlate("");
-    setIsVehicleConfirmed(false);
-    setLookupStatus(null);
-    setSecondVehicle(null);
-    setSecondPackage("");
-    setSecondAddonIds([]);
-    setActiveVehicleIndex(0);
-    clearSelectedAppointmentTime();
-    setIdempotencyKey("");
-    setOpenStep(1);
-    setConfirmation(null);
-    window.history.replaceState({}, "", "/booking");
   };
 
   const validateCoupon = async () => {
@@ -1065,6 +1135,9 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   return (
     <main className={cn("px-4 sm:px-6", showServiceSelection ? "pb-32 xl:pb-10" : "pb-10")}>
       {submitOverlay ? <BookingSubmitOverlay phase={submitOverlay.phase} progress={submitOverlay.progress} /> : null}
+      {plateLookupOverlay ? (
+        <PlateLookupOverlay phase={plateLookupOverlay.phase} progress={plateLookupOverlay.progress} />
+      ) : null}
       <VehicleConfirmModal
         open={showVehicleConfirmModal}
         vehicleName={vehicleName}
@@ -2126,6 +2199,69 @@ function BookingSubmitOverlay({ phase, progress }: { phase: "loading" | "success
           </div>
           <p className="mt-2 text-right text-xs font-semibold tabular-nums text-[#1fae6e]">{pct}%</p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function PlateLookupOverlay({ phase, progress }: { phase: "checking" | "notfound"; progress: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setMounted(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  const pct = Math.round(progress);
+
+  return (
+    <div
+      className={cn(
+        "fixed inset-0 z-[90] flex items-center justify-center bg-[#0a1f29]/65 px-4 backdrop-blur-sm transition-opacity duration-300",
+        mounted ? "opacity-100" : "opacity-0"
+      )}
+      role="alert"
+      aria-live="assertive"
+    >
+      <div
+        className={cn(
+          "w-full max-w-sm rounded-3xl bg-white p-7 text-center shadow-[0_30px_90px_rgba(8,30,40,0.35)] transition-all duration-300 sm:p-9",
+          mounted ? "translate-y-0 scale-100 opacity-100" : "translate-y-3 scale-95 opacity-0"
+        )}
+      >
+        <div
+          className={cn(
+            "mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full sm:h-20 sm:w-20",
+            phase === "notfound" ? "bg-red-50" : "bg-[#eefbfc]"
+          )}
+        >
+          {phase === "notfound" ? (
+            <XCircle className="h-9 w-9 text-red-600 sm:h-10 sm:w-10" />
+          ) : (
+            <LoaderCircle className="h-8 w-8 animate-spin text-[var(--brand)] sm:h-9 sm:w-9" />
+          )}
+        </div>
+
+        <h2 className="font-display text-xl font-bold text-[var(--ink)] sm:text-2xl">
+          {phase === "notfound" ? "Bilen blev ikke fundet" : "Finder dine biloplysninger..."}
+        </h2>
+        <p className="mt-1.5 text-sm leading-6 text-[var(--muted)]">
+          {phase === "notfound"
+            ? "Vi kunne ikke finde biloplysningerne. Tjek at nummerpladen er korrekt, og prøv igen."
+            : "Et øjeblik, vi slår nummerpladen op i motorregistret."}
+        </p>
+
+        {phase === "checking" ? (
+          <div className="mt-6">
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#e7f3ef]">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#00A7B8] to-[#4ade80] transition-[width] duration-150 ease-out"
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+            <p className="mt-2 text-right text-xs font-semibold tabular-nums text-[var(--brand)]">{pct}%</p>
+          </div>
+        ) : (
+          <p className="mt-5 text-xs text-[var(--muted)]">Du bliver sendt tilbage, så du kan prøve igen...</p>
+        )}
       </div>
     </div>
   );
