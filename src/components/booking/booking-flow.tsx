@@ -599,14 +599,10 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     }
   }, []);
 
-  useEffect(() => {
-    if (manualMode) return;
-    const normalizedPlate = sanitizePlate(initialPlate);
-    if (!normalizedPlate) return;
-    if (latestLookupPlateRef.current === normalizedPlate && lookupControllerRef.current && !lookupControllerRef.current.signal.aborted) return;
-    void lookupVehicle(initialPlate);
-  }, [initialPlate, lookupVehicle, manualMode]);
-
+  // The plate field is pre-filled from the URL (e.g. arriving from the
+  // homepage form), but the lookup itself deliberately does NOT run
+  // automatically - the user must press "Se din pris" on this page too,
+  // so the price check always happens on an explicit click.
   useEffect(
     () => () => {
       lookupControllerRef.current?.abort();
@@ -617,6 +613,12 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   useEffect(() => {
     if (confirmation) window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
   }, [confirmation]);
+
+  // Always land at the top of the page, regardless of how the user arrived
+  // (browser scroll restoration, in-page anchors, etc.).
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, []);
 
   // As soon as the plate lookup resolves and the page switches from the
   // plate-entry card to the service-selection view, jump to the very top so
@@ -1042,6 +1044,15 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
           {lookupStatus.message}
         </div>
       ) : null}
+      <p className="mt-4 text-sm text-[var(--muted)]">
+        Kender du ikke nummerpladen?{" "}
+        <Link
+          href="/velg-storrelse"
+          className="font-semibold text-[var(--brand)] underline-offset-2 hover:underline"
+        >
+          Vælg bilstørrelse manuelt →
+        </Link>
+      </p>
     </Card>
   );
 
