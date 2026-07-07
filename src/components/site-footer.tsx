@@ -24,6 +24,10 @@ const areaLinks = [
   { label: "Bilvask Nørrebro", href: route("/bilvask-noerrebro") },
   { label: "Bilvask Valby", href: route("/bilvask-valby") },
   { label: "Bilvask Hellerup", href: route("/bilvask-hellerup") },
+  { label: "Bilvask Hørsholm", href: route("/bilvask-horsholm") },
+  { label: "Bilvask Helsingør", href: route("/bilvask-helsingoer") },
+  { label: "Bilvask Næstved", href: route("/bilvask-naestved") },
+  { label: "Bilvask Slagelse", href: route("/bilvask-slagelse") },
   { label: "Bilvask Sjælland", href: route("/bilvask-sjaelland") },
   { label: "Om os", href: route("/om-os") },
 ];
@@ -35,6 +39,15 @@ const trustLinks = [
   { label: "Serviceområder", href: route("/serviceomraader") },
   { label: "Garanti", href: route("/garanti") },
   { label: "Miljø", href: route("/miljoe") },
+];
+
+const guideLinks = [
+  { label: "Bedste bilvask København", href: route("/bedste-bilvask-koebenhavn") },
+  { label: "Billigste bilvask Sjælland", href: route("/billigste-bilvask-sjaelland") },
+  { label: "Sådan sparer du penge på bilvask", href: route("/spar-penge-paa-bilvask") },
+  { label: "Vælg den rigtige bilvask", href: route("/vaelg-den-rigtige-bilvask") },
+  { label: "Bedste tidspunkt at booke bilvask", href: route("/bedste-tidspunkt-at-booke-bilvask") },
+  { label: "Bilpleje guide", href: route("/bilpleje-guide") },
 ];
 
 const SOCIALS = [
@@ -74,7 +87,7 @@ export function SiteFooter() {
   return (
     <footer className="px-4 pb-8 pt-8 sm:px-6">
       <div className="mx-auto max-w-7xl overflow-hidden rounded-[2rem] border border-[var(--line)] bg-white/92 px-6 py-10 shadow-[0_18px_60px_rgba(11,31,58,0.10)] backdrop-blur-xl sm:px-10">
-        <div className="grid gap-10 lg:grid-cols-[1.2fr_0.75fr_0.75fr_0.75fr_0.8fr]">
+        <div className="grid gap-10 lg:grid-cols-[1.1fr_0.65fr_0.65fr_0.65fr_0.65fr_0.75fr]">
           <div className="max-w-xl">
             <Image
               src="/logo.png"
@@ -133,6 +146,19 @@ export function SiteFooter() {
             </h3>
             <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
               {trustLinks.map((item) => (
+                <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
+                  {item.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h3 className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
+              Guides
+            </h3>
+            <div className="mt-5 grid gap-3 text-sm text-[var(--muted)]">
+              {guideLinks.map((item) => (
                 <Link key={item.href} href={item.href} className="transition hover:text-[var(--ink)]">
                   {item.label}
                 </Link>

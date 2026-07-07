@@ -79,6 +79,8 @@ const commonRelatedLinks: SeoPageConfig["relatedLinks"] = [
   { label: "Bilvask Hellerup", href: route("/bilvask-hellerup") },
   { label: "Bilvask pris", href: route("/bilvask-pris") },
   { label: "Car wash Copenhagen", href: route("/car-wash-copenhagen") },
+  { label: "Bedste bilvask København", href: route("/bedste-bilvask-koebenhavn") },
+  { label: "Billigste bilvask Sjælland", href: route("/billigste-bilvask-sjaelland") },
 ];
 
 const relatedLinksWithout = (href: string) =>
@@ -2499,6 +2501,9 @@ export const seoPages: SeoPageConfig[] = [
       { label: "Klargøring til salg", href: "/klargoering-bil-salg" },
       { label: "Bilvask København", href: "/bilvask-koebenhavn" },
       { label: "Håndvask af bil", href: "/haandvask-bil-koebenhavn" },
+      { label: "Bedste bilvask København", href: "/bedste-bilvask-koebenhavn" },
+      { label: "Hvornår skal man booke bilvask", href: "/bedste-tidspunkt-at-booke-bilvask" },
+      { label: "Vælg den rigtige bilvask", href: "/vaelg-den-rigtige-bilvask" },
     ],
     priority: 0.89,
   },
@@ -2590,6 +2595,8 @@ export const seoPages: SeoPageConfig[] = [
       { label: "Bilvask abonnement", href: "/bilvask-abonnement" },
       { label: "Mobil bilvask", href: "/mobil-bilvask-koebenhavn" },
       { label: "Bilpleje guide", href: "/bilpleje-guide" },
+      { label: "Billigste bilvask Sjælland", href: "/billigste-bilvask-sjaelland" },
+      { label: "Sådan sparer du penge på bilvask", href: "/spar-penge-paa-bilvask" },
     ],
     priority: 0.91,
   },
@@ -3037,6 +3044,354 @@ export const seoPages: SeoPageConfig[] = [
       { label: "Bilpleje guide", href: "/bilpleje-guide" },
     ],
     priority: 0.84,
+  },
+
+  {
+    slug: "bilvask-horsholm",
+    title: "Bilvask Hørsholm | Professionel bilvask i Nordsjælland | CleanWash",
+    description:
+      "Book professionel bilvask i Hørsholm hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking i Nordsjælland.",
+    h1: "Bilvask Hørsholm",
+    eyebrow: "Professionel bilvask i Hørsholm",
+    heroIntro:
+      "CleanWash tilbyder professionel bilvask i Hørsholm og det nordsjællandske kystområde med online booking og klare servicevalg til private og erhverv.",
+    shortSummary: [
+      "CleanWash tilbyder bilvask i Hørsholm og omegn med online booking.",
+      "Servicen er relevant for bilejere i Hørsholm, Rungsted, Vedbæk og nærliggende kystbyer.",
+      "Book udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
+    ],
+    keywords: [
+      "bilvask Hørsholm",
+      "bilrengøring Hørsholm",
+      "bilpleje Hørsholm",
+      "mobil bilvask Hørsholm",
+      "bilvask Rungsted",
+    ],
+    serviceType: "Professionel bilvask i Hørsholm og Nordsjælland",
+    serviceArea: ["Hørsholm", "Rungsted", "Vedbæk", "Kokkedal", "Nordsjælland"],
+    schemaAreaServed: ["Hørsholm", "Nordsjælland", "Sjælland", "Zealand", "Denmark"],
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Hørsholm hos CleanWash" },
+    secondaryCta: { label: "Se bilvask Sjælland", href: "/bilvask-sjaelland" },
+    benefits: [
+      { title: "Hørsholm og kystområdet", text: "CleanWash er relevant for bilejere i Hørsholm, Rungsted, Vedbæk og de øvrige kystnære byer i Nordsjælland." },
+      { title: "Skån lakken mod saltvand", text: "Biler, der holder tæt på kysten, udsættes for salt og fugt fra havluften, hvilket gør regelmæssig bilvask ekstra relevant." },
+      { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
+      { title: "Til alle biltyper", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
+    ],
+    process: [
+      { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
+      { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
+      { title: "CleanWash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
+    ],
+    sections: [
+      {
+        heading: "Bilvask i Hørsholm — professionel service ved kysten",
+        paragraphs: [
+          "Hørsholm er en af Nordsjællands mest velhavende kommuner med kystnære villakvarterer i Rungsted og Vedbæk. Mange biler i området holder tæt på Øresundskysten, hvor salt og fugt fra havluften kan påvirke lak og fælge over tid. CleanWash tilbyder professionel bilvask i Hørsholm med online booking.",
+          "Med kort afstand til Helsingørmotorvejen og gode togforbindelser er Hørsholm attraktivt for pendlere til København. Det gør en bekvem, regelmæssig bilvask til en naturlig del af hverdagen.",
+        ],
+      },
+      {
+        heading: "Hørsholm og nærliggende byer",
+        paragraphs: [
+          "Hørsholm grænser op til Rungsted, Vedbæk og Kokkedal. CleanWash er relevant for kunder i hele dette nordsjællandske kystområde. Den konkrete dækning afhænger af booking og ruteplanlægning.",
+          "Området er kendt for store villaer, flere biler pr. husstand og en generel forventning om høj kvalitet i service — noget CleanWash er bygget til at levere.",
+        ],
+      },
+      {
+        heading: "Hvad tilbyder CleanWash i Hørsholm?",
+        paragraphs: [
+          "CleanWash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Hørsholm. Udvendig vask fjerner vejsnavs og saltrester fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder.",
+          "Kunder kan booke bilvask direkte via booking-siden og vælge den service, der passer til bilen.",
+        ],
+      },
+      {
+        heading: "Erhverv og private i Hørsholm",
+        paragraphs: [
+          "Hørsholm har mange virksomheder og selvstændige med firmabiler, der har brug for en professionel og præsentabel fremtoning. CleanWash kan hjælpe med regelmæssig bilvask til både erhverv og private.",
+          "Book bilvask direkte via booking-siden og angiv adresse og ønsket tidspunkt.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Tilbyder CleanWash bilvask i Hørsholm?", answer: "Ja. CleanWash tilbyder professionel bilvask i Hørsholm og det nordsjællandske kystområde med online booking." },
+      { question: "Dækker I Rungsted og Vedbæk?", answer: "CleanWash er relevant for Hørsholm og nærliggende kystbyer. Konkret dækning afhænger af booking og rute." },
+      { question: "Er saltvand fra kysten skadeligt for bilen?", answer: "Ja, salt og fugt fra havluften kan påvirke lak og fælge. Regelmæssig udvendig vask hjælper med at beskytte bilen." },
+      { question: "Kan jeg booke komplet bilpleje i Hørsholm?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
+      { question: "Hvad koster bilvask i Hørsholm?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se priser og book via /booking." },
+      { question: "Hvordan booker jeg bilvask i Hørsholm?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: "/booking" },
+      { label: "Bilvask Hellerup", href: "/bilvask-hellerup" },
+      { label: "Bilvask Hillerød", href: "/bilvask-hilleroed" },
+      { label: "Bilvask Sjælland", href: "/bilvask-sjaelland" },
+      { label: "Bilvask pris", href: "/bilvask-pris" },
+      { label: "Bilpleje guide", href: "/bilpleje-guide" },
+    ],
+    priority: 0.82,
+  },
+
+  {
+    slug: "bilvask-helsingoer",
+    title: "Bilvask Helsingør | Professionel bilvask i Nordsjælland | CleanWash",
+    description:
+      "Book professionel bilvask i Helsingør hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking i Nordsjælland.",
+    h1: "Bilvask Helsingør",
+    eyebrow: "Professionel bilvask i Helsingør",
+    heroIntro:
+      "CleanWash tilbyder professionel bilvask i Helsingør og det nordligste Nordsjælland med online booking og klare servicevalg til private og erhverv.",
+    shortSummary: [
+      "CleanWash tilbyder bilvask i Helsingør og omegn med online booking.",
+      "Servicen er relevant for bilejere i Helsingør, Espergærde, Snekkersten og Hornbæk.",
+      "Book udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet.",
+    ],
+    keywords: [
+      "bilvask Helsingør",
+      "bilrengøring Helsingør",
+      "bilpleje Helsingør",
+      "mobil bilvask Helsingør",
+      "bilvask Nordsjælland",
+    ],
+    serviceType: "Professionel bilvask i Helsingør og Nordsjælland",
+    serviceArea: ["Helsingør", "Espergærde", "Snekkersten", "Hornbæk", "Nordsjælland"],
+    schemaAreaServed: ["Helsingør", "Nordsjælland", "Sjælland", "Zealand", "Denmark"],
+    image: { src: "/service/udenfor.jpg", alt: "Professionel bilvask i Helsingør hos CleanWash" },
+    secondaryCta: { label: "Se bilvask Hillerød", href: "/bilvask-hilleroed" },
+    benefits: [
+      { title: "Helsingør og nordkysten", text: "CleanWash er relevant for bilejere i Helsingør, Espergærde, Snekkersten og Hornbæk." },
+      { title: "Pendlere med Kystbanen", text: "Mange pendler dagligt fra Helsingør til København — professionel bilvask passer til denne travle hverdag." },
+      { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
+      { title: "Til alle biltyper", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
+    ],
+    process: [
+      { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
+      { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
+      { title: "CleanWash planlægger", text: "Teamet forbereder rute og service ud fra din booking." },
+      { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
+    ],
+    sections: [
+      {
+        heading: "Bilvask i Helsingør — professionel service i den nordligste del af Sjælland",
+        paragraphs: [
+          "Helsingør er kendt for Kronborg Slot og færgeforbindelsen til Helsingborg, og er samtidig hjemsted for mange bilejere, der pendler til København via Kystbanen eller Helsingørmotorvejen. CleanWash tilbyder professionel bilvask i Helsingør med online booking, så bilen kan holdes ren uden en ekstra tur til en vaskehal.",
+          "Den nordsjællandske kystlinje betyder, at mange biler udsættes for salt og fugt fra havet, hvilket gør regelmæssig udvendig vask relevant for at beskytte lak og fælge.",
+        ],
+      },
+      {
+        heading: "Helsingør og nærliggende byer",
+        paragraphs: [
+          "Helsingør grænser op til Espergærde, Snekkersten og Hornbæk. CleanWash er relevant for kunder i disse områder, men den konkrete dækning afhænger af booking, adresse og ruteplanlægning.",
+          "Området har mange familiebiler og pendlerbiler, der bruges dagligt til transport til og fra København.",
+        ],
+      },
+      {
+        heading: "Hvad tilbyder CleanWash i Helsingør?",
+        paragraphs: [
+          "CleanWash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Helsingør. Udvendig vask fjerner vejsnavs og saltrester fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder.",
+          "Kunder kan booke bilvask direkte via booking-siden og vælge den service, der passer til bilen.",
+        ],
+      },
+      {
+        heading: "Erhverv og private i Helsingør",
+        paragraphs: [
+          "Helsingør har både turisme, havnedrift og lokale virksomheder med firmabiler, der har brug for en præsentabel fremtoning. CleanWash kan hjælpe med regelmæssig bilvask til erhverv og private i området.",
+          "Book bilvask direkte via booking-siden og angiv adresse og ønsket tidspunkt.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Tilbyder CleanWash bilvask i Helsingør?", answer: "Ja. CleanWash tilbyder professionel bilvask i Helsingør og Nordsjælland med online booking." },
+      { question: "Dækker I Espergærde og Hornbæk?", answer: "CleanWash er relevant for Helsingør og nærliggende byer. Konkret dækning afhænger af booking og rute." },
+      { question: "Er CleanWash relevant for pendlere fra Helsingør?", answer: "Ja. Pendlerbiler bruges hårdt, og CleanWash gør det nemt at booke regelmæssig bilvask." },
+      { question: "Kan jeg booke komplet bilpleje i Helsingør?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
+      { question: "Hvad koster bilvask i Helsingør?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se priser og book via /booking." },
+      { question: "Hvordan booker jeg bilvask i Helsingør?", answer: "Gå til /booking, vælg service og udfyld oplysninger om bil og ønsket tidspunkt." },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: "/booking" },
+      { label: "Bilvask Hillerød", href: "/bilvask-hilleroed" },
+      { label: "Bilvask Hørsholm", href: "/bilvask-horsholm" },
+      { label: "Bilvask Sjælland", href: "/bilvask-sjaelland" },
+      { label: "Bilvask pris", href: "/bilvask-pris" },
+      { label: "Bilpleje guide", href: "/bilpleje-guide" },
+    ],
+    priority: 0.8,
+  },
+
+  {
+    slug: "bilvask-naestved",
+    title: "Bilvask Næstved | Professionel bilvask på Sydsjælland | CleanWash",
+    description:
+      "Book professionel bilvask i Næstved hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking på Sydsjælland.",
+    h1: "Bilvask Næstved",
+    eyebrow: "Professionel bilvask på Sydsjælland",
+    heroIntro:
+      "CleanWash tilbyder professionel bilvask i Næstved og på Sydsjælland med online booking og klare servicevalg til private og erhverv.",
+    shortSummary: [
+      "CleanWash tilbyder bilvask i Næstved og på Sydsjælland med online booking.",
+      "Servicen er relevant for bilejere i Næstved, Herlufmagle, Fuglebjerg og nærliggende byer.",
+      "Den konkrete dækning i Næstved afhænger altid af booking, adresse og ruteplanlægning.",
+    ],
+    keywords: [
+      "bilvask Næstved",
+      "bilrengøring Næstved",
+      "bilpleje Næstved",
+      "mobil bilvask Næstved",
+      "bilvask Sydsjælland",
+    ],
+    serviceType: "Professionel bilvask i Næstved og på Sydsjælland",
+    serviceArea: ["Næstved", "Herlufmagle", "Fuglebjerg", "Sydsjælland", "Sjælland"],
+    schemaAreaServed: ["Næstved", "Sydsjælland", "Sjælland", "Zealand", "Denmark"],
+    image: { src: "/service/helebil.jpg", alt: "Professionel bilvask i Næstved hos CleanWash" },
+    secondaryCta: { label: "Se bilvask Sjælland", href: "/bilvask-sjaelland" },
+    benefits: [
+      { title: "Næstved og Sydsjælland", text: "CleanWash er relevant for bilejere i Næstved og de omkringliggende byer på Sydsjælland." },
+      { title: "Fleksibel ruteplanlægning", text: "Da Næstved ligger længere fra hovedstadsområdet, planlægges bookinger her efter rute og ledig kapacitet." },
+      { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
+      { title: "Til alle biltyper", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
+    ],
+    process: [
+      { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
+      { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
+      { title: "CleanWash planlægger", text: "Teamet vurderer rute og ledig kapacitet ud fra din booking." },
+      { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
+    ],
+    sections: [
+      {
+        heading: "Bilvask i Næstved — professionel service på Sydsjælland",
+        paragraphs: [
+          "Næstved er en af Sjællands største byer og et vigtigt handels- og transportknudepunkt på Sydsjælland. Mange bilejere i og omkring Næstved efterspørger en professionel bilvaskløsning, der kan bookes online uden besvær. CleanWash tilbyder bilvask i Næstved som en del af det sjællandske dækningsområde.",
+          "Fordi Næstved ligger længere fra CleanWash's kerneområde omkring København og Storkøbenhavn, planlægges bookinger her efter rute, adresse og ledig kapacitet. Book online for at se, hvornår det er muligt at få bilen vasket.",
+        ],
+      },
+      {
+        heading: "Næstved og nærliggende byer",
+        paragraphs: [
+          "Næstved ligger centralt på Sydsjælland med gode forbindelser til Herlufmagle, Fuglebjerg og det øvrige sydsjællandske opland. CleanWash er relevant for kunder i disse områder, men dækningen afhænger altid af den konkrete booking.",
+          "Book online for at afklare, om CleanWash kan planlægge en bilvask på din adresse i Næstved-området.",
+        ],
+      },
+      {
+        heading: "Hvad tilbyder CleanWash i Næstved?",
+        paragraphs: [
+          "CleanWash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Næstved-området. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder.",
+          "Kunder kan booke bilvask direkte via booking-siden og angive adresse i Næstved, så CleanWash kan vurdere ruten.",
+        ],
+      },
+      {
+        heading: "Erhverv og private i Næstved",
+        paragraphs: [
+          "Næstved har mange lokale virksomheder, håndværkere og firmabiler, der har brug for regelmæssig bilvask. CleanWash kan hjælpe med at planlægge en løsning, der passer til virksomhedens behov.",
+          "Private bilejere i Næstved kan booke bilvask direkte via booking-siden og få bilen planlagt ind efter rute og ledig kapacitet.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Tilbyder CleanWash bilvask i Næstved?", answer: "Ja, som en del af det sjællandske dækningsområde. Den konkrete mulighed afhænger af booking, adresse og ruteplanlægning." },
+      { question: "Dækker I hele Sydsjælland?", answer: "CleanWash er relevant for Næstved og nærliggende byer. Konkret dækning vurderes ud fra hver enkelt booking." },
+      { question: "Hvorfor afhænger dækningen af booking i Næstved?", answer: "Fordi Næstved ligger længere fra kerneområdet omkring København, planlægges opgaver her efter rute og ledig kapacitet." },
+      { question: "Kan jeg booke komplet bilpleje i Næstved?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
+      { question: "Hvad koster bilvask i Næstved?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se priser og book via /booking." },
+      { question: "Hvordan booker jeg bilvask i Næstved?", answer: "Gå til /booking, angiv adresse i Næstved-området og vælg ønsket service og tidspunkt." },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: "/booking" },
+      { label: "Bilvask Sjælland", href: "/bilvask-sjaelland" },
+      { label: "Bilvask Roskilde", href: "/bilvask-roskilde" },
+      { label: "Bilvask Køge", href: "/bilvask-koege" },
+      { label: "Bilvask pris", href: "/bilvask-pris" },
+      { label: "Bilpleje guide", href: "/bilpleje-guide" },
+    ],
+    priority: 0.76,
+  },
+
+  {
+    slug: "bilvask-slagelse",
+    title: "Bilvask Slagelse | Professionel bilvask på Vestsjælland | CleanWash",
+    description:
+      "Book professionel bilvask i Slagelse hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking på Vestsjælland.",
+    h1: "Bilvask Slagelse",
+    eyebrow: "Professionel bilvask på Vestsjælland",
+    heroIntro:
+      "CleanWash tilbyder professionel bilvask i Slagelse og på Vestsjælland med online booking og klare servicevalg til private og erhverv.",
+    shortSummary: [
+      "CleanWash tilbyder bilvask i Slagelse og på Vestsjælland med online booking.",
+      "Servicen er relevant for bilejere i Slagelse, Korsør, Skælskør og nærliggende byer.",
+      "Den konkrete dækning i Slagelse afhænger altid af booking, adresse og ruteplanlægning.",
+    ],
+    keywords: [
+      "bilvask Slagelse",
+      "bilrengøring Slagelse",
+      "bilpleje Slagelse",
+      "mobil bilvask Slagelse",
+      "bilvask Vestsjælland",
+    ],
+    serviceType: "Professionel bilvask i Slagelse og på Vestsjælland",
+    serviceArea: ["Slagelse", "Korsør", "Skælskør", "Vestsjælland", "Sjælland"],
+    schemaAreaServed: ["Slagelse", "Vestsjælland", "Sjælland", "Zealand", "Denmark"],
+    image: { src: "/service/inside.jpg", alt: "Professionel bilvask i Slagelse hos CleanWash" },
+    secondaryCta: { label: "Se bilvask Sjælland", href: "/bilvask-sjaelland" },
+    benefits: [
+      { title: "Slagelse og Vestsjælland", text: "CleanWash er relevant for bilejere i Slagelse og de omkringliggende byer på Vestsjælland." },
+      { title: "Fleksibel ruteplanlægning", text: "Da Slagelse ligger længere fra hovedstadsområdet, planlægges bookinger her efter rute og ledig kapacitet." },
+      { title: "Online booking", text: "Book bilvask online og vælg service, tidspunkt og biloplysninger i ét flow." },
+      { title: "Til alle biltyper", text: "Passer til familiebiler, pendlerbiler, firmabiler og leasingbiler." },
+    ],
+    process: [
+      { title: "Book online", text: "Gå til booking-siden og vælg den bilvask, der passer til bilen." },
+      { title: "Oplys bil og adresse", text: "Angiv nummerplade, kontaktoplysninger og ønsket tidspunkt." },
+      { title: "CleanWash planlægger", text: "Teamet vurderer rute og ledig kapacitet ud fra din booking." },
+      { title: "Bilen vaskes professionelt", text: "Du får en renere bil leveret uden kø og ventetid." },
+    ],
+    sections: [
+      {
+        heading: "Bilvask i Slagelse — professionel service på Vestsjælland",
+        paragraphs: [
+          "Slagelse er en af Vestsjællands største byer og et centralt trafikknudepunkt tæt på Storebæltsbroen. Mange bilejere i og omkring Slagelse efterspørger en professionel bilvaskløsning, der kan bookes online uden besvær. CleanWash tilbyder bilvask i Slagelse som en del af det sjællandske dækningsområde.",
+          "Fordi Slagelse ligger længere fra CleanWash's kerneområde omkring København og Storkøbenhavn, planlægges bookinger her efter rute, adresse og ledig kapacitet. Book online for at se, hvornår det er muligt at få bilen vasket.",
+        ],
+      },
+      {
+        heading: "Slagelse og nærliggende byer",
+        paragraphs: [
+          "Slagelse ligger centralt på Vestsjælland med gode forbindelser til Korsør og Skælskør. CleanWash er relevant for kunder i disse områder, men dækningen afhænger altid af den konkrete booking.",
+          "Book online for at afklare, om CleanWash kan planlægge en bilvask på din adresse i Slagelse-området.",
+        ],
+      },
+      {
+        heading: "Hvad tilbyder CleanWash i Slagelse?",
+        paragraphs: [
+          "CleanWash tilbyder udvendig bilvask, indvendig bilrengøring og komplet bilpleje til kunder i Slagelse-området. Udvendig vask fjerner vejsnavs fra lak, ruder og fælge. Indvendig rengøring fokuserer på kabine, støvsugning og sæder.",
+          "Kunder kan booke bilvask direkte via booking-siden og angive adresse i Slagelse, så CleanWash kan vurdere ruten.",
+        ],
+      },
+      {
+        heading: "Erhverv og private i Slagelse",
+        paragraphs: [
+          "Slagelse har mange lokale virksomheder, transportfirmaer og firmabiler, der har brug for regelmæssig bilvask. CleanWash kan hjælpe med at planlægge en løsning, der passer til virksomhedens behov.",
+          "Private bilejere i Slagelse kan booke bilvask direkte via booking-siden og få bilen planlagt ind efter rute og ledig kapacitet.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Tilbyder CleanWash bilvask i Slagelse?", answer: "Ja, som en del af det sjællandske dækningsområde. Den konkrete mulighed afhænger af booking, adresse og ruteplanlægning." },
+      { question: "Dækker I Korsør og Skælskør?", answer: "CleanWash er relevant for Slagelse og nærliggende byer. Konkret dækning vurderes ud fra hver enkelt booking." },
+      { question: "Hvorfor afhænger dækningen af booking i Slagelse?", answer: "Fordi Slagelse ligger længere fra kerneområdet omkring København, planlægges opgaver her efter rute og ledig kapacitet." },
+      { question: "Kan jeg booke komplet bilpleje i Slagelse?", answer: "Ja. Du kan vælge udvendig vask, indvendig rengøring eller komplet bilpleje i bookingflowet." },
+      { question: "Hvad koster bilvask i Slagelse?", answer: "Udvendig bilvask fra 349 kr., komplet bilvask fra 599 kr. Se priser og book via /booking." },
+      { question: "Hvordan booker jeg bilvask i Slagelse?", answer: "Gå til /booking, angiv adresse i Slagelse-området og vælg ønsket service og tidspunkt." },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: "/booking" },
+      { label: "Bilvask Sjælland", href: "/bilvask-sjaelland" },
+      { label: "Bilvask Roskilde", href: "/bilvask-roskilde" },
+      { label: "Bilvask Køge", href: "/bilvask-koege" },
+      { label: "Bilvask pris", href: "/bilvask-pris" },
+      { label: "Bilpleje guide", href: "/bilpleje-guide" },
+    ],
+    priority: 0.75,
   },
 ];
 
@@ -4285,7 +4640,7 @@ const trustSeoPages: SeoPageConfig[] = [
       { label: "Bilvask Frederiksberg", href: route("/bilvask-frederiksberg") },
       { label: "Bilvask Amager", href: route("/bilvask-amager") },
       { label: "Bilvask Østerbro", href: route("/bilvask-osterbro") },
-      { label: "Bilvask Nørrebro", href: route("/bilvask-norrebro") },
+      { label: "Bilvask Nørrebro", href: route("/bilvask-noerrebro") },
       { label: "Bilvask Valby", href: route("/bilvask-valby") },
       { label: "Bilvask Sjælland", href: route("/bilvask-sjaelland") },
     ],
@@ -4510,38 +4865,35 @@ const trustSeoPages: SeoPageConfig[] = [
 ];
 
 const areaSeoTargets: AreaSeoTarget[] = [
-  { slug: "bilvask-frederiksberg", name: "Frederiksberg", nearby: ["Vesterbro", "Valby", "Nørrebro", "Vanløse"], priority: 0.87 },
-  { slug: "bilvask-amager", name: "Amager", nearby: ["Kastrup", "Tårnby", "Islands Brygge", "Christianshavn"], priority: 0.87 },
-  { slug: "bilvask-osterbro", name: "Østerbro", nearby: ["Nordhavn", "Indre By", "Hellerup", "Nørrebro"], priority: 0.86 },
-  { slug: "bilvask-norrebro", name: "Nørrebro", nearby: ["Østerbro", "Frederiksberg", "Indre By", "Vanløse"], priority: 0.86 },
-  { slug: "bilvask-vesterbro", name: "Vesterbro", nearby: ["Frederiksberg", "Sydhavnen", "Indre By", "Valby"], priority: 0.85 },
-  { slug: "bilvask-valby", name: "Valby", nearby: ["Frederiksberg", "Hvidovre", "Vanløse", "Sydhavnen"], priority: 0.85 },
+  // Note: Frederiksberg, Amager, Østerbro, Nørrebro, Vesterbro, Valby, Hellerup,
+  // Hvidovre, Lyngby, Roskilde and Køge are intentionally NOT generated here —
+  // they already have dedicated, fully hand-written pages in the main seoPages
+  // array above. Generating them again here previously created duplicate slugs
+  // (e.g. "bilvask-frederiksberg" twice) that silently overwrote the richer
+  // hand-written pages in seoPagesBySlug, and duplicate/near-duplicate URLs
+  // ("bilvask-norrebro" vs "bilvask-noerrebro", "bilvask-koge" vs "bilvask-koege")
+  // in the sitemap — both of which hurt indexing and crawlability.
   { slug: "bilvask-vanlose", name: "Vanløse", nearby: ["Frederiksberg", "Rødovre", "Valby", "Nørrebro"], priority: 0.84 },
   { slug: "bilvask-christianshavn", name: "Christianshavn", nearby: ["Amager", "Indre By", "Islands Brygge", "Holmen"], priority: 0.83 },
   { slug: "bilvask-sydhavnen", name: "Sydhavnen", nearby: ["Vesterbro", "Valby", "Islands Brygge", "Hvidovre"], priority: 0.83 },
   { slug: "bilvask-islands-brygge", name: "Islands Brygge", nearby: ["Amager", "Christianshavn", "Indre By", "Sydhavnen"], priority: 0.83 },
   { slug: "bilvask-nordhavn", name: "Nordhavn", nearby: ["Østerbro", "Hellerup", "Indre By", "København"], priority: 0.83 },
-  { slug: "bilvask-hellerup", name: "Hellerup", nearby: ["Gentofte", "Østerbro", "Charlottenlund", "Nordhavn"], priority: 0.84 },
   { slug: "bilvask-gentofte", name: "Gentofte", nearby: ["Hellerup", "Charlottenlund", "Søborg", "Lyngby"], priority: 0.84 },
   { slug: "bilvask-charlottenlund", name: "Charlottenlund", nearby: ["Hellerup", "Gentofte", "Klampenborg", "Ordrup"], priority: 0.82 },
   { slug: "bilvask-soborg", name: "Søborg", nearby: ["Gladsaxe", "Gentofte", "Herlev", "Bagsværd"], priority: 0.82 },
   { slug: "bilvask-gladsaxe", name: "Gladsaxe", nearby: ["Søborg", "Bagsværd", "Herlev", "Lyngby"], priority: 0.82 },
   { slug: "bilvask-herlev", name: "Herlev", nearby: ["Gladsaxe", "Ballerup", "Rødovre", "Søborg"], priority: 0.82 },
   { slug: "bilvask-rodovre", name: "Rødovre", nearby: ["Vanløse", "Hvidovre", "Brøndby", "Glostrup"], priority: 0.82 },
-  { slug: "bilvask-hvidovre", name: "Hvidovre", nearby: ["Valby", "Rødovre", "Brøndby", "Sydhavnen"], priority: 0.82 },
   { slug: "bilvask-brondby", name: "Brøndby", nearby: ["Hvidovre", "Glostrup", "Rødovre", "Ishøj"], priority: 0.8 },
   { slug: "bilvask-glostrup", name: "Glostrup", nearby: ["Brøndby", "Rødovre", "Albertslund", "Ballerup"], priority: 0.8 },
   { slug: "bilvask-tarnby", name: "Tårnby", nearby: ["Amager", "Kastrup", "Dragør", "Ørestad"], priority: 0.82 },
   { slug: "bilvask-kastrup", name: "Kastrup", nearby: ["Tårnby", "Amager", "Dragør", "Ørestad"], priority: 0.82 },
   { slug: "bilvask-dragor", name: "Dragør", nearby: ["Kastrup", "Tårnby", "Amager", "Store Magleby"], priority: 0.8 },
-  { slug: "bilvask-lyngby", name: "Lyngby", nearby: ["Gentofte", "Bagsværd", "Søborg", "Virum"], priority: 0.83 },
   { slug: "bilvask-bagsvaerd", name: "Bagsværd", nearby: ["Lyngby", "Gladsaxe", "Søborg", "Herlev"], priority: 0.8 },
   { slug: "bilvask-ballerup", name: "Ballerup", nearby: ["Herlev", "Glostrup", "Albertslund", "Måløv"], priority: 0.8 },
   { slug: "bilvask-albertslund", name: "Albertslund", nearby: ["Glostrup", "Ballerup", "Brøndby", "Taastrup"], priority: 0.78 },
   { slug: "bilvask-ishoj", name: "Ishøj", nearby: ["Brøndby", "Greve", "Vallensbæk", "Hvidovre"], priority: 0.78 },
   { slug: "bilvask-greve", name: "Greve", nearby: ["Ishøj", "Hundige", "Solrød", "Køge"], priority: 0.76 },
-  { slug: "bilvask-roskilde", name: "Roskilde", nearby: ["Trekroner", "Hedehusene", "Lejre", "Køge"], priority: 0.76 },
-  { slug: "bilvask-koge", name: "Køge", nearby: ["Greve", "Solrød", "Herfølge", "Roskilde"], priority: 0.76 },
 ];
 
 function makeAreaSeoPage(area: AreaSeoTarget): SeoPageConfig {
@@ -4695,11 +5047,529 @@ function makeAreaSeoPage(area: AreaSeoTarget): SeoPageConfig {
   };
 }
 
+const blogSeoPages: SeoPageConfig[] = [
+  {
+    slug: "bedste-bilvask-koebenhavn",
+    title: "Bedste bilvask i København | Sådan finder du den bedste bilvask | CleanWash",
+    description:
+      "Guide til at finde den bedste bilvask i København. Se hvilke kriterier der betyder mest, og hvorfor CleanWash er et af de bedst bedømte valg til bilvask og bilpleje.",
+    h1: "Bedste bilvask i København",
+    eyebrow: "Guide til den bedste bilvask",
+    heroIntro:
+      "Der findes mange tilbud om bilvask i København. Her får du kriterierne, der afgør, hvad der reelt er den bedste bilvask til din bil — og hvorfor CleanWash er et trygt valg.",
+    shortSummary: [
+      "Den bedste bilvask kombinerer gennemsigtig pris, professionelt udført arbejde og nem online booking.",
+      "Mobil bilvask sparer tid, fordi bilen vaskes der, hvor den holder — hjemme, på arbejdet eller et andet sted.",
+      "CleanWash tilbyder udvendig vask, komplet bilvask og premium bilpleje med klar pris fra 349 kr.",
+    ],
+    keywords: [
+      "bedste bilvask København",
+      "bedste bilvask",
+      "bedste bilpleje København",
+      "top bilvask København",
+      "anbefalet bilvask København",
+    ],
+    serviceType: "Bedste bilvask og bilpleje i København",
+    serviceArea: [
+      "København",
+      "Frederiksberg",
+      "Amager",
+      "Østerbro",
+      "Nørrebro",
+      "Vesterbro",
+      "Valby",
+      "Hellerup",
+      "Storkøbenhavn",
+      "Sjælland",
+    ],
+    schemaAreaServed: ["København", "Copenhagen", "Storkøbenhavn", "Sjælland", "Denmark"],
+    image: { src: "/service/helebil.jpg", alt: "Den bedste bilvask i København udført af CleanWash" },
+    secondaryCta: { label: "Se bilvask priser", href: route("/bilvask-priser") },
+    benefits: [
+      { title: "Gennemsigtig pris", text: "Du ser prisen, før du booker — ingen skjulte gebyrer eller overraskelser ved aflevering." },
+      { title: "Dokumenteret resultat", text: "Udvendig vask, indvendig rengøring og premium bilpleje udføres efter faste standarder hver gang." },
+      { title: "Mobil og fleksibel", text: "Bilen bliver vasket der, hvor den holder — hjemme, på arbejdet eller et andet aftalt sted." },
+      { title: "Nem online booking", text: "Book på få minutter, vælg service og tidspunkt, og få bekræftelse med det samme." },
+    ],
+    process: [
+      { title: "Vurdér dine behov", text: "Overvej om bilen trænger til udvendig vask, indvendig rengøring eller komplet bilpleje." },
+      { title: "Sammenlign kriterier", text: "Se på pris, dækningsområde, service og hvor nemt det er at booke." },
+      { title: "Book online hos CleanWash", text: "Vælg service, angiv bil og adresse, og bekræft tidspunktet direkte i bookingflowet." },
+      { title: "Få bilen tilbage ren", text: "CleanWash udfører opgaven og afleverer bilen klar til brug." },
+    ],
+    sections: [
+      {
+        heading: "Hvad gør en bilvask til den bedste i København?",
+        paragraphs: [
+          "Når man søger efter 'bedste bilvask København', leder man typisk efter tre ting: en fair pris, et pålideligt resultat og en nem måde at booke på. Det lyder enkelt, men mange bilvaskeudbydere lever ikke op til alle tre samtidig — enten er prisen uklar, kvaliteten svingende, eller også kræver det et telefonopkald og lang ventetid at få en tid.",
+          "Den bedste bilvask er den, der leverer et konsekvent resultat hver gang, uanset om det er en hurtig udvendig vask eller en komplet bilpleje med indvendig rengøring. Det handler ikke kun om skum og vand, men om at fælge, ruder, kabine og detaljer bliver behandlet ordentligt — og at du ved præcis, hvad du betaler for, inden du booker.",
+        ],
+      },
+      {
+        heading: "Sådan sammenligner du bilvaskefirmaer i København",
+        paragraphs: [
+          "Start med prisen: er den synlig før booking, eller først når bilen afleveres? Se dernæst på, hvad prisen inkluderer — er det kun lak og fælge, eller også kabine, måtter og paneler? Tjek om virksomheden dækker dit område i København, Frederiksberg, Amager eller Storkøbenhavn, og om der er ledige tider, når du har brug for det.",
+          "Et andet vigtigt kriterium er fleksibilitet. Kan du booke online uden at ringe? Kan bilen vaskes derhjemme eller på arbejdspladsen? Jo færre forhindringer der er mellem dig og en ren bil, jo bedre er servicen typisk skruet sammen.",
+        ],
+      },
+      {
+        heading: "Mobil bilvask eller vaskehal — hvad giver bedst mening?",
+        paragraphs: [
+          "En vaskehal kan være hurtig til en enkel udvendig vask, men den løser sjældent indvendig rengøring, og du skal selv køre bilen derhen og vente. Mobil bilvask vender processen om: CleanWash kommer til bilen, uanset om den holder hjemme, ved arbejdet eller et andet sted i København eller på Sjælland.",
+          "For de fleste bilejere, der har en travl hverdag, er mobil bilvask det bedste valg, fordi tiden bruges på noget andet end kø og ventetid. Det gælder især, hvis bilen også trænger til indvendig rengøring, hvor en komplet løsning giver mere værdi end en hurtig tur i en automatvask.",
+        ],
+      },
+      {
+        heading: "Derfor nævnes CleanWash blandt de bedste valg i København",
+        paragraphs: [
+          "CleanWash er bygget omkring de kriterier, der reelt betyder noget for kunder: klar pris fra 349 kr. for udvendig vask, 599 kr. for komplet bilvask og 849 kr. for premium bilpleje med polering og voks. Priserne er synlige, inden du booker, og der kommer ingen overraskelser ved aflevering.",
+          "Servicen dækker København, Frederiksberg, Amager, brokvartererne og store dele af Sjælland, og hele bookingflowet foregår online — uden telefonkø. Det gør det nemt at sammenligne, booke og få en ren bil uden at bruge unødig tid på research eller koordinering.",
+        ],
+      },
+      {
+        heading: "Sådan booker du den bedste bilvask til netop din bil",
+        paragraphs: [
+          "Start med at vælge den service, der matcher bilens behov: udvendig vask til en hurtig opfriskning, komplet bilvask hvis kabinen også trænger, eller premium bilpleje før en større begivenhed eller et salg. Angiv derefter bilens oplysninger, adresse og ønsket tidspunkt i bookingflowet.",
+          "Du ser den samlede pris, før du bekræfter bookingen, og kan planlægge ud fra dit eget behov — uden at skulle ringe rundt for at sammenligne tilbud. Det er denne kombination af gennemsigtighed, fleksibilitet og kvalitet, der gør oplevelsen til noget nær den bedste bilvask, du kan booke i København.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Hvad er den bedste bilvask i København?", answer: "Den bedste bilvask er den, der kombinerer gennemsigtig pris, pålideligt resultat og nem online booking. CleanWash er bygget om netop disse kriterier." },
+      { question: "Er mobil bilvask bedre end en vaskehal?", answer: "For de fleste bilejere, ja — især hvis bilen også trænger indvendigt, eller hvis tid og fleksibilitet betyder mere end en hurtig standardvask." },
+      { question: "Hvad koster den bedste bilvask?", answer: "Udvendig vask fra 349 kr., komplet bilvask fra 599 kr., og premium bilpleje med polering og voks fra 849 kr." },
+      { question: "Dækker CleanWash hele København?", answer: "Ja, CleanWash dækker København, Frederiksberg, Amager, brokvartererne, Storkøbenhavn og store dele af Sjælland." },
+      { question: "Kan jeg booke bilvask uden at ringe?", answer: "Ja. Hele bookingflowet foregår online, og du kan vælge service, adresse og tidspunkt på få minutter." },
+      { question: "Hvordan ved jeg, hvilken service jeg skal vælge?", answer: "Vælg udvendig vask til en hurtig opfriskning, komplet bilvask hvis kabinen også trænger, og premium bilpleje til polering og ekstra beskyttelse." },
+    ],
+    keywordGroups: [
+      { title: "Bedste bilvask søgninger", terms: ["bedste bilvask København", "bedste bilvask", "bedste bilpleje København", "top bilvask København", "anbefalet bilvask København"] },
+      { title: "Sammenligningskriterier", terms: ["pris", "kvalitet", "mobil bilvask", "online booking", "dækningsområde"] },
+      { title: "Lokalt", terms: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland"] },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: route("/booking") },
+      { label: "Bilvask København", href: route("/bilvask-koebenhavn") },
+      { label: "Bilvask priser", href: route("/bilvask-priser") },
+      { label: "Billig bilvask København", href: route("/billig-bilvask-koebenhavn") },
+      { label: "Billigste bilvask Sjælland", href: route("/billigste-bilvask-sjaelland") },
+      { label: "Bilpleje guide", href: route("/bilpleje-guide") },
+    ],
+    priority: 0.9,
+  },
+
+  {
+    slug: "billigste-bilvask-sjaelland",
+    title: "Billigste bilvask på Sjælland | Billig bilvask fra 349 kr. | CleanWash",
+    description:
+      "Find den billigste bilvask på Sjælland uden at gå på kompromis med kvaliteten. CleanWash tilbyder mobil bilvask fra 349 kr. i København, Roskilde, Køge, Hillerød og Taastrup.",
+    h1: "Billigste bilvask på Sjælland",
+    eyebrow: "Guide til billig bilvask på Sjælland",
+    heroIntro:
+      "Du behøver ikke vælge mellem lav pris og god kvalitet. CleanWash tilbyder billig bilvask på Sjælland fra 349 kr. med klar pris og mobil service direkte til bilen.",
+    shortSummary: [
+      "Udvendig bilvask på Sjælland starter fra 349 kr. — uden skjulte gebyrer eller tillæg.",
+      "CleanWash dækker København, Roskilde, Køge, Hillerød, Taastrup og store dele af Sjælland.",
+      "Mobil bilvask sparer både penge og tid, fordi du undgår kørsel til en vaskehal.",
+    ],
+    keywords: [
+      "billigste bilvask Sjælland",
+      "billig bilvask Sjælland",
+      "bilvask pris Sjælland",
+      "billig bilvask Roskilde",
+      "billig mobil bilvask",
+    ],
+    serviceType: "Billig og prisvenlig bilvask på Sjælland",
+    serviceArea: ["Sjælland", "København", "Roskilde", "Køge", "Hillerød", "Taastrup", "Solrød Strand", "Storkøbenhavn"],
+    schemaAreaServed: ["Sjælland", "København", "Copenhagen", "Denmark"],
+    image: { src: "/service/udenfor.jpg", alt: "Billig bilvask på Sjælland udført af CleanWash" },
+    secondaryCta: { label: "Se bilvask Sjælland", href: route("/bilvask-sjaelland") },
+    benefits: [
+      { title: "Fra 349 kr.", text: "Udvendig bilvask starter fra 349 kr. — en overkommelig pris for skånsom vask af lak, fælge og ruder." },
+      { title: "Dækker hele Sjælland", text: "Servicen er relevant for kunder i København, Roskilde, Køge, Hillerød, Taastrup og nærliggende byer." },
+      { title: "Ingen skjulte gebyrer", text: "Du ser den samlede pris, før du bekræfter booking, og betaler kun for det, du har valgt." },
+      { title: "Mobil bilvask sparer tid", text: "Bilen vaskes der, hvor den holder, så du undgår kørsel og ventetid i en vaskehal." },
+    ],
+    process: [
+      { title: "Vælg pakke", text: "Se priserne og vælg udvendig vask, komplet bilvask eller premium bilpleje." },
+      { title: "Angiv adresse", text: "Book den by på Sjælland, hvor bilen holder — hjemme, på arbejdet eller et andet sted." },
+      { title: "Bekræft tid online", text: "Vælg et tidspunkt, der passer, og bekræft bookingen på få minutter." },
+      { title: "Få en ren bil billigt", text: "CleanWash udfører vasken og afleverer bilen ren til den pris, du så ved booking." },
+    ],
+    sections: [
+      {
+        heading: "Hvad koster den billigste bilvask på Sjælland?",
+        paragraphs: [
+          "Prisen på bilvask varierer meget fra udbyder til udbyder, men hos CleanWash starter udvendig bilvask fra 349 kr. Det inkluderer skånsom vask af lak, rengøring af fælge og hjulbuer samt aftørring af ruder og spejle. Komplet bilvask, der også dækker indvendig rengøring, starter fra 599 kr.",
+          "Fordi priserne er faste og synlige fra start, kan du sammenligne med andre tilbud, uden at være i tvivl om, hvad du reelt ender med at betale. Det gør det nemt at finde den billigste bilvask på Sjælland, der stadig lever op til et professionelt niveau.",
+        ],
+      },
+      {
+        heading: "Billig bilvask behøver ikke betyde dårlig kvalitet",
+        paragraphs: [
+          "En lav pris er kun en god handel, hvis arbejdet er ordentligt udført. CleanWash holder priserne nede ved at gøre bookingen digital og ruteplanlægningen effektiv — ikke ved at skære ned på selve vasken. Det betyder, at du får samme grundige behandling af lak, fælge og kabine, uanset om du booker den billigste pakke eller premium bilpleje.",
+          "Når du sammenligner billig bilvask på Sjælland, er det derfor værd at kigge på, hvad prisen inkluderer, ikke kun beløbet i sig selv. En pris uden skjulte tillæg og med et klart indhold er typisk et bedre køb end en lavere pris med usikkert resultat.",
+        ],
+      },
+      {
+        heading: "Prisforskelle mellem byer på Sjælland",
+        paragraphs: [
+          "Bilvask i København kan nogle gange være dyrere end i mindre byer på Sjælland som Roskilde, Køge, Hillerød eller Taastrup, fordi efterspørgslen og konkurrencen er anderledes. Hos CleanWash er prisstrukturen den samme uanset by — det er servicevalget, ikke adressen, der afgør prisen.",
+          "Det betyder, at kunder i Roskilde, Køge eller Taastrup kan booke samme udvendige vask fra 349 kr. som kunder i København, uden at betale ekstra for at bo uden for hovedstaden.",
+        ],
+      },
+      {
+        heading: "Sådan sparer du yderligere med abonnement og mobil bilvask",
+        paragraphs: [
+          "Hvis bilen vaskes regelmæssigt, kan et bilvask-abonnement gøre den samlede udgift lavere over tid, fordi bilen aldrig når at samle så meget snavs, at den kræver en dyrere, mere grundig behandling. Det er ofte en bedre løsning end at vente, til bilen er meget beskidt, og så betale for en større opgave.",
+          "Mobil bilvask sparer også penge indirekte, fordi du undgår transport til og fra en vaskehal og den tid, det tager at vente i kø. For mange bilejere er den reelle besparelse derfor større, end prisen på selve vasken viser.",
+        ],
+      },
+      {
+        heading: "Hvorfor CleanWash er et billigt og pålideligt valg på Sjælland",
+        paragraphs: [
+          "CleanWash kombinerer en lav startpris med gennemsigtighed og mobil fleksibilitet. Du booker online, ser prisen med det samme, og får bilen vasket der, hvor den holder — uden at skulle bruge tid på at ringe rundt eller køre til en vaskehal.",
+          "Med dækning i København, Roskilde, Køge, Hillerød, Taastrup og store dele af det øvrige Sjælland er CleanWash et naturligt valg, når du søger efter billig bilvask uden at gå på kompromis med resultatet.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Hvad er den billigste bilvask på Sjælland?", answer: "Udvendig bilvask fra 349 kr. hos CleanWash er blandt de billigste muligheder med fast, gennemsigtig pris." },
+      { question: "Er billig bilvask lige så god som en dyrere service?", answer: "Ja, hos CleanWash er prisen lavere, fordi bookingen er digital og ruterne effektive — ikke fordi der skæres ned på selve vasken." },
+      { question: "Koster bilvask mere i København end på resten af Sjælland?", answer: "Nej, prisen hos CleanWash er den samme uanset by — det er servicevalget, der afgør prisen, ikke adressen." },
+      { question: "Hvilke byer på Sjælland dækker CleanWash?", answer: "CleanWash dækker blandt andet København, Roskilde, Køge, Hillerød, Taastrup og Storkøbenhavn." },
+      { question: "Kan jeg spare penge ved at booke bilvask fast?", answer: "Ja, regelmæssig bilvask eller et abonnement kan holde den samlede udgift nede, fordi bilen aldrig når at blive meget beskidt." },
+      { question: "Hvordan booker jeg billig bilvask på Sjælland?", answer: "Gå til /booking, vælg service og angiv adressen, hvor bilen holder på Sjælland." },
+    ],
+    keywordGroups: [
+      { title: "Billig bilvask søgninger", terms: ["billigste bilvask Sjælland", "billig bilvask Sjælland", "bilvask pris Sjælland", "billig bilvask Roskilde", "billig mobil bilvask"] },
+      { title: "Byer på Sjælland", terms: ["København", "Roskilde", "Køge", "Hillerød", "Taastrup"] },
+      { title: "Spar penge", terms: ["abonnement", "mobil bilvask", "fast pris", "ingen skjulte gebyrer"] },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: route("/booking") },
+      { label: "Bilvask Sjælland", href: route("/bilvask-sjaelland") },
+      { label: "Bilvask Roskilde", href: route("/bilvask-roskilde") },
+      { label: "Bilvask Køge", href: route("/bilvask-koege") },
+      { label: "Bilvask Hillerød", href: route("/bilvask-hilleroed") },
+      { label: "Bilvask Taastrup", href: route("/bilvask-taastrup") },
+      { label: "Billig bilvask København", href: route("/billig-bilvask-koebenhavn") },
+      { label: "Bilvask priser", href: route("/bilvask-priser") },
+    ],
+    priority: 0.9,
+  },
+
+  {
+    slug: "spar-penge-paa-bilvask",
+    title: "Sådan sparer du penge på bilvask | 6 tips til billigere bilpleje | CleanWash",
+    description:
+      "Få 6 konkrete tips til at spare penge på bilvask og bilpleje. Lær hvordan abonnement, timing og de rigtige valg kan gøre bilvask billigere uden at gå på kompromis.",
+    h1: "Sådan sparer du penge på bilvask",
+    eyebrow: "Spareguide til bilejere",
+    heroIntro:
+      "Bilvask behøver ikke koste en formue. Her er de tips, der kan gøre din bilpleje billigere over tid — uden at gå på kompromis med resultatet.",
+    shortSummary: [
+      "Regelmæssig bilvask forebygger dyre skader fra vejsalt, rust og fastsiddende snavs.",
+      "Et abonnement kan gøre bilvask billigere over tid end enkeltstående besøg.",
+      "Timing, service-valg og mobil bilvask kan alle sænke den samlede udgift.",
+    ],
+    keywords: [
+      "spar penge på bilvask",
+      "billig bilpleje",
+      "billigere bilvask",
+      "bilvask abonnement pris",
+      "spare på bilvask",
+    ],
+    serviceType: "Guide til at spare penge på bilvask og bilpleje",
+    serviceArea: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland", "Roskilde", "Køge"],
+    schemaAreaServed: ["København", "Copenhagen", "Storkøbenhavn", "Sjælland", "Denmark"],
+    image: { src: "/service/inside.jpg", alt: "Spar penge på bilvask og bilpleje med CleanWash" },
+    secondaryCta: { label: "Se bilvask abonnement", href: route("/bilvask-abonnement") },
+    benefits: [
+      { title: "Forebyg dyre skader", text: "Regelmæssig vask fjerner vejsalt og snavs, før det når at skade lak og fælge." },
+      { title: "Abonnement sænker prisen", text: "Et fast abonnement gør prisen pr. vask lavere end enkeltstående besøg." },
+      { title: "Undgå skjulte gebyrer", text: "Klar pris fra start betyder, at du aldrig betaler mere, end du forventede." },
+      { title: "Mobil bilvask sparer tid", text: "Ingen kørsel til vaskehal betyder mindre spildtid — og indirekte færre omkostninger." },
+    ],
+    process: [
+      { title: "Vurder bilens behov", text: "Se på, hvor ofte bilen reelt trænger til vask, ud fra brug og årstid." },
+      { title: "Vælg abonnement eller enkeltvask", text: "Sammenlign prisen på et fast abonnement med enkeltstående besøg." },
+      { title: "Book på det rigtige tidspunkt", text: "Undgå unødige ekstraopgaver ved at booke, før snavs og salt sætter sig fast." },
+      { title: "Følg en fast rytme", text: "Hold bilen ren løbende, så hver vask bliver hurtigere og billigere." },
+    ],
+    sections: [
+      {
+        heading: "1. Vask bilen regelmæssigt — undgå dyre skader",
+        paragraphs: [
+          "Den største hemmelighed bag billig bilpleje er ikke at vente, til bilen er meget beskidt. Vejsalt, fugleklatter og fastsiddende snavs bliver dyrere at fjerne, jo længere de får lov at sidde, og i værste fald kan de forårsage skader på lak og fælge, der koster langt mere end selve vasken.",
+          "Ved at vaske bilen regelmæssigt undgår du, at snavs og salt får tid til at ætse sig fast. Det betyder, at hver enkelt vask bliver hurtigere, mindre omfattende og dermed billigere end en sjælden, men meget grundig rengøring.",
+        ],
+      },
+      {
+        heading: "2. Vælg abonnement frem for enkeltstående vask",
+        paragraphs: [
+          "Hvis bilen alligevel skal vaskes med jævne mellemrum, kan et bilvask-abonnement give en lavere pris pr. vask sammenlignet med at booke enkeltvis hver gang. Det gør det også nemmere at holde en fast rytme, fordi bookingen allerede er planlagt.",
+          "CleanWash tilbyder abonnementsløsninger, der er designet til bilejere, der ønsker en løbende, forudsigelig udgift til bilpleje frem for større, uregelmæssige regninger.",
+        ],
+      },
+      {
+        heading: "3. Kombinér indvendig og udvendig vask i én booking",
+        paragraphs: [
+          "At booke udvendig og indvendig rengøring samlet er ofte billigere end at booke dem separat ved flere lejligheder, fordi opgaven kan planlægges mere effektivt. Det sparer også din tid, fordi bilen kun skal afleveres eller mødes én gang.",
+          "Komplet bilvask er derfor et godt valg, hvis bilen trænger begge steder, frem for kun at fokusere på det udvendige og udskyde kabinerengøringen til senere.",
+        ],
+      },
+      {
+        heading: "4. Book på det rigtige tidspunkt",
+        paragraphs: [
+          "At booke bilvask, lige før vejsalt, pollen eller sand for alvor sætter sig fast, kan spare dig for en mere omfattende — og dyrere — rengøring senere. Det gælder særligt i overgangen mellem vinter og forår, hvor vejsalt ophobes på fælge og bundramme.",
+          "Ved at planlægge bilvask ud fra årstid og vejr, frem for kun når bilen ser tydeligt beskidt ud, holder du både resultatet og udgiften mere stabil over året.",
+        ],
+      },
+      {
+        heading: "5. Gennemskue prisen — undgå skjulte gebyrer",
+        paragraphs: [
+          "En del af at spare penge handler om at undgå ubehagelige overraskelser. Vælg altid en udbyder, hvor prisen er synlig, inden du bekræfter bookingen, så du ved præcis, hvad den endelige regning bliver.",
+          "Hos CleanWash ser du prisen for udvendig vask, komplet bilvask og premium bilpleje, før du booker — uden tillæg, der først dukker op ved aflevering.",
+        ],
+      },
+      {
+        heading: "6. Brug mobil bilvask til at spare tid — og dermed penge",
+        paragraphs: [
+          "Tid har også en økonomisk værdi. Når du booker mobil bilvask, undgår du kørsel til og fra en vaskehal samt ventetid i kø. For mange bilejere er denne tidsbesparelse i praksis en del af den samlede besparelse ved at vælge en mobil løsning.",
+          "CleanWash kommer til bilen, uanset om den holder hjemme, på arbejdet eller et andet sted i København eller på Sjælland, så du kan bruge tiden på andet end at vente på en ren bil.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Hvordan sparer jeg penge på bilvask?", answer: "Vask bilen regelmæssigt, vælg abonnement, kombinér indvendig og udvendig vask, og book hos en udbyder med klar pris." },
+      { question: "Er et bilvask-abonnement billigere end enkeltvask?", answer: "Ofte ja, fordi prisen pr. vask typisk er lavere ved en fast, tilbagevendende aftale." },
+      { question: "Kan jeg spare penge ved at vente med at vaske bilen?", answer: "Nej, tværtimod. Fastsiddende snavs og vejsalt kan kræve mere omfattende — og dyrere — rengøring, jo længere de sidder." },
+      { question: "Er mobil bilvask dyrere end en vaskehal?", answer: "Ikke nødvendigvis. Du sparer tid og transport, hvilket for mange opvejer en eventuel prisforskel." },
+      { question: "Hvad er den billigste bilvask hos CleanWash?", answer: "Udvendig bilvask fra 349 kr. er den mest overkommelige løsning til en hurtig opfriskning." },
+      { question: "Hvordan undgår jeg skjulte gebyrer?", answer: "Vælg en udbyder, der viser prisen tydeligt, før du booker, som CleanWash gør i hele bookingflowet." },
+    ],
+    keywordGroups: [
+      { title: "Spar penge søgninger", terms: ["spar penge på bilvask", "billig bilpleje", "billigere bilvask", "bilvask abonnement pris", "spare på bilvask"] },
+      { title: "Metoder", terms: ["abonnement", "komplet bilvask", "mobil bilvask", "fast pris", "regelmæssig vask"] },
+      { title: "Lokalt", terms: ["København", "Storkøbenhavn", "Sjælland", "Roskilde", "Køge"] },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: route("/booking") },
+      { label: "Bilvask abonnement", href: route("/bilvask-abonnement") },
+      { label: "Billig bilvask København", href: route("/billig-bilvask-koebenhavn") },
+      { label: "Billigste bilvask Sjælland", href: route("/billigste-bilvask-sjaelland") },
+      { label: "Bilvask priser", href: route("/bilvask-priser") },
+      { label: "Bilpleje guide", href: route("/bilpleje-guide") },
+    ],
+    priority: 0.87,
+  },
+
+  {
+    slug: "vaelg-den-rigtige-bilvask",
+    title: "Sådan vælger du den rigtige bilvask | Guide til København og Sjælland | CleanWash",
+    description:
+      "Ved du, hvad du skal kigge efter, når du vælger bilvask? Få en guide til at vælge den rigtige service, pris og udbyder i København og på Sjælland.",
+    h1: "Sådan vælger du den rigtige bilvask",
+    eyebrow: "Købsguide til bilvask",
+    heroIntro:
+      "Der er stor forskel på bilvaskudbydere. Denne guide gennemgår, hvad du bør kigge efter, så du vælger den rigtige løsning til din bil, dit budget og din hverdag.",
+    shortSummary: [
+      "Det rigtige valg afhænger af bilens behov: udvendig vask, indvendig rengøring eller komplet bilpleje.",
+      "Tjek altid pris, dækningsområde, miljøgodkendelse og om bookingen kan foregå online.",
+      "Mobil bilvask er ofte det bedste valg for travle bilejere i København og på Sjælland.",
+    ],
+    keywords: [
+      "vælg den rigtige bilvask",
+      "hvordan vælger man bilvask",
+      "guide til bilvask",
+      "bedste valg bilvask",
+      "bilvask København guide",
+    ],
+    serviceType: "Guide til valg af bilvask og bilpleje",
+    serviceArea: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland", "Roskilde"],
+    schemaAreaServed: ["København", "Copenhagen", "Storkøbenhavn", "Sjælland", "Denmark"],
+    image: { src: "/service/helebil.jpg", alt: "Guide til at vælge den rigtige bilvask hos CleanWash" },
+    secondaryCta: { label: "Se bilvask København", href: route("/bilvask-koebenhavn") },
+    benefits: [
+      { title: "Klart overblik", text: "Guiden hjælper dig med at forstå forskellen på udvendig, indvendig og komplet bilvask." },
+      { title: "Undgå fejlkøb", text: "Du lærer, hvilke kriterier der faktisk betyder noget, før du booker en service." },
+      { title: "Lokal relevans", text: "Anbefalingerne tager udgangspunkt i forhold i København og på Sjælland, ikke generiske råd." },
+      { title: "Direkte videre til booking", text: "Når du har valgt, kan du booke den rigtige service online med det samme." },
+    ],
+    process: [
+      { title: "Vurder bilens stand", text: "Se på, om bilen trænger udvendigt, indvendigt eller begge dele." },
+      { title: "Tjek kriterierne", text: "Gennemgå pris, dækningsområde, miljøhensyn og bookingmulighed." },
+      { title: "Vælg mobil eller vaskehal", text: "Beslut, om bilen skal vaskes derhjemme, på arbejdet eller i en vaskehal." },
+      { title: "Book den rigtige service", text: "Gå til booking-siden og vælg den løsning, der matcher dit valg." },
+    ],
+    sections: [
+      {
+        heading: "Hvilke typer bilvask findes der?",
+        paragraphs: [
+          "De fleste bilvaskudbydere tilbyder tre grundlæggende niveauer: udvendig vask, der fokuserer på lak, fælge, ruder og spejle; komplet bilvask, der lægger indvendig rengøring af kabine, måtter og paneler oveni; og premium bilpleje, der typisk inkluderer polering og voksbeskyttelse.",
+          "At kende forskellen er første skridt til at vælge rigtigt. En bil, der kun trænger til en hurtig opfriskning udenpå, har ikke brug for en fuld premium-pakke — mens en bil, der skal sælges eller afleveres efter leasing, ofte får mest værdi af den mest grundige løsning.",
+        ],
+      },
+      {
+        heading: "5 ting du bør tjekke, før du booker bilvask",
+        paragraphs: [
+          "Se først på prisen: er den synlig, før du booker, og fremgår det tydeligt, hvad den inkluderer? Tjek dernæst dækningsområdet — dækker udbyderen dit kvarter i København, Frederiksberg, Amager eller din by på Sjælland? Undersøg om der er ledige tider inden for en rimelig tidshorisont.",
+          "Kig også på, om virksomheden er gennemsigtig om miljøhensyn, og om hele bookingprocessen kan foregå online uden telefonopkald. Disse fem punkter — pris, indhold, dækning, ledig tid og booking — dækker det meste af det, der afgør, om oplevelsen bliver god.",
+        ],
+      },
+      {
+        heading: "Mobil bilvask eller vaskehal — hvad passer til dig?",
+        paragraphs: [
+          "Vaskehaller kan være hurtige til en simpel udvendig vask, men kræver, at du selv kører bilen derhen og venter. Mobil bilvask vender det om: udbyderen kommer til bilen, uanset om den holder hjemme, på arbejdspladsen eller et andet sted.",
+          "For bilejere med en travl hverdag, flere biler i husstanden eller behov for indvendig rengøring er mobil bilvask ofte det mest praktiske valg. For en enkelt, hurtig udvendig vask uden yderligere behov kan en vaskehal stadig være tilstrækkelig.",
+        ],
+      },
+      {
+        heading: "Miljøhensyn og godkendelser",
+        paragraphs: [
+          "Bilvask involverer vand, sæbe og afløb, og derfor er det relevant at vide, hvordan en udbyder håndterer miljøet. Spørg ind til, om der bruges miljøvenlige produkter, og hvordan spildevand og kemikalier håndteres i forbindelse med mobil bilvask.",
+          "En udbyder, der er åben om sine miljøvalg, giver typisk et mere trygt indtryk end en, der ikke kan svare på spørgsmålet. Det er et kriterium, der ofte overses, men som betyder noget for mange bilejere i dag.",
+        ],
+      },
+      {
+        heading: "Sådan booker du trygt online",
+        paragraphs: [
+          "Når du har afklaret, hvilken service bilen har brug for, er næste skridt at booke. Se efter en udbyder, hvor du kan angive nummerplade, adresse og ønsket tidspunkt online, og hvor du får en klar bekræftelse med det samme.",
+          "CleanWash samler alle disse trin i ét bookingflow: vælg service, angiv bilens oplysninger og adresse, se prisen, og bekræft tidspunktet — uden at skulle ringe rundt for at få svar.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Hvordan vælger jeg den rigtige bilvask?", answer: "Vurder bilens behov, sammenlign pris og indhold, og vælg en udbyder med gennemsigtig booking og dækning i dit område." },
+      { question: "Hvad er forskellen på udvendig, komplet og premium bilvask?", answer: "Udvendig vask dækker lak og fælge, komplet bilvask tilføjer indvendig rengøring, og premium bilpleje inkluderer polering og voks." },
+      { question: "Er mobil bilvask bedre end en vaskehal?", answer: "For de fleste bilejere med travl hverdag eller behov for indvendig rengøring, ja. En vaskehal kan stadig være fint til en hurtig udvendig vask." },
+      { question: "Hvorfor er miljøhensyn relevant ved bilvask?", answer: "Bilvask involverer vand, sæbe og afløb, og en ansvarlig håndtering af dette er et vigtigt kvalitetstegn hos en udbyder." },
+      { question: "Kan jeg booke bilvask uden at ringe?", answer: "Ja, hos CleanWash foregår hele bookingen online, fra valg af service til bekræftelse af tidspunkt." },
+      { question: "Hvilke områder dækker CleanWash?", answer: "CleanWash dækker København, Frederiksberg, Amager, Storkøbenhavn og store dele af Sjælland." },
+    ],
+    keywordGroups: [
+      { title: "Købsguide søgninger", terms: ["vælg den rigtige bilvask", "hvordan vælger man bilvask", "guide til bilvask", "bedste valg bilvask", "bilvask København guide"] },
+      { title: "Kriterier", terms: ["pris", "miljøhensyn", "mobil bilvask", "dækningsområde", "online booking"] },
+      { title: "Lokalt", terms: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland"] },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: route("/booking") },
+      { label: "Bedste bilvask København", href: route("/bedste-bilvask-koebenhavn") },
+      { label: "Bilvask priser", href: route("/bilvask-priser") },
+      { label: "Miljøvenlig bilvask", href: route("/miljoevenlig-bilvask") },
+      { label: "Mobil bilvask København", href: route("/mobil-bilvask-koebenhavn") },
+      { label: "Bilpleje guide", href: route("/bilpleje-guide") },
+    ],
+    priority: 0.86,
+  },
+
+  {
+    slug: "bedste-tidspunkt-at-booke-bilvask",
+    title: "Hvornår er det bedste tidspunkt at booke bilvask? | Sæson- og ugedagsguide | CleanWash",
+    description:
+      "Få svar på hvornår du bedst booker bilvask. Læs om årstidens betydning, den bedste ugedag, og hvordan vejr påvirker resultatet af din bilvask.",
+    h1: "Hvornår er det bedste tidspunkt at booke bilvask?",
+    eyebrow: "Timing-guide til bilvask",
+    heroIntro:
+      "Timing kan gøre en forskel for både pris, ventetid og resultat. Her er guiden til, hvornår det bedst kan betale sig at booke bilvask i København og på Sjælland.",
+    shortSummary: [
+      "Efter vintersæsonen er det særligt vigtigt at booke bilvask hurtigt for at fjerne vejsalt.",
+      "Hverdage er ofte lettere at booke end weekender, hvor efterspørgslen typisk er højere.",
+      "Bilvask kort efter regnvejr kan give et bedre resultat, fordi snavs sidder løsere.",
+    ],
+    keywords: [
+      "hvornår skal man vaske bilen",
+      "bedste tidspunkt bilvask",
+      "bilvask sæson",
+      "booke bilvask hverdag",
+      "bilvask efter regn",
+    ],
+    serviceType: "Guide til timing af bilvask og bilpleje",
+    serviceArea: ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Sjælland", "Roskilde"],
+    schemaAreaServed: ["København", "Copenhagen", "Storkøbenhavn", "Sjælland", "Denmark"],
+    image: { src: "/service/udenfor.jpg", alt: "Guide til det bedste tidspunkt at booke bilvask hos CleanWash" },
+    secondaryCta: { label: "Se bilvask efter vinter", href: route("/bilvask-efter-vinter") },
+    benefits: [
+      { title: "Bedre resultat", text: "Det rigtige tidspunkt kan gøre snavs og salt lettere at fjerne." },
+      { title: "Kortere ventetid", text: "Hverdage har ofte flere ledige tider end weekender." },
+      { title: "Beskyt bilen bedre", text: "Rettidig vask efter vinter og salt forebygger skader på lak og fælge." },
+      { title: "Nem planlægning online", text: "Se ledige tider direkte i bookingflowet, uanset hvornår du vil booke." },
+    ],
+    process: [
+      { title: "Vurder årstiden", text: "Overvej om bilen for nylig har mødt vejsalt, pollen eller meget støv." },
+      { title: "Vælg en hverdag om muligt", text: "Book uden for weekenden for typisk kortere ventetid." },
+      { title: "Book efter regnvejr", text: "Planlæg vasken, når det værste af regnen er ovre, men snavset stadig sidder løst." },
+      { title: "Bekræft tid online", text: "Vælg det tidspunkt, der passer bedst, direkte i bookingflowet." },
+    ],
+    sections: [
+      {
+        heading: "Årstidens betydning for bilvask",
+        paragraphs: [
+          "Vinter er den mest krævende sæson for bilen, fordi vejsalt fra glatførebekæmpelse sætter sig på lak, fælge og bundramme. Det er særligt vigtigt at booke bilvask, så snart vejene er saltfri om foråret, fordi salt kan starte rustdannelse, hvis det får lov at sidde for længe.",
+          "Om sommeren er insekter, pollen og bremsestøv de største udfordringer, mens efteråret ofte bringer løv, fugt og de første tegn på vintervejr. At tilpasse bilvasken efter årstiden er en enkel måde at beskytte bilen bedst muligt hele året.",
+        ],
+      },
+      {
+        heading: "Hvilken ugedag er bedst til at booke bilvask?",
+        paragraphs: [
+          "Efterspørgslen efter bilvask er ofte højere i weekenden, hvor mange bilejere har mere tid. Det betyder, at det typisk er lettere at finde en ledig tid på hverdage, hvis din kalender tillader det.",
+          "Hvis du booker mobil bilvask til hjemmeadressen eller arbejdspladsen, kan en hverdag også være praktisk, fordi bilen alligevel holder stille i løbet af arbejdsdagen. Det gør det muligt at få vasket bilen, uden at det tager tid fra weekenden.",
+        ],
+      },
+      {
+        heading: "Bilvask før eller efter regnvejr?",
+        paragraphs: [
+          "Det giver sjældent mening at booke bilvask midt i kraftig regn, men lige efter et regnvejr kan faktisk være et godt tidspunkt. Regn løsner ofte støv og løst snavs, hvilket kan gøre selve vasken mere effektiv.",
+          "Til gengæld bør du undgå at vaske bilen, hvis der er varslet frost kort efter, da vand kan fryse i låsemekanismer og tætningslister. En bilvask nogle timer efter regn, men før frost, er ofte det bedste tidspunkt.",
+        ],
+      },
+      {
+        heading: "Sæsonbestemt bilpleje-kalender",
+        paragraphs: [
+          "Forår: Prioriter en grundig bilvask, der fjerner vintervejens vejsalt, og overvej polering og voks som en del af forårsklargøringen. Sommer: Hold øje med insekter og bremsestøv, og suppler med jævnlig udvendig vask.",
+          "Efterår: Vask bilen inden vinteren for alvor sætter ind, og overvej en ekstra voksbehandling som beskyttelse. Vinter: Vask oftere, når vejene saltes, med særligt fokus på fælge og hjulbuer.",
+        ],
+      },
+      {
+        heading: "Sådan planlægger du den perfekte bilvask-timing",
+        paragraphs: [
+          "Den nemmeste måde at ramme det rigtige tidspunkt er at booke løbende frem for at vente, til bilen ser tydeligt beskidt ud. Et fast interval — for eksempel månedligt, eller oftere om vinteren — gør, at du sjældent rammer helt forkert.",
+          "Med online booking hos CleanWash kan du se ledige tider med det samme og planlægge bilvasken, så den passer både til vejret, årstiden og din egen kalender.",
+        ],
+      },
+    ],
+    faqs: [
+      { question: "Hvornår er det bedste tidspunkt at vaske bilen om vinteren?", answer: "Så snart vejene har været saltet, og igen når salt og grus har haft tid til at sætte sig på fælge og bundramme." },
+      { question: "Er det bedst at booke bilvask på hverdage?", answer: "Ofte ja, fordi efterspørgslen typisk er lavere på hverdage end i weekenden, hvilket giver flere ledige tider." },
+      { question: "Bør jeg vaske bilen lige efter regnvejr?", answer: "Det kan være et godt tidspunkt, fordi regn løsner snavs. Undgå dog vask, hvis der er varslet frost kort efter." },
+      { question: "Hvor tit bør bilen vaskes om sommeren?", answer: "En månedlig udvendig vask er ofte tilstrækkeligt, men insekter og bremsestøv bør fjernes hurtigt for at undgå skader på lakken." },
+      { question: "Skal jeg vente med at vaske bilen, til den ser meget beskidt ud?", answer: "Nej. Et fast interval, hvor bilen vaskes løbende, giver typisk et bedre og billigere resultat end sjælden, men meget grundig rengøring." },
+      { question: "Kan jeg se ledige tider online, før jeg booker?", answer: "Ja, CleanWash viser ledige tider direkte i bookingflowet, så du kan planlægge bilvasken efter din egen kalender." },
+    ],
+    keywordGroups: [
+      { title: "Timing søgninger", terms: ["hvornår skal man vaske bilen", "bedste tidspunkt bilvask", "bilvask sæson", "booke bilvask hverdag", "bilvask efter regn"] },
+      { title: "Sæson", terms: ["forår", "sommer", "efterår", "vinter"] },
+      { title: "Lokalt", terms: ["København", "Storkøbenhavn", "Sjælland"] },
+    ],
+    relatedLinks: [
+      { label: "Book bilvask", href: route("/booking") },
+      { label: "Bilvask efter vinter", href: route("/bilvask-efter-vinter") },
+      { label: "Bilpleje guide", href: route("/bilpleje-guide") },
+      { label: "Hvor ofte skal man vaske bilen", href: route("/hvor-ofte-skal-man-vaske-bilen") },
+      { label: "Bilvask København", href: route("/bilvask-koebenhavn") },
+      { label: "Bilvask Sjælland", href: route("/bilvask-sjaelland") },
+    ],
+    priority: 0.85,
+  },
+];
+
 seoPages.push(
   ...serviceSeoPages,
   ...guideSeoTargets.map(makeGuideSeoPage),
   ...trustSeoPages,
-  ...areaSeoTargets.map(makeAreaSeoPage)
+  ...areaSeoTargets.map(makeAreaSeoPage),
+  ...blogSeoPages
 );
 
 seoPages.forEach((page) => {
