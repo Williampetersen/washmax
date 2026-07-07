@@ -45,6 +45,7 @@ import {
   type VehicleLookupResult,
 } from "@/lib/shared/booking";
 import { AddExtraCarModal } from "@/components/booking/add-extra-car-modal";
+import { VehicleConfirmModal } from "@/components/booking/vehicle-confirm-modal";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -107,8 +108,6 @@ const toCalendarDate = (dateValue: string) => {
   return new Date(Date.UTC(y!, m! - 1, d!, 12, 0, 0));
 };
 const platePattern = /^.{2,}$/;
-const lookupDebounceMs = 400;
-const minAutoLookupPlateLength = 5;
 const clientVehicleCacheTtlMs = 5 * 60 * 1000;
 const secondCarDiscountPercent = 15;
 const vehicleLookupCache = new Map<string, VehicleCacheEntry>();
@@ -187,6 +186,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   const [vehicle, setVehicle] = useState<VehicleLookupResult | null>(() =>
     manualMode && initialCategory ? createCategoryVehicle(initialCategory) : null
   );
+  const [isVehicleConfirmed, setIsVehicleConfirmed] = useState(false);
   const [manualVehicleName, setManualVehicleName] = useState("");
   const [activePackage, setActivePackage] = useState(settings.catalog.packages[0]?.id || "");
   const [selectedAddonIds, setSelectedAddonIds] = useState<string[]>([]);
@@ -231,7 +231,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   const addCarButtonRef = useRef<HTMLButtonElement>(null);
   const hasScrolledToVehicleRef = useRef(false);
   const lookupControllerRef = useRef<AbortController | null>(null);
-  const lookupDebounceRef = useRef<number | null>(null);
   const latestLookupPlateRef = useRef("");
 
   const form = useForm<BookingFormValues>({
@@ -553,6 +552,7 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
       lookupControllerRef.current?.abort();
       latestLookupPlateRef.current = "";
       setVehicle(null);
+      setIsVehicleConfirmed(false);
       setLookupStatus({ message: "Indtast mindst 2 tegn.", type: "error" });
       return;
     }
@@ -610,7 +610,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   useEffect(
     () => () => {
       lookupControllerRef.current?.abort();
-      if (lookupDebounceRef.current) window.clearTimeout(lookupDebounceRef.current);
     },
     []
   );
@@ -625,12 +624,12 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   // otherwise the page can be left scrolled wherever the user was while
   // typing the plate, leaving the vehicle bar tucked under the header.
   useEffect(() => {
-    const hasResolvedVehicle = Boolean(vehicle && category);
+    const hasResolvedVehicle = Boolean(vehicle && category && (manualMode || isVehicleConfirmed));
     if (hasResolvedVehicle && !hasScrolledToVehicleRef.current) {
       window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
     }
     hasScrolledToVehicleRef.current = hasResolvedVehicle;
-  }, [vehicle, category]);
+  }, [vehicle, category, manualMode, isVehicleConfirmed]);
 
   useEffect(
     () => () => {
@@ -640,26 +639,24 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     []
   );
 
-  const schedulePlateLookup = useCallback(
-    (nextPlateValue: string) => {
-      const normalizedPlate = sanitizePlate(nextPlateValue);
-      setPlate(normalizedPlate);
-      if (lookupDebounceRef.current) window.clearTimeout(lookupDebounceRef.current);
-      if (!normalizedPlate) {
-        lookupControllerRef.current?.abort();
-        latestLookupPlateRef.current = "";
-        setVehicle(null);
-        setLookupStatus(null);
-        return;
-      }
-      if (normalizedPlate.length < minAutoLookupPlateLength) { setLookupStatus(null); return; }
-      lookupDebounceRef.current = window.setTimeout(() => { void lookupVehicle(normalizedPlate); }, lookupDebounceMs);
-    },
-    [lookupVehicle]
-  );
+  // Only updates the plate text as the user types - it deliberately does NOT
+  // trigger a vehicle lookup or advance the flow. The lookup (and the
+  // service-selection/confirmation step that follows it) only happens once
+  // the user explicitly submits via submitPlateLookup ("Se din pris").
+  const schedulePlateLookup = useCallback((nextPlateValue: string) => {
+    const normalizedPlate = sanitizePlate(nextPlateValue);
+    setPlate(normalizedPlate);
+    if (!normalizedPlate) {
+      lookupControllerRef.current?.abort();
+      latestLookupPlateRef.current = "";
+      setVehicle(null);
+      setLookupStatus(null);
+      setIsVehicleConfirmed(false);
+    }
+  }, []);
 
   const submitPlateLookup = useCallback(() => {
-    if (lookupDebounceRef.current) { window.clearTimeout(lookupDebounceRef.current); lookupDebounceRef.current = null; }
+    setIsVehicleConfirmed(false);
     void lookupVehicle(plate);
   }, [lookupVehicle, plate]);
 
@@ -738,10 +735,10 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
 
   const handleChangeVehicle = () => {
     lookupControllerRef.current?.abort();
-    if (lookupDebounceRef.current) { window.clearTimeout(lookupDebounceRef.current); lookupDebounceRef.current = null; }
     latestLookupPlateRef.current = "";
     setVehicle(null);
     setPlate("");
+    setIsVehicleConfirmed(false);
     setLookupStatus(null);
     setSecondVehicle(null);
     setSecondPackage("");
@@ -1048,10 +1045,24 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
     </Card>
   );
 
+  // The service-selection step only appears once the user has explicitly
+  // confirmed the looked-up vehicle via the VehicleConfirmModal below (manual
+  // size selection has no vehicle to confirm, so it skips straight through).
+  const showServiceSelection = Boolean(vehicle && category && (manualMode || isVehicleConfirmed));
+  const showVehicleConfirmModal = Boolean(vehicle && category && !manualMode && !isVehicleConfirmed);
+
   return (
-    <main className={cn("px-4 sm:px-6", vehicle && category ? "pb-32 xl:pb-10" : "pb-10")}>
+    <main className={cn("px-4 sm:px-6", showServiceSelection ? "pb-32 xl:pb-10" : "pb-10")}>
       {submitOverlay ? <BookingSubmitOverlay phase={submitOverlay.phase} progress={submitOverlay.progress} /> : null}
-      {vehicle && category ? (
+      <VehicleConfirmModal
+        open={showVehicleConfirmModal}
+        vehicleName={vehicleName}
+        modelYear={vehicle?.model_year ?? null}
+        plate={vehicle?.registration_number || plate}
+        onConfirm={() => setIsVehicleConfirmed(true)}
+        onReject={handleChangeVehicle}
+      />
+      {showServiceSelection ? (
         <section className="mx-auto mt-8 grid max-w-[88rem] gap-8 xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start">
           <div className="space-y-3">
 
@@ -1060,13 +1071,13 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#eefbfc] text-[var(--brand)]">🚗</span>
                 <div>
-                  <p className="font-semibold text-[var(--ink)]">
-                    Du vælger service til: {activeVehicleLabel}
+                  <p className="text-base font-bold text-[var(--ink)] sm:text-lg">
+                    {manualMode ? (activeSelectionCategory?.label ?? "Din bil") : activeSelectionVehicleName}
                   </p>
                   <p className="text-xs text-[var(--muted)]">
                     {manualMode
-                      ? `${activeSelectionCategory?.label ?? "Størrelse valgt manuelt"} · Mærke og model angives under "Dine oplysninger"`
-                      : `${activeSelectionVehicleName} · ${activeSelectionVehicle?.registration_number || "-"}${hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}`}
+                      ? `Mærke og model angives under "Dine oplysninger"`
+                      : `${activeSelectionVehicle?.registration_number || "-"}${hasSecondCar ? " · Begge biler bookes til samme besøg" : ""}`}
                   </p>
                 </div>
               </div>
