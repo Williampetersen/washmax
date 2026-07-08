@@ -74,6 +74,7 @@ import { AdminAgentsView } from "@/components/admin/agents-view";
 import { BookingSetupView } from "@/components/admin/booking-setup-view";
 import { AdminCommandCenter } from "@/components/admin/admin-command-center";
 import { ConfirmDeleteForm } from "@/components/admin/confirm-delete-form";
+import { SendInvoiceForm } from "@/components/admin/send-invoice-form";
 import { EmailLogList } from "@/components/admin/email-log-list";
 import { ImageUploadForm } from "@/components/admin/image-upload-form";
 import { AdminShell as AdminShellLayout } from "@/components/admin/admin-shell";
@@ -208,6 +209,8 @@ const statusMessages: Record<string, string> = {
   coupon: "Rabatkoden er gemt.",
   availability: "Kalenderblokken er opdateret.",
   email: "E-mailen er sendt igen.",
+  "invoice-sent": "Fakturaen er sendt til kunden.",
+  "invoice-not-configured": "Fakturaen blev gemt, men e-mailen kunne ikke sendes (SMTP er ikke konfigureret).",
 };
 
 const calendarHourHeight = 76;
@@ -287,8 +290,14 @@ export default async function AdminPage({
   for (const list of bookingsByCustomer.values()) {
     list.sort(sortBookings);
   }
+  const rawErrorMessage = Array.isArray(params.errorMessage) ? params.errorMessage[0] : params.errorMessage || "";
   const statusMessage = statusMessages[saved] || "";
-  const errorMessage = error === "action" ? "Handlingen kunne ikke gennemføres." : "";
+  const errorMessage =
+    error === "action"
+      ? "Handlingen kunne ikke gennemføres."
+      : error === "invoice-send"
+        ? rawErrorMessage || "Fakturaen kunne ikke sendes."
+        : "";
 
   return (
     <AdminShellLayout>
@@ -3254,11 +3263,20 @@ function AdminInvoicesView({ invoices, page }: { invoices: Invoice[]; page: numb
                   ) : (
                     <span className="text-[12px] text-[#6B7280]">Ingen visning</span>
                   )}
-                  <ConfirmDeleteForm
-                    action={`/api/admin/invoices/${invoice.id}`}
-                    hiddenFields={{ action: "delete" }}
-                    message={`Slet faktura ${invoice.invoiceNumber}? Handlingen kan ikke fortrydes.`}
-                  />
+                  <div className="flex items-center gap-2">
+                    <SendInvoiceForm
+                      action={`/api/admin/invoices/${invoice.id}`}
+                      label={invoice.emailSent ? "Send igen" : "Send"}
+                      message={`Send faktura ${invoice.invoiceNumber} til ${
+                        invoice.customerEmail || invoice.sentToEmail || "kunden"
+                      }?`}
+                    />
+                    <ConfirmDeleteForm
+                      action={`/api/admin/invoices/${invoice.id}`}
+                      hiddenFields={{ action: "delete" }}
+                      message={`Slet faktura ${invoice.invoiceNumber}? Handlingen kan ikke fortrydes.`}
+                    />
+                  </div>
                 </article>
               ))}
             </div>

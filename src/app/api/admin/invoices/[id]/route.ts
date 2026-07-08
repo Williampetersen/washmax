@@ -2,9 +2,11 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import {
+  InvoiceWorkflowError,
   deleteInvoice,
   getInvoiceById,
   invoiceStatuses,
+  sendInvoiceById,
   updateInvoiceStatus,
   type InvoiceStatus,
 } from "@/lib/server/invoices";
@@ -56,7 +58,8 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  if (!(await ensureAdmin())) {
+  const session = await ensureAdmin();
+  if (!session) {
     return NextResponse.redirect(new URL("/admin/login", request.url), 303);
   }
 
@@ -67,6 +70,23 @@ export async function POST(
   if (action === "delete") {
     await deleteInvoice(id);
     return NextResponse.redirect(new URL("/admin?view=invoices&saved=deleted", request.url), 303);
+  }
+
+  if (action === "send") {
+    try {
+      const result = await sendInvoiceById(id, {
+        actorType: "admin",
+        actorId: session.email,
+      });
+      const outcome = result.sent ? "invoice-sent" : "invoice-not-configured";
+      return NextResponse.redirect(new URL(`/admin?view=invoices&saved=${outcome}`, request.url), 303);
+    } catch (error) {
+      const message = error instanceof InvoiceWorkflowError ? error.message : "";
+      return NextResponse.redirect(
+        new URL(`/admin?view=invoices&error=invoice-send${message ? `&errorMessage=${encodeURIComponent(message)}` : ""}`, request.url),
+        303
+      );
+    }
   }
 
   const statusValue = String(formData.get("status") || "");

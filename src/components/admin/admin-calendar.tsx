@@ -464,19 +464,17 @@ function getVisibleTimeSlots(
   days: ReturnType<typeof getCalendarDays>,
   bookingMap: Map<string, DashboardBooking>
 ) {
-  // Always show at least 8:00-18:00; expand to include any booked slots
-  const bookedMinutes = new Set<number>();
+  // Base the grid on the configured opening hours (allSlots), and always add any
+  // actual booking time even if it falls outside those hours, so early/late
+  // bookings (e.g. a 5:00 booking when opening hours start at 7:00) stay visible.
+  const slots = new Set(allSlots);
   for (const day of days) {
     for (const b of day.bookings) {
-      bookedMinutes.add(timeStringToMinutes(b.appointmentTime));
+      if (b.appointmentTime) slots.add(b.appointmentTime);
     }
   }
 
-  return allSlots.filter((slot) => {
-    const mins = timeStringToMinutes(slot);
-    if (mins >= 8 * 60 && mins < 18 * 60) return true;
-    return bookedMinutes.has(mins);
-  });
+  return Array.from(slots).sort((a, b) => timeStringToMinutes(a) - timeStringToMinutes(b));
 }
 
 function getWeekLabel(

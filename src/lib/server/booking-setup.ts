@@ -787,8 +787,16 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
   });
   const visibleAddons = data.addons.filter((item) => item.isVisible);
   const openHours = data.openingHours.filter((item) => item.isOpen);
-  const firstOpen = openHours[0];
   const workingDays = Array.from(new Set(openHours.map((item) => item.weekday)));
+  // Span the full configured range across all open weekdays (not just one arbitrary
+  // day) so the derived global window always covers every day's actual opening hours.
+  const startHours = openHours.map((item) => Number(item.startTime.slice(0, 2) || 0));
+  const endHourValues = openHours.map((item) => {
+    const [h, m] = item.endTime.split(":").map(Number);
+    return m > 0 ? h + 1 : h;
+  });
+  const overallStartHour = startHours.length > 0 ? Math.min(...startHours) : defaultBookingSettings.startHour;
+  const overallEndHour = endHourValues.length > 0 ? Math.max(...endHourValues) : defaultBookingSettings.endHour;
   const catalog: ServiceCatalog = {
     packages: (visibleServices.length > 0 ? visibleServices : data.services).map((item) => {
       const defaultPkg = defaultServiceCatalog.packages.find((p) => p.id === item.id);
@@ -827,8 +835,8 @@ const buildBookingSettingsFromSetup = async (data: Omit<BookingSetupData, "publi
     adminNotifyEmail5: data.general.adminNotifyEmail5,
     defaultBookingStatus:
       legacy?.default_booking_status === "approved" ? "approved" : defaultBookingSettings.defaultBookingStatus,
-    startHour: Number(firstOpen?.startTime.slice(0, 2) || defaultBookingSettings.startHour),
-    endHour: Number(firstOpen?.endTime.slice(0, 2) || defaultBookingSettings.endHour),
+    startHour: overallStartHour,
+    endHour: overallEndHour,
     slotMinutes: data.timeSettings.slotIntervalMinutes,
     slotDisplayFormat: data.timeSettings.slotDisplayFormat,
     bufferBeforeMinutes: data.timeSettings.bufferBeforeMinutes,
