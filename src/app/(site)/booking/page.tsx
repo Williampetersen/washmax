@@ -22,6 +22,8 @@ export default async function BookingPage({
   const initialPlate = Array.isArray(params.plate) ? params.plate[0] : params.plate || "";
   const initialCategory = Array.isArray(params.category) ? params.category[0] : params.category || "";
   const manualMode = params.manual === "true" && Boolean(initialCategory);
+  const confirmedParam = Array.isArray(params.confirmed) ? params.confirmed[0] : params.confirmed;
+  const autoConfirmVehicle = confirmedParam === "1" && Boolean(initialPlate) && !manualMode;
   const bookingSettings = await getBookingSettingsFromSetup();
   const availabilityBlocks = await getSetupAvailabilityBlocks();
   const minDate = getCopenhagenNow(bookingSettings.timeZone || "Europe/Copenhagen").date;
@@ -31,6 +33,7 @@ export default async function BookingPage({
       initialPlate={manualMode ? "" : sanitizePlate(initialPlate)}
       initialCategory={initialCategory}
       manualMode={manualMode}
+      autoConfirmVehicle={autoConfirmVehicle}
       minDate={minDate}
       settings={bookingSettings}
       availabilityBlocks={availabilityBlocks}

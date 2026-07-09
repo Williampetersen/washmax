@@ -1,4 +1,5 @@
 import { absoluteUrl, type SeoPageConfig } from "@/lib/seo-pages";
+import type { BlogPost } from "@/lib/blog-posts";
 import { siteConfig } from "@/lib/site";
 
 export type JsonValue =
@@ -218,5 +219,79 @@ export function buildArticleJsonLd(page: SeoPageConfig) {
     dateModified: new Date().toISOString().split("T")[0],
     mainEntityOfPage: pageUrl,
     keywords: page.keywords.join(", "),
+  };
+}
+
+export function buildBlogPostingJsonLd(post: BlogPost) {
+  const postUrl = absoluteUrl(`/blog/${post.slug}`);
+  const articleId = `${postUrl}#article`;
+  const faqId = `${postUrl}#faq`;
+
+  const blogPosting = {
+    "@type": "BlogPosting",
+    "@id": articleId,
+    headline: post.title,
+    description: post.description,
+    url: postUrl,
+    image: absoluteUrl(post.coverImage.src),
+    articleSection: post.category,
+    keywords: post.keywords.join(", "),
+    wordCount: post.sections.reduce(
+      (total, section) => total + section.paragraphs.join(" ").split(/\s+/).length,
+      0
+    ),
+    author: { "@type": "Organization", name: "CleanWash", url: siteConfig.url },
+    publisher: {
+      "@type": "Organization",
+      name: "CleanWash",
+      url: siteConfig.url,
+      logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
+    },
+    datePublished: post.publishedAt,
+    dateModified: post.updatedAt,
+    mainEntityOfPage: postUrl,
+  };
+
+  const faqPage = {
+    "@type": "FAQPage",
+    "@id": faqId,
+    mainEntity: post.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  };
+
+  const breadcrumbList = {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Forside", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: "Blog", item: absoluteUrl("/blog") },
+      { "@type": "ListItem", position: 3, name: post.title, item: postUrl },
+    ],
+  };
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [blogPosting, faqPage, breadcrumbList],
+  };
+}
+
+export function buildBlogIndexJsonLd(posts: BlogPost[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: "Bilvask og bilpleje blog",
+    url: absoluteUrl("/blog"),
+    hasPart: posts.map((post) => ({
+      "@type": "BlogPosting",
+      headline: post.title,
+      url: absoluteUrl(`/blog/${post.slug}`),
+      datePublished: post.publishedAt,
+      dateModified: post.updatedAt,
+    })),
   };
 }

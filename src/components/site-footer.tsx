@@ -42,6 +42,7 @@ const trustLinks = [
 ];
 
 const guideLinks = [
+  { label: "Blog", href: route("/blog") },
   { label: "Bedste bilvask København", href: route("/bedste-bilvask-koebenhavn") },
   { label: "Billigste bilvask Sjælland", href: route("/billigste-bilvask-sjaelland") },
   { label: "Sådan sparer du penge på bilvask", href: route("/spar-penge-paa-bilvask") },

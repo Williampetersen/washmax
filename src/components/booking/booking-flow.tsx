@@ -62,6 +62,10 @@ type BookingFlowProps = {
   initialPlate: string;
   initialCategory?: string;
   manualMode?: boolean;
+  // True when the vehicle was already looked up and confirmed on the
+  // homepage's plate form - skips the plate-entry step and the
+  // VehicleConfirmModal so the user isn't asked to confirm the same car twice.
+  autoConfirmVehicle?: boolean;
   minDate: string;
   settings: BookingSettings;
   availabilityBlocks: AvailabilityBlock[];
@@ -169,7 +173,7 @@ const findFirstBookableDate = (
 };
 
 
-export function BookingFlow({ initialPlate, initialCategory, manualMode = false, minDate, settings, availabilityBlocks }: BookingFlowProps) {
+export function BookingFlow({ initialPlate, initialCategory, manualMode = false, autoConfirmVehicle = false, minDate, settings, availabilityBlocks }: BookingFlowProps) {
   const initialBookableDate = useMemo(
     () => findFirstBookableDate(minDate, settings, availabilityBlocks),
     [availabilityBlocks, minDate, settings]
@@ -692,7 +696,22 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
   // The plate field is pre-filled from the URL (e.g. arriving from the
   // homepage form), but the lookup itself deliberately does NOT run
   // automatically - the user must press "Se din pris" on this page too,
-  // so the price check always happens on an explicit click.
+  // so the price check always happens on an explicit click. The one
+  // exception is autoConfirmVehicle: the homepage already looked up and
+  // confirmed this exact plate, so re-running the same lookup here and
+  // making the user confirm it a second time would just be a redundant step.
+  const autoConfirmHandledRef = useRef(false);
+  useEffect(() => {
+    if (!autoConfirmVehicle || autoConfirmHandledRef.current) return;
+    autoConfirmHandledRef.current = true;
+    lookupVehicle(initialPlate);
+  }, [autoConfirmVehicle, initialPlate, lookupVehicle]);
+
+  useEffect(() => {
+    if (!autoConfirmVehicle || !vehicle || isVehicleConfirmed) return;
+    setIsVehicleConfirmed(true);
+  }, [autoConfirmVehicle, vehicle, isVehicleConfirmed]);
+
   useEffect(
     () => () => {
       lookupControllerRef.current?.abort();
@@ -1216,21 +1235,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                 isCompleted={openStep > 1}
                 onEdit={() => goToStep(1)}
               >
-                <ActiveVehicleHeader
-                  label={activeVehicleLabel}
-                  total={hasSecondCar ? 2 : 1}
-                  plate={activeSelectionVehicle?.registration_number || ""}
-                  title={
-                    activeVehicleIndex === 1
-                      ? "Vælg bilvask til bil 2"
-                      : "Vælg bilvask til bil 1"
-                  }
-                  text={
-                    activeVehicleIndex === 1
-                      ? "Du vælger nu service og tilvalg for den ekstra bil. Begge biler bliver booket til samme besøg."
-                      : "Vælg den løsning, der passer bedst til bilen."
-                  }
-                />
                 <div className="grid gap-4 sm:grid-cols-3">
                   {settings.catalog.packages
                     .filter((item) => {
@@ -1277,13 +1281,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
                 onEdit={() => goToStep(2)}
                 isLocked={openStep < 2}
               >
-                <ActiveVehicleHeader
-                  label={activeVehicleLabel}
-                  total={hasSecondCar ? 2 : 1}
-                  plate={activeSelectionVehicle?.registration_number || ""}
-                  title={`Tilvalg til ${activeVehicleLabel.toLowerCase()}`}
-                  text="Tilvalg er valgfrie. Du kan fortsætte uden tilvalg, hvis bilen kun skal have den valgte pakke."
-                />
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                   {allAddons.map((addon) => {
                     const isSelected = activeSelectionAddonIds.includes(addon.id);
@@ -1799,39 +1796,6 @@ export function BookingFlow({ initialPlate, initialCategory, manualMode = false,
         ) : null}
       </div>
     </main>
-  );
-}
-
-function ActiveVehicleHeader({
-  label,
-  total,
-  plate,
-  title,
-  text,
-}: {
-  label: string;
-  total: number;
-  plate: string;
-  title: string;
-  text: string;
-}) {
-  return (
-    <div className="mb-5 rounded-2xl border border-[#00A7B8]/20 bg-[#eefbfc] px-4 py-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="font-semibold text-[var(--accent)]">{title}</p>
-          <p className="mt-1 text-sm leading-6 text-[var(--muted)]">{text}</p>
-          {plate ? (
-            <p className="mt-2 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--brand)]">
-              Nummerplade: {plate}
-            </p>
-          ) : null}
-        </div>
-        <span className="inline-flex shrink-0 rounded-full bg-white px-3 py-1 text-xs font-semibold text-[var(--brand)] shadow-sm">
-          {label} af {total}
-        </span>
-      </div>
-    </div>
   );
 }
 

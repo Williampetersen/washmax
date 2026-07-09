@@ -1,7 +1,0 @@
-User-agent: *
-Allow: /
-Disallow: /admin/
-Disallow: /agent/
-Disallow: /api/
-
-Sitemap: https://cleanwash.dk/sitemap.xml
