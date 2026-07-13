@@ -19,11 +19,13 @@ import {
   ListFilter,
   Mail,
   MapPinned,
+  Gift,
   ReceiptText,
   Route,
   Settings2,
   ShieldCheck,
   Sparkles,
+  Star,
   Tag,
   UserRound,
   Users,
@@ -42,10 +44,12 @@ import { LazyBookingInvoice } from "@/components/invoices/lazy-booking-invoice";
 import { BookingTabs } from "@/components/dashboard/booking-tabs";
 import {
   getAdminDashboardData,
+  listTrustpilotDraws,
   type BookingEmailLog,
   type CustomerSummary,
   type DashboardBooking,
   type DashboardData,
+  type TrustpilotDraw,
 } from "@/lib/server/bookings";
 import { ensureSchema, getSql, isDatabaseConfigured } from "@/lib/server/db";
 import {
@@ -132,6 +136,7 @@ const navItems = [
   { id: "areas", label: "Områder", icon: MapPinned },
   { id: "payments",  label: "Betalinger",    icon: CreditCard },
   { id: "coupons",   label: "Rabatkoder",   icon: Tag },
+  { id: "trustpilot", label: "Trustpilot",   icon: Star },
   { id: "settings",  label: "Indstillinger", icon: Settings2 },
 ] as const;
 
@@ -211,6 +216,9 @@ const statusMessages: Record<string, string> = {
   email: "E-mailen er sendt igen.",
   "invoice-sent": "Fakturaen er sendt til kunden.",
   "invoice-not-configured": "Fakturaen blev gemt, men e-mailen kunne ikke sendes (SMTP er ikke konfigureret).",
+  draw: "Denne uges vinder er trukket, og rabatkoden er sendt på mail.",
+  "draw-skip": "Der er allerede trukket en vinder for denne uge.",
+  "draw-empty": "Ingen kunder er kvalificerede til denne uges trækning endnu.",
 };
 
 const calendarHourHeight = 76;
@@ -260,12 +268,13 @@ export default async function AdminPage({
   const statusFilter = (Array.isArray(params.status) ? params.status[0] : params.status) ?? "";
   const pageTab = (Array.isArray(params.tab) ? params.tab[0] : params.tab) ?? "";
   const hasDatabase = isDatabaseConfigured();
-  const [dashboard, agentsData, bookingSetupData, adminInvoices, adminCoupons] = await Promise.all([
+  const [dashboard, agentsData, bookingSetupData, adminInvoices, adminCoupons, trustpilotDraws] = await Promise.all([
     getAdminDashboardData(),
     view === "agents" ? getAdminAgentsData() : Promise.resolve(undefined),
     view === "booking-setup" ? getBookingSetupData() : Promise.resolve(undefined),
     view === "invoices" && hasDatabase ? listInvoices() : Promise.resolve([]),
     view === "coupons" && hasDatabase ? listCoupons() : Promise.resolve([]),
+    view === "trustpilot" && hasDatabase ? listTrustpilotDraws() : Promise.resolve([]),
   ]);
   const today = getTodayDateText();
   const timeSlots = getTimeSlots(dashboard.settings);
@@ -399,6 +408,10 @@ export default async function AdminPage({
         ) : null}
 
         {view === "coupons" ? <CouponsView coupons={adminCoupons} /> : null}
+
+        {view === "trustpilot" ? (
+          <TrustpilotView dashboard={dashboard} draws={trustpilotDraws} />
+        ) : null}
 
         {view === "settings" ? (
           <SettingsView dashboard={dashboard} smtpConfigured={Boolean(process.env.SMTP_HOST)} />
@@ -2135,7 +2148,7 @@ function EmailsView({
         description="Automationsregler og sendte mails"
       />
 
-      <div className="grid gap-3 md:grid-cols-5">
+      <div className="grid gap-3 md:grid-cols-6">
         <MetricCard
           label="Oprettelse"
           value={dashboard.settings.emailAutomation.customerOnCreate ? "Til" : "Fra"}
@@ -2156,6 +2169,13 @@ function EmailsView({
           detail="Kunde får aflysningsmail"
           icon={XCircle}
           tone={dashboard.settings.emailAutomation.customerOnCancel ? "green" : "orange"}
+        />
+        <MetricCard
+          label="Trustpilot"
+          value={dashboard.settings.emailAutomation.customerOnTrustpilotReview ? "Til" : "Fra"}
+          detail="Kunde bedes om anmeldelse"
+          icon={Star}
+          tone={dashboard.settings.emailAutomation.customerOnTrustpilotReview ? "green" : "orange"}
         />
         <MetricCard
           label="Admin-alert"
@@ -2211,6 +2231,12 @@ function EmailsView({
                 title: "Kunde ved annullering",
                 description: "Sendes når en booking annulleres.",
                 checked: dashboard.settings.emailAutomation.customerOnCancel,
+              },
+              {
+                name: "customer_on_trustpilot",
+                title: "Kunde – bed om Trustpilot-anmeldelse",
+                description: "Sendes til kunden, når jobbet afsluttes, med link til at anmelde os på Trustpilot.",
+                checked: dashboard.settings.emailAutomation.customerOnTrustpilotReview,
               },
               {
                 name: "admin_on_create",
@@ -3417,6 +3443,168 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
             </div>
           </>
         )}
+      </div>
+    </div>
+  );
+}
+
+function TrustpilotView({
+  dashboard,
+  draws,
+}: {
+  dashboard: DashboardData;
+  draws: TrustpilotDraw[];
+}) {
+  const completedBookings = [...dashboard.bookings]
+    .filter((booking) => booking.status === "completed")
+    .sort((a, b) =>
+      (b.completedAt || b.updatedAt).localeCompare(a.completedAt || a.updatedAt)
+    );
+  const sentCount = completedBookings.filter((booking) => booking.trustpilotReviewSentAt).length;
+  const pendingCount = completedBookings.length - sentCount;
+
+  return (
+    <div className="space-y-5">
+      <ViewHeader
+        icon={Star}
+        title="Trustpilot"
+        description="Bed kunder om en anmeldelse, og kør den ugentlige 30%-lodtrækning"
+      />
+
+      <div className="grid gap-3 md:grid-cols-4">
+        <MetricCard
+          label="Afsluttede jobs"
+          value={completedBookings.length.toString()}
+          detail="Kan bedes om anmeldelse"
+          icon={CheckCircle2}
+          tone="blue"
+        />
+        <MetricCard
+          label="Anmeldelsesmails sendt"
+          value={sentCount.toString()}
+          detail="Ud af afsluttede jobs"
+          icon={Mail}
+          tone="green"
+        />
+        <MetricCard
+          label="Mangler at sende"
+          value={pendingCount.toString()}
+          detail="Send manuelt herunder"
+          icon={Mail}
+          tone={pendingCount > 0 ? "orange" : "green"}
+        />
+        <MetricCard
+          label="Vindere trukket"
+          value={draws.length.toString()}
+          detail="Ugentlige 30%-rabatter"
+          icon={Gift}
+          tone="violet"
+        />
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+        <div className="border-b border-[#e8ebf5] px-5 py-4">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Sådan virker det</p>
+          <p className="mt-2 text-[13px] leading-6 text-[#6B7280]">
+            Når en booking markeres som &quot;Afsluttet&quot;, sender systemet automatisk en mail til kunden med link til{" "}
+            <a
+              href="https://dk.trustpilot.com/evaluate/www.cleanwash.dk"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-[#00A7B8]"
+            >
+              vores Trustpilot-side
+            </a>
+            . Hver uge (mandag kl. 09) trækker systemet automatisk lod blandt kunder, der har fået en anmeldelses-mail
+            inden for de seneste 30 dage, og sender vinderen en 30%-rabatkode direkte på mail. Du kan altid trække en
+            vinder manuelt herunder, eller sende/gensende anmeldelsesmailen til en enkelt kunde nedenfor.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4 px-5 py-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/trustpilot-5stjerner.png" alt="Trustpilot 5 stjerner" className="h-12 w-auto" />
+          <form action="/api/admin/trustpilot/draw" method="POST">
+            <input type="hidden" name="return_view" value="trustpilot" />
+            <Button type="submit" className="h-10">Træk denne uges vinder nu</Button>
+          </form>
+        </div>
+      </div>
+
+      <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="space-y-3">
+          <SectionHeading
+            eyebrow="Anmeldelser"
+            title="Afsluttede bookinger"
+            description="Send eller gensend Trustpilot-mailen til en enkelt kunde."
+          />
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+            {completedBookings.length === 0 ? (
+              <div className="p-5"><EmptyState text="Ingen afsluttede bookinger endnu." /></div>
+            ) : (
+              <div className="max-h-[32rem] divide-y divide-[#e8ebf5] overflow-y-auto">
+                {completedBookings.map((booking) => (
+                  <div key={booking.id} className="flex items-center justify-between gap-3 px-5 py-3">
+                    <div className="min-w-0">
+                      <p className="truncate text-[13px] font-bold text-[#111827]">
+                        {booking.customerName || booking.customerEmail}
+                      </p>
+                      <p className="mt-0.5 truncate text-[12px] text-[#6B7280]">{booking.appointmentLabel}</p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                          booking.trustpilotReviewSentAt
+                            ? "bg-emerald-50 text-emerald-700"
+                            : "bg-[#f3f4f6] text-[#6B7280]"
+                        )}
+                      >
+                        {booking.trustpilotReviewSentAt ? "Sendt" : "Ikke sendt"}
+                      </span>
+                      <form action={`/api/admin/bookings/${booking.id}`} method="POST">
+                        <input type="hidden" name="action" value="resend_trustpilot" />
+                        <input type="hidden" name="return_view" value="trustpilot" />
+                        <button
+                          type="submit"
+                          className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#00A7B8] transition hover:border-[#00A7B8] hover:bg-[#EEFBFC]"
+                        >
+                          {booking.trustpilotReviewSentAt ? "Send igen" : "Send mail"}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="space-y-3">
+          <SectionHeading
+            eyebrow="Lodtrækning"
+            title="Vindere"
+            description="Historik over ugentlige 30%-vindere."
+          />
+          <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+            {draws.length === 0 ? (
+              <div className="p-5"><EmptyState text="Der er endnu ikke trukket nogen vindere." /></div>
+            ) : (
+              <div className="divide-y divide-[#e8ebf5]">
+                {draws.map((draw) => (
+                  <div key={draw.id} className="px-5 py-3">
+                    <p className="text-[13px] font-bold text-[#111827]">
+                      {draw.customerName || draw.customerEmail}
+                    </p>
+                    <p className="mt-0.5 text-[12px] text-[#6B7280]">
+                      Uge {draw.weekStart} · kode{" "}
+                      <span className="font-mono font-semibold text-[#0B1F3A]">{draw.couponCode}</span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );

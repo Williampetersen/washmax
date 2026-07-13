@@ -753,6 +753,115 @@ export const sendAdminNewBookingAlert = async (input: {
   });
 };
 
+const TRUSTPILOT_REVIEW_URL = "https://dk.trustpilot.com/evaluate/www.cleanwash.dk";
+const APP_URL = process.env.APP_URL || "https://cleanwash.dk";
+const TRUSTPILOT_STARS_IMAGE_URL = `${APP_URL}/trustpilot-5stjerner.png`;
+
+export const sendTrustpilotReviewEmail = async (input: {
+  booking: MailBooking;
+  customer: MailCustomer;
+  settings: MailSettings;
+}) => {
+  const customerName = getCustomerName(input.customer);
+  const greeting = customerName ? `Hej ${customerName}` : "Hej";
+  const subject = "Hvordan var din bilvask? Del din oplevelse på Trustpilot";
+  const bonusText =
+    "Bonus: Hver uge trækker vi lod blandt de kunder, der har lagt en anmeldelse på Trustpilot. " +
+    "Er du heldig, sender vi automatisk en rabatkode på 30% til din e-mail, som du kan bruge på din næste booking.";
+
+  const content =
+    renderEmailHeader(input.settings.companyName) +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
+    renderStatusBadge("Afsluttet", "afsluttet") +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Hvordan var din bilvask?</h1>` +
+    `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">` +
+    escapeHtml(
+      `${greeting}. Vi håber din bil er kommet flot tilbage til dig! Vi vil meget gerne høre, hvordan det gik – det tager kun et minut at give os en anmeldelse på Trustpilot.`
+    ) +
+    `</p>` +
+    `<div style="text-align:center;margin:0 0 22px;">` +
+    `<img src="${escapeHtml(TRUSTPILOT_STARS_IMAGE_URL)}" alt="Trustpilot 5 stjerner" width="180" style="max-width:180px;height:auto;border:0;" />` +
+    `</div>` +
+    `<div class="ebtn" style="text-align:center;margin:0 0 22px;">` +
+    renderCTAButton(TRUSTPILOT_REVIEW_URL, "Skriv en anmeldelse på Trustpilot") +
+    `</div>` +
+    renderHighlightBox(bonusText) +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
+
+  return sendLoggedMail({
+    bookingId: input.booking.id,
+    customerId: input.customer.id,
+    recipient: input.customer.email,
+    recipientRole: "customer",
+    templateKey: "customer_trustpilot_review",
+    subject,
+    html: renderEmailWrapper(content),
+    text: [
+      subject,
+      "",
+      `${greeting}. Vi håber din bil er kommet flot tilbage til dig! Del gerne din oplevelse med os på Trustpilot:`,
+      TRUSTPILOT_REVIEW_URL,
+      "",
+      bonusText,
+      "",
+      `Support: ${input.settings.supportEmail}`,
+    ].join("\n"),
+  });
+};
+
+export const sendTrustpilotDiscountWinnerEmail = async (input: {
+  bookingId?: string;
+  customerId?: string;
+  customerName: string;
+  customerEmail: string;
+  couponCode: string;
+  settings: MailSettings;
+}) => {
+  const greeting = input.customerName ? `Hej ${input.customerName}` : "Hej";
+  const subject = "Tillykke! Du har vundet 30% rabat til din næste bilvask";
+
+  const content =
+    renderEmailHeader(input.settings.companyName) +
+    `<div class="epad" style="padding:32px 32px 8px;">` +
+    renderStatusBadge("Tillykke", "godkendt") +
+    `<h1 style="margin:16px 0 10px;font-size:24px;font-weight:700;color:#111827;line-height:1.25;font-family:Arial,Helvetica,sans-serif;">Du er denne uges Trustpilot-vinder!</h1>` +
+    `<p style="margin:0 0 20px;font-size:15px;color:#6B7280;line-height:1.65;font-family:Arial,Helvetica,sans-serif;">` +
+    escapeHtml(
+      `${greeting}. Tak fordi du delte din oplevelse på Trustpilot – du er blevet udtrukket som denne uges heldige vinder af 30% rabat på din næste booking.`
+    ) +
+    `</p>` +
+    `<div style="background:#F6FBFC;border:1px dashed #00A7B8;border-radius:12px;padding:20px;margin-bottom:22px;text-align:center;">` +
+    `<p style="margin:0 0 6px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#00A7B8;font-family:Arial,Helvetica,sans-serif;">Din rabatkode</p>` +
+    `<p style="margin:0;font-size:28px;font-weight:700;letter-spacing:0.1em;color:#0B1F3A;font-family:Arial,Helvetica,sans-serif;">${escapeHtml(input.couponCode)}</p>` +
+    `</div>` +
+    `<div class="ebtn" style="text-align:center;margin:0 0 22px;">` +
+    renderCTAButton(`${APP_URL}/booking`, "Book din næste bilvask") +
+    `</div>` +
+    renderHighlightBox("Koden giver 30% rabat på din næste booking og kan bruges én gang.") +
+    `</div>` +
+    renderEmailFooter(input.settings.companyName, input.settings.supportEmail);
+
+  return sendLoggedMail({
+    bookingId: input.bookingId,
+    customerId: input.customerId,
+    recipient: input.customerEmail,
+    recipientRole: "customer",
+    templateKey: "customer_trustpilot_winner",
+    subject,
+    html: renderEmailWrapper(content),
+    text: [
+      subject,
+      "",
+      `${greeting}. Du er blevet udtrukket som denne uges Trustpilot-vinder.`,
+      `Din rabatkode: ${input.couponCode} (30% rabat, gyldig én gang)`,
+      `Book her: ${APP_URL}/booking`,
+      "",
+      `Support: ${input.settings.supportEmail}`,
+    ].join("\n"),
+  });
+};
+
 export const sendCustomerInvoiceEmail = async (input: {
   bookingId: string;
   customerId: string;

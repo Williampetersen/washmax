@@ -4,6 +4,7 @@ import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
 import {
   deleteBooking,
   getBookingById,
+  markTrustpilotReviewSent,
   updateBookingFinancials,
   updateBookingSchedule,
   updateBookingStatus,
@@ -13,6 +14,7 @@ import {
   sendAdminNewBookingAlert,
   sendCustomerBookingCreatedEmail,
   sendCustomerBookingStatusEmail,
+  sendTrustpilotReviewEmail,
 } from "@/lib/server/mail";
 import { invoiceStatuses, paymentStatuses } from "@/lib/shared/booking";
 
@@ -123,6 +125,23 @@ export async function POST(
     return redirectWith("saved=email");
   }
 
+  if (action === "resend_trustpilot") {
+    const result = await getBookingById(id);
+    if (!result) {
+      return redirectWith("error=action");
+    }
+
+    const settings = await getBookingSettingsFromSetup();
+    await sendTrustpilotReviewEmail({
+      booking: result.booking,
+      customer: result.customer,
+      settings,
+    });
+    await markTrustpilotReviewSent(id);
+
+    return redirectWith("saved=email");
+  }
+
   if (action === "resend_admin") {
     const result = await getBookingById(id);
     if (!result) {
@@ -167,6 +186,19 @@ export async function POST(
         });
       } catch (error) {
         console.error("Could not send booking status email", error);
+      }
+    }
+
+    if (status === "completed" && settings.emailAutomation.customerOnTrustpilotReview) {
+      try {
+        await sendTrustpilotReviewEmail({
+          booking: result.booking,
+          customer: result.customer,
+          settings,
+        });
+        await markTrustpilotReviewSent(id);
+      } catch (error) {
+        console.error("Could not send Trustpilot review email", error);
       }
     }
   }

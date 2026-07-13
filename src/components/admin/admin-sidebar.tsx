@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BarChart3, Calendar, CalendarClock, CreditCard, ListFilter, LogOut, Mail, MapPinned, ReceiptText, Settings2, Sparkles, Tag, UserRound, Users, Wrench } from "lucide-react";
+import { BarChart3, Calendar, CalendarClock, CreditCard, ListFilter, LogOut, Mail, MapPinned, ReceiptText, Settings2, Sparkles, Star, Tag, UserRound, Users, Wrench } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatShortPrice } from "@/lib/shared/booking";
 import type { DashboardData } from "@/lib/server/bookings";
@@ -19,6 +19,7 @@ const sidebarItems = [
   { id: "areas",         label: "Områder",           icon: MapPinned },
   { id: "payments",      label: "Betalinger",        icon: CreditCard },
   { id: "coupons",       label: "Rabatkoder",        icon: Tag },
+  { id: "trustpilot",    label: "Trustpilot",        icon: Star },
   { id: "settings",      label: "Indstillinger",     icon: Settings2 },
 ] as const;
 

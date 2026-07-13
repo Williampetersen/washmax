@@ -103,6 +103,7 @@ export async function POST(request: Request) {
           customerOnApprove: Boolean(formData.get("customer_on_approve")),
           customerOnComplete: Boolean(formData.get("customer_on_complete")),
           customerOnCancel: Boolean(formData.get("customer_on_cancel")),
+          customerOnTrustpilotReview: Boolean(formData.get("customer_on_trustpilot")),
           adminOnCreate: Boolean(formData.get("admin_on_create")),
         },
       });

@@ -66,6 +66,7 @@ export type EmailAutomationSettings = {
   customerOnApprove: boolean;
   customerOnComplete: boolean;
   customerOnCancel: boolean;
+  customerOnTrustpilotReview: boolean;
   adminOnCreate: boolean;
 };
 
@@ -231,6 +232,7 @@ export const defaultEmailAutomation: EmailAutomationSettings = {
   customerOnApprove: true,
   customerOnComplete: true,
   customerOnCancel: true,
+  customerOnTrustpilotReview: true,
   adminOnCreate: true,
 };
 

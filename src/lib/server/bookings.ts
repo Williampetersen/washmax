@@ -86,6 +86,7 @@ type RawBooking = {
   accepted_at: string | Date | null;
   completed_at: string | Date | null;
   cancelled_at: string | Date | null;
+  trustpilot_review_sent_at: string | Date | null;
   idempotency_key?: string | null;
   source: string;
   created_at: string | Date;
@@ -226,6 +227,7 @@ export type BookingItem = {
   acceptedAt: string;
   completedAt: string;
   cancelledAt: string;
+  trustpilotReviewSentAt: string;
   source: string;
   createdAt: string;
   updatedAt: string;
@@ -454,6 +456,8 @@ const normalizeEmailAutomation = (
   customerOnApprove: settings?.customerOnApprove ?? defaultEmailAutomation.customerOnApprove,
   customerOnComplete: settings?.customerOnComplete ?? defaultEmailAutomation.customerOnComplete,
   customerOnCancel: settings?.customerOnCancel ?? defaultEmailAutomation.customerOnCancel,
+  customerOnTrustpilotReview:
+    settings?.customerOnTrustpilotReview ?? defaultEmailAutomation.customerOnTrustpilotReview,
   adminOnCreate: settings?.adminOnCreate ?? defaultEmailAutomation.adminOnCreate,
 });
 
@@ -712,6 +716,7 @@ const bookingFromRow = (
     acceptedAt: toDateTimeText(row.accepted_at),
     completedAt: toDateTimeText(row.completed_at),
     cancelledAt: toDateTimeText(row.cancelled_at),
+    trustpilotReviewSentAt: toDateTimeText(row.trustpilot_review_sent_at),
     source: String(row.source ?? ""),
     createdAt: toDateTimeText(row.created_at),
     updatedAt: toDateTimeText(row.updated_at),
@@ -1569,6 +1574,167 @@ export const updateBookingStatus = async (
   });
 
   return getBookingById(bookingId);
+};
+
+export const markTrustpilotReviewSent = async (bookingId: string) => {
+  await ensureSchema();
+  const sql = getSql();
+  await sql`
+    UPDATE bookings
+    SET trustpilot_review_sent_at = NOW()
+    WHERE id = ${bookingId};
+  `;
+};
+
+export type TrustpilotDraw = {
+  id: string;
+  weekStart: string;
+  bookingId: string;
+  customerName: string;
+  customerEmail: string;
+  couponCode: string;
+  createdAt: string;
+};
+
+export const listTrustpilotDraws = async (): Promise<TrustpilotDraw[]> => {
+  if (!isDatabaseConfigured()) return [];
+  await ensureSchema();
+  const sql = getSql();
+
+  const rows = await sql<
+    {
+      id: string;
+      week_start: string | Date;
+      booking_id: string | null;
+      customer_name: string | null;
+      customer_email: string;
+      coupon_code: string;
+      created_at: string | Date;
+    }[]
+  >`
+    SELECT id, week_start, booking_id, customer_name, customer_email, coupon_code, created_at
+    FROM trustpilot_draws
+    ORDER BY created_at DESC
+    LIMIT 50;
+  `;
+
+  return rows.map((row) => ({
+    id: row.id,
+    weekStart: toDateText(row.week_start),
+    bookingId: row.booking_id || "",
+    customerName: row.customer_name || "",
+    customerEmail: row.customer_email,
+    couponCode: row.coupon_code,
+    createdAt: toDateTimeText(row.created_at),
+  }));
+};
+
+/**
+ * Picks one random customer who received a Trustpilot review request in the
+ * last 30 days and hasn't won in the last 90 days, mints a single-use 30%
+ * coupon for them, and records the draw. Skips if this ISO week already has
+ * a winner. Does not send email — the caller sends it using the returned
+ * booking/customer and logs it through the normal mail pipeline.
+ */
+export const runTrustpilotWeeklyDraw = async (): Promise<
+  | { picked: true; draw: TrustpilotDraw; booking: DashboardBooking; customer: BookingCustomer }
+  | { picked: false; reason: string }
+> => {
+  if (!isDatabaseConfigured()) {
+    return { picked: false, reason: "Database ikke konfigureret." };
+  }
+
+  await ensureSchema();
+  const sql = getSql();
+
+  const [existingThisWeek] = await sql<{ id: string }[]>`
+    SELECT id FROM trustpilot_draws
+    WHERE week_start = date_trunc('week', NOW())::date
+    LIMIT 1;
+  `;
+  if (existingThisWeek) {
+    return { picked: false, reason: "Der er allerede trukket en vinder for denne uge." };
+  }
+
+  const [candidate] = await sql<{ booking_id: string; customer_id: string }[]>`
+    SELECT b.id AS booking_id, b.customer_id AS customer_id
+    FROM bookings b
+    WHERE b.status = 'completed'
+      AND b.trustpilot_review_sent_at IS NOT NULL
+      AND b.trustpilot_review_sent_at >= NOW() - INTERVAL '30 days'
+      AND b.customer_id NOT IN (
+        SELECT customer_id FROM trustpilot_draws
+        WHERE customer_id IS NOT NULL AND created_at >= NOW() - INTERVAL '90 days'
+      )
+    ORDER BY RANDOM()
+    LIMIT 1;
+  `;
+
+  if (!candidate) {
+    return {
+      picked: false,
+      reason: "Ingen kunder er kvalificerede til denne uges trækning endnu.",
+    };
+  }
+
+  const result = await getBookingById(candidate.booking_id);
+  if (!result) {
+    return { picked: false, reason: "Kunne ikke finde bookingen for den udtrukne kunde." };
+  }
+
+  const { booking, customer } = result;
+  const couponId = createId("cpn");
+  const couponCode = `TRUST${randomBytes(3).toString("hex").toUpperCase()}`;
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 90);
+
+  await sql`
+    INSERT INTO coupons (id, code, description, discount_type, discount_value, min_order_dkk, max_uses, expires_at)
+    VALUES (
+      ${couponId},
+      ${couponCode},
+      ${`Trustpilot ugevinder – ${customer.email}`},
+      'percent',
+      30,
+      0,
+      1,
+      ${expiresAt.toISOString().slice(0, 10)}
+    );
+  `;
+
+  const drawId = createId("tpd");
+  const customerName = [customer.firstName, customer.lastName].filter(Boolean).join(" ");
+
+  await sql`
+    INSERT INTO trustpilot_draws (
+      id, week_start, booking_id, customer_id, customer_name, customer_email, coupon_id, coupon_code
+    )
+    VALUES (
+      ${drawId},
+      date_trunc('week', NOW())::date,
+      ${booking.id},
+      ${customer.id},
+      ${customerName},
+      ${customer.email},
+      ${couponId},
+      ${couponCode}
+    );
+  `;
+
+  return {
+    picked: true,
+    draw: {
+      id: drawId,
+      weekStart: new Date().toISOString().slice(0, 10),
+      bookingId: booking.id,
+      customerName,
+      customerEmail: customer.email,
+      couponCode,
+      createdAt: new Date().toISOString(),
+    },
+    booking,
+    customer,
+  };
 };
 
 export const updateBookingSchedule = async (

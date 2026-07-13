@@ -65,9 +65,14 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
         SELECT
           to_regclass('public.assignment_log') IS NOT NULL
           AND to_regclass('public.agent_schedules') IS NOT NULL
+          AND to_regclass('public.trustpilot_draws') IS NOT NULL
           AND EXISTS (
             SELECT 1 FROM information_schema.columns
             WHERE table_name = 'agents' AND column_name = 'postal_code'
+          )
+          AND EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'bookings' AND column_name = 'trustpilot_review_sent_at'
           ) AS ready;
       `;
 
@@ -824,6 +829,30 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
       await sql`
         CREATE UNIQUE INDEX IF NOT EXISTS coupons_code_idx
         ON coupons (UPPER(code));
+      `;
+
+      await sql`
+        ALTER TABLE bookings
+          ADD COLUMN IF NOT EXISTS trustpilot_review_sent_at TIMESTAMPTZ;
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS trustpilot_draws (
+          id TEXT PRIMARY KEY,
+          week_start DATE NOT NULL,
+          booking_id TEXT,
+          customer_id TEXT,
+          customer_name TEXT,
+          customer_email TEXT NOT NULL,
+          coupon_id TEXT,
+          coupon_code TEXT NOT NULL,
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        );
+      `;
+
+      await sql`
+        CREATE INDEX IF NOT EXISTS trustpilot_draws_week_idx
+        ON trustpilot_draws (week_start DESC);
       `;
 
       await sql`
