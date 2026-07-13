@@ -219,6 +219,7 @@ const statusMessages: Record<string, string> = {
   draw: "Denne uges vinder er trukket, og rabatkoden er sendt på mail.",
   "draw-skip": "Der er allerede trukket en vinder for denne uge.",
   "draw-empty": "Ingen kunder er kvalificerede til denne uges trækning endnu.",
+  "draw-disabled": "Trustpilot-vindermailen er slået fra under E-mails. Slå den til for at trække en vinder.",
 };
 
 const calendarHourHeight = 76;
@@ -2239,10 +2240,28 @@ function EmailsView({
                 checked: dashboard.settings.emailAutomation.customerOnTrustpilotReview,
               },
               {
+                name: "customer_on_trustpilot_winner",
+                title: "Kunde – vundet Trustpilot-lodtrækning",
+                description: "Sendes til den kunde, der vinder den ugentlige 30%-rabatkode.",
+                checked: dashboard.settings.emailAutomation.customerOnTrustpilotWinner,
+              },
+              {
                 name: "admin_on_create",
                 title: "Admin ved ny booking",
                 description: "Send notifikation til admin-mail ved ny booking fra website.",
                 checked: dashboard.settings.emailAutomation.adminOnCreate,
+              },
+              {
+                name: "admin_on_contact_form",
+                title: "Admin ved kontaktformular",
+                description: "Send notifikation til admin-mail, når nogen udfylder kontaktformularen.",
+                checked: dashboard.settings.emailAutomation.adminOnContactForm,
+              },
+              {
+                name: "customer_on_contact_form_reply",
+                title: "Kunde – kvittering for kontaktformular",
+                description: "Sendes som kvittering til den, der udfylder kontaktformularen.",
+                checked: dashboard.settings.emailAutomation.customerOnContactFormReply,
               },
             ].map((item) => (
               <label

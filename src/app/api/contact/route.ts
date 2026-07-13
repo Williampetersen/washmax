@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import { getBookingSettingsFromSetup } from "@/lib/server/booking-setup";
 
 export const runtime = "nodejs";
 
@@ -154,23 +155,35 @@ export async function POST(request: Request) {
   const transporter = nodemailer.createTransport({ host, port, secure, auth: { user, pass } });
 
   try {
-    await Promise.all([
-      transporter.sendMail({
-        from,
-        to: adminEmail,
-        replyTo: email,
-        subject: `CleanWash: ny kontakthenvendelse fra ${name}`,
-        html: buildAdminEmail({ name, email, phone, reason, message }, supportEmail),
-        text: `Ny kontakthenvendelse\n\nNavn: ${name}\nEmail: ${email}\nTelefon: ${phone || "–"}\nÅrsag: ${reason || "–"}\n\nBesked:\n${message}`,
-      }),
-      transporter.sendMail({
-        from,
-        to: email,
-        subject: "Vi har modtaget din henvendelse — CleanWash",
-        html: buildUserEmail({ name, reason, message }, supportEmail, siteUrl),
-        text: `Hej ${name},\n\nTak for din henvendelse til CleanWash. Vi vender tilbage inden for 24 timer.\n\nDin besked:\n${message}\n\nMed venlig hilsen\nCleanWash\n${supportEmail}\nTlf: 42 50 45 51`,
-      }),
-    ]);
+    const settings = await getBookingSettingsFromSetup();
+    const sends: Promise<unknown>[] = [];
+
+    if (settings.emailAutomation.adminOnContactForm) {
+      sends.push(
+        transporter.sendMail({
+          from,
+          to: adminEmail,
+          replyTo: email,
+          subject: `CleanWash: ny kontakthenvendelse fra ${name}`,
+          html: buildAdminEmail({ name, email, phone, reason, message }, supportEmail),
+          text: `Ny kontakthenvendelse\n\nNavn: ${name}\nEmail: ${email}\nTelefon: ${phone || "–"}\nÅrsag: ${reason || "–"}\n\nBesked:\n${message}`,
+        })
+      );
+    }
+
+    if (settings.emailAutomation.customerOnContactFormReply) {
+      sends.push(
+        transporter.sendMail({
+          from,
+          to: email,
+          subject: "Vi har modtaget din henvendelse — CleanWash",
+          html: buildUserEmail({ name, reason, message }, supportEmail, siteUrl),
+          text: `Hej ${name},\n\nTak for din henvendelse til CleanWash. Vi vender tilbage inden for 24 timer.\n\nDin besked:\n${message}\n\nMed venlig hilsen\nCleanWash\n${supportEmail}\nTlf: 42 50 45 51`,
+        })
+      );
+    }
+
+    await Promise.all(sends);
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[contact] Send error:", err);

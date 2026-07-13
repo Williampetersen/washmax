@@ -104,7 +104,10 @@ export async function POST(request: Request) {
           customerOnComplete: Boolean(formData.get("customer_on_complete")),
           customerOnCancel: Boolean(formData.get("customer_on_cancel")),
           customerOnTrustpilotReview: Boolean(formData.get("customer_on_trustpilot")),
+          customerOnTrustpilotWinner: Boolean(formData.get("customer_on_trustpilot_winner")),
           adminOnCreate: Boolean(formData.get("admin_on_create")),
+          adminOnContactForm: Boolean(formData.get("admin_on_contact_form")),
+          customerOnContactFormReply: Boolean(formData.get("customer_on_contact_form_reply")),
         },
       });
       break;

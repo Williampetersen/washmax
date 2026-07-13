@@ -67,7 +67,10 @@ export type EmailAutomationSettings = {
   customerOnComplete: boolean;
   customerOnCancel: boolean;
   customerOnTrustpilotReview: boolean;
+  customerOnTrustpilotWinner: boolean;
   adminOnCreate: boolean;
+  adminOnContactForm: boolean;
+  customerOnContactFormReply: boolean;
 };
 
 export type VehicleLookupResult = {
@@ -233,7 +236,10 @@ export const defaultEmailAutomation: EmailAutomationSettings = {
   customerOnComplete: true,
   customerOnCancel: true,
   customerOnTrustpilotReview: true,
+  customerOnTrustpilotWinner: true,
   adminOnCreate: true,
+  adminOnContactForm: true,
+  customerOnContactFormReply: true,
 };
 
 export const weekdayOptions = [

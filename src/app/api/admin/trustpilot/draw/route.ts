@@ -18,6 +18,11 @@ export async function POST(request: Request) {
     NextResponse.redirect(new URL(`/admin?view=${encodeURIComponent(returnView)}&${query}`, request.url), 303);
 
   try {
+    const settings = await getBookingSettingsFromSetup();
+    if (!settings.emailAutomation.customerOnTrustpilotWinner) {
+      return redirectWith("saved=draw-disabled");
+    }
+
     const result = await runTrustpilotWeeklyDraw();
 
     if (!result.picked) {
@@ -25,7 +30,6 @@ export async function POST(request: Request) {
       return redirectWith(isAlreadyDrawn ? "saved=draw-skip" : "saved=draw-empty");
     }
 
-    const settings = await getBookingSettingsFromSetup();
     await sendTrustpilotDiscountWinnerEmail({
       bookingId: result.booking.id,
       customerId: result.customer.id,

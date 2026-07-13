@@ -458,7 +458,12 @@ const normalizeEmailAutomation = (
   customerOnCancel: settings?.customerOnCancel ?? defaultEmailAutomation.customerOnCancel,
   customerOnTrustpilotReview:
     settings?.customerOnTrustpilotReview ?? defaultEmailAutomation.customerOnTrustpilotReview,
+  customerOnTrustpilotWinner:
+    settings?.customerOnTrustpilotWinner ?? defaultEmailAutomation.customerOnTrustpilotWinner,
   adminOnCreate: settings?.adminOnCreate ?? defaultEmailAutomation.adminOnCreate,
+  adminOnContactForm: settings?.adminOnContactForm ?? defaultEmailAutomation.adminOnContactForm,
+  customerOnContactFormReply:
+    settings?.customerOnContactFormReply ?? defaultEmailAutomation.customerOnContactFormReply,
 });
 
 const normalizeAutoBookingStatus = (value?: string | null): AutoBookingStatus =>

@@ -15,13 +15,17 @@ export async function GET(request: Request) {
   }
 
   try {
+    const settings = await getBookingSettingsFromSetup();
+    if (!settings.emailAutomation.customerOnTrustpilotWinner) {
+      return NextResponse.json({ picked: false, reason: "Trustpilot-vindermail er deaktiveret." });
+    }
+
     const result = await runTrustpilotWeeklyDraw();
 
     if (!result.picked) {
       return NextResponse.json({ picked: false, reason: result.reason });
     }
 
-    const settings = await getBookingSettingsFromSetup();
     await sendTrustpilotDiscountWinnerEmail({
       bookingId: result.booking.id,
       customerId: result.customer.id,
