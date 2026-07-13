@@ -1577,7 +1577,7 @@ export const updateBookingStatus = async (
 };
 
 export const markTrustpilotReviewSent = async (bookingId: string) => {
-  await ensureSchema();
+  await ensureSchema({ force: true });
   const sql = getSql();
   await sql`
     UPDATE bookings
@@ -1598,35 +1598,40 @@ export type TrustpilotDraw = {
 
 export const listTrustpilotDraws = async (): Promise<TrustpilotDraw[]> => {
   if (!isDatabaseConfigured()) return [];
-  await ensureSchema();
-  const sql = getSql();
 
-  const rows = await sql<
-    {
-      id: string;
-      week_start: string | Date;
-      booking_id: string | null;
-      customer_name: string | null;
-      customer_email: string;
-      coupon_code: string;
-      created_at: string | Date;
-    }[]
-  >`
-    SELECT id, week_start, booking_id, customer_name, customer_email, coupon_code, created_at
-    FROM trustpilot_draws
-    ORDER BY created_at DESC
-    LIMIT 50;
-  `;
+  try {
+    await ensureSchema({ force: true });
+    const sql = getSql();
 
-  return rows.map((row) => ({
-    id: row.id,
-    weekStart: toDateText(row.week_start),
-    bookingId: row.booking_id || "",
-    customerName: row.customer_name || "",
-    customerEmail: row.customer_email,
-    couponCode: row.coupon_code,
-    createdAt: toDateTimeText(row.created_at),
-  }));
+    const rows = await sql<
+      {
+        id: string;
+        week_start: string | Date;
+        booking_id: string | null;
+        customer_name: string | null;
+        customer_email: string;
+        coupon_code: string;
+        created_at: string | Date;
+      }[]
+    >`
+      SELECT id, week_start, booking_id, customer_name, customer_email, coupon_code, created_at
+      FROM trustpilot_draws
+      ORDER BY created_at DESC
+      LIMIT 50;
+    `;
+
+    return rows.map((row) => ({
+      id: row.id,
+      weekStart: toDateText(row.week_start),
+      bookingId: row.booking_id || "",
+      customerName: row.customer_name || "",
+      customerEmail: row.customer_email,
+      couponCode: row.coupon_code,
+      createdAt: toDateTimeText(row.created_at),
+    }));
+  } catch {
+    return [];
+  }
 };
 
 /**
@@ -1644,7 +1649,7 @@ export const runTrustpilotWeeklyDraw = async (): Promise<
     return { picked: false, reason: "Database ikke konfigureret." };
   }
 
-  await ensureSchema();
+  await ensureSchema({ force: true });
   const sql = getSql();
 
   const [existingThisWeek] = await sql<{ id: string }[]>`
