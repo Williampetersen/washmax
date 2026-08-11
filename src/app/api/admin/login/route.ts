@@ -16,7 +16,7 @@ export async function POST(request: Request) {
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
 
-  if (!validateAdminCredentials(email, password)) {
+  if (!(await validateAdminCredentials(email, password))) {
     return NextResponse.redirect(new URL("/admin/login?error=invalid", request.url), 303);
   }
 

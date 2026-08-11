@@ -34,6 +34,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { ADMIN_COOKIE_NAME, getAdminSession } from "@/lib/server/admin-session";
+import { listAdminAccounts, type AdminAccount } from "@/lib/server/admins";
 import { getAdminAgentsData } from "@/lib/server/agents";
 import { getBookingSetupData } from "@/lib/server/booking-setup";
 import {
@@ -137,6 +138,7 @@ const navItems = [
   { id: "payments",  label: "Betalinger",    icon: CreditCard },
   { id: "coupons",   label: "Rabatkoder",   icon: Tag },
   { id: "trustpilot", label: "Trustpilot",   icon: Star },
+  { id: "admins",    label: "Administratorer", icon: ShieldCheck },
   { id: "settings",  label: "Indstillinger", icon: Settings2 },
 ] as const;
 
@@ -212,6 +214,7 @@ const statusMessages: Record<string, string> = {
   settings: "Indstillingerne er gemt.",
   customer: "Kunden er opdateret.",
   coupon: "Rabatkoden er gemt.",
+  "admin-management": "Administratoren er opdateret.",
   availability: "Kalenderblokken er opdateret.",
   email: "E-mailen er sendt igen.",
   "invoice-sent": "Fakturaen er sendt til kunden.",
@@ -269,13 +272,14 @@ export default async function AdminPage({
   const statusFilter = (Array.isArray(params.status) ? params.status[0] : params.status) ?? "";
   const pageTab = (Array.isArray(params.tab) ? params.tab[0] : params.tab) ?? "";
   const hasDatabase = isDatabaseConfigured();
-  const [dashboard, agentsData, bookingSetupData, adminInvoices, adminCoupons, trustpilotDraws] = await Promise.all([
+  const [dashboard, agentsData, bookingSetupData, adminInvoices, adminCoupons, trustpilotDraws, adminAccounts] = await Promise.all([
     getAdminDashboardData(),
     view === "agents" ? getAdminAgentsData() : Promise.resolve(undefined),
     view === "booking-setup" ? getBookingSetupData() : Promise.resolve(undefined),
     view === "invoices" && hasDatabase ? listInvoices() : Promise.resolve([]),
     view === "coupons" && hasDatabase ? listCoupons() : Promise.resolve([]),
     view === "trustpilot" && hasDatabase ? listTrustpilotDraws() : Promise.resolve([]),
+    view === "admins" && hasDatabase ? listAdminAccounts() : Promise.resolve([]),
   ]);
   const today = getTodayDateText();
   const timeSlots = getTimeSlots(dashboard.settings);
@@ -307,7 +311,11 @@ export default async function AdminPage({
       ? "Handlingen kunne ikke gennemføres."
       : error === "invoice-send"
         ? rawErrorMessage || "Fakturaen kunne ikke sendes."
-        : "";
+        : error === "admin-management"
+          ? "Administratoren kunne ikke gemmes. Tjek at e-mailen ikke allerede er i brug, og at adgangskoden er mindst 8 tegn."
+          : error === "admin-management-self"
+            ? "Du kan ikke deaktivere eller slette din egen administratorkonto."
+            : "";
 
   return (
     <AdminShellLayout>
@@ -412,6 +420,10 @@ export default async function AdminPage({
 
         {view === "trustpilot" ? (
           <TrustpilotView dashboard={dashboard} draws={trustpilotDraws} />
+        ) : null}
+
+        {view === "admins" ? (
+          <AdminManagementView admins={adminAccounts} sessionEmail={session.email} />
         ) : null}
 
         {view === "settings" ? (
@@ -3459,6 +3471,111 @@ function CouponsView({ coupons }: { coupons: Coupon[] }) {
                   </div>
                 </div>
               ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AdminManagementView({
+  admins,
+  sessionEmail,
+}: {
+  admins: AdminAccount[];
+  sessionEmail: string;
+}) {
+  const activeAdmins = admins.filter((admin) => admin.status === "active").length;
+
+  return (
+    <div className="space-y-5">
+      <ViewHeader
+        icon={ShieldCheck}
+        title="Administratorer"
+        description="Opret og administrer adgang for admin-brugere"
+      />
+
+      <div className="grid gap-3 md:grid-cols-2">
+        <MetricCard label="Aktive administratorer" value={activeAdmins.toString()} detail="Kan logge ind" icon={ShieldCheck} tone="green" />
+        <MetricCard label="Total administratorer" value={admins.length.toString()} detail="Oprettet i alt" icon={ShieldCheck} tone="violet" />
+      </div>
+
+      {/* Create new admin */}
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+        <div className="border-b border-[#e8ebf5] px-5 py-4">
+          <p className="text-[13px] font-semibold uppercase tracking-wide text-[#6B7280]">Opret ny administrator</p>
+        </div>
+        <form action="/api/admin/admins/action" method="POST" className="grid gap-4 px-5 py-5 sm:grid-cols-2 lg:grid-cols-3">
+          <input type="hidden" name="action" value="create" />
+          <Field label="E-mail">
+            <Input type="email" name="email" placeholder="admin@cleanwash.dk" required />
+          </Field>
+          <Field label="Adgangskode (min. 8 tegn)">
+            <Input type="password" name="password" minLength={8} required autoComplete="new-password" />
+          </Field>
+          <div className="flex items-end">
+            <Button type="submit" className="h-10">Opret administrator</Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Admin list */}
+      <div className="overflow-hidden rounded-2xl border border-white/60 bg-white/80 shadow-[0_2px_12px_rgba(0,167,184,0.06)]">
+        {admins.length === 0 ? (
+          <div className="p-5"><EmptyState text="Ingen administratorer oprettet endnu." /></div>
+        ) : (
+          <>
+            <div className="hidden border-b border-[#e8ebf5] px-5 py-2.5 lg:grid lg:grid-cols-[1fr_8rem_10rem_auto] lg:gap-3">
+              {["E-mail", "Status", "Sidst logget ind", ""].map((col) => (
+                <span key={col} className="text-[11px] font-semibold uppercase tracking-wide text-[#6B7280]">{col}</span>
+              ))}
+            </div>
+            <div className="divide-y divide-[#e8ebf5]">
+              {admins.map((admin) => {
+                const isSelf = admin.email.toLowerCase() === sessionEmail.toLowerCase();
+                return (
+                  <div key={admin.id} className="grid items-center gap-3 px-5 py-3 lg:grid-cols-[1fr_8rem_10rem_auto]">
+                    <div>
+                      <p className="text-[13px] font-semibold text-[#111827]">{admin.email}</p>
+                      {isSelf ? <p className="mt-0.5 text-[12px] text-[#6B7280]">Din konto</p> : null}
+                    </div>
+                    <span className={cn(
+                      "inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                      admin.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-[#f3f4f6] text-[#6B7280]"
+                    )}>
+                      {admin.status === "active" ? "Aktiv" : "Deaktiveret"}
+                    </span>
+                    <span className="text-[12px] text-[#6B7280]">
+                      {admin.lastLoginAt ? new Date(admin.lastLoginAt).toLocaleString("da-DK") : "Aldrig"}
+                    </span>
+                    <div className="flex gap-2">
+                      <form action="/api/admin/admins/action" method="POST">
+                        <input type="hidden" name="id" value={admin.id} />
+                        <input type="hidden" name="action" value="toggle" />
+                        <button
+                          type="submit"
+                          disabled={isSelf}
+                          className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-[#00A7B8] transition hover:border-[#00A7B8] hover:bg-[#EEFBFC] disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          {admin.status === "active" ? "Deaktiver" : "Aktiver"}
+                        </button>
+                      </form>
+                      <form action="/api/admin/admins/action" method="POST">
+                        <input type="hidden" name="id" value={admin.id} />
+                        <input type="hidden" name="action" value="delete" />
+                        <button
+                          type="submit"
+                          disabled={isSelf}
+                          className="rounded-lg border border-[#e8ebf5] bg-white px-2.5 py-1 text-[11px] font-semibold text-red-500 transition hover:border-red-300 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                          Slet
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </>
         )}

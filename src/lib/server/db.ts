@@ -66,6 +66,7 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
           to_regclass('public.assignment_log') IS NOT NULL
           AND to_regclass('public.agent_schedules') IS NOT NULL
           AND to_regclass('public.trustpilot_draws') IS NOT NULL
+          AND to_regclass('public.admins') IS NOT NULL
           AND EXISTS (
             SELECT 1 FROM information_schema.columns
             WHERE table_name = 'agents' AND column_name = 'postal_code'
@@ -968,6 +969,18 @@ export const ensureSchema = async (options: { force?: boolean } = {}) => {
       await sql`
         CREATE INDEX IF NOT EXISTS assignment_log_agent_idx
         ON assignment_log (agent_id, assigned_at DESC);
+      `;
+
+      await sql`
+        CREATE TABLE IF NOT EXISTS admins (
+          id TEXT PRIMARY KEY,
+          email TEXT NOT NULL UNIQUE,
+          password_hash TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'active',
+          created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+          last_login_at TIMESTAMPTZ
+        );
       `;
     })();
     globalThis.CleanWashSchemaPromise = schemaPromise;

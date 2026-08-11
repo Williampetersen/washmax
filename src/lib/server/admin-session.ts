@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
+import { authenticateAdminAccount } from "@/lib/server/admins";
 
 export const ADMIN_COOKIE_NAME = "CleanWash_admin_session";
 const SESSION_DURATION_MS = 1000 * 60 * 60 * 12;
@@ -53,8 +54,14 @@ export const verifyAdminSessionToken = (token: string | undefined | null) => {
   }
 };
 
-export const validateAdminCredentials = (email: string, password: string) =>
-  email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD;
+export const validateAdminCredentials = async (email: string, password: string) => {
+  if (email === process.env.ADMIN_EMAIL && password === process.env.ADMIN_PASSWORD) {
+    return true;
+  }
+
+  const account = await authenticateAdminAccount(email, password);
+  return Boolean(account);
+};
 
 export const getAdminSession = (cookieValue?: string | null) =>
   verifyAdminSessionToken(cookieValue);
