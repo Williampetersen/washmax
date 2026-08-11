@@ -59,14 +59,20 @@ const adminAccountFromRow = (row: RawAdminAccount): AdminAccount => ({
 
 export const listAdminAccounts = async (): Promise<AdminAccount[]> => {
   if (!isDatabaseConfigured()) return [];
-  await ensureSchema();
-  const sql = getSql();
-  const rows = await sql<RawAdminAccount[]>`
-    SELECT *
-    FROM admins
-    ORDER BY created_at DESC;
-  `;
-  return rows.map(adminAccountFromRow);
+
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const rows = await sql<RawAdminAccount[]>`
+      SELECT *
+      FROM admins
+      ORDER BY created_at DESC;
+    `;
+    return rows.map(adminAccountFromRow);
+  } catch (error) {
+    console.error("Could not load admin accounts", error);
+    return [];
+  }
 };
 
 export const getAdminAccountById = async (id: string) => {
@@ -116,24 +122,30 @@ export const deleteAdminAccount = async (id: string) => {
 
 export const authenticateAdminAccount = async (email: string, password: string) => {
   if (!isDatabaseConfigured()) return null;
-  await ensureSchema();
-  const sql = getSql();
-  const [row] = await sql<RawAdminAccount[]>`
-    SELECT *
-    FROM admins
-    WHERE LOWER(email) = ${normalizeEmail(email)}
-    LIMIT 1;
-  `;
 
-  if (!row || row.status === "disabled" || !verifyPassword(password, row.password_hash)) {
+  try {
+    await ensureSchema();
+    const sql = getSql();
+    const [row] = await sql<RawAdminAccount[]>`
+      SELECT *
+      FROM admins
+      WHERE LOWER(email) = ${normalizeEmail(email)}
+      LIMIT 1;
+    `;
+
+    if (!row || row.status === "disabled" || !verifyPassword(password, row.password_hash)) {
+      return null;
+    }
+
+    await sql`
+      UPDATE admins
+      SET last_login_at = NOW(), updated_at = NOW()
+      WHERE id = ${row.id};
+    `;
+
+    return adminAccountFromRow({ ...row, last_login_at: new Date().toISOString() });
+  } catch (error) {
+    console.error("Could not authenticate admin account", error);
     return null;
   }
-
-  await sql`
-    UPDATE admins
-    SET last_login_at = NOW(), updated_at = NOW()
-    WHERE id = ${row.id};
-  `;
-
-  return adminAccountFromRow({ ...row, last_login_at: new Date().toISOString() });
 };
