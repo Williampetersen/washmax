@@ -7,6 +7,16 @@ export const siteConfig = {
   phoneDisplay: "42 50 45 51",
   phoneHref: "tel:+4542504551",
   email: "info@cleanwash.dk",
+  legalName: "CleanWash",
+  vatId: "44605074",
+  openingHours: { days: "Mo-Su", opens: "08:00", closes: "17:00" },
+  priceRange: "349-849 DKK",
+  // Profiles that describe the same business. Add the Google Business Profile
+  // and Trustpilot URLs here once confirmed — they feed the schema `sameAs`.
+  social: [
+    "https://www.facebook.com/carwashadk/",
+    "https://www.instagram.com/washmaxdk/",
+  ],
   bookingExternalUrl: "/booking",
   giftCardUrl: "/booking",
 };

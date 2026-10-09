@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, Clock, MapPinned, ShieldCheck, Sparkles } from "lucide-react";
-import { JsonLd, type JsonValue } from "@/components/seo/json-ld";
+import { buildLocalBusiness, JsonLd, type JsonValue } from "@/components/seo/json-ld";
 import { absoluteUrl } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
@@ -64,29 +64,9 @@ const areas = ["København", "Frederiksberg", "Amager", "Storkøbenhavn", "Roski
 const jsonLd: JsonValue = {
   "@context": "https://schema.org",
   "@graph": [
-    {
-      "@type": ["AutoWash", "LocalBusiness"],
-      "@id": `${siteConfig.url}#localbusiness`,
-      name: "CleanWash",
-      alternateName: siteConfig.name,
-      url: siteConfig.url,
-      image: absoluteUrl(siteConfig.ogImage),
-      telephone: siteConfig.phoneDisplay,
-      email: siteConfig.email,
-      openingHours: "Mo-Su 08:00-17:00",
-      description:
-        "CleanWash tilbyder professionel mobil bilvask, bilrengøring og bilpleje i København og på Sjælland.",
-      areaServed: ["København", "Copenhagen", "Sjælland", "Denmark"].map((area) => ({
-        "@type": "Place",
-        name: area,
-      })),
-      potentialAction: {
-        "@type": "ReserveAction",
-        target: absoluteUrl("/booking"),
-        name: "Book bilvask online",
-      },
-      // TODO: Add postalAddress when CleanWash has a confirmed public business address.
-    },
+    buildLocalBusiness({
+      areaServed: ["København", "Copenhagen", "Sjælland", "Denmark"],
+    }),
     {
       "@type": "AboutPage",
       "@id": `${absoluteUrl("/om-os")}#aboutpage`,

@@ -1,4 +1,6 @@
 import type { Route } from "next";
+import { indvendigBlogPosts } from "@/lib/blog-posts-indvendig";
+import { udvendigBlogPosts } from "@/lib/blog-posts-udvendig";
 
 export type BlogFaq = {
   question: string;
@@ -40,7 +42,7 @@ export type BlogPost = {
 
 const route = (href: string) => href as Route;
 
-export const blogPosts: BlogPost[] = [
+const coreBlogPosts: BlogPost[] = [
   {
     slug: "bilvask-med-damp",
     title: "Bilvask med damp: Hvad er damprensning, og hvornår er det den rigtige løsning?",
@@ -562,6 +564,12 @@ export const blogPosts: BlogPost[] = [
       { label: "Book bilvask", href: route("/booking") },
     ],
   },
+];
+
+export const blogPosts: BlogPost[] = [
+  ...coreBlogPosts,
+  ...udvendigBlogPosts,
+  ...indvendigBlogPosts,
 ];
 
 export const blogPostsBySlug: Record<string, BlogPost> = Object.fromEntries(

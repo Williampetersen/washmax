@@ -8,6 +8,9 @@ export const metadata: Metadata = {
   title: "Kontakt os | CleanWash — Professionel bilvask",
   description:
     "Kontakt CleanWash med spørgsmål om bilvask, booking, erhvervsaftaler eller andet. Udfyld formularen eller ring til os på 42 50 45 51 — vi svarer inden for 24 timer.",
+  alternates: {
+    canonical: "/kontakt",
+  },
   openGraph: {
     title: "Kontakt os | CleanWash",
     description:

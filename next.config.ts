@@ -7,6 +7,16 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.join(__dirname),
   },
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.cleanwash.dk" }],
+        destination: "https://cleanwash.dk/:path*",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

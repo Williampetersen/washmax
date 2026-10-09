@@ -6,22 +6,19 @@ import { siteConfig } from "@/lib/site";
 const url = (path: string) => `${siteConfig.url}${path}`;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const now = new Date();
-
   const staticPages: MetadataRoute.Sitemap = [
-    { url: url("/"),                   lastModified: now, changeFrequency: "weekly",  priority: 1.0 },
-    { url: url("/booking"),            lastModified: now, changeFrequency: "weekly",  priority: 0.95 },
-    { url: url("/om-os"),              lastModified: now, changeFrequency: "monthly", priority: 0.75 },
-    { url: url("/velg-storrelse"),     lastModified: now, changeFrequency: "monthly", priority: 0.80 },
-    { url: url("/retur-leasebil"),     lastModified: now, changeFrequency: "monthly", priority: 0.75 },
-    { url: url("/blog"),               lastModified: now, changeFrequency: "weekly",  priority: 0.70 },
-    { url: url("/handelsbetingelser"), lastModified: now, changeFrequency: "yearly",  priority: 0.30 },
-    { url: url("/persondatapolitik"),  lastModified: now, changeFrequency: "yearly",  priority: 0.30 },
+    { url: url("/"),                   changeFrequency: "weekly",  priority: 1.0 },
+    { url: url("/booking"),            changeFrequency: "weekly",  priority: 0.95 },
+    { url: url("/om-os"),              changeFrequency: "monthly", priority: 0.75 },
+    { url: url("/velg-storrelse"),     changeFrequency: "monthly", priority: 0.80 },
+    { url: url("/retur-leasebil"),     changeFrequency: "monthly", priority: 0.75 },
+    { url: url("/blog"),               changeFrequency: "weekly",  priority: 0.70 },
+    { url: url("/handelsbetingelser"), changeFrequency: "yearly",  priority: 0.30 },
+    { url: url("/persondatapolitik"),  changeFrequency: "yearly",  priority: 0.30 },
   ];
 
   const seoPageEntries: MetadataRoute.Sitemap = seoPages.map((page) => ({
     url: url(`/${page.slug}`),
-    lastModified: now,
     changeFrequency: "monthly" as const,
     priority: page.priority,
   }));

@@ -467,7 +467,7 @@ const getCustomerCreationCopy = (
       return {
         subject: `${settings.companyName}: booking modtaget`,
         eyebrow: "Booking modtaget",
-        title: "Tak for din booking hos Clean Wash",
+        title: "Tak for din booking hos CleanWash",
         intro: `Vi har modtaget din booking hos ${settings.companyName} og glæder os til at gøre din bil ren og klar. Vi gennemgår nu forespørgslen for ${appointmentLabel}.`,
         highlight:
           "Du får en ny mail, så snart bookingen er godkendt eller hvis vi har brug for at justere noget.",

@@ -14,7 +14,7 @@ import {
 import { HomePlateForm } from "@/components/home-plate-form";
 import { BookingStepsInfographic } from "@/components/BookingStepsInfographic";
 import { TypewriterCity } from "@/components/ui/TypewriterCity";
-import { JsonLd } from "@/components/seo/json-ld";
+import { buildLocalBusiness, JsonLd } from "@/components/seo/json-ld";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -203,33 +203,12 @@ const homeVideoSchema = {
 
 const homeLocalBusinessSchema = {
   "@context": "https://schema.org",
-  "@type": ["AutoWash", "LocalBusiness"],
-  "@id": `${siteConfig.url}#localbusiness`,
-  name: "Clean Wash",
-  alternateName: siteConfig.name,
-  url: siteConfig.url,
-  image: `${siteConfig.url}${siteConfig.ogImage}`,
-  telephone: siteConfig.phoneDisplay,
-  email: siteConfig.email,
-  openingHours: "Mo-Su 08:00-17:00",
-  openingHoursSpecification: [
-    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Monday","Tuesday","Wednesday","Thursday","Friday"], opens: "08:00", closes: "17:00" },
-    { "@type": "OpeningHoursSpecification", dayOfWeek: ["Saturday","Sunday"], opens: "08:00", closes: "17:00" },
-  ],
-  areaServed: [
-    "København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro",
-    "Vesterbro", "Valby", "Hellerup", "Gentofte", "Roskilde", "Køge", "Sjælland",
-  ].map((name) => ({ "@type": "Place", name })),
-  potentialAction: {
-    "@type": "ReserveAction",
-    target: `${siteConfig.url}/booking`,
-    name: "Book bilvask online",
-  },
-  priceRange: "349-849 DKK",
-  sameAs: [
-    "https://www.facebook.com/cleanwash.dk",
-    "https://www.google.com/maps/search/CleanWash+bilvask+København",
-  ],
+  ...buildLocalBusiness({
+    areaServed: [
+      "København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro",
+      "Vesterbro", "Valby", "Hellerup", "Gentofte", "Roskilde", "Køge", "Sjælland",
+    ],
+  }),
 };
 
 export default function HomePage() {

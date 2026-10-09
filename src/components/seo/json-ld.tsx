@@ -23,114 +23,110 @@ export function JsonLd({ data }: { data: JsonValue }) {
   );
 }
 
-export function buildSeoJsonLd(page: SeoPageConfig) {
-  const pageUrl = absoluteUrl(`/${page.slug}`);
-  const businessId = `${siteConfig.url}#localbusiness`;
-  const serviceId = `${pageUrl}#service`;
-  const faqId = `${pageUrl}#faq`;
-  const packageOffers = [
-    {
-      name: "Udvendig vask",
-      price: 349,
-      description: "Udvendig bilvask med fokus på lak, fælge, ruder og finish.",
-    },
-    {
-      name: "Komplet bilvask",
-      price: 599,
-      description: "Udvendig bilvask kombineret med indvendig rengøring.",
-    },
-    {
-      name: "Premium bilpleje",
-      price: 849,
-      description: "Udvidet bilpleje til biler, der kræver en grundigere behandling.",
-    },
-  ];
+const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
-  const localBusiness = {
+// Rolling offer expiry: end of this year, or next year once fewer than 60 days remain,
+// so Google never sees an expired priceValidUntil.
+export function priceValidUntil(now = new Date()) {
+  const endOfYear = new Date(Date.UTC(now.getUTCFullYear(), 11, 31));
+  const daysLeft = (endOfYear.getTime() - now.getTime()) / 86_400_000;
+  const year = daysLeft < 60 ? now.getUTCFullYear() + 1 : now.getUTCFullYear();
+  return `${year}-12-31`;
+}
+
+const packageOffers = [
+  {
+    name: "Udvendig bilvask",
+    price: 349,
+    description: "Skånsom udvendig vask: lak, fælge, hjulbuer, ruder og finish.",
+  },
+  {
+    name: "Komplet bilvask",
+    price: 599,
+    description: "Udvendig vask plus grundig indvendig rengøring af kabine, sæder og bagagerum.",
+  },
+  {
+    name: "Premium bilpleje",
+    price: 849,
+    description: "Komplet bilvask plus polering, voksbeskyttelse og klargøring til salg.",
+  },
+];
+
+// Single source for the business entity. Every page that emits the LocalBusiness
+// schema (home, om-os, landing pages) must use this so name, address, phone and
+// profiles stay identical across the site. No postal address on purpose: CleanWash
+// is a service-area business (no public premises), matching the Google Business Profile.
+export function buildLocalBusiness({
+  areaServed,
+  knowsAbout,
+}: {
+  areaServed: string[];
+  knowsAbout?: string[];
+}) {
+  const validUntil = priceValidUntil();
+
+  return {
     "@type": ["AutoWash", "LocalBusiness"],
-    "@id": businessId,
-    name: "CleanWash",
-    alternateName: siteConfig.name,
+    "@id": `${siteConfig.url}#localbusiness`,
+    name: siteConfig.name,
+    legalName: siteConfig.legalName,
     url: siteConfig.url,
+    logo: absoluteUrl("/logo.png"),
     image: absoluteUrl(siteConfig.ogImage),
+    description: siteConfig.description,
     telephone: siteConfig.phoneDisplay,
     email: siteConfig.email,
-    openingHours: "Mo-Su 08:00-17:00",
-    areaServed: page.schemaAreaServed.map((area) => ({
-      "@type": "Place",
-      name: area,
-    })),
-    knowsAbout: page.keywords,
+    vatID: siteConfig.vatId,
+    openingHoursSpecification: {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: allDays,
+      opens: siteConfig.openingHours.opens,
+      closes: siteConfig.openingHours.closes,
+    },
+    priceRange: siteConfig.priceRange,
+    areaServed: areaServed.map((name) => ({ "@type": "Place", name })),
+    ...(knowsAbout ? { knowsAbout } : {}),
     potentialAction: {
       "@type": "ReserveAction",
       target: absoluteUrl("/booking"),
       name: "Book bilvask online",
     },
-    priceRange: "349-849 DKK",
-    sameAs: [
-      "https://www.facebook.com/carwashadk/",
-      "https://www.instagram.com/washmaxdk/",
-    ],
+    sameAs: siteConfig.social,
     contactPoint: {
       "@type": "ContactPoint",
       telephone: siteConfig.phoneDisplay,
       email: siteConfig.email,
       contactType: "customer service",
       availableLanguage: ["Danish", "da"],
-      hoursAvailable: {
-        "@type": "OpeningHoursSpecification",
-        dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-        opens: "08:00",
-        closes: "17:00",
-      },
     },
     hasOfferCatalog: {
       "@type": "OfferCatalog",
       name: "CleanWash bilvask services",
-      itemListElement: [
-        {
-          "@type": "Offer",
-          name: "Udvendig bilvask",
-          description: "Skånsom udvendig vask: lak, fælge, hjulbuer, ruder og finish.",
-          price: "349",
-          priceCurrency: "DKK",
-          priceValidUntil: "2026-12-31",
-          availability: "https://schema.org/InStock",
-          url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "CleanWash" },
-        },
-        {
-          "@type": "Offer",
-          name: "Komplet bilvask",
-          description: "Udvendig vask plus grundig indvendig rengøring af kabine, sæder og bagagerum.",
-          price: "599",
-          priceCurrency: "DKK",
-          priceValidUntil: "2026-12-31",
-          availability: "https://schema.org/InStock",
-          url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "CleanWash" },
-        },
-        {
-          "@type": "Offer",
-          name: "Premium bilpleje",
-          description: "Komplet bilvask plus polering, voksbeskyttelse og klargøring til salg.",
-          price: "849",
-          priceCurrency: "DKK",
-          priceValidUntil: "2026-12-31",
-          availability: "https://schema.org/InStock",
-          url: absoluteUrl("/booking"),
-          seller: { "@type": "Organization", name: "CleanWash" },
-        },
-      ],
+      itemListElement: packageOffers.map((offer) => ({
+        "@type": "Offer",
+        name: offer.name,
+        description: offer.description,
+        price: String(offer.price),
+        priceCurrency: "DKK",
+        priceValidUntil: validUntil,
+        availability: "https://schema.org/InStock",
+        url: absoluteUrl("/booking"),
+        seller: { "@id": `${siteConfig.url}#localbusiness` },
+      })),
     },
-    address: {
-      "@type": "PostalAddress",
-      streetAddress: "Birkeholmen 24",
-      addressLocality: "Solrød Strand",
-      addressCountry: "DK",
-    },
-    vatID: "44605074",
   };
+}
+
+export function buildSeoJsonLd(page: SeoPageConfig) {
+  const pageUrl = absoluteUrl(`/${page.slug}`);
+  const businessId = `${siteConfig.url}#localbusiness`;
+  const serviceId = `${pageUrl}#service`;
+  const faqId = `${pageUrl}#faq`;
+
+  const localBusiness = buildLocalBusiness({
+    areaServed: page.schemaAreaServed,
+    knowsAbout: page.keywords,
+  });
 
   const service = {
     "@type": "Service",
@@ -216,7 +212,6 @@ export function buildArticleJsonLd(page: SeoPageConfig) {
       logo: { "@type": "ImageObject", url: absoluteUrl("/logo.png") },
     },
     datePublished: "2025-01-01",
-    dateModified: new Date().toISOString().split("T")[0],
     mainEntityOfPage: pageUrl,
     keywords: page.keywords.join(", "),
   };
