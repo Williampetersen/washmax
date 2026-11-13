@@ -1,4 +1,4 @@
-import { englishPage, type ContentPage } from "./types";
+import { englishPage, HOURS_EN, type ContentPage } from "./types";
 
 // English pages for expats, visitors and international companies in Copenhagen.
 export const english: ContentPage[] = [
@@ -30,7 +30,7 @@ export const english: ContentPage[] = [
         list: [
           "No hose, no extension cord",
           "No need to move the car",
-          "Open seven days a week",
+          `Open seven days a week, ${HOURS_EN}`,
           "Free cancellation up to 24 hours before",
         ],
       },

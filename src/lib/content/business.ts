@@ -260,7 +260,7 @@ export const business: ContentPage[] = [
           "Vi aftaler, hvor ofte bilerne skal vaskes, og hvornår de holder hjemme. Derefter kører det af sig selv.",
         ],
         list: [
-          "Vi kommer på faste dage – typisk tidligt, sent eller i weekenden, når bilerne står stille",
+          "Vi kommer på faste dage – typisk først eller sidst på dagen eller i weekenden, når bilerne står stille",
           "Bilerne vaskes udvendigt hver gang og indvendigt efter aftalt rytme",
           "I får én faktura for alle biler",
           "Bilparken kan justeres løbende, når I får nye biler",
@@ -590,7 +590,7 @@ export const business: ContentPage[] = [
       {
         h: "En rytme, der passer til kalenderen",
         p: [
-          "Du kender dine huller i skemaet. Book os dér, hvor bilen alligevel holder – hjemme om aftenen, i en frokostpause eller på en teoriaften. Vi skal ikke bruge dit vand eller din strøm. Har skolen flere vogne, laver vi en samlet aftale.",
+          "Du kender dine huller i skemaet. Book os dér, hvor bilen alligevel holder – i en frokostpause, på en dag med teoriundervisning eller i weekenden. Vi skal ikke bruge dit vand eller din strøm. Har skolen flere vogne, laver vi en samlet aftale.",
         ],
       },
     ],

@@ -1,4 +1,4 @@
-import { servicePage, type ContentPage } from "./types";
+import { HOURS_DA, servicePage, type ContentPage } from "./types";
 
 // Kernesider: de brede søgninger, som beskriver selve ydelsen.
 export const servicesCore: ContentPage[] = [
@@ -675,7 +675,7 @@ export const servicesCore: ContentPage[] = [
       {
         h: "Åbent alle ugens dage",
         p: [
-          "Vi kører alle ugens dage, og bookingen er åben døgnet rundt. Du kan ofte finde en tid allerede samme dag eller dagen efter. Systemet viser tider tidligst et par timer frem, så vi kan nå ud til dig.",
+          `Vi kører alle ugens dage ${HOURS_DA}, og du kan booke online døgnet rundt. Du kan ofte finde en tid allerede samme dag eller dagen efter. Systemet viser tider tidligst et par timer frem, så vi kan nå ud til dig.`,
         ],
       },
     ],
@@ -844,7 +844,7 @@ export const servicesCore: ContentPage[] = [
       },
       {
         q: "Hvilke dage kører I?",
-        a: "Alle ugens dage. De ledige tider fremgår af bookingen.",
+        a: `Alle ugens dage ${HOURS_DA}. De ledige tider fremgår af bookingen.`,
       },
       {
         q: "Kan jeg booke til samme dag?",

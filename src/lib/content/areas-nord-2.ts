@@ -1,4 +1,4 @@
-import { areaPage, type ContentPage } from "./types";
+import { areaPage, HOURS_DA, type ContentPage } from "./types";
 
 // Nordsjælland: Rudersdal, Furesø, Allerød, Hørsholm, Fredensborg og Helsingør kommuner.
 export const areasNord2: ContentPage[] = [
@@ -437,7 +437,7 @@ export const areasNord2: ContentPage[] = [
         h: "Håndværkerbiler og firmabiler i industriparken",
         p: [
           "I Kokkedal Industripark kører varevogne ud om morgenen og kommer støvede hjem om eftermiddagen. En ren bil hos kunden betyder noget, men ingen har lyst til at bruge den sidste halve time af arbejdsdagen i en vaskehal.",
-          "Vi vasker bilerne på jeres plads – tidligt, sent eller mens de alligevel holder stille. Både karrosseri og førerkabine.",
+          "Vi vasker bilerne på jeres plads – først på dagen, sidst på dagen eller mens de alligevel holder stille. Både karrosseri og førerkabine.",
         ],
       },
       {
@@ -458,7 +458,7 @@ export const areasNord2: ContentPage[] = [
       },
       {
         q: "Kan I komme tidligt om morgenen?",
-        a: "Vi kører alle ugens dage, og de tider, vi kan tilbyde, ses i bookingen. Virksomheder kan aftale faste tidspunkter direkte med os.",
+        a: `Vores åbningstid er alle ugens dage ${HOURS_DA}, så de første tider ligger om morgenen. De ledige tider ses i bookingen, og virksomheder kan aftale faste dage direkte med os.`,
       },
       {
         q: "Hvilke byer ligger tæt på Kokkedal i jeres område?",

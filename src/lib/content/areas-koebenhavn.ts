@@ -1,4 +1,4 @@
-import { areaPage, type ContentPage } from "./types";
+import { areaPage, HOURS_DA, type ContentPage } from "./types";
 
 // Bydele i Københavns Kommune. Hver side er skrevet til netop det kvarter:
 // parkeringsforhold, boligtyper og det snavs, bilerne typisk samler dér.
@@ -250,7 +250,7 @@ export const areasKoebenhavn: ContentPage[] = [
       },
       {
         q: "Hvornår kan I komme?",
-        a: "Vi kører alle ugens dage. Ledige tider vises i bookingen, og ofte kan du finde en tid allerede samme dag eller dagen efter.",
+        a: `Vi kører alle ugens dage ${HOURS_DA}. Ledige tider vises i bookingen, og ofte kan du finde en tid allerede samme dag eller dagen efter.`,
       },
       {
         q: "Hvordan betaler jeg?",

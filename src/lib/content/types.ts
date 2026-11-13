@@ -1,4 +1,14 @@
 import type { AddOnId, PackageId } from "@/lib/pricing";
+import { siteConfig } from "@/lib/site";
+
+// Opening hours as they are written in running copy. They are built from
+// site.ts, which also feeds the schema and the footer, so a page can never
+// state other hours than the rest of the site.
+const hourText = (time: string) => (time.endsWith(":00") ? time.slice(0, 2) : time.replace(":", "."));
+/** "kl. 08–17" */
+export const HOURS_DA = `kl. ${hourText(siteConfig.openingHours.opens)}–${hourText(siteConfig.openingHours.closes)}`;
+/** "08:00–17:00" */
+export const HOURS_EN = `${siteConfig.openingHours.opens}–${siteConfig.openingHours.closes}`;
 
 export type ContentKind =
   | "area"

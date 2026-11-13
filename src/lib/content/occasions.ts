@@ -1,4 +1,4 @@
-import { occasionPage, type ContentPage } from "./types";
+import { HOURS_DA, occasionPage, type ContentPage } from "./types";
 
 // Anledninger: tidspunkter og situationer, hvor folk søger efter en bilvask.
 export const occasions: ContentPage[] = [
@@ -12,7 +12,7 @@ export const occasions: ContentPage[] = [
     intro:
       "Weekenden er den eneste tid, mange har til at få vasket bilen. Det er også den tid, de færreste har lyst til at bruge på det.",
     answer:
-      "CleanWash kører alle ugens dage, også lørdag og søndag. Vi kommer til din adresse med eget vand og strøm, og prisen er den samme som på hverdage: udvendig bilvask fra 450 kr. og hele bilen fra 799 kr. De ledige weekendtider vises i bookingen.",
+      `CleanWash kører alle ugens dage ${HOURS_DA}, også lørdag og søndag. Vi kommer til din adresse med eget vand og strøm, og prisen er den samme som på hverdage: udvendig bilvask fra 450 kr. og hele bilen fra 799 kr. De ledige weekendtider vises i bookingen.`,
     sections: [
       {
         h: "Samme pris lørdag og søndag",
@@ -43,7 +43,7 @@ export const occasions: ContentPage[] = [
     faqs: [
       {
         q: "Vasker I biler om søndagen?",
-        a: "Ja. Vi kører alle ugens dage, og de ledige tider vises i bookingen.",
+        a: `Ja. Vi har åbent ${HOURS_DA} både lørdag og søndag, og de ledige tider vises i bookingen.`,
       },
       {
         q: "Koster det ekstra i weekenden?",
