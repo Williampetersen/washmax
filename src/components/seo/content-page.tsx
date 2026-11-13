@@ -139,9 +139,10 @@ export function ContentPageView({ page }: { page: ContentPage }) {
             <h2 className="mt-5 section-title">{t.priceTitle}</h2>
           </div>
           <PriceTable highlight={page.pkg} lang={lang} />
-          {page.kind === "service" || page.kind === "addon" || page.kind === "english" ? (
+          {/* The add-on names and descriptions are Danish, so the list is left off the English pages. */}
+          {page.kind === "service" || page.kind === "addon" ? (
             <div className="mt-8">
-              <AddOnPriceList lang={lang} />
+              <AddOnPriceList />
             </div>
           ) : null}
         </section>

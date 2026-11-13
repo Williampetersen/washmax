@@ -63,5 +63,7 @@ async function main() {
 
 main().catch((error) => {
   console.error(error.message);
-  process.exit(1);
+  // Set the exit code instead of calling process.exit(): exiting while fetch
+  // sockets are still closing trips a libuv assertion on Windows.
+  process.exitCode = 1;
 });
