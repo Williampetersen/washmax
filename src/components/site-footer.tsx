@@ -15,6 +15,9 @@ const serviceLinks = [
   { label: "Erhverv bilvask", href: route("/erhverv-bilvask-koebenhavn") },
   { label: "Flådeaftale", href: route("/erhverv/flaadeaftale") },
   { label: "Retur leasebil", href: route("/retur-leasebil") },
+  { label: "Bilvask hjemme", href: route("/bilvask-hjemme") },
+  { label: "Alle ydelser", href: route("/ydelser") },
+  { label: "Biltyper og mærker", href: route("/biltyper") },
 ];
 
 const areaLinks = [
@@ -29,6 +32,8 @@ const areaLinks = [
   { label: "Bilvask Næstved", href: route("/bilvask-naestved") },
   { label: "Bilvask Slagelse", href: route("/bilvask-slagelse") },
   { label: "Bilvask Sjælland", href: route("/bilvask-sjaelland") },
+  { label: "Bilvask Nordsjælland", href: route("/bilvask-nordsjaelland") },
+  { label: "Alle områder", href: route("/serviceomraader") },
   { label: "Om os", href: route("/om-os") },
 ];
 
@@ -39,6 +44,7 @@ const trustLinks = [
   { label: "Serviceområder", href: route("/serviceomraader") },
   { label: "Garanti", href: route("/garanti") },
   { label: "Miljø", href: route("/miljoe") },
+  { label: "Spørgsmål og svar", href: route("/bilvask-faq") },
 ];
 
 const guideLinks = [

@@ -1,4 +1,14 @@
 import { blogPosts } from "@/lib/blog-posts";
+import { contentPagesByKind } from "@/lib/content";
+import {
+  addOns,
+  fromKr,
+  kr,
+  packageOrder,
+  packages,
+  secondCarDiscountPercent,
+  vehicleSizes,
+} from "@/lib/pricing";
 import { seoPages } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
@@ -17,12 +27,31 @@ export function GET() {
     "",
     "- Service: mobil bilvask og bilpleje — vi kommer til kundens adresse (hjem eller arbejdsplads).",
     "- Dækningsområde: København, Frederiksberg, Storkøbenhavn og store dele af Sjælland.",
-    "- Priser: Udvendig vask fra 349 kr, komplet bilvask fra 599 kr, premium bilpleje fra 849 kr.",
+    "- Vand og strøm: CleanWash medbringer selv begge dele. Kunden skal ikke stille noget til rådighed.",
+    `- Priser (inkl. moms): udvendig bilvask fra ${fromKr("outside")}, indvendig bilrengøring fra ${fromKr("inside")}, hele bilen med voks fra ${fromKr("whole")}.`,
+    "- Betaling: efter udført vask, typisk med MobilePay. Erhvervskunder faktureres.",
+    `- Rabat: bil nummer to i samme besøg får ${secondCarDiscountPercent} % rabat på grundprisen.`,
+    "- Aflysning: gratis indtil 24 timer før det aftalte tidspunkt.",
     "- Booking: online på /booking med nummerpladeopslag, klar pris og valg af tidspunkt.",
     "- Åbningstider: alle ugens dage kl. 08:00-17:00.",
     `- Kontakt: ${siteConfig.phoneDisplay}, ${siteConfig.email}`,
     `- Virksomhed: ${siteConfig.legalName}, CVR ${siteConfig.vatId} (servicevirksomhed uden publikumsadresse)`,
-    "- Sprog: dansk (engelsk side: /car-wash-copenhagen).",
+    "- Sprog: dansk (engelske sider: /car-wash-copenhagen og /mobile-car-wash-copenhagen).",
+    `- Fuldt indhold som tekst: ${siteConfig.url}/llms-full.txt`,
+    "",
+    "## Priser",
+    "",
+    "Prisen afhænger af pakke og bilens størrelse (bestemt af bilens totalvægt).",
+    "",
+    ...packageOrder.map(
+      (id) =>
+        `- ${packages[id].name} (ca. ${packages[id].minutes} min.): ` +
+        vehicleSizes.map((size) => `${size.label} ${kr(packages[id].prices[size.id])}`).join(", ")
+    ),
+    "",
+    "Tilvalg:",
+    "",
+    ...Object.values(addOns).map((item) => `- ${item.name}: ${kr(item.price)}`),
     "",
     "## Vigtigste sider",
     "",
@@ -33,7 +62,36 @@ export function GET() {
     link("Retur af leasingbil", "/retur-leasebil"),
     link("Erhvervs- og flådeaftaler", "/erhvervs-bilvask"),
     "",
-    "## Services og områder",
+    "## Ydelser og tilvalg",
+    "",
+    link("Alle ydelser og tilvalg", "/ydelser"),
+    ...contentPagesByKind("service", "addon", "occasion").map((page) =>
+      link(page.h1, `/${page.slug}`, page.description)
+    ),
+    "",
+    "## Biltyper og bilmærker",
+    "",
+    link("Biltyper og bilmærker", "/biltyper"),
+    ...contentPagesByKind("vehicle", "brand").map((page) => link(page.h1, `/${page.slug}`)),
+    "",
+    "## Erhverv",
+    "",
+    ...contentPagesByKind("business").map((page) =>
+      link(page.h1, `/${page.slug}`, page.description)
+    ),
+    "",
+    "## Områder",
+    "",
+    link("Alle serviceområder", "/serviceomraader"),
+    ...contentPagesByKind("region", "area").map((page) => link(page.h1, `/${page.slug}`)),
+    "",
+    "## English",
+    "",
+    ...contentPagesByKind("english").map((page) =>
+      link(page.h1, `/${page.slug}`, page.description)
+    ),
+    "",
+    "## Øvrige sider",
     "",
     ...seoPages.map((page) => link(page.h1, `/${page.slug}`)),
     "",

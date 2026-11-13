@@ -1,5 +1,14 @@
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import type { Route } from "next";
+
+const helpfulLinks: { label: string; href: string }[] = [
+  { label: "Book bilvask", href: "/booking" },
+  { label: "Priser", href: "/bilvask-priser" },
+  { label: "Alle ydelser", href: "/ydelser" },
+  { label: "Alle områder", href: "/serviceomraader" },
+  { label: "Blog", href: "/blog" },
+  { label: "Kontakt", href: "/kontakt" },
+];
 
 export default function NotFound() {
   return (
@@ -12,14 +21,27 @@ export default function NotFound() {
           Siden blev ikke fundet
         </h1>
         <p className="mt-4 text-base text-[var(--muted)]">
-          Linket findes ikke laengere eller adressen er skrevet forkert.
+          Linket findes ikke længere, eller adressen er skrevet forkert. Prøv en af siderne
+          herunder.
         </p>
         <Link
           href="/"
           className="mt-8 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[var(--cta)] px-5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(245,158,11,0.24)] transition hover:bg-[var(--cta-hover)]"
         >
-          Ga til forsiden
+          Gå til forsiden
         </Link>
+        <ul className="mt-8 flex flex-wrap justify-center gap-2">
+          {helpfulLinks.map((link) => (
+            <li key={link.href}>
+              <Link
+                href={link.href as Route}
+                className="inline-flex rounded-full border border-[var(--line)] px-4 py-2 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--brand)]"
+              >
+                {link.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
     </main>
   );

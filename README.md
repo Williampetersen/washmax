@@ -155,3 +155,29 @@ The migration was verified with:
 - `npm run build`
 - Local HTTP checks against `/`, `/booking`, and `/admin/login`
 
+
+## SEO Content
+
+Landing pages are generated from typed data, not hand-built routes.
+
+- `src/lib/pricing.ts` — packages, car sizes and add-on prices. **Single source for every
+  price** shown in copy, tables, JSON-LD, `llms.txt`. Keep it in sync with the prices in the
+  booking admin.
+- `src/lib/content/` — the landing pages: areas, regions, services, add-ons, car types,
+  brands, business segments, occasions and English pages. One object per page; each page
+  carries its own copy, FAQ and internal links. Rendered by
+  `src/components/seo/content-page.tsx` through the `[seoSlug]` route.
+- `src/lib/blog-posts*.ts` — guide articles under `/blog`.
+- `src/lib/seo-pages.ts` — the older landing pages (same route, older template).
+- Hub pages: `/serviceomraader`, `/ydelser`, `/biltyper` and `/blog` link to everything.
+- `/sitemap.xml`, `/robots.txt`, `/llms.txt` and `/llms-full.txt` are generated from the
+  same registries, so a new page appears in all of them automatically.
+
+Checks:
+
+```bash
+npm run seo:check      # no build needed: links, duplicate titles, copy shared between pages
+npm run build
+npm run seo:audit      # on the built HTML: canonicals, H1, JSON-LD, orphans, uniqueness
+npm run seo:indexnow   # after deploy: notify Bing/Yandex/Seznam/Naver of new and changed URLs
+```

@@ -1,3 +1,5 @@
+import { priceRangeText } from "@/lib/pricing";
+
 export const siteConfig = {
   name: "CleanWash",
   description:
@@ -10,7 +12,8 @@ export const siteConfig = {
   legalName: "CleanWash",
   vatId: "44605074",
   openingHours: { days: "Mo-Su", opens: "08:00", closes: "17:00" },
-  priceRange: "349-849 DKK",
+  // Derived from the live package prices in src/lib/pricing.ts.
+  priceRange: priceRangeText,
   // Profiles that describe the same business. Add the Google Business Profile
   // and Trustpilot URLs here once confirmed — they feed the schema `sameAs`.
   social: [

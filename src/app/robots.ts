@@ -15,8 +15,14 @@ const aiCrawlers = [
   "PerplexityBot",
   "Perplexity-User",
   "Google-Extended",
+  "Applebot",
   "Applebot-Extended",
   "Bingbot",
+  "DuckAssistBot",
+  "MistralAI-User",
+  "meta-externalagent",
+  "Amazonbot",
+  "CCBot",
 ];
 
 export default function robots(): MetadataRoute.Robots {

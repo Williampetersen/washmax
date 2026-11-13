@@ -1,7 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, MapPinned, Search, ShieldCheck, Sparkles } from "lucide-react";
+import type { Route } from "next";
+import { HowItWorks } from "@/components/seo/how-it-works";
 import { buildSeoJsonLd, JsonLd } from "@/components/seo/json-ld";
+import { PriceTable } from "@/components/seo/price-table";
+import { areaHref } from "@/lib/content/links";
 import type { SeoPageConfig } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
@@ -17,9 +21,9 @@ export function SeoLandingPage({ page }: { page: SeoPageConfig }) {
         <ContentSections page={page} />
         <LocalServiceArea page={page} />
         <ResultProof page={page} />
-        <KeywordClusters page={page} />
-        <ServiceBenefits benefits={page.benefits} />
-        <ServiceProcess steps={page.process} />
+        <Prices page={page} />
+        {page.benefits.length ? <ServiceBenefits benefits={page.benefits} /> : null}
+        <HowItWorks lang={page.slug === "car-wash-copenhagen" ? "en" : "da"} />
         <FAQ faqs={page.faqs} />
         <InternalLinks links={page.relatedLinks} />
         <BottomCta page={page} />
@@ -183,15 +187,27 @@ function LocalServiceArea({ page }: { page: SeoPageConfig }) {
             Områder
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
-            {page.serviceArea.map((area) => (
-              <span
-                key={area}
-                className="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/78 px-4 py-2 text-sm font-semibold text-[var(--ink)]"
-              >
-                <MapPinned className="h-4 w-4 text-[var(--brand)]" />
-                {area}
-              </span>
-            ))}
+            {page.serviceArea.map((area) => {
+              const href = areaHref(area);
+              const chip =
+                "inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-white/78 px-4 py-2 text-sm font-semibold text-[var(--ink)]";
+
+              return href && href !== `/${page.slug}` ? (
+                <Link
+                  key={area}
+                  href={href as Route}
+                  className={`${chip} transition hover:border-[var(--brand)]`}
+                >
+                  <MapPinned className="h-4 w-4 text-[var(--brand)]" />
+                  {area}
+                </Link>
+              ) : (
+                <span key={area} className={chip}>
+                  <MapPinned className="h-4 w-4 text-[var(--brand)]" />
+                  {area}
+                </span>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -210,12 +226,11 @@ function ResultProof({ page }: { page: SeoPageConfig }) {
   return (
     <section className="grid gap-8 lg:grid-cols-[0.42fr_0.58fr] lg:items-start">
       <div>
-        <span className="eyebrow">Resultat og tillid</span>
-        <h2 className="mt-5 section-title">Det kunden kan forvente</h2>
+        <span className="eyebrow">Sådan arbejder vi</span>
+        <h2 className="mt-5 section-title">Det kan du forvente</h2>
         <p className="mt-5 support-copy">
-          Søgemaskiner og AI-svar forstår en service bedre, når siden viser konkrete resultater,
-          tydelige valg og lokal relevans. Her samler vi de signaler uden at bruge falske
-          anmeldelser eller overdrevne løfter.
+          Du booker online, vi kommer til din adresse, og du betaler først, når bilen er
+          færdig. Her er de tre ting, kunder oftest spørger om.
         </p>
         {proofPoints.length ? (
           <div className="mt-6 grid gap-3">
@@ -262,56 +277,23 @@ function ResultProof({ page }: { page: SeoPageConfig }) {
   );
 }
 
-function KeywordClusters({ page }: { page: SeoPageConfig }) {
-  const groups =
-    page.keywordGroups ??
-    [
-      {
-        title: "Populære søgninger",
-        terms: page.keywords,
-      },
-      {
-        title: "Områder",
-        terms: page.serviceArea.slice(0, 12),
-      },
-    ];
+// Pages without a commercial angle (contact, reviews, policies) skip the price table.
+const pagesWithoutPrices = new Set(["kontakt", "anmeldelser", "foer-efter", "garanti", "miljoe"]);
 
-  if (!groups.length) {
+function Prices({ page }: { page: SeoPageConfig }) {
+  if (pagesWithoutPrices.has(page.slug)) {
     return null;
   }
 
+  const isEnglish = page.slug === "car-wash-copenhagen";
+
   return (
-    <section className="grid gap-6 lg:grid-cols-[0.35fr_0.65fr] lg:items-start">
-      <div>
-        <span className="eyebrow">SEO og AI search</span>
-        <h2 className="mt-5 section-title">Populære søgninger</h2>
-        <p className="mt-5 support-copy">
-          Disse søgeord matcher de måder, kunder typisk leder efter bilvask, mobil service og
-          bilrengøring i København og omegn.
-        </p>
+    <section>
+      <div className="mb-8 max-w-2xl">
+        <span className="eyebrow">{isEnglish ? "Prices" : "Priser"}</span>
+        <h2 className="mt-5 section-title">{isEnglish ? "What does it cost?" : "Hvad koster det?"}</h2>
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {groups.map((group) => (
-          <article
-            key={group.title}
-            className="rounded-lg border border-[var(--line)] bg-white/88 p-5 shadow-[0_14px_32px_rgba(11,31,58,0.06)]"
-          >
-            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">
-              {group.title}
-            </h3>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {group.terms.map((term) => (
-                <span
-                  key={term}
-                  className="rounded-full border border-[var(--line)] bg-[#eefbfc] px-3 py-1.5 text-xs font-semibold text-[var(--ink)]"
-                >
-                  {term}
-                </span>
-              ))}
-            </div>
-          </article>
-        ))}
-      </div>
+      <PriceTable lang={isEnglish ? "en" : "da"} />
     </section>
   );
 }

@@ -1,6 +1,12 @@
 import type { Route } from "next";
+import { aarstiderBlogPosts } from "@/lib/blog-posts-aarstider";
 import { indvendigBlogPosts } from "@/lib/blog-posts-indvendig";
+import { kabineBlogPosts } from "@/lib/blog-posts-kabine";
+import { lakBlogPosts } from "@/lib/blog-posts-lak";
+import { pletterLugtBlogPosts } from "@/lib/blog-posts-pletter-lugt";
+import { teknikBlogPosts } from "@/lib/blog-posts-teknik";
 import { udvendigBlogPosts } from "@/lib/blog-posts-udvendig";
+import { videnBlogPosts } from "@/lib/blog-posts-viden";
 
 export type BlogFaq = {
   question: string;
@@ -46,7 +52,7 @@ const coreBlogPosts: BlogPost[] = [
   {
     slug: "bilvask-med-damp",
     title: "Bilvask med damp: Hvad er damprensning, og hvornår er det den rigtige løsning?",
-    metaTitle: "Bilvask med damp | Fordele, ulemper og hvornår det virker",
+    metaTitle: "Bilvask med damp: fordele og ulemper",
     description:
       "Bilvask med damp bliver ofte nævnt som en skånsom og miljøvenlig løsning. Her får du en grundig gennemgang af, hvad damprensning af bil faktisk er, hvad det er godt til, og hvor grænserne går.",
     category: "Bilpleje",
@@ -156,7 +162,7 @@ const coreBlogPosts: BlogPost[] = [
   {
     slug: "keramisk-forsegling-eller-voks",
     title: "Keramisk forsegling eller voks efter bilvask – hvad beskytter lakken bedst?",
-    metaTitle: "Keramisk forsegling eller voks? | Beskyttelse af billak efter vask",
+    metaTitle: "Keramisk forsegling eller voks til bilen?",
     description:
       "Voks eller keramisk forsegling? Se forskellen på holdbarhed, beskyttelse og pris, og find ud af, hvilken løsning der passer til din bil og dit kørselsmønster.",
     category: "Bilpleje",
@@ -264,7 +270,7 @@ const coreBlogPosts: BlogPost[] = [
   {
     slug: "fjern-fugleklatter-insekter-uden-at-ridse-lakken",
     title: "Sådan fjerner du fugleklatter og insektrester uden at ridse lakken",
-    metaTitle: "Fjern fugleklatter og insekter uden at ridse lakken | Guide",
+    metaTitle: "Fjern fugleklatter og insekter uden ridser",
     description:
       "Fugleklatter og indtørrede insektrester kan skade lakken, hvis de fjernes forkert. Få en trin-for-trin guide til, hvordan du gør det sikkert, og hvornår du bør kontakte en professionel.",
     category: "Bilpleje",
@@ -362,7 +368,7 @@ const coreBlogPosts: BlogPost[] = [
   {
     slug: "bilvask-og-forsikring",
     title: "Bilvask og bilforsikring: Hvad dækker forsikringen, og hvad er dit eget ansvar?",
-    metaTitle: "Bilvask og forsikring | Hvem har ansvaret for skader?",
+    metaTitle: "Bilvask og forsikring: hvem har ansvaret?",
     description:
       "Dækker bilforsikringen skader fra vaskehallen? Og hvordan adskiller mobil bilvask sig fra en automatisk vaskehal, når det kommer til ansvar og dokumentation? Få overblikket her.",
     category: "Guide",
@@ -465,7 +471,7 @@ const coreBlogPosts: BlogPost[] = [
   {
     slug: "5-tegn-paa-at-bilen-traenger-til-bilpleje",
     title: "5 tegn på at din bil trænger til professionel bilpleje",
-    metaTitle: "5 tegn på at bilen trænger til professionel bilpleje",
+    metaTitle: "5 tegn på at bilen trænger til bilpleje",
     description:
       "Dof lak, lugt i kabinen og pletter i sæderne kommer sjældent på én gang. Se de fem tydeligste tegn på, at bilen trænger til mere end en almindelig bilvask, og hvad du kan gøre ved det.",
     category: "Guide",
@@ -570,6 +576,12 @@ export const blogPosts: BlogPost[] = [
   ...coreBlogPosts,
   ...udvendigBlogPosts,
   ...indvendigBlogPosts,
+  ...lakBlogPosts,
+  ...teknikBlogPosts,
+  ...kabineBlogPosts,
+  ...pletterLugtBlogPosts,
+  ...aarstiderBlogPosts,
+  ...videnBlogPosts,
 ];
 
 export const blogPostsBySlug: Record<string, BlogPost> = Object.fromEntries(

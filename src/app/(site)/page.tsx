@@ -14,7 +14,9 @@ import {
 import { HomePlateForm } from "@/components/home-plate-form";
 import { BookingStepsInfographic } from "@/components/BookingStepsInfographic";
 import { TypewriterCity } from "@/components/ui/TypewriterCity";
-import { buildLocalBusiness, JsonLd } from "@/components/seo/json-ld";
+import type { Route } from "next";
+import { buildLocalBusiness, buildWebSiteJsonLd, JsonLd } from "@/components/seo/json-ld";
+import { fromPrice, packages, secondCarDiscountPercent } from "@/lib/pricing";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -203,13 +205,32 @@ const homeVideoSchema = {
 
 const homeLocalBusinessSchema = {
   "@context": "https://schema.org",
-  ...buildLocalBusiness({
-    areaServed: [
-      "København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro",
-      "Vesterbro", "Valby", "Hellerup", "Gentofte", "Roskilde", "Køge", "Sjælland",
-    ],
-  }),
+  "@graph": [
+    buildLocalBusiness({
+      areaServed: [
+        "København", "Frederiksberg", "Amager", "Østerbro", "Nørrebro",
+        "Vesterbro", "Valby", "Hellerup", "Gentofte", "Roskilde", "Køge", "Sjælland",
+      ],
+    }),
+    buildWebSiteJsonLd(),
+  ],
 };
+
+// Internal links from the homepage to the hubs and the most searched pages.
+const popularLinks: { label: string; href: string }[] = [
+  { label: "Bilvask hjemme", href: "/bilvask-hjemme" },
+  { label: "Mobil bilvask", href: "/mobil-bilvask" },
+  { label: "Komplet bilvask", href: "/komplet-bilvask" },
+  { label: "Bilrengøring", href: "/bilrengoering" },
+  { label: "Sæderens", href: "/saederens-bil" },
+  { label: "Bilvask på arbejdspladsen", href: "/bilvask-paa-arbejdspladsen" },
+  { label: "Bilvask i lejlighed", href: "/bilvask-lejlighed" },
+  { label: "Bilvask af elbil", href: "/bilvask-elbil" },
+  { label: "Alle ydelser", href: "/ydelser" },
+  { label: "Alle områder", href: "/serviceomraader" },
+  { label: "Biltyper og mærker", href: "/biltyper" },
+  { label: "Spørgsmål og svar", href: "/bilvask-faq" },
+];
 
 export default function HomePage() {
   return (
@@ -446,19 +467,21 @@ export default function HomePage() {
       <section id="priser" className="mx-auto mt-20 max-w-7xl">
         <div className="text-center">
           <span className="eyebrow">Priser</span>
-          <h2 className="mt-4 section-title">Mobil bilvask fra 349 kr.</h2>
+          <h2 className="mt-4 section-title">Mobil bilvask fra {fromPrice("outside")} kr.</h2>
           <p className="mx-auto mt-4 max-w-xl text-[var(--muted)]">
-            Fast pris fra start — ingen skjulte gebyrer. Du betaler kun efter bilvask er udført.
+            Fast pris efter bilens størrelse — ingen skjulte gebyrer. Vi medbringer vand og strøm,
+            og du betaler først, når bilen er vasket. Bil nummer to i samme besøg får{" "}
+            {secondCarDiscountPercent} % rabat.
           </p>
         </div>
 
         <div className="mt-12 grid items-start gap-6 lg:grid-cols-3">
           {/* Udvendig */}
           <div className="rounded-2xl border border-[var(--line)] bg-white p-8 shadow-[0_18px_48px_rgba(11,31,58,0.07)]">
-            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Udvendig vask</h3>
+            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Udvendig bilvask</h3>
             <div className="mt-4 flex items-baseline gap-1.5">
               <span className="text-sm text-[var(--muted)]">fra</span>
-              <span className="font-display text-5xl font-bold text-[var(--ink)]">349</span>
+              <span className="font-display text-5xl font-bold text-[var(--ink)]">{fromPrice("outside")}</span>
               <span className="text-lg font-semibold text-[var(--muted)]">kr.</span>
             </div>
             <ul className="mt-7 space-y-3.5">
@@ -490,19 +513,19 @@ export default function HomePage() {
                 Mest populær
               </span>
             </div>
-            <h3 className="font-display text-2xl font-semibold text-white">Komplet bilvask</h3>
+            <h3 className="font-display text-2xl font-semibold text-white">Hele bilen</h3>
             <div className="mt-4 flex items-baseline gap-1.5">
               <span className="text-sm text-white/60">fra</span>
-              <span className="font-display text-5xl font-bold text-white">599</span>
+              <span className="font-display text-5xl font-bold text-white">{fromPrice("whole")}</span>
               <span className="text-lg font-semibold text-white/60">kr.</span>
             </div>
             <ul className="mt-7 space-y-3.5">
               {[
-                "Alt fra udvendig vask inkluderet",
-                "Grundig støvsugning af kabine",
+                "Udvendig vask og indvendig rengøring",
+                "Grundig støvsugning af kabine og bagagerum",
                 "Instrumentbræt og paneler rengjort",
-                "Vinyl, rat og sæder behandlet",
-                "Frisk og klar bil ved aflevering",
+                "Voks på lakken uden merpris",
+                `Ca. ${packages.whole.minutes} minutter på din adresse`,
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm text-white/80">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-[#67e8f9]" />
@@ -520,18 +543,18 @@ export default function HomePage() {
 
           {/* Premium */}
           <div className="rounded-2xl border border-[var(--line)] bg-white p-8 shadow-[0_18px_48px_rgba(11,31,58,0.07)]">
-            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Premium bilpleje</h3>
+            <h3 className="font-display text-2xl font-semibold text-[var(--ink)]">Indvendig bilrengøring</h3>
             <div className="mt-4 flex items-baseline gap-1.5">
               <span className="text-sm text-[var(--muted)]">fra</span>
-              <span className="font-display text-5xl font-bold text-[var(--ink)]">849</span>
+              <span className="font-display text-5xl font-bold text-[var(--ink)]">{fromPrice("inside")}</span>
               <span className="text-lg font-semibold text-[var(--muted)]">kr.</span>
             </div>
             <ul className="mt-7 space-y-3.5">
               {[
-                "Alt fra komplet bilvask inkluderet",
-                "Polering og voksbeskyttelse",
-                "Dybderens af sæder og tæpper",
-                "Klargøring til salg eller fremvisning",
+                "Støvsugning af sæder, gulv og bagagerum",
+                "Instrumentbræt, konsol og dørpaneler aftørret",
+                "Måtter rengjort",
+                "Ruder pudset indvendigt",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-sm text-[var(--muted)]">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-[var(--brand)]" />
@@ -634,6 +657,25 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto mt-16 max-w-7xl">
+        <div className="rounded-[2rem] border border-[var(--line)] bg-white/88 p-6 shadow-[0_24px_70px_rgba(11,31,58,0.1)] sm:p-8">
+          <span className="eyebrow">Find det, du søger</span>
+          <h2 className="mt-5 section-title">Populære sider</h2>
+          <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {popularLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href as Route}
+                className="flex min-h-14 items-center justify-between gap-3 rounded-xl border border-[var(--line)] bg-white px-4 py-3 text-sm font-semibold text-[var(--ink)] transition hover:border-[var(--brand)]"
+              >
+                {link.label}
+                <ArrowRight className="h-4 w-4 shrink-0 text-[var(--brand)]" />
+              </Link>
+            ))}
           </div>
         </div>
       </section>

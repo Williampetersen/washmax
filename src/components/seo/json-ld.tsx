@@ -1,5 +1,16 @@
 import { absoluteUrl, type SeoPageConfig } from "@/lib/seo-pages";
 import type { BlogPost } from "@/lib/blog-posts";
+import type { Hub } from "@/lib/content/links";
+import type { ContentPage } from "@/lib/content/types";
+import {
+  addOns,
+  fromPrice,
+  highestPrice,
+  lowestPrice,
+  packageOrder,
+  packages,
+  vehicleSizes,
+} from "@/lib/pricing";
 import { siteConfig } from "@/lib/site";
 
 export type JsonValue =
@@ -34,23 +45,16 @@ export function priceValidUntil(now = new Date()) {
   return `${year}-12-31`;
 }
 
-const packageOffers = [
-  {
-    name: "Udvendig bilvask",
-    price: 349,
-    description: "Skånsom udvendig vask: lak, fælge, hjulbuer, ruder og finish.",
-  },
-  {
-    name: "Komplet bilvask",
-    price: 599,
-    description: "Udvendig vask plus grundig indvendig rengøring af kabine, sæder og bagagerum.",
-  },
-  {
-    name: "Premium bilpleje",
-    price: 849,
-    description: "Komplet bilvask plus polering, voksbeskyttelse og klargøring til salg.",
-  },
-];
+// Offers mirror the live booking catalog via src/lib/pricing.ts. The listed price is
+// the lowest (small car) price for each package.
+const packageOffers = packageOrder.map((id) => ({
+  name: packages[id].name,
+  price: fromPrice(id),
+  description: packages[id].summary,
+}));
+
+// Coverage used on pages that are not about one specific place.
+const defaultAreaServed = ["København", "Frederiksberg", "Storkøbenhavn", "Nordsjælland", "Sjælland"];
 
 // Single source for the business entity. Every page that emits the LocalBusiness
 // schema (home, om-os, landing pages) must use this so name, address, phone and
@@ -145,10 +149,10 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
     })),
     offers: {
       "@type": "AggregateOffer",
-      lowPrice: 349,
-      highPrice: 849,
+      lowPrice: lowestPrice,
+      highPrice: highestPrice,
       priceCurrency: "DKK",
-      offerCount: packageOffers.length,
+      offerCount: packageOrder.length * vehicleSizes.length,
       url: absoluteUrl("/booking"),
     },
     potentialAction: {
@@ -192,6 +196,120 @@ export function buildSeoJsonLd(page: SeoPageConfig) {
   return {
     "@context": "https://schema.org",
     "@graph": [localBusiness, service, faqPage, breadcrumbList],
+  };
+}
+
+export function buildWebSiteJsonLd() {
+  return {
+    "@type": "WebSite",
+    "@id": `${siteConfig.url}#website`,
+    url: siteConfig.url,
+    name: siteConfig.name,
+    description: siteConfig.description,
+    inLanguage: "da-DK",
+    publisher: { "@id": `${siteConfig.url}#localbusiness` },
+  };
+}
+
+export function buildContentJsonLd(page: ContentPage, hub: Hub): JsonValue {
+  const pageUrl = absoluteUrl(`/${page.slug}`);
+  const businessId = `${siteConfig.url}#localbusiness`;
+  const serviceId = `${pageUrl}#service`;
+  const bookingUrl = absoluteUrl("/booking");
+  const isEnglish = page.kind === "english";
+  const language = isEnglish ? "en" : "da-DK";
+  const pkg = page.pkg ? packages[page.pkg] : null;
+  const addOn = page.addOn ? addOns[page.addOn] : null;
+
+  const offers: JsonValue = addOn
+    ? {
+        "@type": "Offer",
+        name: addOn.name,
+        price: String(addOn.price),
+        priceCurrency: "DKK",
+        priceValidUntil: priceValidUntil(),
+        availability: "https://schema.org/InStock",
+        url: bookingUrl,
+      }
+    : {
+        "@type": "AggregateOffer",
+        lowPrice: pkg ? Math.min(...Object.values(pkg.prices)) : lowestPrice,
+        highPrice: pkg ? Math.max(...Object.values(pkg.prices)) : highestPrice,
+        priceCurrency: "DKK",
+        offerCount: pkg ? vehicleSizes.length : packageOrder.length * vehicleSizes.length,
+        url: bookingUrl,
+      };
+
+  const areaServed: JsonValue = page.area
+    ? [
+        {
+          "@type": page.kind === "area" ? "City" : "AdministrativeArea",
+          name: page.area.name,
+          containedInPlace: { "@type": "Country", name: "Danmark" },
+        },
+      ]
+    : defaultAreaServed.map((name) => ({ "@type": "Place", name }));
+
+  const service = {
+    "@type": "Service",
+    "@id": serviceId,
+    name: page.h1,
+    serviceType: addOn?.name ?? pkg?.name ?? "Mobil bilvask",
+    description: page.description,
+    url: pageUrl,
+    provider: { "@id": businessId },
+    areaServed,
+    offers,
+    potentialAction: {
+      "@type": "ReserveAction",
+      target: bookingUrl,
+      name: isEnglish ? "Book a car wash" : "Book bilvask hos CleanWash",
+    },
+  };
+
+  const webPage = {
+    "@type": "WebPage",
+    "@id": `${pageUrl}#webpage`,
+    url: pageUrl,
+    name: page.title,
+    description: page.description,
+    inLanguage: language,
+    dateModified: page.updated,
+    isPartOf: { "@id": `${siteConfig.url}#website` },
+    about: { "@id": serviceId },
+    primaryImageOfPage: absoluteUrl(page.image.src),
+  };
+
+  const faqPage = {
+    "@type": "FAQPage",
+    "@id": `${pageUrl}#faq`,
+    inLanguage: language,
+    mainEntity: page.faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.q,
+      acceptedAnswer: { "@type": "Answer", text: faq.a },
+    })),
+  };
+
+  const breadcrumbList = {
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: isEnglish ? "Home" : "Forside", item: siteConfig.url },
+      { "@type": "ListItem", position: 2, name: hub.label, item: absoluteUrl(hub.href) },
+      { "@type": "ListItem", position: 3, name: page.h1, item: pageUrl },
+    ],
+  };
+
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      buildLocalBusiness({ areaServed: defaultAreaServed }),
+      buildWebSiteJsonLd(),
+      service,
+      webPage,
+      faqPage,
+      breadcrumbList,
+    ],
   };
 }
 
