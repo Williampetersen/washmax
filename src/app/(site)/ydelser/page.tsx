@@ -47,6 +47,18 @@ const legacyServiceLinks = [
   { label: "Flådeaftale", href: "/erhverv/flaadeaftale" },
 ];
 
+const guideLinks = [
+  { label: "Hvad koster bilvask i København?", href: "/hvad-koster-bilvask-koebenhavn" },
+  { label: "Mobil bilvask eller vaskehal?", href: "/mobil-bilvask-vs-vaskehal" },
+  { label: "Hvor ofte skal man vaske bilen?", href: "/hvor-ofte-skal-man-vaske-bilen" },
+  { label: "Indvendig bilrengøring før salg", href: "/indvendig-bilrengoering-foer-salg" },
+  { label: "Bilvask på adressen", href: "/bilvask-paa-adressen" },
+  { label: "Bilvask til firmabiler i København", href: "/bilvask-til-firmabiler-koebenhavn" },
+  { label: "Vælg den rigtige bilvask", href: "/vaelg-den-rigtige-bilvask" },
+  { label: "Spar penge på bilvask", href: "/spar-penge-paa-bilvask" },
+  { label: "Alle guides i bloggen", href: "/blog" },
+];
+
 const servicePages = contentPagesByKind("service");
 const occasionPages = contentPagesByKind("occasion");
 const businessPages = contentPagesByKind("business");
@@ -239,6 +251,14 @@ export default function ServicesPage() {
             <h2 className="mt-5 section-title">Klargøring, leasing og håndvask</h2>
           </div>
           <LinkGrid links={legacyServiceLinks} />
+        </section>
+
+        <section>
+          <div className="mb-6 max-w-2xl">
+            <span className="eyebrow">Guides</span>
+            <h2 className="mt-5 section-title">Svar på de mest stillede spørgsmål</h2>
+          </div>
+          <LinkGrid links={guideLinks} />
         </section>
 
         <section>

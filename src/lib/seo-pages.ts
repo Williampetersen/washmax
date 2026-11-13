@@ -233,7 +233,7 @@ export const seoPages: SeoPageConfig[] = [
   },
   {
     slug: "mobil-bilvask-koebenhavn",
-    title: "Mobil bilvask København | Bilvask der passer ind i din hverdag",
+    title: "Mobil bilvask København – vi kommer til dig",
     description:
       "Book mobil bilvask i København hos CleanWash. Fleksibel booking, professionel bilrengøring og bilpleje, når hverdagen skal hænge sammen.",
     h1: "Mobil bilvask København",
@@ -374,7 +374,7 @@ export const seoPages: SeoPageConfig[] = [
   },
   {
     slug: "bilvask-sjaelland",
-    title: "Bilvask Sjælland | Professionel bilrengøring på Sjælland",
+    title: "Bilvask Sjælland – mobil bilvask på adressen",
     description:
       "Få professionel bilvask på Sjælland hos CleanWash. Book bilrengøring og bilpleje online i København, Storkøbenhavn og nærliggende byer.",
     h1: "Bilvask Sjælland",
@@ -518,7 +518,7 @@ export const seoPages: SeoPageConfig[] = [
   },
   {
     slug: "indvendig-bilrengoering-koebenhavn",
-    title: "Indvendig bilrengøring København | Grundig rengøring af bilen",
+    title: "Indvendig bilrengøring København – fra 600 kr.",
     description:
       "Book indvendig bilrengøring i København hos CleanWash. Grundig støvsugning, kabinerengøring, sæderens og bilpleje til hverdagsbiler.",
     h1: "Indvendig bilrengøring København",
@@ -660,7 +660,7 @@ export const seoPages: SeoPageConfig[] = [
   },
   {
     slug: "haandvask-bil-koebenhavn",
-    title: "Håndvask af bil København | Skånsom og professionel bilvask",
+    title: "Håndvask af bil København – skånsom bilvask",
     description:
       "Book skånsom håndvask af bil i København hos CleanWash. Professionel udvendig bilvask, fælge, ruder og lakvenlig pleje med nem booking.",
     h1: "Håndvask af bil København",
@@ -1058,7 +1058,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-roskilde",
-    title: "Bilvask Roskilde | Professionel bilrengøring i Roskilde",
+    title: "Bilvask Roskilde – mobil bilvask på adressen",
     description:
       "Book professionel bilvask i Roskilde hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking.",
     h1: "Bilvask Roskilde",
@@ -2000,7 +2000,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "klargoering-bil-salg",
-    title: "Klargøring af bil til salg | Professionel bilklargøring | CleanWash",
+    title: "Klargøring af bil til salg – ude og inde | CleanWash",
     description:
       "Få bilen klar til salg med professionel bilklargøring hos CleanWash. Udvendig polering, indvendig rengøring og komplet klargøring for den bedste salgspris.",
     h1: "Klargøring af bil til salg",
@@ -2459,7 +2459,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "billig-bilvask-koebenhavn",
-    title: "Billig bilvask København | Overkommelig bilvask fra 450 kr. | CleanWash",
+    title: "Billig bilvask København – fra 450 kr. | CleanWash",
     description:
       "Billig bilvask i København fra 450 kr. Professionel udvendig vask, komplet bilpleje og klar pris uden skjulte gebyrer. Book online hos CleanWash.",
     h1: "Billig bilvask København",
@@ -2817,7 +2817,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-taastrup",
-    title: "Bilvask Taastrup | Professionel bilvask i Høje-Taastrup | CleanWash",
+    title: "Bilvask Taastrup – mobil bilvask i Høje-Taastrup",
     description:
       "Book professionel bilvask i Taastrup og Høje-Taastrup hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking vest for København.",
     h1: "Bilvask Taastrup",
@@ -2900,7 +2900,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-hilleroed",
-    title: "Bilvask Hillerød | Professionel bilvask i Nordsjælland | CleanWash",
+    title: "Bilvask Hillerød – mobil bilvask i Nordsjælland",
     description:
       "Book professionel bilvask i Hillerød hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking i Nordsjælland.",
     h1: "Bilvask Hillerød",
@@ -2983,7 +2983,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-horsholm",
-    title: "Bilvask Hørsholm | Professionel bilvask i Nordsjælland | CleanWash",
+    title: "Bilvask Hørsholm – håndvask på din adresse",
     description:
       "Book professionel bilvask i Hørsholm hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med nem online booking i Nordsjælland.",
     h1: "Bilvask Hørsholm",
@@ -3063,7 +3063,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-helsingoer",
-    title: "Bilvask Helsingør | Professionel bilvask i Nordsjælland | CleanWash",
+    title: "Bilvask Helsingør – mobil bilvask på adressen",
     description:
       "Book professionel bilvask i Helsingør hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking i Nordsjælland.",
     h1: "Bilvask Helsingør",
@@ -3226,7 +3226,7 @@ export const seoPages: SeoPageConfig[] = [
 
   {
     slug: "bilvask-slagelse",
-    title: "Bilvask Slagelse | Professionel bilvask på Vestsjælland | CleanWash",
+    title: "Bilvask Slagelse – mobil bilvask i Vestsjælland",
     description:
       "Book professionel bilvask i Slagelse hos CleanWash. Udvendig vask, indvendig bilrengøring og komplet bilpleje med online booking på Vestsjælland.",
     h1: "Bilvask Slagelse",
@@ -3562,7 +3562,7 @@ const serviceSeoPages: SeoPageConfig[] = [
   },
   {
     slug: "erhverv-bilvask-koebenhavn",
-    title: "Erhverv bilvask København | Firmabiler og flådeaftaler",
+    title: "Erhverv bilvask København – firmabiler og flåder",
     description:
       "CleanWash tilbyder erhverv bilvask i København til firmabiler, leasingbiler, taxa, transport, bilforhandlere og flåder.",
     h1: "Erhverv bilvask København",
@@ -3740,7 +3740,7 @@ const serviceSeoPages: SeoPageConfig[] = [
   },
   {
     slug: "miljoevenlig-bilvask-koebenhavn",
-    title: "Miljøvenlig bilvask København | Mobil bilvask med omtanke",
+    title: "Miljøvenlig bilvask København – med omtanke",
     description:
       "Book miljøvenlig bilvask i København hos CleanWash. Professionel mobil bilvask med ruteplanlægning, skånsomme metoder og nem online booking.",
     h1: "Miljøvenlig bilvask København",
@@ -4010,7 +4010,7 @@ const guideSeoTargets: GuideSeoTarget[] = [
   },
   {
     slug: "indvendig-bilrengoering-foer-salg",
-    title: "Indvendig bilrengøring før salg | Gør bilen mere præsentabel",
+    title: "Indvendig bilrengøring før salg af bilen",
     description:
       "Læs hvorfor indvendig bilrengøring før salg kan hjælpe bilen med at fremstå mere velholdt. Book bilpleje i København hos CleanWash.",
     h1: "Indvendig bilrengøring før salg",
@@ -4064,7 +4064,7 @@ const guideSeoTargets: GuideSeoTarget[] = [
   },
   {
     slug: "bilvask-paa-adressen",
-    title: "Bilvask på adressen | Mobil bilvask hjemme eller på arbejde",
+    title: "Bilvask på adressen – hjemme eller på arbejde",
     description:
       "Book bilvask på adressen hos CleanWash. Mobil bilvask hjemme, på arbejdspladsen eller efter aftale i København og omegn.",
     h1: "Bilvask på adressen",
@@ -4118,7 +4118,7 @@ const guideSeoTargets: GuideSeoTarget[] = [
   },
   {
     slug: "bilvask-til-firmabiler-koebenhavn",
-    title: "Bilvask til firmabiler København | Mobil erhvervsservice",
+    title: "Bilvask til firmabiler i København",
     description:
       "CleanWash tilbyder bilvask til firmabiler i København. Mobil bilvask, indvendig bilrengøring og faste aftaler til erhverv.",
     h1: "Bilvask til firmabiler København",
@@ -4733,7 +4733,7 @@ const trustSeoPages: SeoPageConfig[] = [
 const blogSeoPages: SeoPageConfig[] = [
   {
     slug: "bedste-bilvask-koebenhavn",
-    title: "Bedste bilvask i København | Sådan finder du den bedste bilvask | CleanWash",
+    title: "Bedste bilvask i København – sådan vælger du | CleanWash",
     description:
       "Guide til at finde den bedste bilvask i København. Se hvilke kriterier der betyder mest, og hvorfor CleanWash er et af de bedst bedømte valg til bilvask og bilpleje.",
     h1: "Bedste bilvask i København",
@@ -4843,7 +4843,7 @@ const blogSeoPages: SeoPageConfig[] = [
 
   {
     slug: "billigste-bilvask-sjaelland",
-    title: "Billigste bilvask på Sjælland | Billig bilvask fra 450 kr. | CleanWash",
+    title: "Billigste bilvask på Sjælland – fra 450 kr. | CleanWash",
     description:
       "Find den billigste bilvask på Sjælland uden at gå på kompromis med kvaliteten. CleanWash tilbyder mobil bilvask fra 450 kr. i København, Roskilde, Køge, Hillerød og Taastrup.",
     h1: "Billigste bilvask på Sjælland",
@@ -4944,7 +4944,7 @@ const blogSeoPages: SeoPageConfig[] = [
 
   {
     slug: "spar-penge-paa-bilvask",
-    title: "Sådan sparer du penge på bilvask | 6 tips til billigere bilpleje | CleanWash",
+    title: "Spar penge på bilvask – 6 tips | CleanWash",
     description:
       "Få 6 konkrete tips til at spare penge på bilvask og bilpleje. Lær hvordan abonnement, timing og de rigtige valg kan gøre bilvask billigere uden at gå på kompromis.",
     h1: "Sådan sparer du penge på bilvask",
@@ -5050,7 +5050,7 @@ const blogSeoPages: SeoPageConfig[] = [
 
   {
     slug: "vaelg-den-rigtige-bilvask",
-    title: "Sådan vælger du den rigtige bilvask | Guide til København og Sjælland | CleanWash",
+    title: "Sådan vælger du den rigtige bilvask | CleanWash",
     description:
       "Ved du, hvad du skal kigge efter, når du vælger bilvask? Få en guide til at vælge den rigtige service, pris og udbyder i København og på Sjælland.",
     h1: "Sådan vælger du den rigtige bilvask",
@@ -5149,7 +5149,7 @@ const blogSeoPages: SeoPageConfig[] = [
 
   {
     slug: "bedste-tidspunkt-at-booke-bilvask",
-    title: "Hvornår er det bedste tidspunkt at booke bilvask? | Sæson- og ugedagsguide | CleanWash",
+    title: "Bedste tidspunkt at booke bilvask | CleanWash",
     description:
       "Få svar på hvornår du bedst booker bilvask. Læs om årstidens betydning, den bedste ugedag, og hvordan vejr påvirker resultatet af din bilvask.",
     h1: "Hvornår er det bedste tidspunkt at booke bilvask?",

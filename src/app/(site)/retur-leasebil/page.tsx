@@ -18,14 +18,14 @@ import { absoluteUrl } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: "Retur leasebil | Afleveringsvask til leasebil – CleanWash",
+  title: "Retur leasebil – afleveringsvask til leasingbil",
   description:
     "Aflever din leasebil syns-klar. CleanWash tilbyder retur- og afleveringsvask til leasebil fra 2.200 kr. Tjek pris med din nummerplade og book online.",
   alternates: {
     canonical: "/retur-leasebil",
   },
   openGraph: {
-    title: "Retur leasebil | Afleveringsvask til leasebil – CleanWash",
+    title: "Retur leasebil – afleveringsvask til leasingbil",
     description:
       "Professionel retur- og afleveringsvask til leasebil. Indtast din nummerplade og se prisen med det samme.",
     url: "/retur-leasebil",
